@@ -123,6 +123,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  app.post("/api/auth/firebase-login", async (req: Request, res: Response) => {
+    try {
+      // التحقق من بيانات المستخدم القادمة من Firebase
+      // في بيئة الإنتاج، يجب التحقق من token مع Firebase Admin SDK
+      // لكن في هذا المثال البسيط، سنقبل المعلومات كما هي
+      const { email, name } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "بريد إلكتروني غير صالح" });
+      }
+      
+      // البحث عن المستخدم بواسطة البريد الإلكتروني
+      let user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // إنشاء مستخدم جديد إذا لم يكن موجودًا بالفعل
+        const username = email.split('@')[0]; // استخدام جزء من البريد الإلكتروني كاسم مستخدم
+        
+        user = await storage.createUser({
+          username,
+          password: '', // لا نحتاج إلى كلمة مرور مع مصادقة Firebase
+          name: name || username,
+          email,
+          role: 'user',
+          permissions: ['read'],
+          active: true
+        });
+        
+        await storage.createActivityLog({
+          action: "register",
+          entityType: "user",
+          entityId: user.id,
+          details: "تسجيل مستخدم جديد عبر Firebase",
+          userId: user.id
+        });
+      }
+      
+      // حفظ معلومات المستخدم في الجلسة
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.role = user.role;
+      
+      await storage.createActivityLog({
+        action: "login",
+        entityType: "user",
+        entityId: user.id,
+        details: "تسجيل دخول عبر Firebase",
+        userId: user.id
+      });
+      
+      return res.status(200).json({
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        permissions: user.permissions
+      });
+    } catch (error) {
+      console.error('Firebase login error:', error);
+      return res.status(500).json({ message: "خطأ في تسجيل الدخول عبر Firebase" });
+    }
+  });
+
   app.get("/api/auth/session", async (req: Request, res: Response) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "غير مصرح" });

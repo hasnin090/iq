@@ -7,7 +7,6 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { signInWithGoogle } from '@/lib/firebase';
 
 const loginSchema = z.object({
   username: z.string().min(1, "اسم المستخدم مطلوب"),
@@ -17,7 +16,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [shakeAnimation, setShakeAnimation] = useState(false);
 
@@ -109,7 +108,18 @@ export default function Login() {
                   type="button"
                   variant="outline"
                   className="w-full py-3 mt-3 border border-muted-foreground bg-white bg-opacity-10 text-neutral-light hover:bg-white hover:bg-opacity-15"
-                  onClick={() => signInWithGoogle()}
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      await loginWithGoogle();
+                    } catch (error) {
+                      console.error('Google login error:', error);
+                      setShakeAnimation(true);
+                      setTimeout(() => setShakeAnimation(false), 500);
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
                   disabled={isLoading}
                 >
                   <svg className="w-5 h-5 ml-2" viewBox="0 0 24 24">
