@@ -36,14 +36,21 @@ export const uploadFile = async (file: File, path: string): Promise<string> => {
  */
 export const deleteFile = async (fileUrl: string): Promise<void> => {
   try {
-    // استخراج المسار من الـ URL
-    const fileRef = ref(storage, fileUrl);
+    // الحصول على مرجع من URL
+    // ملاحظة: هذا يعمل فقط مع URLs من Firebase Storage
+    // إذا تم تخزين URL مباشرة من getDownloadURL()
+    const httpsReference = ref(storage, fileUrl);
     
     // حذف الملف
-    await deleteObject(fileRef);
+    await deleteObject(httpsReference);
   } catch (error) {
     console.error("خطأ في حذف الملف:", error);
-    throw new Error("فشل في حذف الملف. يرجى المحاولة مرة أخرى.");
+    // نلقي خطأ أكثر تفصيلاً
+    if (error instanceof Error) {
+      throw new Error(`فشل في حذف الملف: ${error.message}`);
+    } else {
+      throw new Error("فشل في حذف الملف. يرجى المحاولة مرة أخرى.");
+    }
   }
 };
 

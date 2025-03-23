@@ -15,8 +15,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, FileImage, FilePdf, FileIcon, Download, Eye, Trash2, Loader2 } from 'lucide-react';
+import { FileText, FileImage, File, FileIcon, Download, Eye, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { deleteFile, getFileType } from '@/lib/firebase-storage';
 
 interface Document {
   id: number;
@@ -44,11 +45,28 @@ interface DocumentListProps {
 export function DocumentList({ documents, projects, isLoading, onDocumentUpdated }: DocumentListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
   
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => {
-      return apiRequest('DELETE', `/api/documents/${id}`, undefined);
+    mutationFn: async (document: Document) => {
+      setDeleting(true);
+      try {
+        // أولا حذف الملف من Firebase Storage
+        if (document.fileUrl) {
+          try {
+            await deleteFile(document.fileUrl);
+          } catch (error) {
+            console.error("فشل في حذف الملف من التخزين:", error);
+            // نستمر في الحذف من قاعدة البيانات حتى لو فشل حذف الملف
+          }
+        }
+        
+        // ثم حذف السجل من قاعدة البيانات
+        return apiRequest('DELETE', `/api/documents/${document.id}`, undefined);
+      } finally {
+        setDeleting(false);
+      }
     },
     onSuccess: () => {
       toast({
@@ -73,7 +91,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
   
   const confirmDelete = () => {
     if (documentToDelete) {
-      deleteMutation.mutate(documentToDelete.id);
+      deleteMutation.mutate(documentToDelete);
     }
     setDeleteDialogOpen(false);
   };
@@ -91,7 +109,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
   
   const getFileIcon = (fileType: string) => {
     if (fileType.includes('pdf')) {
-      return <FilePdf className="h-12 w-12 text-destructive" />;
+      return <File className="h-12 w-12 text-destructive" />;
     } else if (fileType.includes('image')) {
       return <FileImage className="h-12 w-12 text-primary" />;
     } else if (fileType.includes('word')) {
@@ -102,24 +120,22 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
   };
   
   const downloadFile = (document: Document) => {
-    // In a real app, this would download from Firebase Storage
+    // فتح الملف في نافذة جديدة للتنزيل المباشر
     toast({
       title: "بدء التنزيل",
       description: `جاري تنزيل ${document.name}`,
     });
     
-    // Simulate download by opening in new tab
     window.open(document.fileUrl, '_blank');
   };
   
   const viewFile = (document: Document) => {
-    // In a real app, this would view the file or open a modal
+    // فتح الملف للعرض في نافذة جديدة
     toast({
       title: "عرض المستند",
       description: `جاري عرض ${document.name}`,
     });
     
-    // Simulate view by opening in new tab
     window.open(document.fileUrl, '_blank');
   };
   
