@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { signInWithGoogle } from '@/lib/firebase';
 
 const loginSchema = z.object({
   username: z.string().min(1, "اسم المستخدم مطلوب"),
@@ -97,6 +99,28 @@ export default function Login() {
                   </>
                 ) : "دخول"}
               </Button>
+              
+              <div className="mt-6">
+                <Separator className="my-4">
+                  <span className="px-2 text-sm text-muted-foreground">أو</span>
+                </Separator>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full py-3 mt-3 border border-muted-foreground bg-white bg-opacity-10 text-neutral-light hover:bg-white hover:bg-opacity-15"
+                  onClick={() => signInWithGoogle()}
+                  disabled={isLoading}
+                >
+                  <svg className="w-5 h-5 ml-2" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"
+                    />
+                  </svg>
+                  تسجيل الدخول باستخدام جوجل
+                </Button>
+              </div>
             </form>
           </Form>
         </div>
