@@ -1,0 +1,1069 @@
+body {
+      background-color: #0D1B2A;
+      color: #E0E1DD;
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 0;
+    }
+    h2, h3 {
+      color: #03A9F4;
+    }
+
+/* توحيد أزرار النماذج */
+.form-group button, .form-grid button, .tab-content button, button {
+    max-width: 280px;
+    margin: 10px auto;
+    display: block;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* أزرار متجاوبة ومريحة للمس */
+button, .tab-button {
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+
+/* عند تمرير المؤشر */
+button:hover, .tab-button:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 480px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .tab-button {
+        padding: 10px;
+        font-size: 14px;
+    }
+    .header .logo {
+        font-size: 16px;
+    }
+    .sidebar button {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+
+button, .tab-button {
+    margin-bottom: 10px !important;
+}
+
+.login-screen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #1B263B, #0D1B2A);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.login-screen.active {
+    display: flex;
+    opacity: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.5s ease-in-out;
+}
+
+.login-screen.active .login-container {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.login-box {
+    background: rgba(38, 50, 56, 0.95);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-box h2 {
+    color: #03A9F4;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.login-box input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px #0288D1;
+    outline: none;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #0288D1, #03A9F4);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-box button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(3, 169, 244, 0.3);
+}
+
+.login-box button:active {
+    transform: translateY(0);
+}
+
+.login-error {
+    color: #EF5350;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.login-error.visible {
+    opacity: 1;
+}
+
+#mainApp {
+    display: none;
+}
+
+#mainApp:not(.hidden) {
+    display: block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#login {
+    background: rgba(38, 50, 56, 0.95);
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+    backdrop-filter: blur(10px);
+}
+#login h2 {
+    font-size: 22px;
+    color: #03A9F4;
+    margin-bottom: 10px;
+}
+#login .slogan {
+    font-size: 14px;
+    color: #B0BEC5;
+    margin-bottom: 15px;
+}
+#login .input-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+#login input {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+#login input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px #0288D1;
+}
+#login button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg, #0288D1, #03A9F4);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+#login button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(3, 169, 244, 0.3);
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* تحسين عرض الأزرار: فصل بصري بين كل زر */
+button, .tab-button, .form-group button, .form-grid button {
+    margin-bottom: 12px !important;
+    margin-top: 4px;
+    border-radius: 8px !important;
+    display: inline-block;
+}
+
+/* في التبويبات: فصل بسيط ومرئي */
+.tabs {
+    gap: 12px !important;
+    padding: 10px;
+}
+
+/* عند تصغير الشاشة: تأكيد فصل الأزرار العمودية */
+@media (max-width: 768px) {
+    .tab-button {
+        margin-bottom: 8px !important;
+    }
+    button {
+        width: 100% !important;
+    }
+    .sidebar {
+        width: 240px;
+    }
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    .menu-toggle {
+        display: flex;
+    }
+    .content {
+        margin-left: 0;
+        padding: 70px 15px 15px;
+    }
+    .sidebar.active ~ .content {
+        margin-left: 0;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .transaction-form .form-row {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    .stat-card {
+        padding: 15px;
+    }
+    .tab-button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 100%;
+    }
+    .header {
+        padding: 8px 15px;
+    }
+    .header .logo {
+        font-size: 16px;
+    }
+    .form-buttons button {
+        width: 100%;
+    }
+    .actions-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .view-toggle, .export-actions {
+        width: 100%;
+    }
+    .transaction-section {
+        padding: 15px;
+    }
+    input, select, textarea {
+        font-size: 16px;
+    }
+}
+
+/* تعديل زر القائمة ليصبح مستطيلاً بدلاً من دائري */
+.menu-toggle {
+    position: fixed;
+    top: 70px;
+    left: 20px;
+    font-size: 22px;
+    background: linear-gradient(45deg, #0288D1, #03A9F4);
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    color: white;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 3px 10px rgba(3, 169, 244, 0.4);
+}
+
+.menu-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+}
+
+.menu-toggle:active {
+    transform: scale(0.95);
+}
+
+/* فصل الحقول داخل تبويب إضافة عملية */
+.form-group input,
+.form-group select {
+    margin-bottom: 16px !important;
+}
+
+/* زيادة تباعد العناصر داخل form-grid */
+.form-grid {
+    row-gap: 20px !important;
+}
+
+/* تحسين شكل زر الإضافة ليكون مستقل بصريًا */
+#add-op-btn {
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
+}
+
+
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0D1B2A, #1B263B);
+            color: #E0E1DD;
+            direction: rtl;
+            font-size: 16px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body.dark-theme {
+            background: linear-gradient(135deg, #121212, #1E1E1E);
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #0288D1;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 1002;
+        }
+        .header .logo {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .header .user-info {
+            font-size: 14px;
+        }
+        .sidebar {
+    position: fixed;
+    right: -280px;
+    top: 60px;
+    width: 280px;
+    height: calc(100vh - 60px);
+    background: linear-gradient(135deg, #1565C0, #0288D1);
+    padding: 20px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: -2px 0 20px rgba(0,0,0,0.5);
+    border-radius: 20px 0 0 20px;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.sidebar.active {
+    right: 0;
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidebar.active {
+    right: 0;
+}
+        .sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 20px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: right;
+}
+
+.sidebar a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-5px);
+}
+
+.sidebar a.active {
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.sidebar a i {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+        .menu-toggle {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            font-size: 22px;
+            background: linear-gradient(135deg, #0288D1, #03A9F4);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            color: white;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(3, 169, 244, 0.3);
+        }
+        .menu-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(3, 169, 244, 0.4);
+        }
+        .menu-toggle:active {
+            transform: scale(0.95);
+        }
+        .content {
+            margin-left: 270px;
+            padding: 80px 20px 20px;
+            transition: margin-left 0.4s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .menu-toggle {
+                display: flex;
+            }
+            .content {
+                margin-left: 0;
+            }
+            .sidebar.active ~ .content {
+                margin-left: 250px;
+            }
+        }
+        .card {
+            background: #263238;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, opacity 0.5s ease;
+            opacity: 1;
+            transform: translateY(0);
+            width: 100%;
+            display: block;
+        }
+        .card.dark-theme {
+            background: #212121;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+        }
+        .card h3 {
+            margin: 0 0 10px;
+            color: #4FC3F7;
+            font-size: 18px;
+        }
+        input, select {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border: 1px solid #37474F;
+            font-family: inherit;
+            width: 100%;
+            box-sizing: border-box;
+            background: #37474F;
+            color: #E0E1DD;
+            transition: all 0.3s ease;
+        }
+        button {
+            background: linear-gradient(45deg, #1976D2, #2196F3);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        button:hover {
+            background: #039BE5;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .success-message {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px;
+            background: #4CAF50;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            color: white;
+        }
+        .success-message.visible {
+            opacity: 1;
+        }
+        .delete-btn {
+            background-color: #EF5350;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .delete-btn:hover {
+            background-color: #F44336;
+        }
+        .edit-btn {
+            background-color: #FFB300;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .edit-btn:hover {
+            background-color: #FFA000;
+        }
+        .print-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 5px;
+        }
+        .print-btn:hover {
+            background-color: #388E3C;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            background: #37474F;
+            border-radius: 6px;
+            padding: 5px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            background: #455A64;
+            border: none;
+            border-radius: 6px;
+            color: #E0E1DD;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+        }
+        .tab-button.active {
+            background: #0288D1;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+            color: #FFFFFF;
+        }
+        .tab-button:hover {
+            background: #039BE5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, display 0s linear 0.3s;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .tab-content:empty::after {
+            content: "لا يوجد محتوى متاح حاليًا. أضف بيانات للعرض.";
+            color: #B0BEC5;
+            text-align: center;
+            padding: 20px;
+            display: block;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: start;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 5px;
+            color: #4FC3F7;
+            font-weight: 700;
+        }
+        .form-group input, .form-group select {
+            margin: 0;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        button {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .form-group input, .form-group select, button {
+                max-width: 100%;
+            }
+            .tabs {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .tab-button {
+                width: 100%;
+                font-size: 14px;
+            }
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        #operations-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #37474F;
+            border-radius: 6px;
+        }
+        #operations-table th, #operations-table td {
+            padding: 10px;
+            text-align: right;
+            border-bottom: 1px solid #455A64;
+        }
+        #operations-table th {
+            background: #0288D1;
+            color: white;
+        }
+        #operations-table tr:hover {
+            background: #455A64;
+            transition: background 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            #operations-table {
+                display: none;
+            }
+            .table-card {
+                display: block;
+                background: #263238;
+                border-radius: 8px;
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1004;
+        }
+        .modal-content {
+            background: #263238;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+        }
+        .save-btn, .cancel-btn {
+            width: 48%;
+            margin: 5px 1%;
+        }
+        .notification-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background: #F44336;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            z-index: 1003;
+            transform: translateY(-100%);
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            opacity: 0;
+        }
+        .notification-bar.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .notification-bar.success {
+            background: #4CAF50;
+        }
+        .notification-bar.warning {
+            background: #FF9800;
+        }
+
+.shake {
+    animation: shake 0.3s;
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+.section {
+    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+    padding: 20px;
+    background: rgba(27, 38, 59, 0.7);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.section.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.add-transaction,
+.add-project,
+.add-user,
+.add-document {
+    background: rgba(38, 50, 56, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    display: block !important;
+}
+
+.transaction-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.transaction-form .form-group {
+    margin-bottom: 15px;
+}
+
+.transaction-form .form-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.add-transaction .form-group {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.add-transaction .form-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    margin-top: 5px;
+}
+
+.add-transaction label {
+    display: block;
+    margin-bottom: 5px;
+    color: #03A9F4;
+    font-weight: bold;
+}
+
+.transactions-container,
+.documents-container,
+.projects-container,
+.users-container {
+    background: rgba(27, 38, 59, 0.7);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    display: block !important;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.transactions-header {
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgba(3, 169, 244, 0.3);
+    padding-bottom: 10px;
+}
+
+.transaction-form {
+    display: grid;
+    gap: 15px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.transaction-form {
+    display: block;
+    width: 100%;
+}
+
+.transaction-section {
+    background: rgba(38, 50, 56, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.transaction-section h3 {
+    color: #03A9F4;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transaction-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.transaction-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1pxsolid rgba(255, 255, 255, 0.2);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #03A9F4;
+    outline: none;
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    min-width: 200px;
+    padding: 12px 24px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+.transaction-form .form-group {
+    margin-bottom: 15px;
+}
+
+.transaction-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #03A9F4;
+}
+
+.transaction-form input,
+.transaction-form select,
+.transaction-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.transaction-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-buttons {
+    margin-top: 20px;
+    text-align: center;
+    display: block;
+    width: 100%;
+}
+
+.form-buttons button {
+    display: inline-block;
+    background: linear-gradient(45deg, #1976D2, #2196F3);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    width: auto;
+    min-width: 200px;
+}
+
+.form-buttons button:hover {
+    background: linear-gradient(45deg, #1565C0, #1976D2);
+    transform: translateY(-2px);
+}
+
+.section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(3, 169, 244, 0.3);
+}
+
+.transaction-card {
+    background: rgba(38, 50, 56, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+    cursor: pointer;
+}
+
+.transaction-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.transaction-card.new {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
