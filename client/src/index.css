@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 218 38% 11%;
+    --foreground: 218 38% 95%;
+    
+    --card: 217 37% 16%;
+    --card-foreground: 218 38% 95%;
+    
+    --popover: 218 38% 11%;
+    --popover-foreground: 218 38% 95%;
+    
+    --primary: 200 98% 39%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 216 34% 17%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 210 22% 75%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 220 30% 20%;
+    --input: 220 30% 25%;
+    --ring: 199 89% 48%;
+    
+    --radius: 0.5rem;
+    
+    --chart-1: 200 98% 39%;
+    --chart-2: 0 84% 60%;
+    --chart-3: 141 70% 45%;
+    --chart-4: 39 100% 50%;
+    --chart-5: 187 92% 53%;
+    
+    --sidebar-background: 206 83% 30%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 240 10% 3.9%;
+    --sidebar-border: 220 30% 40%;
+    --sidebar-ring: 199 89% 48%;
+  }
+  
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-secondary;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-sm;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent;
+  }
+}
+
+@layer components {
+  .spinner {
+    @apply w-5 h-5 border-2 border-transparent border-t-current rounded-full animate-spin inline-block;
+  }
+  
+  .button-primary {
+    @apply bg-gradient-to-r from-primary to-accent text-white font-medium py-2 px-4 rounded-md hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary focus:outline-none text-foreground;
+  }
+  
+  /* Card animations */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+  
+  .shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+}
