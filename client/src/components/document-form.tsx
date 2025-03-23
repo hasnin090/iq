@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -10,9 +10,25 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Upload } from 'lucide-react';
-import { uploadFile, getFileType, getReadableFileSize } from '@/lib/firebase-storage';
+import { 
+  Loader2, Upload, File, FileImage, FileText, FileIcon, 
+  AlertCircle, CheckCircle, Trash2, UploadCloud, Info 
+} from 'lucide-react';
+import { 
+  uploadFile, 
+  getFileType, 
+  getReadableFileSize 
+} from '@/lib/firebase-storage';
 import { useAuth } from '@/hooks/use-auth';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Project {
   id: number;
@@ -25,8 +41,20 @@ interface DocumentFormProps {
   isLoading: boolean;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_FILE_TYPES = [
+  "application/pdf", 
+  "image/jpeg", 
+  "image/png", 
+  "image/jpg", 
+  "application/msword", 
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
+  "text/plain",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+];
+
+const ACCEPTED_FILE_EXTENSIONS = ".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx";
 
 const documentSchema = z.object({
   name: z.string().min(3, "اسم المستند يجب أن يحتوي على الأقل 3 أحرف"),
@@ -34,10 +62,11 @@ const documentSchema = z.object({
   projectId: z.string().optional(),
   file: z
     .any()
-    .refine((file) => file?.size <= MAX_FILE_SIZE, "حجم الملف يجب أن يكون أقل من 5 ميجابايت")
+    .refine((file) => !!file, "الملف مطلوب")
+    .refine((file) => file?.size <= MAX_FILE_SIZE, `حجم الملف يجب أن يكون أقل من ${MAX_FILE_SIZE / 1024 / 1024} ميجابايت`)
     .refine(
       (file) => ACCEPTED_FILE_TYPES.includes(file?.type),
-      "صيغة الملف غير مدعومة. الصيغ المدعومة: PDF, JPEG, PNG, DOC, DOCX"
+      `صيغة الملف غير مدعومة. الصيغ المدعومة: ${ACCEPTED_FILE_EXTENSIONS.replaceAll(',', ', ')}`
     ),
 });
 
@@ -46,7 +75,9 @@ type DocumentFormValues = z.infer<typeof documentSchema>;
 export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProps) {
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   
   const form = useForm<DocumentFormValues>({
@@ -58,12 +89,100 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
     },
   });
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      form.setValue("file", selectedFile);
+  const handleFileChange = (selectedFile: File) => {
+    setFile(selectedFile);
+    form.setValue("file", selectedFile);
+    
+    // محاولة استخدام اسم الملف كاسم للمستند إذا كان حقل الاسم فارغًا
+    if (!form.getValues("name")) {
+      // إزالة الامتداد من اسم الملف
+      const fileName = selectedFile.name.split('.').slice(0, -1).join('.');
+      form.setValue("name", fileName);
     }
+  };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileChange(e.target.files[0]);
+    }
+  };
+  
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileChange(e.dataTransfer.files[0]);
+    }
+  }, []);
+  
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+  
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+  
+  const simulateProgress = () => {
+    setUploadProgress(0);
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return prev;
+        }
+        return prev + 5;
+      });
+    }, 200);
+    
+    return () => clearInterval(interval);
+  };
+  
+  const getFileIcon = (fileType?: string) => {
+    if (!fileType) return <FileIcon className="h-12 w-12 text-muted-foreground" />;
+    
+    if (fileType.includes('pdf')) {
+      return <File className="h-12 w-12 text-destructive" />;
+    } else if (fileType.includes('image')) {
+      return <FileImage className="h-12 w-12 text-primary" />;
+    } else if (fileType.includes('word') || fileType.includes('document')) {
+      return <FileText className="h-12 w-12 text-primary-light" />;
+    } else {
+      return <FileIcon className="h-12 w-12 text-muted-foreground" />;
+    }
+  };
+  
+  const getFileTypeBadge = (fileType?: string) => {
+    if (!fileType) return null;
+    
+    const type = getFileType(fileType);
+    
+    let color = "";
+    switch(type) {
+      case 'pdf':
+        color = "bg-destructive/10 text-destructive border-destructive/20";
+        break;
+      case 'image':
+        color = "bg-primary/10 text-primary border-primary/20";
+        break;
+      case 'document':
+        color = "bg-primary-light/10 text-primary-light border-primary-light/20";
+        break;
+      default:
+        color = "bg-muted/10 text-muted-foreground border-muted/20";
+    }
+    
+    return (
+      <Badge variant="outline" className={`${color} capitalize`}>
+        {type}
+      </Badge>
+    );
   };
   
   const mutation = useMutation({
@@ -72,12 +191,17 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
         throw new Error("يرجى اختيار ملف للتحميل");
       }
       
-      setUploading(true);
+      // بدء محاكاة التقدم
+      const clearProgress = simulateProgress();
+      
       try {
         // تحميل الملف إلى Firebase Storage
         const userId = user?.id || 'unknown';
         const storageFolder = `documents/${userId}`;
         const fileUrl = await uploadFile(file, storageFolder);
+        
+        // تحديث التقدم إلى 100%
+        setUploadProgress(100);
         
         // بمجرد اكتمال التحميل، حفظ المعلومات في قاعدة البيانات
         return apiRequest('POST', '/api/documents', {
@@ -89,7 +213,8 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
           uploadDate: new Date()
         });
       } finally {
-        setUploading(false);
+        // تنظيف وظيفة التقدم
+        clearProgress();
       }
     },
     onSuccess: () => {
@@ -103,9 +228,11 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
         projectId: "",
       });
       setFile(null);
+      setUploadProgress(0);
       onSubmit();
     },
     onError: (error) => {
+      setUploadProgress(0);
       toast({
         variant: "destructive",
         title: "خطأ",
@@ -200,64 +327,144 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
             name="file"
             render={({ field: { onChange, value, ...rest } }) => (
               <FormItem>
-                <FormLabel>الملف</FormLabel>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                <FormLabel className="flex items-center">
+                  الملف
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="inline-flex">
+                          <Info className="h-4 w-4 mr-1 text-muted-foreground cursor-help" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">
+                          يمكنك رفع ملفات بصيغة PDF أو صور (JPG, PNG) أو مستندات (DOC, DOCX) أو ملفات نصية (TXT) أو جداول بيانات (XLS, XLSX).
+                          الحد الأقصى لحجم الملف هو {MAX_FILE_SIZE / 1024 / 1024} ميجابايت.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </FormLabel>
+                
+                <div 
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors
+                    ${isDragging 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50 hover:bg-secondary/80'
+                    } 
+                    ${mutation.isPending ? 'opacity-60' : ''}
+                  `}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                >
                   {file ? (
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">تم اختيار: {file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB - {file.type}
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setFile(null);
-                          onChange(null);
-                        }}
-                        className="mt-2"
-                        disabled={isLoading || mutation.isPending}
-                      >
-                        اختيار ملف آخر
-                      </Button>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center mb-2">
+                        {getFileIcon(file.type)}
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">{file.name}</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <p className="text-xs text-muted-foreground">
+                            {getReadableFileSize(file.size)}
+                          </p>
+                          {getFileTypeBadge(file.type)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-center mt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setFile(null);
+                            onChange(null);
+                          }}
+                          className="mr-2"
+                          disabled={isLoading || mutation.isPending}
+                        >
+                          <Trash2 className="ml-1 h-4 w-4" />
+                          حذف
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isLoading || mutation.isPending}
+                        >
+                          <Upload className="ml-1 h-4 w-4" />
+                          تغيير
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <Upload className="mx-auto h-10 w-10 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">اضغط لاختيار ملف أو قم بسحب الملف وإفلاته هنا</p>
-                      <p className="text-xs text-muted-foreground">
-                        PDF, JPEG, PNG, DOC, DOCX - أقصى حجم 5 ميجابايت
-                      </p>
+                      <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <div>
+                        <p className="text-base font-medium">اضغط لاختيار ملف أو قم بسحب الملف وإفلاته هنا</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          PDF, JPEG, PNG, DOC, DOCX, TXT, XLS, XLSX - أقصى حجم {MAX_FILE_SIZE / 1024 / 1024} ميجابايت
+                        </p>
+                      </div>
+                      
                       <Input
                         id="file-upload"
                         type="file"
                         className="hidden"
+                        ref={fileInputRef}
                         onChange={(e) => {
-                          handleFileChange(e);
+                          handleInputChange(e);
                           onChange(e.target.files?.[0] || null);
                         }}
-                        accept=".pdf,.jpeg,.jpg,.png,.doc,.docx"
+                        accept={ACCEPTED_FILE_EXTENSIONS}
                         disabled={isLoading || mutation.isPending}
                         {...rest}
                       />
+                      
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => document.getElementById('file-upload')?.click()}
+                        className="relative"
+                        onClick={() => fileInputRef.current?.click()}
                         disabled={isLoading || mutation.isPending}
                       >
+                        <Upload className="ml-2 h-4 w-4" />
                         اختيار ملف
                       </Button>
                     </div>
                   )}
                 </div>
+
                 <FormMessage />
+                
+                {form.formState.errors.file && (
+                  <Alert variant="destructive" className="mt-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>خطأ في الملف</AlertTitle>
+                    <AlertDescription>
+                      {form.formState.errors.file.message as string}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </FormItem>
             )}
           />
           
-          <div className="text-center">
+          {mutation.isPending && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">جاري رفع الملف...</span>
+                <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+          )}
+          
+          <div className="text-center pt-2">
             <Button 
               type="submit" 
               className="px-6 py-3 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
@@ -268,7 +475,12 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
                   <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                   جاري الرفع...
                 </>
-              ) : "رفع المستند"}
+              ) : (
+                <>
+                  <UploadCloud className="ml-2 h-4 w-4" />
+                  رفع المستند
+                </>
+              )}
             </Button>
           </div>
         </form>
