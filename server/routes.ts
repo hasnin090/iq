@@ -35,7 +35,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: true,
     saveUninitialized: true,
     cookie: { 
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      sameSite: 'lax', // يسمح للكوكيز بالانتقال من صفحة لأخرى في نفس الدومين
+      secure: false, // تغيير إلى true في بيئة الإنتاج مع HTTPS
+      path: '/'
     },
     // استخدام تخزين الذاكرة بشكل مؤقت للتغلب على المشكلة
     store: new MemoryStoreSession({

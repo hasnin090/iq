@@ -46,6 +46,8 @@ export default function Login() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify(formData),
         credentials: 'include',
@@ -65,13 +67,35 @@ export default function Login() {
       // تخزين بيانات المستخدم في localStorage
       localStorage.setItem('auth_user', JSON.stringify(userData));
       
+      // إضافة فحص الجلسة قبل التوجيه
+      try {
+        console.log('Checking session before redirect...');
+        const sessionCheckResponse = await fetch('/api/auth/session', {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        console.log('Session check response:', sessionCheckResponse.status);
+        
+        if (sessionCheckResponse.ok) {
+          console.log('Session is valid, proceeding with redirect');
+        } else {
+          console.warn('Session is not valid but continuing with fallback');
+        }
+      } catch (sessionError) {
+        console.error('Session check failed:', sessionError);
+      }
+      
       // إعادة تحميل الصفحة للانتقال إلى الصفحة الرئيسية (لوحة التحكم)
       // استخدام window.location.assign لإعادة توجيه أكثر موثوقية
       // وإضافة معلمة إضافية لضمان إعادة تحميل الصفحة
       console.log('توجيه إلى لوحة التحكم...');
       setTimeout(() => {
         window.location.assign('/?auth=' + new Date().getTime());
-      }, 500);
+      }, 1000);
       
     } catch (error) {
       console.error('Login submit error:', error);

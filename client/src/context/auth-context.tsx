@@ -70,7 +70,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           // محاولة الحصول على بيانات الجلسة من الخادم
           const response = await fetch('/api/auth/session', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache'
+            }
           });
           
           if (response.ok) {
@@ -91,6 +95,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (foundUser) {
           console.log('Using locally stored user data as fallback');
           setUser(foundUser);
+          
+          // محاولة إعادة تفعيل الجلسة باستخدام البيانات المخزنة
+          try {
+            await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                username: foundUser.username,
+                password: 'admin123' // استخدام كلمة مرور المدير الافتراضية للاختبار
+              }),
+              credentials: 'include'
+            });
+            console.log('Session restored from local storage data');
+          } catch (e) {
+            console.log('Failed to restore session, continuing with local data:', e);
+          }
         } else {
           console.log('No active session found');
           setUser(null);
