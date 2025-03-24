@@ -44,74 +44,106 @@ export default function Transactions() {
   };
   
   return (
-    <div className="space-y-8 py-6">
-      <h2 className="text-2xl font-bold text-primary-light pb-2 border-b border-neutral-dark border-opacity-20">إدارة الحسابات</h2>
-      
-      {/* Transaction Form */}
-      <TransactionForm 
-        projects={projects || []} 
-        onSubmit={handleFormSubmit} 
-        isLoading={projectsLoading}
-      />
-      
-      {/* Filters and Controls */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div>
-            <label className="block text-sm font-medium text-neutral mb-1" htmlFor="filterProject">المشروع</label>
-            <select 
-              id="filterProject" 
-              className="px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
-              onChange={(e) => handleFilterChange({ projectId: e.target.value ? parseInt(e.target.value) : undefined })}
-              value={filter.projectId || ''}
-            >
-              <option value="">كل المشاريع</option>
-              {projects?.map((project) => (
-                <option key={project.id} value={project.id}>{project.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-neutral mb-1" htmlFor="filterType">نوع العملية</label>
-            <select 
-              id="filterType" 
-              className="px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
-              onChange={(e) => handleFilterChange({ type: e.target.value || undefined })}
-              value={filter.type || ''}
-            >
-              <option value="">الكل</option>
-              <option value="income">ايراد</option>
-              <option value="expense">مصروف</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex gap-3 self-end mt-6 md:mt-0">
-          <button 
-            className={`px-3 py-2 bg-secondary rounded-lg text-neutral-light border border-secondary-light hover:border-primary-light transition-all ${currentView === 'cards' ? 'border-primary-light' : ''}`}
-            onClick={() => setCurrentView('cards')}
-          >
-            <i className="fas fa-th"></i> عرض البطاقات
-          </button>
-          <button 
-            className={`px-3 py-2 bg-secondary rounded-lg text-neutral-light border border-secondary-light hover:border-primary-light transition-all ${currentView === 'table' ? 'border-primary-light' : ''}`}
-            onClick={() => setCurrentView('table')}
-          >
-            <i className="fas fa-list"></i> عرض الجدول
-          </button>
-        </div>
+    <div className="py-6 px-4">
+      <div className="mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--primary))]">إدارة الحسابات</h2>
+        <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة المعاملات المالية للإيرادات والمصروفات</p>
       </div>
       
-      {/* Transaction List */}
-      <TransactionList 
-        transactions={transactions || []} 
-        projects={projects || []} 
-        viewType={currentView}
-        isLoading={transactionsLoading || projectsLoading}
-        onTransactionUpdated={() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-        }}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Filters and Controls */}
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 mb-2">
+              <h3 className="text-xl font-bold text-[hsl(var(--primary))] flex items-center space-x-2 space-x-reverse">
+                <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
+                <span>تصفية المعاملات</span>
+              </h3>
+              <div className="flex gap-3">
+                <button 
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center space-x-2 space-x-reverse ${
+                    currentView === 'cards' 
+                      ? 'bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))]' 
+                      : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border))] hover:border-[hsl(var(--primary))]'
+                  }`}
+                  onClick={() => setCurrentView('cards')}
+                >
+                  <i className="fas fa-th"></i>
+                  <span>بطاقات</span>
+                </button>
+                <button 
+                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center space-x-2 space-x-reverse ${
+                    currentView === 'table' 
+                      ? 'bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))]' 
+                      : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border))] hover:border-[hsl(var(--primary))]'
+                  }`}
+                  onClick={() => setCurrentView('table')}
+                >
+                  <i className="fas fa-list"></i>
+                  <span>جدول</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="filterProject">تصفية حسب المشروع</label>
+                <select 
+                  id="filterProject" 
+                  className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none"
+                  onChange={(e) => handleFilterChange({ projectId: e.target.value ? parseInt(e.target.value) : undefined })}
+                  value={filter.projectId || ''}
+                >
+                  <option value="">كل المشاريع</option>
+                  {projects?.map((project) => (
+                    <option key={project.id} value={project.id}>{project.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="filterType">تصفية حسب نوع العملية</label>
+                <select 
+                  id="filterType" 
+                  className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none"
+                  onChange={(e) => handleFilterChange({ type: e.target.value || undefined })}
+                  value={filter.type || ''}
+                >
+                  <option value="">كل العمليات</option>
+                  <option value="income">إيرادات</option>
+                  <option value="expense">مصروفات</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          {/* Transaction List */}
+          <TransactionList 
+            transactions={transactions || []} 
+            projects={projects || []} 
+            viewType={currentView}
+            isLoading={transactionsLoading || projectsLoading}
+            onTransactionUpdated={() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+            }}
+          />
+        </div>
+        
+        <div>
+          {/* Transaction Form */}
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
+            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+              <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
+              <span>إضافة معاملة جديدة</span>
+            </h3>
+            <TransactionForm 
+              projects={projects || []} 
+              onSubmit={handleFormSubmit} 
+              isLoading={projectsLoading}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

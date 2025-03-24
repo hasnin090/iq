@@ -13,10 +13,10 @@ interface Filter {
 export default function Documents() {
   const [filter, setFilter] = useState<Filter>({});
   
-  const { data: documents, isLoading: documentsLoading } = useQuery({
+  const { data: documents, isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ['/api/documents', filter],
     queryFn: async ({ queryKey }) => {
-      const [_, filterParams] = queryKey;
+      const [_, filterParams] = queryKey as [string, Filter];
       const params = new URLSearchParams();
       
       if (filterParams.projectId) params.append('projectId', String(filterParams.projectId));
@@ -27,7 +27,23 @@ export default function Documents() {
     }
   });
   
-  const { data: projects, isLoading: projectsLoading } = useQuery({
+  interface Project {
+    id: number;
+    name: string;
+  }
+  
+  interface Document {
+    id: number;
+    name: string;
+    description?: string;
+    fileUrl: string;
+    fileType: string;
+    uploadDate: string;
+    projectId?: number;
+    uploadedBy: number;
+  }
+  
+  const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
   });
   
