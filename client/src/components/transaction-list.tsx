@@ -74,6 +74,19 @@ interface TransactionListProps {
   onTransactionUpdated: () => void;
 }
 
+// مخطط نموذج المعاملة
+const transactionFormSchema = z.object({
+  date: z.date({
+    required_error: "الرجاء اختيار تاريخ",
+  }),
+  type: z.string().min(1, "الرجاء اختيار نوع المعاملة"),
+  amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من الصفر"),
+  description: z.string().min(1, "الرجاء إدخال وصف للمعاملة"),
+  projectId: z.number().nullable().optional(),
+});
+
+type TransactionFormValues = z.infer<typeof transactionFormSchema>;
+
 export function TransactionList({ 
   transactions, 
   projects, 
@@ -82,9 +95,37 @@ export function TransactionList({
   onTransactionUpdated 
 }: TransactionListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const { toast } = useToast();
   
+  // نموذج التعديل
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionFormSchema),
+    defaultValues: {
+      date: new Date(),
+      type: "",
+      amount: 0,
+      description: "",
+      projectId: null,
+    },
+  });
+  
+  // إعادة تعيين قيم النموذج عند اختيار معاملة للتعديل
+  useEffect(() => {
+    if (transactionToEdit) {
+      form.reset({
+        date: new Date(transactionToEdit.date),
+        type: transactionToEdit.type,
+        amount: transactionToEdit.amount,
+        description: transactionToEdit.description,
+        projectId: transactionToEdit.projectId || null,
+      });
+    }
+  }, [transactionToEdit, form]);
+  
+  // تعريف mutation لحذف المعاملة
   const deleteMutation = useMutation({
     mutationFn: (id: number) => {
       return apiRequest('DELETE', `/api/transactions/${id}`, undefined);
@@ -105,9 +146,36 @@ export function TransactionList({
     },
   });
   
+  // تعريف mutation لتحديث المعاملة
+  const updateMutation = useMutation({
+    mutationFn: (data: { id: number; transaction: TransactionFormValues }) => {
+      return apiRequest('PUT', `/api/transactions/${data.id}`, data.transaction);
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم التعديل بنجاح",
+        description: "تم تعديل المعاملة المالية بنجاح",
+      });
+      setEditDialogOpen(false);
+      onTransactionUpdated();
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: error instanceof Error ? error.message : "فشل في تعديل المعاملة المالية",
+      });
+    },
+  });
+  
   const handleDeleteClick = (transaction: Transaction) => {
     setTransactionToDelete(transaction);
     setDeleteDialogOpen(true);
+  };
+  
+  const handleEditClick = (transaction: Transaction) => {
+    setTransactionToEdit(transaction);
+    setEditDialogOpen(true);
   };
   
   const confirmDelete = () => {
@@ -115,6 +183,15 @@ export function TransactionList({
       deleteMutation.mutate(transactionToDelete.id);
     }
     setDeleteDialogOpen(false);
+  };
+  
+  const onEditSubmit = (values: TransactionFormValues) => {
+    if (transactionToEdit) {
+      updateMutation.mutate({
+        id: transactionToEdit.id,
+        transaction: values
+      });
+    }
   };
   
   const getProjectName = (projectId?: number) => {
@@ -215,12 +292,7 @@ export function TransactionList({
                     <div className="flex space-x-reverse space-x-2">
                       <button 
                         className="text-primary-light hover:text-primary-dark transition-colors"
-                        onClick={() => {
-                          toast({
-                            title: "غير متاح",
-                            description: "ميزة التعديل غير متاحة في هذا الإصدار",
-                          });
-                        }}
+                        onClick={() => handleEditClick(transaction)}
                       >
                         <i className="fas fa-edit"></i>
                       </button>
@@ -279,12 +351,7 @@ export function TransactionList({
                         <div className="flex space-x-reverse space-x-2">
                           <button 
                             className="text-primary-light hover:text-primary-dark transition-colors"
-                            onClick={() => {
-                              toast({
-                                title: "غير متاح",
-                                description: "ميزة التعديل غير متاحة في هذا الإصدار",
-                              });
-                            }}
+                            onClick={() => handleEditClick(transaction)}
                           >
                             <i className="fas fa-edit"></i>
                           </button>
@@ -305,6 +372,7 @@ export function TransactionList({
         </div>
       </div>
       
+      {/* مربع حوار حذف معاملة */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -327,6 +395,181 @@ export function TransactionList({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* مربع حوار تعديل معاملة */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle className="mb-4">تعديل معاملة مالية</DialogTitle>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4">
+              {/* حقل التاريخ */}
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="mb-2">التاريخ</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className="pl-3 text-right font-normal justify-between"
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP', { locale: ar })
+                            ) : (
+                              <span>اختر تاريخ</span>
+                            )}
+                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date > new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* حقل نوع المعاملة */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>نوع المعاملة</FormLabel>
+                    <Select
+                      dir="rtl"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر نوع المعاملة" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper">
+                        <SelectItem value="income">إيراد</SelectItem>
+                        <SelectItem value="expense">مصروف</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* حقل المبلغ */}
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المبلغ</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="أدخل المبلغ"
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value === "" ? "0" : e.target.value;
+                          field.onChange(Number(value));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* حقل الوصف */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الوصف</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="أدخل وصف المعاملة"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* حقل المشروع */}
+              <FormField
+                control={form.control}
+                name="projectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المشروع</FormLabel>
+                    <Select
+                      dir="rtl"
+                      value={field.value?.toString() || ""}
+                      onValueChange={(value) => {
+                        if (value === "") {
+                          field.onChange(null);
+                        } else {
+                          field.onChange(Number(value));
+                        }
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المشروع" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper">
+                        <SelectItem value="">عام (بدون مشروع)</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id.toString()}>{project.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter className="mt-6 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditDialogOpen(false)}
+                >
+                  إلغاء
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-primary text-white"
+                  disabled={updateMutation.isPending}
+                >
+                  {updateMutation.isPending && (
+                    <span className="spinner ml-2"></span>
+                  )}
+                  حفظ التغييرات
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
