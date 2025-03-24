@@ -75,9 +75,17 @@ export const insertUserSchema = createInsertSchema(users)
     email: z.string().email("البريد الإلكتروني غير صالح"),
   });
 
-export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, progress: true });
+export const insertProjectSchema = createInsertSchema(projects)
+  .omit({ id: true, progress: true })
+  .extend({
+    startDate: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
+  });
 
-export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true });
+export const insertTransactionSchema = createInsertSchema(transactions)
+  .omit({ id: true })
+  .extend({
+    date: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
+  });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true });
 

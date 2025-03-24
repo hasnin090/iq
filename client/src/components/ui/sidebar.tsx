@@ -53,21 +53,55 @@ export function Sidebar() {
 
   return (
     <>
+      {/* زر القائمة المتنقلة */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-6 left-6 z-50 bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white shadow-lg hover:bg-primary-light transition-all focus:outline-none md:hidden"
       >
-        <i className={`fa ${isOpen ? 'fa-times' : 'fa-bars'}`}></i>
+        <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'}`}></i>
       </button>
+      
+      {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها في الهواتف */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden"
+          onClick={() => setIsOpen(false)}
+        ></div>
+      )}
 
       <aside
-        className={`fixed top-0 right-0 h-full w-64 bg-gradient-to-b from-sidebar-background to-primary transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl ${
+        className={`fixed top-0 right-0 h-full w-72 bg-gradient-to-b from-sidebar-background to-primary transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl ${
           isOpen ? "translate-x-0" : "translate-x-full"
-        } md:translate-x-0`}
+        } md:translate-x-0 flex flex-col`}
       >
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-white mb-8">نظام المحاسبة</h1>
-          <nav className="space-y-2">
+        <div className="p-6 flex-grow">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-2xl font-bold text-white">نظام المحاسبة</h1>
+            <div className="md:hidden">
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="text-white hover:text-gray-300"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          
+          {user && (
+            <div className="mb-6 bg-white bg-opacity-10 p-3 rounded-lg">
+              <div className="flex items-center space-x-3 space-x-reverse">
+                <div className="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                  <i className="fas fa-user text-white"></i>
+                </div>
+                <div>
+                  <div className="text-white font-medium">{user.name}</div>
+                  <div className="text-xs text-white text-opacity-70">{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <nav className="space-y-1">
             <Link
               href="/"
               className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-lg ${
