@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import session from "express-session";
 import path from "path";
+import pgSession from 'connect-pg-simple';
 
 const app = express();
 app.use(express.json());
@@ -52,8 +53,16 @@ app.use((req, res, next) => {
   // Configure session for production
   if (app.get("env") === "production") {
     app.set("trust proxy", 1);
+    const PostgresStore = pgSession(session);
+
     app.use(session({
-      secret: process.env.SESSION_SECRET || "accounting-app-secret-key",
+      store: new PostgresStore({
+        conObject: {
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false }
+        }
+      }),
+      secret: process.env.SESSION_SECRET || 'development-secret',
       resave: false,
       saveUninitialized: false,
       cookie: { 
