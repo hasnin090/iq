@@ -65,8 +65,13 @@ export default function Login() {
       // تخزين بيانات المستخدم في localStorage
       localStorage.setItem('auth_user', JSON.stringify(userData));
       
-      // إعادة تحميل الصفحة للانتقال إلى الصفحة الرئيسية
-      window.location.href = '/dashboard';
+      // إعادة تحميل الصفحة للانتقال إلى الصفحة الرئيسية (لوحة التحكم)
+      // استخدام window.location.assign لإعادة توجيه أكثر موثوقية
+      // وإضافة معلمة إضافية لضمان إعادة تحميل الصفحة
+      console.log('توجيه إلى لوحة التحكم...');
+      setTimeout(() => {
+        window.location.assign('/?auth=' + new Date().getTime());
+      }, 500);
       
     } catch (error) {
       console.error('Login submit error:', error);

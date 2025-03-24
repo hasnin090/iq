@@ -14,6 +14,7 @@ import Activities from "@/pages/activities";
 import Settings from "@/pages/settings";
 
 import { useAuth } from "./hooks/use-auth";
+import { AuthProvider } from "./context/auth-context"; // أضفنا استيراد مزود المصادقة
 import { Sidebar } from "@/components/ui/sidebar";
 
 function AppRoutes() {
@@ -59,10 +60,12 @@ function AppRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div dir="rtl" lang="ar" className="font-cairo">
-        <AppRoutes />
-        <Toaster />
-      </div>
+      <AuthProvider>
+        <div dir="rtl" lang="ar" className="font-cairo">
+          <AppRoutes />
+          <Toaster />
+        </div>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
