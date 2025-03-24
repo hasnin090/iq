@@ -71,12 +71,23 @@
 }
 
 @layer components {
+  /* منع وميض العناصر */
+  .no-flicker {
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -ms-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    perspective: 1000;
+  }
+
   .spinner {
     @apply w-5 h-5 border-2 border-transparent border-t-current rounded-full animate-spin inline-block;
   }
   
   .button-primary {
-    @apply bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white font-medium py-2 px-4 rounded-lg hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50;
+    @apply bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white font-medium py-2 px-4 rounded-lg hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 no-flicker;
   }
   
   .input-field {
