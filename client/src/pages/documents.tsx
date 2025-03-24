@@ -40,126 +40,168 @@ export default function Documents() {
   };
   
   return (
-    <div className="space-y-8 py-4">
-      <div className="flex justify-between items-center pb-4 border-b border-[hsl(var(--border))]">
-        <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
+    <div className="py-6 px-4">
+      <div className="mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
+        <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
       </div>
       
-      {/* Document Form */}
-      <div className="card fade-in">
-        <h3 className="text-lg font-bold text-[hsl(var(--primary))] mb-4">رفع مستند جديد</h3>
-        <DocumentForm 
-          projects={projects || []} 
-          onSubmit={handleDocumentUpdated} 
-          isLoading={projectsLoading}
-        />
-      </div>
-      
-      {/* Filter */}
-      <div className="card slide-in-right">
-        <h3 className="text-lg font-bold text-[hsl(var(--primary))] mb-4">تصفية المستندات</h3>
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="w-full md:w-64">
-            <Label htmlFor="filterProject" className="block text-sm font-medium mb-1">المشروع</Label>
-            <Select 
-              onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
-              value={filter.projectId?.toString() || "all"}
-            >
-              <SelectTrigger id="filterProject" className="w-full">
-                <SelectValue placeholder="كل المشاريع" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل المشاريع</SelectItem>
-                {!projectsLoading && projects?.map((project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Mobile Document View */}
+          <div className="block md:hidden space-y-6 fade-in">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-bold text-[hsl(var(--primary))]">المستندات</h3>
+              {documents && (
+                <span className="bg-[hsl(var(--primary))] text-white text-xs rounded-full px-3 py-1">
+                  {documents.length} مستند
+                </span>
+              )}
+            </div>
+            
+            {documentsLoading ? (
+              <div className="text-center py-10 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                <div className="spinner w-10 h-10 mx-auto"></div>
+                <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل المستندات...</p>
+              </div>
+            ) : documents?.length === 0 ? (
+              <div className="text-center py-12 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                <div className="text-5xl mb-4 opacity-20">📁</div>
+                <p className="text-[hsl(var(--foreground))] font-medium">لا توجد مستندات</p>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">قم برفع مستند جديد للبدء</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {documents?.map((doc) => {
+                  const projectName = projects?.find(p => p.id === doc.projectId)?.name || 'عام';
+                  return (
+                    <div 
+                      key={doc.id} 
+                      className="bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl p-5 hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-semibold text-[hsl(var(--foreground))]">{doc.name}</h4>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]`}>
+                          {doc.fileType}
+                        </span>
+                      </div>
+                      {doc.description && (
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3">{doc.description}</p>
+                      )}
+                      <div className="flex items-center space-x-4 space-x-reverse text-xs text-[hsl(var(--muted-foreground))]">
+                        <p className="flex items-center space-x-1 space-x-reverse">
+                          <i className="fas fa-folder-open"></i>
+                          <span>{projectName}</span>
+                        </p>
+                        <p className="flex items-center space-x-1 space-x-reverse">
+                          <i className="fas fa-calendar-alt"></i>
+                          <span>{new Date(doc.uploadDate).toLocaleDateString('ar-SA')}</span>
+                        </p>
+                      </div>
+                      <div className="mt-4 flex justify-end space-x-2 space-x-reverse">
+                        <button 
+                          className="text-xs py-2 px-3 rounded-lg bg-[hsl(var(--primary))] text-white font-medium hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(doc.fileUrl, '_blank')}
+                        >
+                          <i className="fas fa-eye ml-1"></i>
+                          عرض
+                        </button>
+                        <button 
+                          className="text-xs py-2 px-3 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] font-medium hover:opacity-90 transition-opacity"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = doc.fileUrl;
+                            link.download = doc.name;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                        >
+                          <i className="fas fa-download ml-1"></i>
+                          تنزيل
+                        </button>
+                        <button 
+                          className="text-xs py-2 px-3 rounded-lg bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors"
+                          onClick={() => {
+                            if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
+                              fetch(`/api/documents/${doc.id}`, { method: 'DELETE' })
+                                .then(() => handleDocumentUpdated());
+                            }
+                          }}
+                        >
+                          <i className="fas fa-trash-alt ml-1"></i>
+                          حذف
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          
+          {/* Desktop Document List */}
+          <div className="hidden md:block fade-in">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[hsl(var(--primary))]">المستندات</h3>
+              {documents && (
+                <span className="bg-[hsl(var(--primary))] text-white text-xs rounded-full px-3 py-1">
+                  {documents.length} مستند
+                </span>
+              )}
+            </div>
+            <DocumentList 
+              documents={documents || []} 
+              projects={projects || []} 
+              isLoading={documentsLoading || projectsLoading}
+              onDocumentUpdated={handleDocumentUpdated}
+            />
           </div>
         </div>
-      </div>
-      
-      {/* Documents Summary Cards - Mobile View */}
-      <div className="block md:hidden space-y-4 fade-in">
-        <h3 className="text-lg font-bold text-[hsl(var(--primary))] px-1">المستندات</h3>
         
-        {documentsLoading ? (
-          <div className="text-center py-8">
-            <div className="spinner w-8 h-8 mx-auto"></div>
-            <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل البيانات...</p>
+        <div className="space-y-8">
+          {/* Document Form */}
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
+            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+              <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
+              <span>رفع مستند جديد</span>
+            </h3>
+            <DocumentForm 
+              projects={projects || []} 
+              onSubmit={handleDocumentUpdated} 
+              isLoading={projectsLoading}
+            />
           </div>
-        ) : documents?.length === 0 ? (
-          <div className="text-center py-8 bg-[hsl(var(--muted))/10] rounded-xl">
-            <p className="text-[hsl(var(--muted-foreground))]">لا توجد مستندات بعد.</p>
+          
+          {/* Filter */}
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm slide-in-right">
+            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
+              <span>تصفية المستندات</span>
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="filterProject" className="block text-sm font-medium mb-2">حسب المشروع</Label>
+                <Select 
+                  onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
+                  value={filter.projectId?.toString() || "all"}
+                >
+                  <SelectTrigger id="filterProject" className="w-full">
+                    <SelectValue placeholder="كل المشاريع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل المشاريع</SelectItem>
+                    {!projectsLoading && projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {documents?.map((doc) => {
-              const projectName = projects?.find(p => p.id === doc.projectId)?.name || 'عام';
-              return (
-                <div key={doc.id} className="border border-[hsl(var(--border))] rounded-lg p-4 hover:bg-[hsl(var(--accent))/5] transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-sm">{doc.name}</h4>
-                    <span className={`px-2 py-1 rounded-full text-xs bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]`}>
-                      {doc.fileType}
-                    </span>
-                  </div>
-                  {doc.description && (
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">{doc.description}</p>
-                  )}
-                  <div className="text-xs text-[hsl(var(--muted-foreground))]">
-                    <p className="mb-1">المشروع: {projectName}</p>
-                    <p className="mb-1">تاريخ الرفع: {new Date(doc.uploadDate).toLocaleDateString('ar-SA')}</p>
-                  </div>
-                  <div className="mt-3 flex space-x-2 space-x-reverse">
-                    <button 
-                      className="action-button-primary text-xs py-1 px-3"
-                      onClick={() => window.open(doc.fileUrl, '_blank')}
-                    >
-                      عرض
-                    </button>
-                    <button 
-                      className="action-button-secondary text-xs py-1 px-3"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = doc.fileUrl;
-                        link.download = doc.name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                    >
-                      تنزيل
-                    </button>
-                    <button 
-                      className="action-button-destructive text-xs py-1 px-3"
-                      onClick={() => {
-                        if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
-                          fetch(`/api/documents/${doc.id}`, { method: 'DELETE' })
-                            .then(() => handleDocumentUpdated());
-                        }
-                      }}
-                    >
-                      حذف
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      
-      {/* Document List - Desktop View */}
-      <div className="hidden md:block fade-in">
-        <DocumentList 
-          documents={documents || []} 
-          projects={projects || []} 
-          isLoading={documentsLoading || projectsLoading}
-          onDocumentUpdated={handleDocumentUpdated}
-        />
+        </div>
       </div>
     </div>
   );

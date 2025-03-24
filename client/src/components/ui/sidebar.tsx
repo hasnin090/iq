@@ -168,13 +168,13 @@ export function Sidebar() {
             
             <Link
               href="/documents"
-              className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/documents" 
-                  ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                   : "text-white hover:bg-white/10 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/documents" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/documents" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                 <i className="fas fa-file-alt"></i>
               </div>
               <span>المستندات</span>
@@ -182,13 +182,13 @@ export function Sidebar() {
             
             <Link
               href="/reports"
-              className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/reports" 
-                  ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                   : "text-white hover:bg-white/10 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/reports" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/reports" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                 <i className="fas fa-chart-bar"></i>
               </div>
               <span>التقارير</span>
@@ -196,13 +196,13 @@ export function Sidebar() {
             
             <Link
               href="/activities"
-              className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/activities" 
-                  ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                   : "text-white hover:bg-white/10 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/activities" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/activities" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                 <i className="fas fa-history"></i>
               </div>
               <span>سجل النشاطات</span>
@@ -211,13 +211,13 @@ export function Sidebar() {
             {user?.role === "admin" && (
               <Link
                 href="/settings"
-                className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+                className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                   location === "/settings" 
-                    ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                    ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                     : "text-white hover:bg-white/10 hover:scale-105"
                 } transition-all duration-200`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/settings" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/settings" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                   <i className="fas fa-cog"></i>
                 </div>
                 <span>الإعدادات</span>
@@ -227,9 +227,9 @@ export function Sidebar() {
             <div className="pt-4 mt-4 border-t border-white/20">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl text-white hover:bg-[hsl(var(--destructive))/80] transition-all duration-200 text-right"
+                className="w-full flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl text-white hover:bg-[hsl(var(--destructive))/80] transition-all duration-200 text-right"
               >
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
                   <i className="fas fa-sign-out-alt"></i>
                 </div>
                 <span>تسجيل خروج</span>
