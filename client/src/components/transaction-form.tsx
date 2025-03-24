@@ -57,10 +57,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   
   const mutation = useMutation({
     mutationFn: (data: TransactionFormValues) => {
-      return apiRequest('POST', '/api/transactions', {
+      const formData = {
         ...data,
-        projectId: data.projectId ? parseInt(data.projectId) : undefined
-      });
+        projectId: data.projectId && data.projectId !== "none" ? parseInt(data.projectId) : undefined
+      };
+      return apiRequest('POST', '/api/transactions', formData);
     },
     onSuccess: () => {
       toast({
@@ -280,7 +281,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">عام (بدون مشروع)</SelectItem>
+                        <SelectItem value="none">عام (بدون مشروع)</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
