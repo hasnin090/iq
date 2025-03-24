@@ -107,16 +107,16 @@ export function Sidebar() {
             </div>
           )}
           
-          <nav className="space-y-2 mt-6">
+          <nav className="space-y-4 mt-8">
             <Link
               href="/"
-              className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/" 
-                  ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                   : "text-white hover:bg-white/10 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                 <i className="fas fa-home"></i>
               </div>
               <span>لوحة التحكم</span>
@@ -124,13 +124,13 @@ export function Sidebar() {
             
             <Link
               href="/transactions"
-              className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/transactions" 
-                  ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                   : "text-white hover:bg-white/10 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/transactions" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/transactions" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                 <i className="fas fa-money-bill-wave"></i>
               </div>
               <span>الحسابات</span>
@@ -138,13 +138,13 @@ export function Sidebar() {
             
             <Link
               href="/projects"
-              className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/projects" 
-                  ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                   : "text-white hover:bg-white/10 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/projects" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/projects" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                 <i className="fas fa-project-diagram"></i>
               </div>
               <span>المشاريع</span>
@@ -153,13 +153,13 @@ export function Sidebar() {
             {user?.role === "admin" && (
               <Link
                 href="/users"
-                className={`flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl ${
+                className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                   location === "/users" 
-                    ? "bg-white text-[hsl(var(--primary))] font-medium shadow-sm" 
+                    ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
                     : "text-white hover:bg-white/10 hover:scale-105"
                 } transition-all duration-200`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${location === "/users" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/users" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
                   <i className="fas fa-users"></i>
                 </div>
                 <span>المستخدمين</span>
