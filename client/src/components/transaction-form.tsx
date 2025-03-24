@@ -196,7 +196,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">عام</SelectItem>
+                      <SelectItem value="all">عام</SelectItem>
                       {projects.map((project) => (
                         <SelectItem key={project.id} value={project.id.toString()}>
                           {project.name}

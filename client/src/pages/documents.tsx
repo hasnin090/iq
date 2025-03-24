@@ -64,7 +64,7 @@ export default function Documents() {
                 <SelectValue placeholder="كل المشاريع" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">كل المشاريع</SelectItem>
+                <SelectItem value="all">كل المشاريع</SelectItem>
                 {!projectsLoading && projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}

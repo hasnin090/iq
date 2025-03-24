@@ -115,7 +115,7 @@ export default function Activities() {
                   <SelectValue placeholder="كل الأنواع" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">كل الأنواع</SelectItem>
+                  <SelectItem value="all">كل الأنواع</SelectItem>
                   <SelectItem value="transaction">معاملة مالية</SelectItem>
                   <SelectItem value="project">مشروع</SelectItem>
                   <SelectItem value="user">مستخدم</SelectItem>
@@ -135,7 +135,7 @@ export default function Activities() {
                   <SelectValue placeholder="كل المستخدمين" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">كل المستخدمين</SelectItem>
+                  <SelectItem value="all">كل المستخدمين</SelectItem>
                   {!usersLoading && users?.map((user) => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.name}

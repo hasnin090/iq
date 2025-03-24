@@ -288,7 +288,7 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">عام</SelectItem>
+                      <SelectItem value="all">عام</SelectItem>
                       {projects.map((project) => (
                         <SelectItem key={project.id} value={project.id.toString()}>
                           {project.name}

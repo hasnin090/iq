@@ -238,7 +238,7 @@ export default function Reports() {
                 <SelectValue placeholder="كل المشاريع" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">كل المشاريع</SelectItem>
+                <SelectItem value="all">كل المشاريع</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
