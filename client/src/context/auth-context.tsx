@@ -122,14 +122,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (username: string, password: string) => {
     try {
       setIsLoading(true);
-      const response = await apiRequest('POST', '/api/auth/login', { username, password });
+      
+      console.log('Sending login request to server:', { username, password });
+      
+      // إرسال الطلب بشكل مباشر بدلاً من استخدام apiRequest
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
+      
+      console.log('Server response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Login failed: ${response.status}`, errorText);
+        throw new Error(errorText || 'فشل تسجيل الدخول');
+      }
+      
       const userData = await response.json();
+      console.log('Login successful, user data:', userData);
+      
       setUser(userData);
       
       toast({
         title: "تم تسجيل الدخول بنجاح",
         description: `مرحباً بك ${userData.name}`,
       });
+      
+      return userData;
     } catch (error: any) {
       console.error('Login error:', error);
       const message = error.message || 'خطأ في تسجيل الدخول';

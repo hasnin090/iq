@@ -33,18 +33,20 @@ export default function Login() {
       setIsLoading(true);
       console.log('Login form submitted with:', values);
       
-      // عمليات الحقل للتأكد من العمل
+      // تنظيف البيانات
       const formData = {
         username: values.username.trim(),
         password: values.password
       };
       
-      console.log('Calling login with:', formData);
-      await login(formData.username, formData.password);
+      console.log('Calling auth context login function with:', formData);
       
-      console.log('Login successful');
+      // تسجيل الدخول باستخدام دالة السياق
+      const userData = await login(formData.username, formData.password);
+      console.log('Login completed with user data:', userData);
+      
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login submit error:', error);
       setShakeAnimation(true);
       setTimeout(() => setShakeAnimation(false), 500);
     } finally {
