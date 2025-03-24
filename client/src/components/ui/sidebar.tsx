@@ -56,7 +56,7 @@ export function Sidebar() {
       {/* زر القائمة المتنقلة - مع تحسين التصميم */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 right-6 z-50 bg-white rounded-full w-14 h-14 flex items-center justify-center text-[hsl(var(--primary))] shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 border border-blue-100"
+        className="fixed top-6 right-6 z-50 bg-[hsl(var(--primary))] rounded-full w-14 h-14 flex items-center justify-center text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 pulse"
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
         <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
@@ -76,6 +76,7 @@ export function Sidebar() {
         } md:translate-x-0 flex flex-col`}
       >
         <div className="p-6 flex-grow">
+          {/* Header with app logo */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center shadow-md">
@@ -93,6 +94,7 @@ export function Sidebar() {
             </div>
           </div>
           
+          {/* User profile card */}
           {user && (
             <div className="mb-6 bg-blue-50 p-5 rounded-2xl border border-blue-100 shadow-md relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--primary))/5] to-transparent"></div>
@@ -111,135 +113,150 @@ export function Sidebar() {
             </div>
           )}
           
-          <nav className="space-y-3 mt-8">
-            <Link
-              href="/"
-              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                location === "/" 
-                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-              } transition-all duration-200`}
-            >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                <i className="fas fa-home"></i>
-              </div>
-              <span>لوحة التحكم</span>
-            </Link>
-            
-            <Link
-              href="/transactions"
-              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                location === "/transactions" 
-                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-              } transition-all duration-200`}
-            >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/transactions" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                <i className="fas fa-money-bill-wave"></i>
-              </div>
-              <span>الحسابات</span>
-            </Link>
-            
-            <Link
-              href="/projects"
-              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                location === "/projects" 
-                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-              } transition-all duration-200`}
-            >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/projects" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                <i className="fas fa-project-diagram"></i>
-              </div>
-              <span>المشاريع</span>
-            </Link>
-            
-            {user?.role === "admin" && (
-              <Link
-                href="/users"
-                className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                  location === "/users" 
-                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-                } transition-all duration-200`}
-              >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/users" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-users"></i>
-                </div>
-                <span>المستخدمين</span>
-              </Link>
-            )}
-            
-            <Link
-              href="/documents"
-              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                location === "/documents" 
-                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-              } transition-all duration-200`}
-            >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/documents" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                <i className="fas fa-file-alt"></i>
-              </div>
-              <span>المستندات</span>
-            </Link>
-            
-            <Link
-              href="/reports"
-              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                location === "/reports" 
-                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-              } transition-all duration-200`}
-            >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/reports" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                <i className="fas fa-chart-bar"></i>
-              </div>
-              <span>التقارير</span>
-            </Link>
-            
-            <Link
-              href="/activities"
-              className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                location === "/activities" 
-                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-              } transition-all duration-200`}
-            >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/activities" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                <i className="fas fa-history"></i>
-              </div>
-              <span>سجل النشاطات</span>
-            </Link>
-            
-            {user?.role === "admin" && (
-              <Link
-                href="/settings"
-                className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
-                  location === "/settings" 
-                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-                } transition-all duration-200`}
-              >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/settings" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-cog"></i>
-                </div>
-                <span>الإعدادات</span>
-              </Link>
-            )}
-            
-            <div className="pt-6 mt-8 border-t border-blue-100">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl text-[hsl(var(--destructive))] hover:bg-red-50 hover:scale-105 transition-all duration-200 text-right"
-              >
-                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shadow-sm">
-                  <i className="fas fa-sign-out-alt text-lg"></i>
-                </div>
-                <span className="font-medium">تسجيل خروج</span>
-              </button>
+          {/* Main menu section */}
+          <div className="mt-8 border border-blue-100 rounded-2xl overflow-hidden shadow-sm bg-blue-50/30">
+            <div className="py-3 px-4 bg-gradient-to-l from-[hsl(var(--primary))/20] to-[hsl(var(--primary))/5] border-b border-blue-100">
+              <h3 className="text-[hsl(var(--primary))] font-semibold">القائمة الرئيسية</h3>
             </div>
-          </nav>
+            <nav className="p-3 space-y-2">
+              <Link
+                href="/"
+                className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                  location === "/" 
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                } transition-all duration-200 transform`}
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                  <i className="fas fa-home"></i>
+                </div>
+                <span>لوحة التحكم</span>
+              </Link>
+              
+              <Link
+                href="/transactions"
+                className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                  location === "/transactions" 
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                } transition-all duration-200 transform`}
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/transactions" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                  <i className="fas fa-money-bill-wave"></i>
+                </div>
+                <span>الحسابات</span>
+              </Link>
+              
+              <Link
+                href="/projects"
+                className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                  location === "/projects" 
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                } transition-all duration-200 transform`}
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/projects" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                  <i className="fas fa-project-diagram"></i>
+                </div>
+                <span>المشاريع</span>
+              </Link>
+              
+              <Link
+                href="/documents"
+                className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                  location === "/documents" 
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                } transition-all duration-200 transform`}
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/documents" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                  <i className="fas fa-file-alt"></i>
+                </div>
+                <span>المستندات</span>
+              </Link>
+              
+              <Link
+                href="/reports"
+                className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                  location === "/reports" 
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                } transition-all duration-200 transform`}
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/reports" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                  <i className="fas fa-chart-bar"></i>
+                </div>
+                <span>التقارير</span>
+              </Link>
+            </nav>
+          </div>
+          
+          {/* Administration section */}
+          <div className="mt-4 border border-blue-100 rounded-2xl overflow-hidden shadow-sm bg-blue-50/30">
+            <div className="py-3 px-4 bg-gradient-to-l from-[hsl(var(--primary))/20] to-[hsl(var(--primary))/5] border-b border-blue-100">
+              <h3 className="text-[hsl(var(--primary))] font-semibold">الإدارة</h3>
+            </div>
+            <nav className="p-3 space-y-2">
+              <Link
+                href="/activities"
+                className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                  location === "/activities" 
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                } transition-all duration-200 transform`}
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/activities" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                  <i className="fas fa-history"></i>
+                </div>
+                <span>سجل النشاطات</span>
+              </Link>
+              
+              {user?.role === "admin" && (
+                <>
+                  <Link
+                    href="/users"
+                    className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                      location === "/users" 
+                        ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                        : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                    } transition-all duration-200 transform`}
+                  >
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/users" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                      <i className="fas fa-users"></i>
+                    </div>
+                    <span>المستخدمين</span>
+                  </Link>
+                  
+                  <Link
+                    href="/settings"
+                    className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl ${
+                      location === "/settings" 
+                        ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                        : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                    } transition-all duration-200 transform`}
+                  >
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/settings" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                      <i className="fas fa-cog"></i>
+                    </div>
+                    <span>الإعدادات</span>
+                  </Link>
+                </>
+              )}
+            </nav>
+          </div>
+          
+          {/* Logout button */}
+          <div className="pt-6 mt-8">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl text-[hsl(var(--destructive))] hover:bg-red-100 hover:scale-105 transition-all duration-200 text-right bg-red-50/30 border border-red-100"
+            >
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-sm">
+                <i className="fas fa-sign-out-alt text-lg"></i>
+              </div>
+              <span className="font-medium">تسجيل خروج</span>
+            </button>
+          </div>
         </div>
       </aside>
     </>
