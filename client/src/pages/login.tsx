@@ -31,7 +31,18 @@ export default function Login() {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       setIsLoading(true);
-      await login(values.username, values.password);
+      console.log('Login form submitted with:', values);
+      
+      // عمليات الحقل للتأكد من العمل
+      const formData = {
+        username: values.username.trim(),
+        password: values.password
+      };
+      
+      console.log('Calling login with:', formData);
+      await login(formData.username, formData.password);
+      
+      console.log('Login successful');
     } catch (error) {
       console.error('Login error:', error);
       setShakeAnimation(true);
