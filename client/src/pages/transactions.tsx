@@ -15,10 +15,24 @@ export default function Transactions() {
   const [filter, setFilter] = useState<Filter>({});
   const [currentView, setCurrentView] = useState<'cards' | 'table'>('cards');
   
-  const { data: transactions, isLoading: transactionsLoading } = useQuery({
+  interface Transaction {
+    id: number;
+    date: string;
+    amount: number;
+    type: string;
+    description: string;
+    projectId?: number;
+  }
+
+  interface Project {
+    id: number;
+    name: string;
+  }
+
+  const { data: transactions, isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ['/api/transactions', filter],
     queryFn: async ({ queryKey }) => {
-      const [_, filterParams] = queryKey;
+      const [_, filterParams] = queryKey as [string, Filter];
       const params = new URLSearchParams();
       
       if (filterParams.projectId) params.append('projectId', String(filterParams.projectId));
@@ -30,7 +44,7 @@ export default function Transactions() {
     }
   });
   
-  const { data: projects, isLoading: projectsLoading } = useQuery({
+  const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
   });
   
@@ -95,7 +109,7 @@ export default function Transactions() {
                   value={filter.projectId || ''}
                 >
                   <option value="">كل المشاريع</option>
-                  {projects?.map((project) => (
+                  {projects?.map((project: Project) => (
                     <option key={project.id} value={project.id}>{project.name}</option>
                   ))}
                 </select>

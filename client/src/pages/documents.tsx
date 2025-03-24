@@ -88,8 +88,8 @@ export default function Documents() {
               </div>
             ) : (
               <div className="space-y-4">
-                {documents?.map((doc) => {
-                  const projectName = projects?.find(p => p.id === doc.projectId)?.name || 'عام';
+                {documents?.map((doc: Document) => {
+                  const projectName = projects?.find((p: Project) => p.id === doc.projectId)?.name || 'عام';
                   return (
                     <div 
                       key={doc.id} 
@@ -207,7 +207,7 @@ export default function Documents() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">كل المشاريع</SelectItem>
-                    {!projectsLoading && projects?.map((project) => (
+                    {!projectsLoading && projects?.map((project: Project) => (
                       <SelectItem key={project.id} value={project.id.toString()}>
                         {project.name}
                       </SelectItem>
