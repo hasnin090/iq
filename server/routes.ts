@@ -14,6 +14,7 @@ import {
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 
 declare module "express-session" {
   interface SessionData {
@@ -25,6 +26,8 @@ declare module "express-session" {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const MemoryStoreSession = MemoryStore(session);
+  // تسجيل متغير PgStore من وحدة connect-pg-simple
+  const PostgreSQLStore = connectPgSimple(session);
   
   // Session setup
   app.use(session({
@@ -33,25 +36,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: false,
     cookie: { 
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax' // important for cross-domain cookies
     },
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    store: new PostgreSQLStore({
+      conString: process.env.DATABASE_URL, 
+      tableName: 'sessions',
     })
   }));
+  
+  // تسجيل معلومات الجلسة للتصحيح
+  app.use((req, res, next) => {
+    console.log('Session ID:', req.sessionID);
+    console.log('Session data:', req.session);
+    next();
+  });
 
   // Authentication middleware
   const authenticate = (req: Request, res: Response, next: Function) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+    console.log('Auth middleware - Session:', req.session);
+    if (!req.session || !req.session.userId) {
+      console.log('Unauthorized request - no valid session');
+      return res.status(401).json({ message: "غير مصرح" });
     }
+    console.log('User authenticated with ID:', req.session.userId);
     next();
   };
 
   // Role-based authorization middleware
   const authorize = (roles: string[]) => {
     return (req: Request, res: Response, next: Function) => {
-      if (!req.session.userId || !roles.includes(req.session.role)) {
+      if (!req.session.userId || !roles.includes(req.session.role as string)) {
         return res.status(403).json({ message: "Forbidden" });
       }
       next();
@@ -159,13 +175,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // إنشاء مستخدم جديد إذا لم يكن موجودًا بالفعل
         const username = email.split('@')[0]; // استخدام جزء من البريد الإلكتروني كاسم مستخدم
         
+        // إنشاء مستخدم جديد
+        // الحظ أن permissions غير متاح في نوع InsertUser ولكنه متاح في نوع User
+        // لذلك نحتاج إلى تعديل كيفية إنشاء المستخدم
         user = await storage.createUser({
           username,
           password: '', // لا نحتاج إلى كلمة مرور مع مصادقة Firebase
           name: name || username,
           email,
           role: 'user',
-          permissions: ['read'],
+          // نحذف permissions هنا
           active: true
         });
         

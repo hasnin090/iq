@@ -26,7 +26,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User | null>;
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
 }
@@ -34,7 +34,7 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: false, // Changed to false to avoid infinite loading state
-  login: async () => {},
+  login: async () => null,
   loginWithGoogle: async () => {},
   logout: () => {},
 });
@@ -119,39 +119,56 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => unsubscribe();
   }, [toast]);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string): Promise<User | null> => {
     try {
       setIsLoading(true);
       
       console.log('Sending login request to server:', { username, password });
       
-      // إرسال الطلب بشكل مباشر بدلاً من استخدام apiRequest
+      // استخدام fetch API مع خيار credentials
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username, password }),
-        credentials: 'include'
+        credentials: 'include', // هذا مهم لإرسال واستقبال ملفات تعريف الارتباط
       });
       
-      console.log('Server response status:', response.status);
+      console.log('Login response status:', response.status);
       
+      // إذا كان هناك خطأ، نقرأ النص ونرمي خطأً
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Login failed: ${response.status}`, errorText);
+        console.error('Login error from server:', errorText);
         throw new Error(errorText || 'فشل تسجيل الدخول');
       }
       
+      // قراءة البيانات من الاستجابة
       const userData = await response.json();
       console.log('Login successful, user data:', userData);
       
+      // تحديث حالة المستخدم
       setUser(userData);
       
+      // إظهار رسالة النجاح
       toast({
         title: "تم تسجيل الدخول بنجاح",
         description: `مرحباً بك ${userData.name}`,
       });
+      
+      // التحقق من الجلسة بعد تسجيل الدخول
+      setTimeout(async () => {
+        try {
+          const sessionCheckResponse = await fetch('/api/auth/session', {
+            credentials: 'include'
+          });
+          console.log('Session check after login:', sessionCheckResponse.status, 
+            await sessionCheckResponse.text());
+        } catch (err) {
+          console.error('Failed to check session after login:', err);
+        }
+      }, 1000);
       
       return userData;
     } catch (error: any) {
@@ -162,7 +179,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         title: "فشل تسجيل الدخول",
         description: message,
       });
-      throw error;
+      // نرجع قيمة فارغة في حالة الخطأ
+      return null;
     } finally {
       setIsLoading(false);
     }
