@@ -4,50 +4,41 @@
 
 @layer base {
   :root {
-    --background: 218 38% 11%;
-    --foreground: 218 38% 95%;
+    --background: 210 40% 98%;
+    --foreground: 220 20% 15%;
     
-    --card: 217 37% 16%;
-    --card-foreground: 218 38% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 15%;
     
-    --popover: 218 38% 11%;
-    --popover-foreground: 218 38% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
     
-    --primary: 200 98% 39%;
+    --primary: 216 80% 50%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 216 34% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 220 20% 15%;
     
-    --muted: 210 22% 75%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210 20% 80%;
+    --muted-foreground: 220 15% 40%;
     
-    --accent: 199 89% 48%;
+    --accent: 216 80% 60%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 220 30% 20%;
-    --input: 220 30% 25%;
-    --ring: 199 89% 48%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 216 80% 50%;
     
-    --radius: 0.5rem;
+    --radius: 1rem;
     
-    --chart-1: 200 98% 39%;
+    --chart-1: 216 80% 50%;
     --chart-2: 0 84% 60%;
     --chart-3: 141 70% 45%;
     --chart-4: 39 100% 50%;
     --chart-5: 187 92% 53%;
-    
-    --sidebar-background: 206 83% 30%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 199 89% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 100%;
-    --sidebar-accent-foreground: 240 10% 3.9%;
-    --sidebar-border: 220 30% 40%;
-    --sidebar-ring: 199 89% 48%;
   }
   
   * {
@@ -67,15 +58,15 @@
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-[hsl(var(--secondary))] rounded;
+    @apply bg-blue-50 rounded;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-[hsl(var(--primary))] rounded-sm;
+    @apply bg-[hsl(var(--primary))/60] rounded-full;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-[hsl(var(--accent))];
+    @apply bg-[hsl(var(--primary))];
   }
 }
 
@@ -85,11 +76,11 @@
   }
   
   .button-primary {
-    @apply bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white font-medium py-2 px-4 rounded-md hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50;
+    @apply bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white font-medium py-2 px-4 rounded-lg hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50;
   }
   
   .input-field {
-    @apply w-full px-4 py-2 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none text-[hsl(var(--foreground))];
+    @apply w-full px-4 py-2.5 rounded-lg bg-white border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/20] text-[hsl(var(--foreground))] transition-all duration-200;
   }
   
   /* تحسينات للشاشات الصغيرة والتجاوب */
@@ -98,33 +89,33 @@
   }
   
   .card {
-    @apply bg-[hsl(var(--card))] rounded-xl shadow-md border border-[hsl(var(--border))] p-4 md:p-6 transition-all hover:shadow-lg;
+    @apply bg-white rounded-xl shadow-sm border border-[hsl(var(--border))] p-4 md:p-6 transition-all duration-300 hover:shadow-md transform hover:-translate-y-1;
   }
   
   .action-button {
-    @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))/50] disabled:pointer-events-none disabled:opacity-50 transform hover:scale-105 active:scale-100;
   }
   
   .action-button-primary {
-    @apply action-button bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/90];
+    @apply action-button bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/90] shadow-sm hover:shadow;
   }
   
   .action-button-secondary {
-    @apply action-button bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary))/80];
+    @apply action-button bg-white text-[hsl(var(--primary))] border border-[hsl(var(--primary))/30] hover:bg-blue-50 shadow-sm hover:shadow;
   }
   
   .action-button-destructive {
-    @apply action-button bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))/90];
+    @apply action-button bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))/90] shadow-sm hover:shadow;
   }
   
   /* تحسينات زر التعديل والحذف */
   .action-icon-button {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-colors hover:bg-[hsl(var(--accent))/10] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))];
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-all duration-300 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))/50] transform hover:scale-110 active:scale-95;
   }
   
   /* تحسينات عرض الجداول في الشاشات الصغيرة */
   .responsive-table-container {
-    @apply w-full overflow-x-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))];
+    @apply w-full overflow-x-auto rounded-lg border border-[hsl(var(--border))] bg-white shadow-sm;
   }
   
   .responsive-table {
@@ -141,11 +132,29 @@
     @apply space-y-4 md:space-y-6;
   }
   
-  /* Card animations */
+  /* تأثيرات حركية للبطاقات */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  .pulse {
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
   }
   
   .shake {
@@ -169,5 +178,45 @@
   @keyframes slideInRight {
     from { transform: translateX(20px); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+  }
+  
+  .slide-in-up {
+    animation: slideInUp 0.4s ease-in-out;
+  }
+  
+  @keyframes slideInUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .zoom-in {
+    animation: zoomIn 0.3s ease-in-out;
+  }
+  
+  @keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  /* تأثيرات حركية للأزرار */
+  .btn-hover-effect {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-hover-effect:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease-in-out;
+  }
+  
+  .btn-hover-effect:hover:after {
+    transform: translateX(100%);
   }
 }
