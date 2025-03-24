@@ -383,8 +383,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/projects", authenticate, async (req: Request, res: Response) => {
     try {
+      console.log("Project creation request:", req.body);
+
+      if (!req.body.name || !req.body.description || !req.body.startDate || !req.body.status) {
+        return res.status(400).json({ message: "Required" });
+      }
+      
       const projectData = insertProjectSchema.parse(req.body);
       projectData.createdBy = req.session.userId as number;
+      
+      console.log("Parsed project data:", projectData);
       
       const project = await storage.createProject(projectData);
       
@@ -398,7 +406,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(201).json(project);
     } catch (error) {
+      console.error("Project creation error:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation error details:", error.errors);
         return res.status(400).json({ message: error.errors[0].message });
       }
       return res.status(500).json({ message: "خطأ في إنشاء المشروع" });
@@ -495,8 +505,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/transactions", authenticate, async (req: Request, res: Response) => {
     try {
+      console.log("Transaction creation request:", req.body);
+
+      if (!req.body.date || !req.body.amount || !req.body.type || !req.body.description) {
+        return res.status(400).json({ message: "Required" });
+      }
+
+      // تحويل قيمة المشروع من none إلى undefined
+      if (req.body.projectId === "none" || req.body.projectId === "") {
+        req.body.projectId = undefined;
+      }
+      
       const transactionData = insertTransactionSchema.parse(req.body);
       transactionData.createdBy = req.session.userId as number;
+      
+      console.log("Parsed transaction data:", transactionData);
       
       const transaction = await storage.createTransaction(transactionData);
       
@@ -510,7 +533,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(201).json(transaction);
     } catch (error) {
+      console.error("Transaction creation error:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation error details:", error.errors);
         return res.status(400).json({ message: error.errors[0].message });
       }
       return res.status(500).json({ message: "خطأ في إنشاء المعاملة" });
