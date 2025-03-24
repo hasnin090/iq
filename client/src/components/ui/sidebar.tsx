@@ -56,7 +56,7 @@ export function Sidebar() {
       {/* زر القائمة المتنقلة - مع تحسين التصميم */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 right-6 z-50 bg-[hsl(var(--primary))] rounded-full w-14 h-14 flex items-center justify-center text-white shadow-[0_4px_15px_rgba(0,0,0,0.25)] hover:bg-[hsl(var(--primary))/90] hover:shadow-[0_8px_25px_rgba(0,0,0,0.3)] transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95"
+        className="fixed top-6 right-6 z-50 bg-white rounded-full w-14 h-14 flex items-center justify-center text-[hsl(var(--primary))] shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 border border-blue-100"
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
         <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
@@ -71,22 +71,22 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed top-0 right-0 h-full w-72 bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/80] transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl ${
+        className={`fixed top-0 right-0 h-full w-72 bg-white border-l border-blue-100 transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-xl ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } md:translate-x-0 flex flex-col`}
       >
         <div className="p-6 flex-grow">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-md">
-                <i className="fas fa-calculator text-xl text-[hsl(var(--primary))]"></i>
+              <div className="w-12 h-12 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center shadow-md">
+                <i className="fas fa-calculator text-xl text-white"></i>
               </div>
-              <h1 className="text-2xl font-bold text-white">نظام المحاسبة</h1>
+              <h1 className="text-2xl font-bold text-[hsl(var(--primary))]">نظام المحاسبة</h1>
             </div>
             <div className="md:hidden">
               <button 
                 onClick={() => setIsOpen(false)}
-                className="text-white hover:text-gray-300 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transform transition-transform hover:scale-110 active:scale-95"
+                className="text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))/80] w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center transform transition-transform hover:scale-110 active:scale-95 shadow"
               >
                 <i className="fas fa-times"></i>
               </button>
@@ -94,16 +94,16 @@ export function Sidebar() {
           </div>
           
           {user && (
-            <div className="mb-6 bg-black/25 p-5 rounded-2xl border border-white/15 backdrop-blur-sm shadow-xl relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--primary))/10] to-transparent opacity-60"></div>
+            <div className="mb-6 bg-blue-50 p-5 rounded-2xl border border-blue-100 shadow-md relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--primary))/5] to-transparent"></div>
               <div className="flex items-center space-x-4 space-x-reverse relative z-10">
-                <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
-                  <i className="fas fa-user text-xl text-[hsl(var(--primary))]"></i>
+                <div className="w-14 h-14 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center shadow-md">
+                  <i className="fas fa-user text-xl text-white"></i>
                 </div>
                 <div>
-                  <div className="text-white font-medium text-lg">{user.name}</div>
-                  <div className="text-sm text-white/80 mt-1 flex items-center">
-                    <i className="fas fa-circle text-[6px] mr-2"></i>
+                  <div className="text-[hsl(var(--primary))] font-medium text-lg">{user.name}</div>
+                  <div className="text-sm text-[hsl(var(--muted-foreground))] mt-1 flex items-center">
+                    <i className="fas fa-circle text-[6px] mr-2 text-[hsl(var(--primary))]"></i>
                     <span>{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</span>
                   </div>
                 </div>
@@ -111,16 +111,16 @@ export function Sidebar() {
             </div>
           )}
           
-          <nav className="space-y-4 mt-8">
+          <nav className="space-y-3 mt-8">
             <Link
               href="/"
               className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/" 
-                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                  : "text-white hover:bg-white/10 hover:scale-105"
+                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                 <i className="fas fa-home"></i>
               </div>
               <span>لوحة التحكم</span>
@@ -130,11 +130,11 @@ export function Sidebar() {
               href="/transactions"
               className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/transactions" 
-                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                  : "text-white hover:bg-white/10 hover:scale-105"
+                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/transactions" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/transactions" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                 <i className="fas fa-money-bill-wave"></i>
               </div>
               <span>الحسابات</span>
@@ -144,11 +144,11 @@ export function Sidebar() {
               href="/projects"
               className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/projects" 
-                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                  : "text-white hover:bg-white/10 hover:scale-105"
+                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/projects" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/projects" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                 <i className="fas fa-project-diagram"></i>
               </div>
               <span>المشاريع</span>
@@ -159,11 +159,11 @@ export function Sidebar() {
                 href="/users"
                 className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                   location === "/users" 
-                    ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                    : "text-white hover:bg-white/10 hover:scale-105"
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
                 } transition-all duration-200`}
               >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/users" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/users" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                   <i className="fas fa-users"></i>
                 </div>
                 <span>المستخدمين</span>
@@ -174,11 +174,11 @@ export function Sidebar() {
               href="/documents"
               className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/documents" 
-                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                  : "text-white hover:bg-white/10 hover:scale-105"
+                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/documents" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/documents" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                 <i className="fas fa-file-alt"></i>
               </div>
               <span>المستندات</span>
@@ -188,11 +188,11 @@ export function Sidebar() {
               href="/reports"
               className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/reports" 
-                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                  : "text-white hover:bg-white/10 hover:scale-105"
+                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/reports" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/reports" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                 <i className="fas fa-chart-bar"></i>
               </div>
               <span>التقارير</span>
@@ -202,11 +202,11 @@ export function Sidebar() {
               href="/activities"
               className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                 location === "/activities" 
-                  ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                  : "text-white hover:bg-white/10 hover:scale-105"
+                  ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                  : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
               } transition-all duration-200`}
             >
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/activities" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/activities" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                 <i className="fas fa-history"></i>
               </div>
               <span>سجل النشاطات</span>
@@ -217,23 +217,23 @@ export function Sidebar() {
                 href="/settings"
                 className={`flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl ${
                   location === "/settings" 
-                    ? "bg-white text-[hsl(var(--primary))] font-semibold shadow-md" 
-                    : "text-white hover:bg-white/10 hover:scale-105"
+                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
                 } transition-all duration-200`}
               >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/settings" ? "bg-[hsl(var(--primary))] text-white" : "bg-white/10"}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${location === "/settings" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
                   <i className="fas fa-cog"></i>
                 </div>
                 <span>الإعدادات</span>
               </Link>
             )}
             
-            <div className="pt-6 mt-8 border-t border-white/20">
+            <div className="pt-6 mt-8 border-t border-blue-100">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl text-white hover:bg-[hsl(var(--destructive))/90] hover:scale-105 transition-all duration-200 text-right"
+                className="w-full flex items-center space-x-reverse space-x-4 px-5 py-3.5 rounded-xl text-[hsl(var(--destructive))] hover:bg-red-50 hover:scale-105 transition-all duration-200 text-right"
               >
-                <div className="w-10 h-10 rounded-full bg-[hsl(var(--destructive))/20] flex items-center justify-center shadow-inner">
+                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shadow-sm">
                   <i className="fas fa-sign-out-alt text-lg"></i>
                 </div>
                 <span className="font-medium">تسجيل خروج</span>
