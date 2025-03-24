@@ -1,5 +1,5 @@
 import { db } from './db';
-import { migrate } from "drizzle-orm/neon-serverless/migrator";
+import { migrate } from "drizzle-orm/neon-http/migrator";
 import { storage } from './storage';
 import bcrypt from 'bcryptjs';
 
