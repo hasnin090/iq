@@ -29,20 +29,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تسجيل متغير PgStore من وحدة connect-pg-simple
   const PostgreSQLStore = connectPgSimple(session);
   
-  // Session setup
+  // استخدام أبسط إعداد للجلسات للتجربة
   app.use(session({
-    secret: process.env.SESSION_SECRET || "accounting-app-secret",
-    resave: false,
-    saveUninitialized: false,
+    secret: "accounting-app-secret-key",
+    resave: true,
+    saveUninitialized: true,
     cookie: { 
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax' // important for cross-domain cookies
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
     },
-    store: new PostgreSQLStore({
-      conString: process.env.DATABASE_URL, 
-      tableName: 'sessions',
+    // استخدام تخزين الذاكرة بشكل مؤقت للتغلب على المشكلة
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000 // prune expired entries every 24h
     })
   }));
   
@@ -100,11 +97,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.userId = user.id;
         req.session.username = user.username;
         req.session.role = user.role;
+        // إضافة علامة للإشارة إلى تعديل الجلسة
+        (req.session as any).modified = true;
         
         console.log('Session updated:', { 
           userId: req.session.userId, 
           username: req.session.username, 
           role: req.session.role 
+        });
+        
+        // تخزين الجلسة بشكل صريح
+        req.session.save((err) => {
+          if (err) {
+            console.error('Error saving session:', err);
+          } else {
+            console.log('Session saved successfully with ID:', req.sessionID);
+          }
         });
         
         await storage.createActivityLog({
@@ -201,6 +209,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.username = user.username;
       req.session.role = user.role;
+      // إضافة علامة للإشارة إلى تعديل الجلسة
+      (req.session as any).modified = true;
+      
+      // تخزين الجلسة بشكل صريح
+      req.session.save((err) => {
+        if (err) {
+          console.error('Error saving Firebase session:', err);
+        } else {
+          console.log('Firebase session saved successfully with ID:', req.sessionID);
+        }
+      });
       
       await storage.createActivityLog({
         action: "login",
