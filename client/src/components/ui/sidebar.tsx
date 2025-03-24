@@ -53,10 +53,11 @@ export function Sidebar() {
 
   return (
     <>
-      {/* زر القائمة المتنقلة */}
+      {/* زر القائمة المتنقلة - الآن على اليمين ليتناسب مع ظهور القائمة */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 left-6 z-50 bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white shadow-lg hover:bg-primary-light transition-all focus:outline-none md:hidden"
+        className="fixed top-6 right-6 z-50 bg-primary rounded-full w-12 h-12 flex items-center justify-center text-white shadow-lg hover:bg-primary-light transition-all focus:outline-none md:hidden"
+        aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
         <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'}`}></i>
       </button>

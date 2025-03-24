@@ -40,18 +40,20 @@ function AppRoutes() {
   return (
     <div className="flex">
       <Sidebar />
-      <main className="flex-1 min-h-screen p-6 md:px-10 pb-12 transition-all duration-300">
-        <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/transactions" component={Transactions} />
-          <Route path="/projects" component={Projects} />
-          <Route path="/users" component={Users} />
-          <Route path="/documents" component={Documents} />
-          <Route path="/reports" component={Reports} />
-          <Route path="/activities" component={Activities} />
-          <Route path="/settings" component={Settings} />
-          <Route component={NotFound} />
-        </Switch>
+      <main className="flex-1 min-h-screen p-4 sm:p-6 md:px-8 lg:px-10 pb-12 transition-all duration-300 ml-0 md:ml-72">
+        <div className="responsive-container fade-in">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/transactions" component={Transactions} />
+            <Route path="/projects" component={Projects} />
+            <Route path="/users" component={Users} />
+            <Route path="/documents" component={Documents} />
+            <Route path="/reports" component={Reports} />
+            <Route path="/activities" component={Activities} />
+            <Route path="/settings" component={Settings} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </main>
     </div>
   );

@@ -92,6 +92,55 @@
     @apply w-full px-4 py-2 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none text-[hsl(var(--foreground))];
   }
   
+  /* تحسينات للشاشات الصغيرة والتجاوب */
+  .responsive-container {
+    @apply px-4 md:px-6 lg:px-8 mx-auto max-w-full md:max-w-screen-xl;
+  }
+  
+  .card {
+    @apply bg-[hsl(var(--card))] rounded-xl shadow-md border border-[hsl(var(--border))] p-4 md:p-6 transition-all hover:shadow-lg;
+  }
+  
+  .action-button {
+    @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  .action-button-primary {
+    @apply action-button bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))/90];
+  }
+  
+  .action-button-secondary {
+    @apply action-button bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary))/80];
+  }
+  
+  .action-button-destructive {
+    @apply action-button bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))/90];
+  }
+  
+  /* تحسينات زر التعديل والحذف */
+  .action-icon-button {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-colors hover:bg-[hsl(var(--accent))/10] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))];
+  }
+  
+  /* تحسينات عرض الجداول في الشاشات الصغيرة */
+  .responsive-table-container {
+    @apply w-full overflow-x-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))];
+  }
+  
+  .responsive-table {
+    @apply w-full min-w-full table-auto divide-y divide-[hsl(var(--border))];
+  }
+  
+  /* الحاويات المتجاوبة للبطاقات */
+  .responsive-card-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6;
+  }
+  
+  /* تنسيق الشكل العام للنماذج */
+  .form-container {
+    @apply space-y-4 md:space-y-6;
+  }
+  
   /* Card animations */
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -101,5 +150,24 @@
   
   .shake {
     animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+  
+  /* تأثيرات الانتقال */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .slide-in-right {
+    animation: slideInRight 0.3s ease-in-out;
+  }
+  
+  @keyframes slideInRight {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
   }
 }
