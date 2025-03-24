@@ -129,7 +129,8 @@ export class MemStorage implements IStorage {
     const newUser: User = { 
       ...user, 
       id,
-      permissions: user.permissions || [],
+      role: user.role || "user",
+      permissions: [],
       active: true
     };
     this.usersData.set(id, newUser);
@@ -164,7 +165,12 @@ export class MemStorage implements IStorage {
 
   async createProject(project: InsertProject): Promise<Project> {
     const id = this.projectIdCounter++;
-    const newProject: Project = { ...project, id, progress: 0 };
+    const newProject: Project = { 
+      ...project, 
+      id, 
+      progress: 0,
+      status: project.status || "active"
+    };
     this.projectsData.set(id, newProject);
     return newProject;
   }
@@ -193,7 +199,11 @@ export class MemStorage implements IStorage {
 
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     const id = this.transactionIdCounter++;
-    const newTransaction: Transaction = { ...transaction, id };
+    const newTransaction: Transaction = { 
+      ...transaction, 
+      id,
+      projectId: transaction.projectId || null
+    };
     this.transactionsData.set(id, newTransaction);
     return newTransaction;
   }
@@ -228,7 +238,12 @@ export class MemStorage implements IStorage {
 
   async createDocument(document: InsertDocument): Promise<Document> {
     const id = this.documentIdCounter++;
-    const newDocument: Document = { ...document, id };
+    const newDocument: Document = { 
+      ...document, 
+      id,
+      description: document.description || null,
+      projectId: document.projectId || null
+    };
     this.documentsData.set(id, newDocument);
     return newDocument;
   }
@@ -262,7 +277,7 @@ export class MemStorage implements IStorage {
     const newLog: ActivityLog = { 
       ...log, 
       id, 
-      timestamp: log.timestamp || new Date()
+      timestamp: new Date()
     };
     this.activityLogsData.set(id, newLog);
     return newLog;
