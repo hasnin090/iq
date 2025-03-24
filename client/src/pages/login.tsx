@@ -41,9 +41,32 @@ export default function Login() {
       
       console.log('Calling auth context login function with:', formData);
       
-      // تسجيل الدخول باستخدام دالة السياق
-      const userData = await login(formData.username, formData.password);
-      console.log('Login completed with user data:', userData);
+      // استخدام fetch مباشرة بدلاً من دالة السياق
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+        credentials: 'include',
+      });
+      
+      console.log('Login API response:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Login error:', errorText);
+        throw new Error(errorText || 'فشل تسجيل الدخول');
+      }
+      
+      const userData = await response.json();
+      console.log('Login successful, user data:', userData);
+      
+      // تخزين بيانات المستخدم في localStorage
+      localStorage.setItem('auth_user', JSON.stringify(userData));
+      
+      // إعادة تحميل الصفحة للانتقال إلى الصفحة الرئيسية
+      window.location.href = '/dashboard';
       
     } catch (error) {
       console.error('Login submit error:', error);
