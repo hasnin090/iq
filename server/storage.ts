@@ -7,6 +7,7 @@ import {
   settings, type Setting, type InsertSetting
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
+import { pgStorage } from './pg-storage';
 
 export interface IStorage {
   // Users
@@ -307,4 +308,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// استخدام تخزين قاعدة البيانات PostgreSQL
+export const storage: IStorage = pgStorage;

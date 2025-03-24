@@ -51,11 +51,11 @@
   }
   
   * {
-    @apply border-border;
+    @apply border-[hsl(var(--border))];
   }
   
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-sans antialiased;
     font-family: 'Cairo', sans-serif;
     direction: rtl;
   }
@@ -67,15 +67,15 @@
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-secondary;
+    @apply bg-[hsl(var(--secondary))] rounded;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary rounded-sm;
+    @apply bg-[hsl(var(--primary))] rounded-sm;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-accent;
+    @apply bg-[hsl(var(--accent))];
   }
 }
 
@@ -85,11 +85,11 @@
   }
   
   .button-primary {
-    @apply bg-gradient-to-r from-primary to-accent text-white font-medium py-2 px-4 rounded-md hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50;
+    @apply bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white font-medium py-2 px-4 rounded-md hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50;
   }
   
   .input-field {
-    @apply w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary focus:outline-none text-foreground;
+    @apply w-full px-4 py-2 rounded-lg bg-[hsl(var(--secondary))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none text-[hsl(var(--foreground))];
   }
   
   /* Card animations */
