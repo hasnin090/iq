@@ -40,8 +40,10 @@ function AppRoutes() {
   return (
     <div className="flex">
       <Sidebar />
-      <main className="flex-1 min-h-screen p-4 sm:p-6 md:px-8 lg:px-10 pb-12 transition-all duration-300 ml-0 md:ml-72">
-        <div className="responsive-container fade-in">
+      <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72">
+        {/* حاشية في الأعلى لمنع تداخل زر الشريط الجانبي */}
+        <div className="h-20 md:h-6"></div>
+        <div className="responsive-container p-4 sm:p-6 md:px-8 lg:px-10 pb-12 fade-in">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/transactions" component={Transactions} />
