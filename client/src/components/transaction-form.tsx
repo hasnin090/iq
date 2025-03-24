@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, CoinsIcon, InfoIcon, Loader2, PiggyBankIcon, SaveIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Project {
   id: number;
@@ -80,6 +82,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         title: "خطأ",
         description: error instanceof Error ? error.message : "فشل في حفظ المعاملة المالية",
       });
+      console.error("Error creating transaction:", error);
     },
   });
   
@@ -87,165 +90,283 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     mutation.mutate(data);
   }
   
+  // اقتراحات سريعة للمبالغ المالية
+  const commonAmounts = [
+    { value: 100, label: "١٠٠ د.ع" },
+    { value: 500, label: "٥٠٠ د.ع" },
+    { value: 1000, label: "١٠٠٠ د.ع" },
+    { value: 5000, label: "٥٠٠٠ د.ع" }
+  ];
+  
+  // اقتراحات سريعة للوصف حسب النوع
+  const descriptionSuggestions = {
+    income: [
+      "دفعة من العميل",
+      "إيراد مبيعات",
+      "دفعة مقدمة للمشروع",
+      "إيجار مرافق"
+    ],
+    expense: [
+      "شراء مستلزمات مكتبية",
+      "رواتب الموظفين",
+      "مصاريف نقل",
+      "صيانة معدات"
+    ]
+  };
+  
+  // الحصول على اقتراحات الوصف بناءً على نوع المعاملة
+  const getDescriptionSuggestions = () => {
+    const type = form.getValues().type as "income" | "expense";
+    return descriptionSuggestions[type] || [];
+  };
+  
   return (
-    <div className="bg-secondary-light rounded-xl shadow-card p-6">
-      <h3 className="text-lg font-bold text-primary-light mb-4">إضافة عملية مالية جديدة</h3>
+    <Card className="border border-blue-100 shadow-md transition-all duration-300 hover:shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-2">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary">
+          {form.watch("type") === "income" ? (
+            <PiggyBankIcon className="h-5 w-5 text-green-500" />
+          ) : (
+            <CoinsIcon className="h-5 w-5 text-red-500" />
+          )}
+          إضافة عملية مالية جديدة
+        </CardTitle>
+      </CardHeader>
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>التاريخ</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className="w-full px-4 py-2 h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light text-right justify-between items-center"
-                        >
-                          {field.value ? (
-                            format(field.value, "yyyy/MM/dd")
-                          ) : (
-                            <span>اختر التاريخ</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date > new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>نوع العملية</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value} 
-                    disabled={isLoading || mutation.isPending}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full px-4 py-2 h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light">
-                        <SelectValue placeholder="اختر نوع العملية" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="income">ايراد</SelectItem>
-                      <SelectItem value="expense">مصروف</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>المبلغ (د.ع)</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      placeholder="أدخل المبلغ"
-                      className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
+      <CardContent className="pt-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>التاريخ</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300 text-right justify-between items-center"
+                            disabled={isLoading || mutation.isPending}
+                          >
+                            {field.value ? (
+                              format(field.value, "yyyy/MM/dd")
+                            ) : (
+                              <span>اختر التاريخ</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date > new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>نوع العملية</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        form.setValue("description", ""); // مسح الوصف عند تغيير النوع
+                      }} 
+                      value={field.value} 
                       disabled={isLoading || mutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>المشروع</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value} 
-                    disabled={isLoading || mutation.isPending}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full px-4 py-2 h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light">
-                        <SelectValue placeholder="اختر المشروع" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="all">عام</SelectItem>
-                      {projects.map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
-                          {project.name}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                          <SelectValue placeholder="اختر نوع العملية" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="income" className="flex items-center gap-2">
+                          <div className="flex items-center">
+                            <PiggyBankIcon className="h-4 w-4 ml-2 text-green-500" />
+                            إيراد
+                          </div>
                         </SelectItem>
+                        <SelectItem value="expense" className="flex items-center gap-2">
+                          <div className="flex items-center">
+                            <CoinsIcon className="h-4 w-4 ml-2 text-red-500" />
+                            مصروف
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center">
+                        المبلغ (د.ع)
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                              <p>أدخل قيمة المبلغ المالي بالدينار</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          placeholder="أدخل المبلغ"
+                          className="w-full h-10 rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                          disabled={isLoading || mutation.isPending}
+                        />
+                      </FormControl>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {commonAmounts.map((amount, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                            onClick={() => form.setValue('amount', amount.value)}
+                            disabled={isLoading || mutation.isPending}
+                          >
+                            {amount.label}
+                          </button>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="projectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المشروع</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value} 
+                      disabled={isLoading || mutation.isPending}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                          <SelectValue placeholder="اختر المشروع" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">عام (بدون مشروع)</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id.toString()}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      التفاصيل
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                            <p>أدخل وصفًا تفصيليًا للعملية المالية</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={2}
+                        placeholder="أدخل تفاصيل العملية"
+                        className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                        disabled={isLoading || mutation.isPending}
+                      />
+                    </FormControl>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {getDescriptionSuggestions().map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                          onClick={() => form.setValue('description', suggestion)}
+                          disabled={isLoading || mutation.isPending}
+                        >
+                          {suggestion}
+                        </button>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>التفاصيل</FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    rows={3}
-                    placeholder="أدخل تفاصيل العملية"
-                    className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
-                    disabled={isLoading || mutation.isPending}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="text-center">
-            <Button 
-              type="submit" 
-              className="px-6 py-3 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-              disabled={isLoading || mutation.isPending}
-            >
-              {mutation.isPending ? (
-                <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري الحفظ...
-                </>
-              ) : "حفظ العملية"}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="flex justify-center pt-2">
+              <Button 
+                type="submit" 
+                className={`px-6 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 ${
+                  form.watch("type") === "income" 
+                    ? "bg-gradient-to-r from-green-600 to-green-500" 
+                    : "bg-gradient-to-r from-blue-600 to-blue-500"
+                }`}
+                disabled={isLoading || mutation.isPending}
+              >
+                {mutation.isPending ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>
+                    <SaveIcon className="ml-2 h-4 w-4" />
+                    حفظ العملية
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

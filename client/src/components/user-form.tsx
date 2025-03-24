@@ -9,7 +9,21 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  AtSignIcon, 
+  EyeIcon, 
+  EyeOffIcon, 
+  InfoIcon, 
+  KeyIcon, 
+  Loader2, 
+  LockIcon, 
+  SaveIcon, 
+  ShieldIcon, 
+  UserIcon, 
+  UsersIcon 
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface UserFormProps {
@@ -30,15 +44,17 @@ const userSchema = z.object({
 type UserFormValues = z.infer<typeof userSchema>;
 
 const permissions = [
-  { id: "viewReports", label: "عرض التقارير" },
-  { id: "manageProjects", label: "إدارة المشاريع" },
-  { id: "manageTransactions", label: "إدارة المعاملات المالية" },
-  { id: "manageDocuments", label: "إدارة المستندات" },
+  { id: "viewReports", label: "عرض التقارير", icon: <EyeIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
+  { id: "manageProjects", label: "إدارة المشاريع", icon: <UsersIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
+  { id: "manageTransactions", label: "إدارة المعاملات المالية", icon: <KeyIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
+  { id: "viewOnly", label: "صلاحيات المشاهدة فقط", icon: <EyeOffIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
+  { id: "manageDocuments", label: "إدارة المستندات", icon: <ShieldIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
 ];
 
 export function UserForm({ onSubmit }: UserFormProps) {
   const { toast } = useToast();
   const [showPermissions, setShowPermissions] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -78,6 +94,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
         title: "خطأ",
         description: error instanceof Error ? error.message : "فشل في حفظ المستخدم",
       });
+      console.error("Error creating user:", error);
     },
   });
   
@@ -89,181 +106,300 @@ export function UserForm({ onSubmit }: UserFormProps) {
   const handleRoleChange = (role: string) => {
     form.setValue("role", role as "admin" | "user");
     setShowPermissions(role === "user");
+    
+    // إذا تم تغيير الدور إلى مدير، قم بإعادة تعيين الصلاحيات
+    if (role === "admin") {
+      form.setValue("permissions", []);
+    }
   };
   
+  // توليد كلمة مرور عشوائية آمنة
+  const generatePassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+    let password = "";
+    for (let i = 0; i < 10; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    form.setValue("password", password);
+    setShowPassword(true);
+  };
+  
+  // اقتراحات بريد إلكتروني
+  const emailDomains = ["@example.com", "@gmail.com", "@hotmail.com", "@yahoo.com"];
+  
   return (
-    <div className="bg-secondary-light rounded-xl shadow-card p-6">
-      <h3 className="text-lg font-bold text-primary-light mb-4">إضافة مستخدم جديد</h3>
+    <Card className="border border-blue-100 shadow-md transition-all duration-300 hover:shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-2">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary">
+          <UserIcon className="h-5 w-5" />
+          إضافة مستخدم جديد
+        </CardTitle>
+      </CardHeader>
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>اسم المستخدم</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="أدخل اسم المستخدم"
-                      className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
-                      disabled={mutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>الاسم الكامل</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="أدخل الاسم الكامل"
-                      className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
-                      disabled={mutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>البريد الإلكتروني</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="email"
-                      placeholder="أدخل البريد الإلكتروني"
-                      className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
-                      disabled={mutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>كلمة المرور</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="password"
-                      placeholder="أدخل كلمة المرور"
-                      className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
-                      disabled={mutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>الصلاحية</FormLabel>
-                <Select 
-                  onValueChange={handleRoleChange} 
-                  value={field.value} 
-                  disabled={mutation.isPending}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full px-4 py-2 h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light">
-                      <SelectValue placeholder="اختر الصلاحية" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="admin">مدير</SelectItem>
-                    <SelectItem value="user">مستخدم</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  المدير لديه صلاحيات كاملة للنظام
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {showPermissions && (
-            <div className="bg-secondary p-4 rounded-lg">
-              <FormLabel className="mb-4 block">الصلاحيات:</FormLabel>
-              <div className="space-y-2">
-                {permissions.map((permission) => (
-                  <FormField
-                    key={permission.id}
-                    control={form.control}
-                    name="permissions"
-                    render={({ field }) => {
-                      return (
-                        <FormItem
-                          key={permission.id}
-                          className="flex flex-row items-start space-x-reverse space-x-3 space-y-0 py-1"
-                        >
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value?.includes(permission.id)}
-                              onCheckedChange={(checked) => {
-                                const currentPermissions = field.value || [];
-                                return checked
-                                  ? field.onChange([...currentPermissions, permission.id])
-                                  : field.onChange(
-                                      currentPermissions.filter((value) => value !== permission.id)
-                                    );
-                              }}
-                            />
-                          </FormControl>
-                          <FormLabel className="text-sm font-normal">
-                            {permission.label}
-                          </FormLabel>
-                        </FormItem>
-                      );
-                    }}
-                  />
-                ))}
+      <CardContent className="pt-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center">
+                        اسم المستخدم
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                              <p>أدخل اسم المستخدم للدخول إلى النظام (بدون مسافات)</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            placeholder="أدخل اسم المستخدم"
+                            className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 pr-10"
+                            disabled={mutation.isPending}
+                          />
+                          <UserIcon className="absolute top-2.5 right-3 h-5 w-5 text-slate-400" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
+              
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الاسم الكامل</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="أدخل الاسم الكامل"
+                        className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                        disabled={mutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          )}
-          
-          <div className="text-center">
-            <Button 
-              type="submit" 
-              className="px-6 py-3 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? (
-                <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                  جاري الحفظ...
-                </>
-              ) : "حفظ المستخدم"}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>البريد الإلكتروني</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="أدخل البريد الإلكتروني"
+                            className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 pr-10"
+                            disabled={mutation.isPending}
+                          />
+                          <AtSignIcon className="absolute top-2.5 right-3 h-5 w-5 text-slate-400" />
+                        </div>
+                      </FormControl>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {emailDomains.map((domain, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                            onClick={() => {
+                              const username = form.getValues().username;
+                              if (username) {
+                                form.setValue('email', username + domain);
+                              }
+                            }}
+                            disabled={mutation.isPending || !form.getValues().username}
+                          >
+                            {domain}
+                          </button>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      كلمة المرور
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                            <p>يجب أن تكون كلمة المرور 6 أحرف على الأقل</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <div className="flex space-x-space-x-reverse space-x-2">
+                      <FormControl>
+                        <div className="relative flex-1">
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            placeholder="أدخل كلمة المرور"
+                            className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 pr-10"
+                            disabled={mutation.isPending}
+                          />
+                          <LockIcon className="absolute top-2.5 right-3 h-5 w-5 text-slate-400" />
+                          <button
+                            type="button"
+                            className="absolute top-2.5 left-3 h-5 w-5 text-slate-400"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-10 border-blue-100 hover:bg-blue-50 hover:text-blue-700"
+                        onClick={generatePassword}
+                        disabled={mutation.isPending}
+                      >
+                        توليد
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>الصلاحية</FormLabel>
+                  <Select 
+                    onValueChange={handleRoleChange} 
+                    value={field.value} 
+                    disabled={mutation.isPending}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                        <SelectValue placeholder="اختر الصلاحية" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="admin" className="flex items-center">
+                        <div className="flex items-center">
+                          <ShieldIcon className="h-4 w-4 ml-2 text-red-500" />
+                          مدير
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="user" className="flex items-center">
+                        <div className="flex items-center">
+                          <UserIcon className="h-4 w-4 ml-2 text-blue-500" />
+                          مستخدم
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    {field.value === "admin" 
+                      ? "المدير لديه صلاحيات كاملة للنظام" 
+                      : "المستخدم يحتاج لتحديد صلاحيات محددة"}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {showPermissions && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <FormLabel className="mb-2 block font-medium text-blue-700">الصلاحيات:</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {permissions.map((permission) => (
+                    <FormField
+                      key={permission.id}
+                      control={form.control}
+                      name="permissions"
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={permission.id}
+                            className="flex flex-row items-center space-x-reverse space-x-2 space-y-0 py-1.5 px-2 rounded-lg hover:bg-blue-100/50"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(permission.id)}
+                                onCheckedChange={(checked) => {
+                                  const currentPermissions = field.value || [];
+                                  return checked
+                                    ? field.onChange([...currentPermissions, permission.id])
+                                    : field.onChange(
+                                        currentPermissions.filter((value) => value !== permission.id)
+                                      );
+                                }}
+                                className="border-blue-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-normal cursor-pointer flex items-center">
+                              {permission.icon}
+                              {permission.label}
+                            </FormLabel>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-center pt-2">
+              <Button 
+                type="submit" 
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>
+                    <SaveIcon className="ml-2 h-4 w-4" />
+                    حفظ المستخدم
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
