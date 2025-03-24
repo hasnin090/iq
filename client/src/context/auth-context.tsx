@@ -10,7 +10,8 @@ import { auth } from '@/lib/firebase';
 import {
   onAuthStateChanged,
   signOut as firebaseSignOut,
-  User as FirebaseUser 
+  User as FirebaseUser,
+  Auth
 } from 'firebase/auth';
 
 interface User {
@@ -32,7 +33,7 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  isLoading: true,
+  isLoading: false, // Changed to false to avoid infinite loading state
   login: async () => {},
   loginWithGoogle: async () => {},
   logout: () => {},
@@ -44,21 +45,45 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed to false
   const { toast } = useToast();
 
-  // استمع لتغييرات المصادقة من Firebase
+  // تحقق من جلسة المستخدم عند تحميل التطبيق
   useEffect(() => {
+    const checkSession = async () => {
+      try {
+        setIsLoading(true);
+        const response = await apiRequest('GET', '/api/auth/session', undefined);
+        const userData = await response.json();
+        setUser(userData);
+      } catch (error) {
+        console.log('No active session');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  // استمع لتغييرات المصادقة من Firebase (إذا كان متاحًا)
+  useEffect(() => {
+    // تحقق من وجود كائن auth
+    if (!auth) {
+      console.log('Firebase auth not available');
+      return () => {}; // إرجاع دالة تنظيف فارغة
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         setIsLoading(true);
         
         if (firebaseUser) {
           // المستخدم قد قام بتسجيل الدخول عبر Firebase
-          const idToken = await firebaseUser.getIdToken();
-          
-          // إرسال معلومات المستخدم إلى الخادم للتحقق
           try {
+            const idToken = await firebaseUser.getIdToken();
+            // إرسال معلومات المستخدم إلى الخادم للتحقق
             const response = await apiRequest('POST', '/api/auth/firebase-login', { 
               token: idToken,
               email: firebaseUser.email,
@@ -76,17 +101,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           } catch (apiError) {
             console.error('Server authentication error:', apiError);
             // في حالة فشل التسجيل في الخادم، قم بتسجيل الخروج من Firebase أيضًا
-            await firebaseSignOut(auth);
-            setUser(null);
-          }
-        } else {
-          // تحقق إذا كان المستخدم قد قام بتسجيل الدخول عبر الطريقة التقليدية
-          try {
-            const response = await apiRequest('GET', '/api/auth/session', undefined);
-            const userData = await response.json();
-            setUser(userData);
-          } catch (error) {
-            console.log('No active session');
+            if (auth) {
+              await firebaseSignOut(auth);
+            }
             setUser(null);
           }
         }
@@ -135,9 +152,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { signInWithGoogle } = await import('@/lib/firebase');
       await signInWithGoogle();
       
-      // نحتاج إلى إرسال البيانات إلى الخادم بعد تسجيل الدخول بنجاح
-      // سيتم التعامل مع إعادة التوجيه في useEffect منفصل
-      
       toast({
         title: "جاري تسجيل الدخول بواسطة Google",
         description: "يرجى الانتظار...",
@@ -158,8 +172,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
-      // تسجيل الخروج من Firebase
-      await firebaseSignOut(auth);
+      setIsLoading(true);
+      // تسجيل الخروج من Firebase إذا كان متاحًا
+      if (auth) {
+        await firebaseSignOut(auth);
+      }
       // تسجيل الخروج من API
       await apiRequest('POST', '/api/auth/logout', undefined);
       setUser(null);
@@ -168,6 +185,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
     } catch (error) {
       console.error('Logout error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
