@@ -53,11 +53,50 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const checkSession = async () => {
       try {
         setIsLoading(true);
-        const response = await apiRequest('GET', '/api/auth/session', undefined);
-        const userData = await response.json();
-        setUser(userData);
+        
+        // الحصول على البيانات من التخزين المحلي كحل احتياطي
+        const storedUser = localStorage.getItem('auth_user');
+        let foundUser = null;
+        
+        if (storedUser) {
+          try {
+            foundUser = JSON.parse(storedUser);
+            console.log('Found stored user data:', foundUser);
+          } catch (err) {
+            console.error('Failed to parse stored user data:', err);
+          }
+        }
+        
+        try {
+          // محاولة الحصول على بيانات الجلسة من الخادم
+          const response = await fetch('/api/auth/session', {
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            console.log('Server session data:', userData);
+            setUser(userData);
+            // تحديث البيانات المخزنة محلياً
+            localStorage.setItem('auth_user', JSON.stringify(userData));
+            return;
+          } else {
+            console.log('No active server session:', response.status);
+          }
+        } catch (serverError) {
+          console.error('Error checking server session:', serverError);
+        }
+        
+        // استخدام البيانات المخزنة محلياً إذا لم تنجح محاولة الخادم
+        if (foundUser) {
+          console.log('Using locally stored user data as fallback');
+          setUser(foundUser);
+        } else {
+          console.log('No active session found');
+          setUser(null);
+        }
       } catch (error) {
-        console.log('No active session');
+        console.error('Session check error:', error);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -148,6 +187,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userData = await response.json();
       console.log('Login successful, user data:', userData);
       
+      // تخزين بيانات المستخدم في localStorage للاستخدام المؤقت
+      localStorage.setItem('auth_user', JSON.stringify(userData));
+      
       // تحديث حالة المستخدم
       setUser(userData);
       
@@ -163,8 +205,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const sessionCheckResponse = await fetch('/api/auth/session', {
             credentials: 'include'
           });
-          console.log('Session check after login:', sessionCheckResponse.status, 
-            await sessionCheckResponse.text());
+          console.log('Session check after login:', sessionCheckResponse.status);
+          
+          if (sessionCheckResponse.ok) {
+            const sessionData = await sessionCheckResponse.json();
+            console.log('Session data:', sessionData);
+          } else {
+            console.warn('Session check failed:', await sessionCheckResponse.text());
+          }
         } catch (err) {
           console.error('Failed to check session after login:', err);
         }
@@ -215,13 +263,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async () => {
     try {
       setIsLoading(true);
+      
       // تسجيل الخروج من Firebase إذا كان متاحًا
       if (auth) {
         await firebaseSignOut(auth);
       }
-      // تسجيل الخروج من API
-      await apiRequest('POST', '/api/auth/logout', undefined);
+      
+      // إزالة بيانات المستخدم من التخزين المحلي
+      localStorage.removeItem('auth_user');
+      
+      try {
+        // تسجيل الخروج من API
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (apiError) {
+        console.error('API logout error:', apiError);
+        // نستمر حتى مع وجود خطأ
+      }
+      
+      // تحديث حالة المستخدم في التطبيق
       setUser(null);
+      
+      // إظهار رسالة النجاح
       toast({
         title: "تم تسجيل الخروج بنجاح",
       });
