@@ -65,7 +65,20 @@ export default function Transactions() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
+        <div className="order-2 lg:order-1 lg:col-span-2 space-y-6">
+          {/* Transaction Form - Moved to top for mobile and desktop */}
+          <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm fade-in">
+            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+              <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
+              <span>إضافة معاملة جديدة</span>
+            </h3>
+            <TransactionForm 
+              projects={projects || []} 
+              onSubmit={handleFormSubmit} 
+              isLoading={projectsLoading}
+            />
+          </div>
+          
           {/* Filters and Controls */}
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 mb-2">
@@ -143,19 +156,8 @@ export default function Transactions() {
           />
         </div>
         
-        <div>
-          {/* Transaction Form */}
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
-            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
-              <span>إضافة معاملة جديدة</span>
-            </h3>
-            <TransactionForm 
-              projects={projects || []} 
-              onSubmit={handleFormSubmit} 
-              isLoading={projectsLoading}
-            />
-          </div>
+        <div className="order-1 lg:order-2">
+          {/* This column intentionally left empty as the TransactionForm has been moved above */}
         </div>
       </div>
     </div>

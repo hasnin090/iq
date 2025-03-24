@@ -29,7 +29,16 @@ export default function Projects() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
+        <div className="order-2 lg:order-1 lg:col-span-2">
+          {/* Project Form - Moved to top for mobile and desktop */}
+          <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm mb-6 fade-in">
+            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+              <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
+              <span>إضافة مشروع جديد</span>
+            </h3>
+            <ProjectForm onSubmit={handleProjectUpdated} />
+          </div>
+          
           {/* Project List */}
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
             <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
@@ -44,15 +53,8 @@ export default function Projects() {
           </div>
         </div>
         
-        <div>
-          {/* Project Form */}
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm sticky top-4 fade-in">
-            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
-              <span>إضافة مشروع جديد</span>
-            </h3>
-            <ProjectForm onSubmit={handleProjectUpdated} />
-          </div>
+        <div className="order-1 lg:order-2">
+          {/* This column intentionally left empty as the ProjectForm has been moved above */}
         </div>
       </div>
     </div>
