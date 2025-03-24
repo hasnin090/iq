@@ -76,13 +76,13 @@ export const insertUserSchema = createInsertSchema(users)
   });
 
 export const insertProjectSchema = createInsertSchema(projects)
-  .omit({ id: true, progress: true })
+  .omit({ id: true, progress: true, createdBy: true })
   .extend({
     startDate: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
   });
 
 export const insertTransactionSchema = createInsertSchema(transactions)
-  .omit({ id: true })
+  .omit({ id: true, createdBy: true })
   .extend({
     date: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
   });
