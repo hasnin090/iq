@@ -61,40 +61,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
+      console.log('Login attempt:', req.body);
       const credentials = loginSchema.parse(req.body);
+      console.log('Valid credentials schema:', credentials);
+      
       const user = await storage.getUserByUsername(credentials.username);
+      console.log('User found:', user ? { id: user.id, username: user.username, role: user.role } : 'No user found');
       
       if (!user) {
         return res.status(401).json({ message: "معلومات تسجيل الدخول غير صحيحة" });
       }
       
-      const isPasswordValid = await storage.validatePassword(user.password, credentials.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: "معلومات تسجيل الدخول غير صحيحة" });
+      try {
+        const isPasswordValid = await storage.validatePassword(user.password, credentials.password);
+        console.log('Password validation result:', isPasswordValid);
+        
+        if (!isPasswordValid) {
+          return res.status(401).json({ message: "معلومات تسجيل الدخول غير صحيحة" });
+        }
+        
+        // Store user info in session
+        req.session.userId = user.id;
+        req.session.username = user.username;
+        req.session.role = user.role;
+        
+        console.log('Session updated:', { 
+          userId: req.session.userId, 
+          username: req.session.username, 
+          role: req.session.role 
+        });
+        
+        await storage.createActivityLog({
+          action: "login",
+          entityType: "user",
+          entityId: user.id,
+          details: "تسجيل دخول",
+          userId: user.id
+        });
+        
+        return res.status(200).json({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          permissions: user.permissions
+        });
+      } catch (passwordError) {
+        console.error('Password validation error:', passwordError);
+        return res.status(500).json({ message: "خطأ في التحقق من كلمة المرور" });
       }
-      
-      // Store user info in session
-      req.session.userId = user.id;
-      req.session.username = user.username;
-      req.session.role = user.role;
-      
-      await storage.createActivityLog({
-        action: "login",
-        entityType: "user",
-        entityId: user.id,
-        details: "تسجيل دخول",
-        userId: user.id
-      });
-      
-      return res.status(200).json({
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        permissions: user.permissions
-      });
     } catch (error) {
+      console.error('Login error:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }

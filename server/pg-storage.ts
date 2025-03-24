@@ -57,7 +57,15 @@ export class PgStorage implements IStorage {
   }
   
   async validatePassword(storedPassword: string, inputPassword: string): Promise<boolean> {
-    return await bcrypt.compare(inputPassword, storedPassword);
+    try {
+      console.log('PG Storage - Comparing passwords:', { inputPassword, storedHashLength: storedPassword?.length || 0 });
+      if (!storedPassword) return false;
+      
+      return await bcrypt.compare(inputPassword, storedPassword);
+    } catch (error) {
+      console.error('PG Storage - Password validation error:', error);
+      return false;
+    }
   }
   
   // ======== إدارة المشاريع ========

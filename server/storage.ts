@@ -155,7 +155,14 @@ export class MemStorage implements IStorage {
   }
 
   async validatePassword(storedPassword: string, inputPassword: string): Promise<boolean> {
-    return bcrypt.compareSync(inputPassword, storedPassword);
+    try {
+      console.log('Comparing passwords:', { inputPassword, storedHashLength: storedPassword?.length || 0 });
+      if (!storedPassword) return false;
+      return await bcrypt.compare(inputPassword, storedPassword);
+    } catch (error) {
+      console.error('Password validation error:', error);
+      return false;
+    }
   }
 
   // Projects
