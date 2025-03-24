@@ -289,18 +289,20 @@ export function TransactionList({
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </span>
-                    <div className="flex space-x-reverse space-x-2">
+                    <div className="flex gap-2 mt-2">
                       <button 
-                        className="text-primary-light hover:text-primary-dark transition-colors"
+                        className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium flex items-center"
                         onClick={() => handleEditClick(transaction)}
                       >
-                        <i className="fas fa-edit"></i>
+                        <i className="fas fa-edit ml-1"></i>
+                        تعديل
                       </button>
                       <button 
-                        className="text-destructive hover:text-red-700 transition-colors"
+                        className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium flex items-center"
                         onClick={() => handleDeleteClick(transaction)}
                       >
-                        <i className="fas fa-trash-alt"></i>
+                        <i className="fas fa-trash-alt ml-1"></i>
+                        حذف
                       </button>
                     </div>
                   </div>
@@ -348,18 +350,20 @@ export function TransactionList({
                         {formatCurrency(transaction.amount)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
-                        <div className="flex space-x-reverse space-x-2">
+                        <div className="flex gap-2">
                           <button 
-                            className="text-primary-light hover:text-primary-dark transition-colors"
+                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium flex items-center"
                             onClick={() => handleEditClick(transaction)}
                           >
-                            <i className="fas fa-edit"></i>
+                            <i className="fas fa-edit ml-1"></i>
+                            تعديل
                           </button>
                           <button 
-                            className="text-destructive hover:text-red-700 transition-colors"
+                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium flex items-center"
                             onClick={() => handleDeleteClick(transaction)}
                           >
-                            <i className="fas fa-trash-alt"></i>
+                            <i className="fas fa-trash-alt ml-1"></i>
+                            حذف
                           </button>
                         </div>
                       </td>

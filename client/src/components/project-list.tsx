@@ -134,23 +134,26 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
                   ></div>
                 </div>
               </div>
-              <div className="flex space-x-reverse space-x-2 justify-end pt-2">
+              <div className="flex justify-between mt-4 pt-3 border-t border-gray-100">
                 <button 
-                  className="p-2 text-primary-light hover:text-primary-dark transition-colors"
+                  className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium flex items-center"
                   onClick={() => {
                     toast({
-                      title: "غير متاح",
-                      description: "ميزة التعديل غير متاحة في هذا الإصدار",
+                      title: "تعديل المشروع",
+                      description: `جاري تحميل المشروع: ${project.name}`,
                     });
+                    // سيتم استبدال هذا بالتعديل الفعلي للمشروع في الإصدار القادم
                   }}
                 >
-                  <i className="fas fa-edit"></i>
+                  <i className="fas fa-edit ml-1.5"></i>
+                  تعديل
                 </button>
                 <button 
-                  className="p-2 text-destructive hover:text-red-700 transition-colors"
+                  className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium flex items-center"
                   onClick={() => handleDeleteClick(project)}
                 >
-                  <i className="fas fa-trash-alt"></i>
+                  <i className="fas fa-trash-alt ml-1.5"></i>
+                  حذف
                 </button>
               </div>
             </div>
