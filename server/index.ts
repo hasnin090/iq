@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import session from "express-session";
+import path from "path";
 
 const app = express();
 app.use(express.json());
@@ -47,13 +49,26 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
+  // Configure session for production
+  if (app.get("env") === "production") {
+    app.set("trust proxy", 1);
+    app.use(session({
+      secret: process.env.SESSION_SECRET || "accounting-app-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      cookie: { 
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000
+      }
+    }));
+    // Serve static files from the build directory
+    app.use(express.static(path.resolve(__dirname, "public")));
+    // Handle client-side routing
+    app.get("*", (_req, res) => {
+      res.sendFile(path.resolve(__dirname, "public", "index.html"));
+    });
   } else {
-    serveStatic(app);
+    await setupVite(app, server);
   }
 
   // ALWAYS serve the app on port 5000
