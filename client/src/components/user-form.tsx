@@ -378,10 +378,10 @@ export function UserForm({ onSubmit }: UserFormProps) {
                       </FormLabel>
                       <Select 
                         onValueChange={(value) => {
-                          // إذا كانت القيمة فارغة، اجعلها undefined وإلا حولها إلى رقم
-                          field.onChange(value === "" ? undefined : parseInt(value));
+                          // إذا كانت القيمة "none"، اجعلها undefined وإلا حولها إلى رقم
+                          field.onChange(value === "none" ? undefined : parseInt(value));
                         }} 
-                        value={field.value?.toString() || ""} 
+                        value={field.value?.toString() || "none"} 
                         disabled={mutation.isPending || projectsLoading}
                       >
                         <FormControl>
@@ -392,7 +392,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">
+                          <SelectItem value="none">
                             <div className="flex items-center">
                               <span className="text-gray-500">بدون تخصيص مشروع</span>
                             </div>

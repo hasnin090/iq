@@ -93,7 +93,17 @@ export class PgStorage implements IStorage {
   }
   
   async createProject(project: InsertProject): Promise<Project> {
-    const [newProject] = await db.insert(projects).values(project).returning();
+    // تحويل البيانات إلى القالب الصحيح للقاعدة البيانات
+    const projectData = {
+      name: project.name,
+      description: project.description,
+      startDate: project.startDate,
+      status: project.status,
+      createdBy: project.createdBy || 1, // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
+      progress: project.progress || 0 // استخدام القيمة الافتراضية 0 إذا لم يتم تحديد progress
+    };
+    
+    const [newProject] = await db.insert(projects).values(projectData).returning();
     return newProject;
   }
   
@@ -122,7 +132,17 @@ export class PgStorage implements IStorage {
   }
   
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
-    const [newTransaction] = await db.insert(transactions).values(transaction).returning();
+    // تحويل البيانات إلى القالب الصحيح للقاعدة البيانات
+    const transactionData = {
+      date: transaction.date,
+      amount: transaction.amount,
+      type: transaction.type,
+      description: transaction.description,
+      projectId: transaction.projectId,
+      createdBy: transaction.createdBy || 1 // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
+    };
+    
+    const [newTransaction] = await db.insert(transactions).values(transactionData).returning();
     return newTransaction;
   }
   
@@ -155,7 +175,18 @@ export class PgStorage implements IStorage {
   }
   
   async createDocument(document: InsertDocument): Promise<Document> {
-    const [newDocument] = await db.insert(documents).values(document).returning();
+    // تحويل البيانات إلى القالب الصحيح للقاعدة البيانات
+    const documentData = {
+      name: document.name,
+      description: document.description,
+      fileUrl: document.fileUrl,
+      fileType: document.fileType,
+      uploadDate: document.uploadDate || new Date(),
+      projectId: document.projectId,
+      uploadedBy: document.uploadedBy || 1 // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد uploadedBy
+    };
+    
+    const [newDocument] = await db.insert(documents).values(documentData).returning();
     return newDocument;
   }
   
