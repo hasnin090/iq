@@ -107,10 +107,10 @@ export default function Login() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-secondary-light to-secondary flex items-center justify-center z-50 transition-opacity duration-300">
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center z-50 transition-opacity duration-300">
       <div className="w-full max-w-md p-6">
-        <div className={`bg-secondary-light bg-opacity-90 rounded-2xl p-8 shadow-2xl border border-opacity-10 backdrop-filter backdrop-blur-md transition-all ${shakeAnimation ? 'shake' : ''}`}>
-          <h2 className="text-primary-light text-2xl font-bold text-center mb-6">تسجيل الدخول</h2>
+        <div className={`bg-white rounded-2xl p-8 shadow-xl border border-gray-100 transition-all ${shakeAnimation ? 'shake' : ''}`}>
+          <h2 className="text-gray-800 text-2xl font-bold text-center mb-6">تسجيل الدخول إلى النظام</h2>
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -122,12 +122,12 @@ export default function Login() {
                     <FormControl>
                       <Input
                         {...field}
-                        className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-transparent focus:border-primary focus:bg-opacity-15 text-white outline-none transition-all"
+                        className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 focus:border-primary text-gray-800 font-medium outline-none transition-all placeholder:text-gray-500"
                         placeholder="اسم المستخدم"
                         disabled={isLoading}
                       />
                     </FormControl>
-                    <FormMessage className="text-destructive text-sm" />
+                    <FormMessage className="text-red-600 text-sm font-medium" />
                   </FormItem>
                 )}
               />
@@ -141,12 +141,12 @@ export default function Login() {
                       <Input
                         {...field}
                         type="password"
-                        className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-transparent focus:border-primary focus:bg-opacity-15 text-white outline-none transition-all"
+                        className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 focus:border-primary text-gray-800 font-medium outline-none transition-all placeholder:text-gray-500"
                         placeholder="كلمة المرور"
                         disabled={isLoading}
                       />
                     </FormControl>
-                    <FormMessage className="text-destructive text-sm" />
+                    <FormMessage className="text-red-600 text-sm font-medium" />
                   </FormItem>
                 )}
               />
@@ -172,7 +172,7 @@ export default function Login() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full py-3 mt-3 border border-muted-foreground bg-white bg-opacity-10 text-neutral-light hover:bg-white hover:bg-opacity-15"
+                  className="w-full py-3 mt-3 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors"
                   onClick={async () => {
                     try {
                       setIsLoading(true);
@@ -189,7 +189,7 @@ export default function Login() {
                 >
                   <svg className="w-5 h-5 ml-2" viewBox="0 0 24 24">
                     <path
-                      fill="currentColor"
+                      fill="#4285F4"
                       d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"
                     />
                   </svg>
