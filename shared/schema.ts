@@ -86,18 +86,21 @@ export const insertUserSchema = createInsertSchema(users)
   .extend({
     password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
     email: z.string().email("البريد الإلكتروني غير صالح"),
+    projectId: z.number().optional(), // إضافة حقل projectId كخاصية إضافية لا تتطابق مع الجدول
   });
 
 export const insertProjectSchema = createInsertSchema(projects)
-  .omit({ id: true, progress: true, createdBy: true })
+  .omit({ id: true, progress: true })
   .extend({
     startDate: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
+    createdBy: z.number().optional(), // سيتم تعيينه في الخلفية
   });
 
 export const insertTransactionSchema = createInsertSchema(transactions)
-  .omit({ id: true, createdBy: true })
+  .omit({ id: true })
   .extend({
     date: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
+    createdBy: z.number().optional(), // سيتم تعيينه في الخلفية
   });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true });
