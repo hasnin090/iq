@@ -36,6 +36,19 @@ export const transactions = pgTable("transactions", {
   createdBy: integer("created_by").notNull().references(() => users.id),
 });
 
+// UserProjects table - for managing user project assignments
+export const userProjects = pgTable("user_projects", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  assignedAt: timestamp("assigned_at").notNull().defaultNow(),
+  assignedBy: integer("assigned_by").notNull().references(() => users.id),
+}, (table) => {
+  return {
+    userProjectUnique: unique().on(table.userId, table.projectId),
+  };
+});
+
 // Documents table
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
@@ -93,6 +106,8 @@ export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({ i
 
 export const insertSettingSchema = createInsertSchema(settings).omit({ id: true });
 
+export const insertUserProjectSchema = createInsertSchema(userProjects).omit({ id: true, assignedAt: true });
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -111,6 +126,9 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type Setting = typeof settings.$inferSelect;
+
+export type InsertUserProject = z.infer<typeof insertUserProjectSchema>;
+export type UserProject = typeof userProjects.$inferSelect;
 
 // Auth types
 export const loginSchema = z.object({
