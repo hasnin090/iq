@@ -93,17 +93,20 @@ export class PgStorage implements IStorage {
   }
   
   async createProject(project: InsertProject): Promise<Project> {
-    // تحويل البيانات إلى القالب الصحيح للقاعدة البيانات
-    const projectData = {
-      name: project.name,
-      description: project.description,
-      startDate: project.startDate,
-      status: project.status,
-      createdBy: project.createdBy || 1, // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
-      progress: project.progress || 0 // استخدام القيمة الافتراضية 0 إذا لم يتم تحديد progress
-    };
+    // تحديد حقول المشروع التي سيتم إدخالها
+    const { name, description, startDate, status } = project;
+    const createdBy = project.createdBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
     
-    const [newProject] = await db.insert(projects).values(projectData).returning();
+    // إنشاء مشروع جديد بالقيم المحددة
+    const [newProject] = await db.insert(projects).values({
+      name,
+      description,
+      startDate,
+      status,
+      createdBy,
+      // progress تم تعيينه افتراضيًا إلى 0 في تعريف الجدول
+    }).returning();
+    
     return newProject;
   }
   
@@ -132,17 +135,20 @@ export class PgStorage implements IStorage {
   }
   
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
-    // تحويل البيانات إلى القالب الصحيح للقاعدة البيانات
-    const transactionData = {
-      date: transaction.date,
-      amount: transaction.amount,
-      type: transaction.type,
-      description: transaction.description,
-      projectId: transaction.projectId,
-      createdBy: transaction.createdBy || 1 // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
-    };
+    // تحديد حقول المعاملة التي سيتم إدخالها
+    const { date, amount, type, description, projectId } = transaction;
+    const createdBy = transaction.createdBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
     
-    const [newTransaction] = await db.insert(transactions).values(transactionData).returning();
+    // إنشاء معاملة جديدة بالقيم المحددة
+    const [newTransaction] = await db.insert(transactions).values({
+      date,
+      amount,
+      type,
+      description,
+      projectId,
+      createdBy
+    }).returning();
+    
     return newTransaction;
   }
   
@@ -175,18 +181,22 @@ export class PgStorage implements IStorage {
   }
   
   async createDocument(document: InsertDocument): Promise<Document> {
-    // تحويل البيانات إلى القالب الصحيح للقاعدة البيانات
-    const documentData = {
-      name: document.name,
-      description: document.description,
-      fileUrl: document.fileUrl,
-      fileType: document.fileType,
-      uploadDate: document.uploadDate || new Date(),
-      projectId: document.projectId,
-      uploadedBy: document.uploadedBy || 1 // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد uploadedBy
-    };
+    // تحديد حقول المستند التي سيتم إدخالها
+    const { name, description, fileUrl, fileType, projectId } = document;
+    const uploadDate = document.uploadDate || new Date();
+    const uploadedBy = document.uploadedBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد uploadedBy
     
-    const [newDocument] = await db.insert(documents).values(documentData).returning();
+    // إنشاء مستند جديد بالقيم المحددة
+    const [newDocument] = await db.insert(documents).values({
+      name,
+      description,
+      fileUrl,
+      fileType,
+      uploadDate,
+      projectId,
+      uploadedBy
+    }).returning();
+    
     return newDocument;
   }
   
