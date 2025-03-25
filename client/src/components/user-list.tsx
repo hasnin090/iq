@@ -34,7 +34,9 @@ interface UserListProps {
 
 export function UserList({ users, isLoading, onUserUpdated, currentUserId }: UserListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const { toast } = useToast();
   
   const deleteMutation = useMutation({
@@ -57,6 +59,27 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
     },
   });
   
+  const updateMutation = useMutation({
+    mutationFn: (data: {id: number, userData: Partial<User>}) => {
+      return apiRequest('PUT', `/api/users/${data.id}`, data.userData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم التعديل بنجاح",
+        description: "تم تعديل بيانات المستخدم بنجاح",
+      });
+      setEditDialogOpen(false);
+      onUserUpdated();
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: error instanceof Error ? error.message : "فشل في تعديل المستخدم",
+      });
+    },
+  });
+  
   const handleDeleteClick = (user: User) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
@@ -67,6 +90,20 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
       deleteMutation.mutate(userToDelete.id);
     }
     setDeleteDialogOpen(false);
+  };
+  
+  const handleEditClick = (user: User) => {
+    setUserToEdit(user);
+    setEditDialogOpen(true);
+  };
+  
+  const handleUserUpdate = (userData: Partial<User>) => {
+    if (userToEdit) {
+      updateMutation.mutate({
+        id: userToEdit.id,
+        userData
+      });
+    }
   };
   
   const getRoleBadge = (role: string) => {
@@ -160,12 +197,7 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
                     <div className="flex space-x-reverse space-x-2">
                       <button 
                         className="text-primary-light hover:text-primary-dark transition-colors"
-                        onClick={() => {
-                          toast({
-                            title: "غير متاح",
-                            description: "ميزة التعديل غير متاحة في هذا الإصدار",
-                          });
-                        }}
+                        onClick={() => handleEditClick(user)}
                       >
                         <i className="fas fa-edit"></i>
                       </button>
@@ -208,6 +240,25 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>تعديل المستخدم</DialogTitle>
+            <DialogDescription>
+              قم بتعديل بيانات المستخدم ثم اضغط على حفظ لإكمال العملية.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {userToEdit && (
+            <UserEditForm 
+              user={userToEdit} 
+              onSubmit={handleUserUpdate} 
+              isLoading={updateMutation.isPending} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
