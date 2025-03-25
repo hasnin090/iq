@@ -71,7 +71,13 @@ app.use((req, res, next) => {
       }
     }));
     // Serve static files from the build directory
-    app.use(express.static(path.resolve(__dirname, "public")));
+    import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+app.use(express.static(path.resolve(__dirname, "../dist")));
     // Handle client-side routing
     app.get("*", (_req, res) => {
       res.sendFile(path.resolve(__dirname, "public", "index.html"));
