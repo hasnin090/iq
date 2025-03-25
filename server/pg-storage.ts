@@ -21,13 +21,13 @@ export class PgStorage implements IStorage {
   // دالة مساعدة للتحقق من وجود جدول في قاعدة البيانات
   async checkTableExists(tableName: string): Promise<boolean> {
     try {
-      const result = await db.execute(`
+      const query = `
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_name = $1
+          WHERE table_name = '${tableName}'
         );
-      `, [tableName]);
-      
+      `;
+      const result = await db.execute(query);
       return result.rows[0]?.exists === true;
     } catch (error) {
       console.error(`خطأ في التحقق من وجود جدول ${tableName}:`, error);
