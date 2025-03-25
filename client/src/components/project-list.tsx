@@ -115,7 +115,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
         {projects.map((project) => (
           <div key={project.id} className="bg-secondary-light rounded-xl shadow-card overflow-hidden">
             <div className="bg-primary-dark p-4">
-              <h3 className="text-lg font-bold text-white">{project.name}</h3>
+              <h3 className="text-lg font-bold text-white">{project.name || 'مشروع جديد'}</h3>
             </div>
             <div className="p-6 space-y-4">
               <p className="text-neutral-light">{project.description}</p>

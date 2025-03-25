@@ -467,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Project creation request:", req.body);
 
       if (!req.body.name || !req.body.description || !req.body.startDate || !req.body.status) {
-        return res.status(400).json({ message: "Required" });
+        return res.status(400).json({ message: "البيانات المطلوبة غير مكتملة" });
       }
       
       const projectData = insertProjectSchema.parse(req.body);
@@ -476,6 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Parsed project data:", projectData);
       
       const project = await storage.createProject(projectData);
+      console.log("Created project:", project); // إضافة سجل للمشروع المنشأ
       
       await storage.createActivityLog({
         action: "create",
@@ -484,6 +485,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `إضافة مشروع جديد: ${project.name}`,
         userId: req.session.userId as number
       });
+      
+      // التأكد من أن كل البيانات موجودة في الاستجابة
+      if (!project.name) {
+        console.error("Warning: Project name is missing in the created project");
+      }
       
       return res.status(201).json(project);
     } catch (error) {
