@@ -412,7 +412,7 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
                         </p>
                       </div>
                       
-                      <Input
+                      <input
                         id="file-upload"
                         type="file"
                         className="hidden"
@@ -423,7 +423,6 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
                         }}
                         accept={ACCEPTED_FILE_EXTENSIONS}
                         disabled={isLoading || mutation.isPending}
-                        {...rest}
                       />
                       
                       <Button

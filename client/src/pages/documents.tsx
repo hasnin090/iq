@@ -138,10 +138,27 @@ export default function Documents() {
                         </button>
                         <button 
                           className="text-xs py-2 px-3 rounded-lg bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors"
-                          onClick={() => {
+                          onClick={async () => {
                             if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
-                              fetch(`/api/documents/${doc.id}`, { method: 'DELETE' })
-                                .then(() => handleDocumentUpdated());
+                              try {
+                                // أولاً محاولة حذف الملف من Firebase Storage
+                                try {
+                                  const { deleteFile } = await import('@/lib/firebase-storage');
+                                  if (doc.fileUrl) {
+                                    await deleteFile(doc.fileUrl);
+                                  }
+                                } catch (error) {
+                                  console.error("فشل في حذف الملف من التخزين:", error);
+                                  // نستمر في الحذف من قاعدة البيانات حتى لو فشل حذف الملف
+                                }
+                                
+                                // ثم حذف السجل من قاعدة البيانات
+                                await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
+                                handleDocumentUpdated();
+                              } catch (error) {
+                                alert('حدث خطأ أثناء حذف المستند. يرجى المحاولة مرة أخرى.');
+                                console.error(error);
+                              }
                             }
                           }}
                         >
