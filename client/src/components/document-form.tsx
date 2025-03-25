@@ -223,9 +223,10 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
           uploadDate: new Date(),
           uploadedBy: user?.id
         });
-      } finally {
-        // تنظيف وظيفة التقدم
-        clearProgress();
+      } catch (error) {
+        // إعادة تعيين شريط التقدم في حالة وجود خطأ
+        setUploadProgress(0);
+        throw error;
       }
     },
     onSuccess: () => {
