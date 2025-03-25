@@ -583,29 +583,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.body.projectId = undefined;
       }
       
-      const transactionData = insertTransactionSchema.parse(req.body);
-      transactionData.createdBy = req.session.userId as number;
+      const userId = req.session.userId as number;
+      const amount = Number(req.body.amount);
+      const type = req.body.type as string;
+      const description = req.body.description as string;
+      const projectId = req.body.projectId ? Number(req.body.projectId) : undefined;
       
-      console.log("Parsed transaction data:", transactionData);
+      let result: any;
       
-      const transaction = await storage.createTransaction(transactionData);
+      // معالجة العملية حسب نوعها ووجود مشروع
+      if (projectId) {
+        // إذا كان المشروع محددًا
+        if (type === "income") {
+          // عملية إيداع في المشروع (تستقطع من حساب المدير)
+          result = await storage.processDeposit(userId, projectId, amount, description);
+        } else if (type === "expense") {
+          // عملية صرف من المشروع
+          result = await storage.processWithdrawal(userId, projectId, amount, description);
+        }
+      } else {
+        // عملية للمدير (إيراد أو صرف)
+        result = await storage.processAdminTransaction(userId, type, amount, description);
+      }
       
-      await storage.createActivityLog({
-        action: "create",
-        entityType: "transaction",
-        entityId: transaction.id,
-        details: `إضافة معاملة جديدة: ${transaction.description} (${transaction.type})`,
-        userId: req.session.userId as number
-      });
+      // إذا لم تتم معالجة العملية بأي من الطرق السابقة
+      if (!result || !result.transaction) {
+        return res.status(400).json({ message: "خطأ في معالجة العملية" });
+      }
       
-      return res.status(201).json(transaction);
-    } catch (error) {
+      return res.status(201).json(result.transaction);
+    } catch (error: any) {
       console.error("Transaction creation error:", error);
       if (error instanceof z.ZodError) {
         console.error("Validation error details:", error.errors);
         return res.status(400).json({ message: error.errors[0].message });
       }
-      return res.status(500).json({ message: "خطأ في إنشاء المعاملة" });
+      // إعادة رسالة الخطأ من الاستثناء إذا كانت متوفرة
+      return res.status(500).json({ message: error.message || "خطأ في إنشاء المعاملة" });
     }
   });
 
