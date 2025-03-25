@@ -207,10 +207,11 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
         return apiRequest('POST', '/api/documents', {
           name: data.name,
           description: data.description || "",
-          projectId: data.projectId ? parseInt(data.projectId) : undefined,
+          projectId: data.projectId && data.projectId !== "all" ? parseInt(data.projectId) : undefined,
           fileUrl: fileUrl,
           fileType: file.type,
-          uploadDate: new Date()
+          uploadDate: new Date(),
+          uploadedBy: user?.id
         });
       } finally {
         // تنظيف وظيفة التقدم
