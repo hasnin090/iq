@@ -41,20 +41,44 @@ interface DocumentFormProps {
   isLoading: boolean;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ACCEPTED_FILE_TYPES = [
+  // PDF files
   "application/pdf", 
+  // Image files
   "image/jpeg", 
   "image/png", 
   "image/jpg", 
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  // Document files
   "application/msword", 
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
   "text/plain",
+  "text/rtf",
+  "application/rtf",
+  // Spreadsheet files
   "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  // Presentation files
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  // Compressed files
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/x-rar-compressed",
+  // Audio files
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  // Video files
+  "video/mp4",
+  "video/mpeg",
+  "video/quicktime"
 ];
 
-const ACCEPTED_FILE_EXTENSIONS = ".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xls,.xlsx";
+const ACCEPTED_FILE_EXTENSIONS = ".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.doc,.docx,.txt,.rtf,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.mp3,.wav,.mp4,.mpeg,.mov";
 
 const documentSchema = z.object({
   name: z.string().min(3, "اسم المستند يجب أن يحتوي على الأقل 3 أحرف"),
@@ -129,19 +153,8 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
     setIsDragging(false);
   }, []);
   
-  const simulateProgress = () => {
-    setUploadProgress(0);
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 200);
-    
-    return () => clearInterval(interval);
+  const updateUploadProgress = (progress: number) => {
+    setUploadProgress(progress);
   };
   
   const getFileIcon = (fileType?: string) => {
@@ -191,16 +204,13 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
         throw new Error("يرجى اختيار ملف للتحميل");
       }
       
-      // بدء محاكاة التقدم
-      const clearProgress = simulateProgress();
-      
       try {
-        // تحميل الملف إلى Firebase Storage
+        // تحميل الملف إلى Firebase Storage مع تتبع التقدم
         const userId = user?.id || 'unknown';
         const storageFolder = `documents/${userId}`;
-        const fileUrl = await uploadFile(file, storageFolder);
+        const fileUrl = await uploadFile(file, storageFolder, updateUploadProgress);
         
-        // تحديث التقدم إلى 100%
+        // تحديث التقدم إلى 100% للتأكد من اكتمال العملية
         setUploadProgress(100);
         
         // بمجرد اكتمال التحميل، حفظ المعلومات في قاعدة البيانات
@@ -408,7 +418,7 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
                       <div>
                         <p className="text-base font-medium">اضغط لاختيار ملف أو قم بسحب الملف وإفلاته هنا</p>
                         <p className="text-sm text-muted-foreground mt-1">
-                          PDF, JPEG, PNG, DOC, DOCX, TXT, XLS, XLSX - أقصى حجم {MAX_FILE_SIZE / 1024 / 1024} ميجابايت
+                          PDF، صور (JPG, PNG, GIF, SVG)، مستندات (DOC, DOCX, TXT, RTF)، أوراق عمل (XLS, XLSX)، عروض تقديمية (PPT, PPTX)، ملفات مضغوطة (ZIP, RAR)، وسائط (MP3, WAV, MP4) - أقصى حجم {MAX_FILE_SIZE / 1024 / 1024} ميجابايت
                         </p>
                       </div>
                       

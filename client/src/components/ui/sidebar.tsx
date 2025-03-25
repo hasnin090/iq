@@ -56,17 +56,15 @@ export function Sidebar() {
       {/* زر القائمة المتنقلة - تم إصلاح مشكلة الوميض */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 right-6 z-50 bg-[hsl(var(--primary))] rounded-full w-14 h-14 flex items-center justify-center text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 animate-pulse"
+        className="fixed top-6 right-6 z-50 bg-[hsl(var(--primary))] rounded-full w-14 h-14 flex items-center justify-center text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95"
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
         <div className="relative w-full h-full flex items-center justify-center">
-          <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'} text-xl`}></i>
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
-            <span className="animate-bounce">↑</span>
+          <div className="w-6 h-5 flex flex-col justify-between">
+            <span className="h-0.5 w-full bg-white rounded-full"></span>
+            <span className="h-0.5 w-full bg-white rounded-full"></span>
+            <span className="h-0.5 w-full bg-white rounded-full"></span>
           </div>
-          <span className="absolute -bottom-10 right-1/2 transform translate-x-1/2 bg-blue-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-            اضغط للقائمة
-          </span>
         </div>
       </button>
       
