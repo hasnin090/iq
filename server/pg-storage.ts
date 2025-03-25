@@ -180,7 +180,29 @@ export class PgStorage implements IStorage {
         console.error("خطأ عند التعامل مع جدول funds:", error);
       }
       
-      // 6. أخيراً، حذف المستخدم
+      // 6. تحديث سجلات النشاط المرتبطة بالمستخدم
+      try {
+        const activityLogsExists = await db.execute(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'activity_logs'
+          );
+        `);
+        const exists = activityLogsExists.rows[0]?.exists === true;
+        
+        if (exists) {
+          console.log("جدول activity_logs موجود، جاري تحديث سجلات النشاط");
+          await db.update(activityLogs)
+            .set({ userId: 1 }) // تعيين المستخدم إلى المدير الافتراضي
+            .where(eq(activityLogs.userId, id));
+        } else {
+          console.log("جدول activity_logs غير موجود، تخطي تحديث سجلات النشاط");
+        }
+      } catch (error) {
+        console.error("خطأ عند التعامل مع جدول activity_logs:", error);
+      }
+      
+      // 7. أخيراً، حذف المستخدم
       const result = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
       return result.length > 0;
     } catch (error) {
