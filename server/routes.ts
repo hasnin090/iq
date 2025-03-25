@@ -411,29 +411,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       
+      // التحقق من عدم محاولة حذف المستخدم الحالي
       if (id === req.session.userId) {
         return res.status(400).json({ message: "لا يمكن حذف المستخدم الحالي" });
       }
       
+      // التحقق من وجود المستخدم
       const user = await storage.getUser(id);
       if (!user) {
         return res.status(404).json({ message: "المستخدم غير موجود" });
       }
       
-      const result = await storage.deleteUser(id);
-      
-      if (result) {
-        await storage.createActivityLog({
-          action: "delete",
-          entityType: "user",
-          entityId: id,
-          details: `حذف المستخدم: ${user.name}`,
-          userId: req.session.userId as number
-        });
+      // لا يمكن حذف المستخدم الرئيسي (الأدمن الأساسي)
+      if (id === 1) {
+        return res.status(400).json({ message: "لا يمكن حذف المستخدم الرئيسي للنظام" });
       }
       
-      return res.status(200).json({ success: result });
+      try {
+        // تنفيذ عملية الحذف
+        const result = await storage.deleteUser(id);
+        
+        if (result) {
+          await storage.createActivityLog({
+            action: "delete",
+            entityType: "user",
+            entityId: id,
+            details: `حذف المستخدم: ${user.name}`,
+            userId: req.session.userId as number
+          });
+        }
+        
+        return res.status(200).json({ success: result });
+      } catch (err) {
+        console.error("خطأ في حذف المستخدم:", err);
+        return res.status(500).json({ message: "حدث خطأ أثناء معالجة حذف المستخدم" });
+      }
     } catch (error) {
+      console.error("خطأ عام في حذف المستخدم:", error);
       return res.status(500).json({ message: "خطأ في حذف المستخدم" });
     }
   });

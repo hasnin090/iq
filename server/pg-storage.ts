@@ -54,8 +54,39 @@ export class PgStorage implements IStorage {
   }
   
   async deleteUser(id: number): Promise<boolean> {
-    const result = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
-    return result.length > 0;
+    try {
+      // 1. حذف علاقات المستخدم مع المشاريع
+      await db.delete(userProjects).where(eq(userProjects.userId, id));
+      
+      // 2. تحديث المستندات التي قام المستخدم برفعها (تعيين uploadedBy إلى 1 - المدير)
+      await db.update(documents)
+        .set({ uploadedBy: 1 })
+        .where(eq(documents.uploadedBy, id));
+      
+      // 3. تحديث المعاملات المالية التي قام المستخدم بإنشائها (تعيين createdBy إلى 1 - المدير)
+      await db.update(transactions)
+        .set({ createdBy: 1 })
+        .where(eq(transactions.createdBy, id));
+      
+      // 4. تحديث المشاريع التي قام المستخدم بإنشائها (تعيين createdBy إلى 1 - المدير)
+      await db.update(projects)
+        .set({ createdBy: 1 })
+        .where(eq(projects.createdBy, id));
+      
+      // 5. البحث عن صناديق المستخدم وتحديثها
+      await db.update(funds)
+        .set({ ownerId: 1 }) // تعيين المالك إلى المدير الافتراضي
+        .where(eq(funds.ownerId, id));
+      
+      // 6. نحتفظ بسجلات النشاط الخاصة بالمستخدم (لا داعي لحذفها)
+      
+      // 7. أخيراً، حذف المستخدم
+      const result = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
   }
   
   async validatePassword(storedPassword: string, inputPassword: string): Promise<boolean> {
