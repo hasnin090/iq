@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -80,6 +80,21 @@ export const settings = pgTable("settings", {
   description: text("description"),
 });
 
+// نوع الصندوق: صندوق المدير أو صندوق مشروع
+export const fundTypeEnum = pgEnum('fund_type', ['admin', 'project']);
+
+// Funds table - لإدارة الصناديق والأرصدة
+export const funds = pgTable("funds", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  balance: integer("balance").notNull().default(0),
+  type: fundTypeEnum("type").notNull(),
+  ownerId: integer("owner_id").references(() => users.id), // لصندوق المدير
+  projectId: integer("project_id").references(() => projects.id), // لصندوق المشروع
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Insertion schemas
 export const insertUserSchema = createInsertSchema(users)
   .omit({ id: true, permissions: true })
@@ -111,6 +126,12 @@ export const insertSettingSchema = createInsertSchema(settings).omit({ id: true 
 
 export const insertUserProjectSchema = createInsertSchema(userProjects).omit({ id: true, assignedAt: true });
 
+export const insertFundSchema = createInsertSchema(funds)
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({
+    type: z.enum(['admin', 'project']),
+  });
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -132,6 +153,9 @@ export type Setting = typeof settings.$inferSelect;
 
 export type InsertUserProject = z.infer<typeof insertUserProjectSchema>;
 export type UserProject = typeof userProjects.$inferSelect;
+
+export type InsertFund = z.infer<typeof insertFundSchema>;
+export type Fund = typeof funds.$inferSelect;
 
 // Auth types
 export const loginSchema = z.object({

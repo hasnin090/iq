@@ -5,7 +5,8 @@ import {
   documents, type Document, type InsertDocument,
   activityLogs, type ActivityLog, type InsertActivityLog,
   settings, type Setting, type InsertSetting,
-  userProjects, type UserProject, type InsertUserProject
+  userProjects, type UserProject, type InsertUserProject,
+  funds, type Fund, type InsertFund
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage';
