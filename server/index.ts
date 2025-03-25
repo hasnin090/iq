@@ -67,17 +67,18 @@ app.use((req, res, next) => {
       saveUninitialized: false,
       cookie: { 
         secure: true,
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: 'strict',
+        httpOnly: true
       }
     }));
     // Serve static files from the build directory
-    import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+    const { fileURLToPath } = await import('url');
+    const { dirname } = await import('path');
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-app.use(express.static(path.resolve(__dirname, "../dist")));
+    app.use(express.static(path.resolve(__dirname, "../dist/public")));
     // Handle client-side routing
     app.get("*", (_req, res) => {
       res.sendFile(path.resolve(__dirname, "public", "index.html"));
