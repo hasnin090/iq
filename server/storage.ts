@@ -27,6 +27,13 @@ export interface IStorage {
   updateProject(id: number, project: Partial<Project>): Promise<Project | undefined>;
   listProjects(): Promise<Project[]>;
   deleteProject(id: number): Promise<boolean>;
+  
+  // User Projects (علاقات المستخدمين والمشاريع)
+  assignUserToProject(userProject: InsertUserProject): Promise<UserProject>;
+  removeUserFromProject(userId: number, projectId: number): Promise<boolean>;
+  getUserProjects(userId: number): Promise<Project[]>;
+  getProjectUsers(projectId: number): Promise<User[]>;
+  checkUserProjectAccess(userId: number, projectId: number): Promise<boolean>;
 
   // Transactions
   getTransaction(id: number): Promise<Transaction | undefined>;
@@ -63,12 +70,14 @@ export class MemStorage implements IStorage {
   private documentsData: Map<number, Document>;
   private activityLogsData: Map<number, ActivityLog>;
   private settingsData: Map<number, Setting>;
+  private userProjectsData: Map<number, UserProject>;
   private userIdCounter: number;
   private projectIdCounter: number;
   private transactionIdCounter: number;
   private documentIdCounter: number;
   private activityLogIdCounter: number;
   private settingIdCounter: number;
+  private userProjectIdCounter: number;
 
   constructor() {
     this.usersData = new Map();
@@ -77,12 +86,14 @@ export class MemStorage implements IStorage {
     this.documentsData = new Map();
     this.activityLogsData = new Map();
     this.settingsData = new Map();
+    this.userProjectsData = new Map();
     this.userIdCounter = 1;
     this.projectIdCounter = 1;
     this.transactionIdCounter = 1;
     this.documentIdCounter = 1;
     this.activityLogIdCounter = 1;
     this.settingIdCounter = 1;
+    this.userProjectIdCounter = 1;
 
     // Add default admin user
     this.createUser({
@@ -177,7 +188,8 @@ export class MemStorage implements IStorage {
       ...project, 
       id, 
       progress: 0,
-      status: project.status || "active"
+      status: project.status || "active",
+      createdBy: 1 // Default to admin user if not provided
     };
     this.projectsData.set(id, newProject);
     return newProject;
@@ -200,6 +212,59 @@ export class MemStorage implements IStorage {
     return this.projectsData.delete(id);
   }
 
+  // User Projects
+  async assignUserToProject(userProject: InsertUserProject): Promise<UserProject> {
+    const id = this.userProjectIdCounter++;
+    const now = new Date();
+    const newUserProject: UserProject = {
+      ...userProject,
+      id,
+      assignedAt: now
+    };
+    this.userProjectsData.set(id, newUserProject);
+    return newUserProject;
+  }
+
+  async removeUserFromProject(userId: number, projectId: number): Promise<boolean> {
+    const userProject = Array.from(this.userProjectsData.values()).find(
+      up => up.userId === userId && up.projectId === projectId
+    );
+    
+    if (!userProject) return false;
+    return this.userProjectsData.delete(userProject.id);
+  }
+
+  async getUserProjects(userId: number): Promise<Project[]> {
+    const userProjectIds = Array.from(this.userProjectsData.values())
+      .filter(up => up.userId === userId)
+      .map(up => up.projectId);
+    
+    return Array.from(this.projectsData.values())
+      .filter(project => userProjectIds.includes(project.id));
+  }
+
+  async getProjectUsers(projectId: number): Promise<User[]> {
+    const projectUserIds = Array.from(this.userProjectsData.values())
+      .filter(up => up.projectId === projectId)
+      .map(up => up.userId);
+    
+    return Array.from(this.usersData.values())
+      .filter(user => projectUserIds.includes(user.id));
+  }
+
+  async checkUserProjectAccess(userId: number, projectId: number): Promise<boolean> {
+    // المدير لديه صلاحية للوصول لجميع المشاريع
+    const user = await this.getUser(userId);
+    if (user?.role === "admin") return true;
+    
+    // التحقق من وجود علاقة بين المستخدم والمشروع
+    const userProject = Array.from(this.userProjectsData.values()).find(
+      up => up.userId === userId && up.projectId === projectId
+    );
+    
+    return !!userProject;
+  }
+
   // Transactions
   async getTransaction(id: number): Promise<Transaction | undefined> {
     return this.transactionsData.get(id);
@@ -210,7 +275,8 @@ export class MemStorage implements IStorage {
     const newTransaction: Transaction = { 
       ...transaction, 
       id,
-      projectId: transaction.projectId || null
+      projectId: transaction.projectId || null,
+      createdBy: 1 // Default to admin user if not provided
     };
     this.transactionsData.set(id, newTransaction);
     return newTransaction;

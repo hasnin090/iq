@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import {
   AtSignIcon, 
   EyeIcon, 
   EyeOffIcon, 
+  FolderIcon,
   InfoIcon, 
   KeyIcon, 
   Loader2, 
@@ -39,6 +40,7 @@ const userSchema = z.object({
     required_error: "الصلاحية مطلوبة",
   }),
   permissions: z.array(z.string()).optional(),
+  projectId: z.number().optional(),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
