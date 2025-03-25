@@ -500,19 +500,19 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
                   <td className="px-4 py-3 whitespace-nowrap text-sm">
                     <div className="flex space-x-reverse space-x-2">
                       <button 
-                        className="text-primary-light hover:text-primary-dark transition-colors"
+                        className="text-primary-light hover:text-primary-dark transition-colors p-1 rounded-full hover:bg-blue-50"
                         onClick={() => handleEditClick(user)}
                         title="تعديل المستخدم"
                       >
-                        <EyeIcon className="h-4 w-4" />
+                        <UserIcon className="h-4 w-4" />
                       </button>
                       <button 
-                        className="text-destructive hover:text-red-700 transition-colors"
+                        className="text-destructive hover:text-red-700 transition-colors p-1 rounded-full hover:bg-red-50"
                         onClick={() => handleDeleteClick(user)}
                         disabled={currentUserId === user.id}
                         title={currentUserId === user.id ? "لا يمكن حذف المستخدم الحالي" : "حذف المستخدم"}
                       >
-                        <Loader2 className="h-4 w-4" />
+                        <ShieldIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
