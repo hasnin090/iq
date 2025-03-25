@@ -397,5 +397,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-// استخدام تخزين قاعدة البيانات PostgreSQL
+// تحديد فئة التخزين النشطة
+// يمكن تغيير هذا لاستخدام MemStorage للتطوير المحلي أو PgStorage للإنتاج
 export const storage: IStorage = pgStorage;

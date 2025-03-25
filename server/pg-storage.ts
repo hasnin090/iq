@@ -1,5 +1,5 @@
 import { db } from './db';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, or, desc } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { 
   users, User, InsertUser,
@@ -93,10 +93,7 @@ export class PgStorage implements IStorage {
   }
   
   async createProject(project: InsertProject): Promise<Project> {
-    const [newProject] = await db.insert(projects).values({
-      ...project,
-      progress: 0
-    }).returning();
+    const [newProject] = await db.insert(projects).values(project).returning();
     return newProject;
   }
   
@@ -242,6 +239,105 @@ export class PgStorage implements IStorage {
   
   async listSettings(): Promise<Setting[]> {
     return await db.select().from(settings);
+  }
+
+  // ======== إدارة علاقات المستخدمين والمشاريع ========
+  
+  async assignUserToProject(userProject: InsertUserProject): Promise<UserProject> {
+    const [newUserProject] = await db.insert(userProjects).values({
+      ...userProject,
+      assignedAt: new Date()
+    }).returning();
+    return newUserProject;
+  }
+
+  async removeUserFromProject(userId: number, projectId: number): Promise<boolean> {
+    const result = await db.delete(userProjects)
+      .where(
+        and(
+          eq(userProjects.userId, userId),
+          eq(userProjects.projectId, projectId)
+        )
+      )
+      .returning({ id: userProjects.id });
+    return result.length > 0;
+  }
+
+  async getUserProjects(userId: number): Promise<Project[]> {
+    // الحصول على معرفات المشاريع التي ينتمي إليها المستخدم
+    const userProjectsResult = await db.select({ projectId: userProjects.projectId })
+      .from(userProjects)
+      .where(eq(userProjects.userId, userId));
+
+    // إذا لم تكن هناك مشاريع مخصصة، نعيد مصفوفة فارغة
+    if (userProjectsResult.length === 0) {
+      return [];
+    }
+
+    // استخراج معرفات المشاريع
+    const projectIds = userProjectsResult.map(up => up.projectId);
+
+    if (projectIds.length === 1) {
+      // إذا كان هناك مشروع واحد فقط
+      return await db.select()
+        .from(projects)
+        .where(eq(projects.id, projectIds[0]));
+    } else {
+      // إذا كان هناك عدة مشاريع، نقوم بإنشاء استعلام بطريقة مختلفة
+      // نستخدم شرط OR للتحقق من كل معرف
+      const conditions = projectIds.map(id => eq(projects.id, id));
+      return await db.select()
+        .from(projects)
+        .where(or(...conditions));
+    }
+  }
+
+  async getProjectUsers(projectId: number): Promise<User[]> {
+    // الحصول على معرفات المستخدمين المنتمين إلى المشروع
+    const projectUsersResult = await db.select({ userId: userProjects.userId })
+      .from(userProjects)
+      .where(eq(userProjects.projectId, projectId));
+
+    // إذا لم يكن هناك مستخدمون مخصصون، نعيد مصفوفة فارغة
+    if (projectUsersResult.length === 0) {
+      return [];
+    }
+
+    // استخراج معرفات المستخدمين
+    const userIds = projectUsersResult.map(up => up.userId);
+
+    if (userIds.length === 1) {
+      // إذا كان هناك مستخدم واحد فقط
+      return await db.select()
+        .from(users)
+        .where(eq(users.id, userIds[0]));
+    } else {
+      // إذا كان هناك عدة مستخدمين، نقوم بإنشاء استعلام بطريقة مختلفة
+      // نستخدم شرط OR للتحقق من كل معرف
+      const conditions = userIds.map(id => eq(users.id, id));
+      return await db.select()
+        .from(users)
+        .where(or(...conditions));
+    }
+  }
+
+  async checkUserProjectAccess(userId: number, projectId: number): Promise<boolean> {
+    // المدير لديه وصول لجميع المشاريع
+    const user = await this.getUser(userId);
+    if (user?.role === 'admin') {
+      return true;
+    }
+
+    // التحقق من وجود علاقة بين المستخدم والمشروع
+    const result = await db.select().from(userProjects)
+      .where(
+        and(
+          eq(userProjects.userId, userId),
+          eq(userProjects.projectId, projectId)
+        )
+      );
+    
+    return result.length > 0;
   }
 }
 
