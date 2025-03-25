@@ -44,6 +44,17 @@ export interface IStorage {
   getTransactionsByProject(projectId: number): Promise<Transaction[]>;
   deleteTransaction(id: number): Promise<boolean>;
 
+  // Funds
+  getFund(id: number): Promise<Fund | undefined>;
+  getFundByOwner(ownerId: number): Promise<Fund | undefined>;
+  getFundByProject(projectId: number): Promise<Fund | undefined>;
+  createFund(fund: InsertFund): Promise<Fund>;
+  updateFundBalance(id: number, amount: number): Promise<Fund | undefined>;
+  listFunds(): Promise<Fund[]>;
+  processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }>;
+  processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }>;
+  processAdminTransaction(userId: number, type: string, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund }>;
+
   // Documents
   getDocument(id: number): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
@@ -72,6 +83,7 @@ export class MemStorage implements IStorage {
   private activityLogsData: Map<number, ActivityLog>;
   private settingsData: Map<number, Setting>;
   private userProjectsData: Map<number, UserProject>;
+  private fundsData: Map<number, Fund>;
   private userIdCounter: number;
   private projectIdCounter: number;
   private transactionIdCounter: number;
@@ -79,6 +91,7 @@ export class MemStorage implements IStorage {
   private activityLogIdCounter: number;
   private settingIdCounter: number;
   private userProjectIdCounter: number;
+  private fundIdCounter: number;
 
   constructor() {
     this.usersData = new Map();
@@ -88,6 +101,7 @@ export class MemStorage implements IStorage {
     this.activityLogsData = new Map();
     this.settingsData = new Map();
     this.userProjectsData = new Map();
+    this.fundsData = new Map();
     this.userIdCounter = 1;
     this.projectIdCounter = 1;
     this.transactionIdCounter = 1;
@@ -95,6 +109,7 @@ export class MemStorage implements IStorage {
     this.activityLogIdCounter = 1;
     this.settingIdCounter = 1;
     this.userProjectIdCounter = 1;
+    this.fundIdCounter = 1;
 
     // Add default admin user
     this.createUser({
@@ -117,6 +132,15 @@ export class MemStorage implements IStorage {
       key: "currency",
       value: "د.ع",
       description: "رمز العملة"
+    });
+    
+    // إنشاء صندوق المدير الافتراضي
+    this.createFund({
+      name: "صندوق المدير الرئيسي",
+      balance: 1000000, // رصيد افتراضي مليون وحدة
+      type: "admin",
+      ownerId: 1, // المدير الافتراضي
+      projectId: null
     });
   }
 
@@ -395,6 +419,230 @@ export class MemStorage implements IStorage {
 
   async listSettings(): Promise<Setting[]> {
     return Array.from(this.settingsData.values());
+  }
+
+  // Funds
+  async getFund(id: number): Promise<Fund | undefined> {
+    return this.fundsData.get(id);
+  }
+
+  async getFundByOwner(ownerId: number): Promise<Fund | undefined> {
+    return Array.from(this.fundsData.values()).find(
+      (fund) => fund.type === 'admin' && fund.ownerId === ownerId
+    );
+  }
+
+  async getFundByProject(projectId: number): Promise<Fund | undefined> {
+    return Array.from(this.fundsData.values()).find(
+      (fund) => fund.type === 'project' && fund.projectId === projectId
+    );
+  }
+
+  async createFund(fund: InsertFund): Promise<Fund> {
+    const id = this.fundIdCounter++;
+    const now = new Date();
+    const newFund: Fund = { 
+      ...fund, 
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.fundsData.set(id, newFund);
+    return newFund;
+  }
+
+  async updateFundBalance(id: number, amount: number): Promise<Fund | undefined> {
+    const fund = this.fundsData.get(id);
+    if (!fund) return undefined;
+    
+    const updatedFund: Fund = { 
+      ...fund, 
+      balance: fund.balance + amount,
+      updatedAt: new Date()
+    };
+    this.fundsData.set(id, updatedFund);
+    return updatedFund;
+  }
+
+  async listFunds(): Promise<Fund[]> {
+    return Array.from(this.fundsData.values());
+  }
+
+  // عملية الإيداع: يستقطع المبلغ من حساب المدير ويذهب إلى حساب المشروع
+  async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+    // التحقق من صلاحية المشروع
+    const project = await this.getProject(projectId);
+    if (!project) {
+      throw new Error("المشروع غير موجود");
+    }
+
+    // التحقق من صلاحية المستخدم للوصول للمشروع
+    const hasAccess = await this.checkUserProjectAccess(userId, projectId);
+    if (!hasAccess) {
+      throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
+    }
+
+    // البحث عن صندوق المدير
+    let adminFund = await this.getFundByOwner(1); // المدير الافتراضي
+    if (!adminFund) {
+      throw new Error("صندوق المدير غير موجود");
+    }
+
+    // التحقق من رصيد المدير
+    if (adminFund.balance < amount) {
+      throw new Error("رصيد المدير غير كافي لإجراء العملية");
+    }
+
+    // البحث عن صندوق المشروع أو إنشاء صندوق جديد
+    let projectFund = await this.getFundByProject(projectId);
+    if (!projectFund) {
+      projectFund = await this.createFund({
+        name: `صندوق المشروع: ${project.name}`,
+        balance: 0,
+        type: "project",
+        ownerId: null,
+        projectId
+      });
+    }
+
+    // خصم المبلغ من صندوق المدير
+    adminFund = await this.updateFundBalance(adminFund.id, -amount);
+
+    // إضافة المبلغ إلى صندوق المشروع
+    projectFund = await this.updateFundBalance(projectFund.id, amount);
+
+    // إنشاء معاملة جديدة
+    const transaction = await this.createTransaction({
+      date: new Date(),
+      amount,
+      type: "income",
+      description: description || `إيداع مبلغ في المشروع: ${project.name}`,
+      projectId,
+      createdBy: userId
+    });
+
+    // إنشاء سجل نشاط
+    await this.createActivityLog({
+      action: "create",
+      entityType: "transaction",
+      entityId: transaction.id,
+      details: `إيداع مبلغ ${amount} في المشروع: ${project.name}`,
+      userId
+    });
+
+    return {
+      transaction,
+      adminFund,
+      projectFund
+    };
+  }
+
+  // عملية السحب: يستقطع المبلغ من حساب المشروع
+  async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+    // التحقق من صلاحية المشروع
+    const project = await this.getProject(projectId);
+    if (!project) {
+      throw new Error("المشروع غير موجود");
+    }
+
+    // التحقق من صلاحية المستخدم للوصول للمشروع
+    const hasAccess = await this.checkUserProjectAccess(userId, projectId);
+    if (!hasAccess) {
+      throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
+    }
+
+    // البحث عن صندوق المشروع
+    const projectFund = await this.getFundByProject(projectId);
+    if (!projectFund) {
+      throw new Error("صندوق المشروع غير موجود");
+    }
+
+    // التحقق من رصيد المشروع
+    if (projectFund.balance < amount) {
+      throw new Error("رصيد المشروع غير كافي لإجراء العملية");
+    }
+
+    // خصم المبلغ من صندوق المشروع
+    const updatedProjectFund = await this.updateFundBalance(projectFund.id, -amount);
+
+    // إنشاء معاملة جديدة
+    const transaction = await this.createTransaction({
+      date: new Date(),
+      amount,
+      type: "expense",
+      description: description || `صرف مبلغ من المشروع: ${project.name}`,
+      projectId,
+      createdBy: userId
+    });
+
+    // إنشاء سجل نشاط
+    await this.createActivityLog({
+      action: "create",
+      entityType: "transaction",
+      entityId: transaction.id,
+      details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
+      userId
+    });
+
+    return {
+      transaction,
+      projectFund: updatedProjectFund
+    };
+  }
+
+  // عملية المدير: إيراد يضاف للصندوق، صرف يخصم من الصندوق
+  async processAdminTransaction(userId: number, type: string, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund }> {
+    // التحقق من أن المستخدم مدير
+    const user = await this.getUser(userId);
+    if (!user || user.role !== "admin") {
+      throw new Error("هذه العملية متاحة للمدير فقط");
+    }
+
+    // البحث عن صندوق المدير
+    let adminFund = await this.getFundByOwner(userId);
+    if (!adminFund) {
+      // إنشاء صندوق افتراضي للمدير إذا لم يكن موجودا
+      adminFund = await this.createFund({
+        name: `صندوق المدير: ${user.name}`,
+        balance: type === "income" ? amount : 0, // إذا كانت العملية إيداع، ابدأ برصيد العملية
+        type: "admin",
+        ownerId: userId,
+        projectId: null
+      });
+    } else {
+      // التحقق من الرصيد في حالة الصرف
+      if (type === "expense" && adminFund.balance < amount) {
+        throw new Error("رصيد الصندوق غير كافي لإجراء العملية");
+      }
+
+      // تحديث رصيد صندوق المدير
+      const updateAmount = type === "income" ? amount : -amount;
+      adminFund = await this.updateFundBalance(adminFund.id, updateAmount);
+    }
+
+    // إنشاء معاملة جديدة
+    const transaction = await this.createTransaction({
+      date: new Date(),
+      amount,
+      type,
+      description: description || `${type === "income" ? "إيراد" : "مصروف"} للمدير`,
+      projectId: null, // لا يرتبط بمشروع
+      createdBy: userId
+    });
+
+    // إنشاء سجل نشاط
+    await this.createActivityLog({
+      action: "create",
+      entityType: "transaction",
+      entityId: transaction.id,
+      details: `${type === "income" ? "إيراد" : "مصروف"} للمدير: ${amount}`,
+      userId
+    });
+
+    return {
+      transaction,
+      adminFund
+    };
   }
 }
 

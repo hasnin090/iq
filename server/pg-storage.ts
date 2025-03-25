@@ -8,7 +8,8 @@ import {
   documents, Document, InsertDocument,
   activityLogs, ActivityLog, InsertActivityLog,
   settings, Setting, InsertSetting,
-  userProjects, UserProject, InsertUserProject
+  userProjects, UserProject, InsertUserProject,
+  funds, Fund, InsertFund
 } from '../shared/schema';
 import { IStorage } from './storage';
 
@@ -379,6 +380,265 @@ export class PgStorage implements IStorage {
       );
     
     return result.length > 0;
+  }
+
+  // ======== إدارة الصناديق ========
+  
+  async getFund(id: number): Promise<Fund | undefined> {
+    const result = await db.select().from(funds).where(eq(funds.id, id));
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async getFundByOwner(ownerId: number): Promise<Fund | undefined> {
+    const result = await db.select().from(funds)
+      .where(
+        and(
+          eq(funds.type, 'admin'),
+          eq(funds.ownerId, ownerId)
+        )
+      );
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async getFundByProject(projectId: number): Promise<Fund | undefined> {
+    const result = await db.select().from(funds)
+      .where(
+        and(
+          eq(funds.type, 'project'),
+          eq(funds.projectId, projectId)
+        )
+      );
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async createFund(fund: InsertFund): Promise<Fund> {
+    const now = new Date();
+    
+    // تحديد القيم الافتراضية للحقول الفارغة
+    const projectId = fund.projectId || null;
+    const ownerId = fund.ownerId || null;
+    const balance = fund.balance || 0;
+    
+    const [newFund] = await db.insert(funds).values({
+      name: fund.name,
+      balance,
+      type: fund.type,
+      ownerId,
+      projectId,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    
+    return newFund;
+  }
+
+  async updateFundBalance(id: number, amount: number): Promise<Fund | undefined> {
+    // الحصول على الصندوق الحالي
+    const currentFund = await this.getFund(id);
+    if (!currentFund) return undefined;
+    
+    // حساب الرصيد الجديد
+    const newBalance = currentFund.balance + amount;
+    
+    // تحديث الصندوق
+    const [updatedFund] = await db.update(funds)
+      .set({ 
+        balance: newBalance,
+        updatedAt: new Date()
+      })
+      .where(eq(funds.id, id))
+      .returning();
+      
+    return updatedFund;
+  }
+
+  async listFunds(): Promise<Fund[]> {
+    return await db.select().from(funds);
+  }
+
+  // عملية الإيداع: يستقطع المبلغ من حساب المدير ويذهب إلى حساب المشروع
+  async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+    // التحقق من صلاحية المشروع
+    const project = await this.getProject(projectId);
+    if (!project) {
+      throw new Error("المشروع غير موجود");
+    }
+
+    // التحقق من صلاحية المستخدم للوصول للمشروع
+    const hasAccess = await this.checkUserProjectAccess(userId, projectId);
+    if (!hasAccess) {
+      throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
+    }
+
+    // البحث عن صندوق المدير (نستخدم المستخدم رقم 1 كمدير افتراضي)
+    let adminFund = await this.getFundByOwner(1);
+    if (!adminFund) {
+      // إنشاء صندوق المدير إذا لم يكن موجوداً
+      adminFund = await this.createFund({
+        name: "صندوق المدير الرئيسي",
+        balance: 1000000, // رصيد افتراضي مليون وحدة
+        type: "admin",
+        ownerId: 1,
+        projectId: null
+      });
+    }
+
+    // التحقق من رصيد المدير
+    if (adminFund.balance < amount) {
+      throw new Error("رصيد المدير غير كافي لإجراء العملية");
+    }
+
+    // البحث عن صندوق المشروع أو إنشاء صندوق جديد
+    let projectFund = await this.getFundByProject(projectId);
+    if (!projectFund) {
+      projectFund = await this.createFund({
+        name: `صندوق المشروع: ${project.name}`,
+        balance: 0,
+        type: "project",
+        ownerId: null,
+        projectId
+      });
+    }
+
+    // تنفيذ العملية في قاعدة البيانات كمعاملة واحدة
+    // 1. خصم المبلغ من صندوق المدير
+    adminFund = await this.updateFundBalance(adminFund.id, -amount);
+
+    // 2. إضافة المبلغ إلى صندوق المشروع
+    projectFund = await this.updateFundBalance(projectFund.id, amount);
+
+    // 3. إنشاء معاملة جديدة
+    const transaction = await this.createTransaction({
+      date: new Date(),
+      amount,
+      type: "income",
+      description: description || `إيداع مبلغ في المشروع: ${project.name}`,
+      projectId,
+      createdBy: userId
+    });
+
+    // 4. إنشاء سجل نشاط
+    await this.createActivityLog({
+      action: "create",
+      entityType: "transaction",
+      entityId: transaction.id,
+      details: `إيداع مبلغ ${amount} في المشروع: ${project.name}`,
+      userId
+    });
+
+    return {
+      transaction,
+      adminFund,
+      projectFund
+    };
+  }
+
+  // عملية السحب: يستقطع المبلغ من حساب المشروع
+  async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+    // التحقق من صلاحية المشروع
+    const project = await this.getProject(projectId);
+    if (!project) {
+      throw new Error("المشروع غير موجود");
+    }
+
+    // التحقق من صلاحية المستخدم للوصول للمشروع
+    const hasAccess = await this.checkUserProjectAccess(userId, projectId);
+    if (!hasAccess) {
+      throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
+    }
+
+    // البحث عن صندوق المشروع
+    const projectFund = await this.getFundByProject(projectId);
+    if (!projectFund) {
+      throw new Error("صندوق المشروع غير موجود");
+    }
+
+    // التحقق من رصيد المشروع
+    if (projectFund.balance < amount) {
+      throw new Error("رصيد المشروع غير كافي لإجراء العملية");
+    }
+
+    // خصم المبلغ من صندوق المشروع
+    const updatedProjectFund = await this.updateFundBalance(projectFund.id, -amount);
+
+    // إنشاء معاملة جديدة
+    const transaction = await this.createTransaction({
+      date: new Date(),
+      amount,
+      type: "expense",
+      description: description || `صرف مبلغ من المشروع: ${project.name}`,
+      projectId,
+      createdBy: userId
+    });
+
+    // إنشاء سجل نشاط
+    await this.createActivityLog({
+      action: "create",
+      entityType: "transaction",
+      entityId: transaction.id,
+      details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
+      userId
+    });
+
+    return {
+      transaction,
+      projectFund: updatedProjectFund
+    };
+  }
+
+  // عملية المدير: إيراد يضاف للصندوق، صرف يخصم من الصندوق
+  async processAdminTransaction(userId: number, type: string, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund }> {
+    // التحقق من أن المستخدم مدير
+    const user = await this.getUser(userId);
+    if (!user || user.role !== "admin") {
+      throw new Error("هذه العملية متاحة للمدير فقط");
+    }
+
+    // البحث عن صندوق المدير
+    let adminFund = await this.getFundByOwner(userId);
+    if (!adminFund) {
+      // إنشاء صندوق افتراضي للمدير إذا لم يكن موجودا
+      adminFund = await this.createFund({
+        name: `صندوق المدير: ${user.name}`,
+        balance: type === "income" ? amount : 0, // إذا كانت العملية إيداع، ابدأ برصيد العملية
+        type: "admin",
+        ownerId: userId,
+        projectId: null
+      });
+    } else {
+      // التحقق من الرصيد في حالة الصرف
+      if (type === "expense" && adminFund.balance < amount) {
+        throw new Error("رصيد الصندوق غير كافي لإجراء العملية");
+      }
+
+      // تحديث رصيد صندوق المدير
+      const updateAmount = type === "income" ? amount : -amount;
+      adminFund = await this.updateFundBalance(adminFund.id, updateAmount);
+    }
+
+    // إنشاء معاملة جديدة
+    const transaction = await this.createTransaction({
+      date: new Date(),
+      amount,
+      type,
+      description: description || `${type === "income" ? "إيراد" : "مصروف"} للمدير`,
+      projectId: null, // لا يرتبط بمشروع
+      createdBy: userId
+    });
+
+    // إنشاء سجل نشاط
+    await this.createActivityLog({
+      action: "create",
+      entityType: "transaction",
+      entityId: transaction.id,
+      details: `${type === "income" ? "إيراد" : "مصروف"} للمدير: ${amount}`,
+      userId
+    });
+
+    return {
+      transaction,
+      adminFund
+    };
   }
 }
 
