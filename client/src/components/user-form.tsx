@@ -53,10 +53,25 @@ const permissions = [
   { id: "manageDocuments", label: "إدارة المستندات", icon: <ShieldIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
 ];
 
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  startDate: string;
+  status: string;
+  progress: number;
+}
+
 export function UserForm({ onSubmit }: UserFormProps) {
   const { toast } = useToast();
   const [showPermissions, setShowPermissions] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // استعلام لجلب قائمة المشاريع
+  const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
+    queryKey: ['/api/projects'],
+    retry: false
+  });
   
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -67,6 +82,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
       password: "",
       role: "user",
       permissions: [],
+      projectId: undefined,
     },
   });
   
@@ -86,6 +102,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
         password: "",
         role: "user",
         permissions: [],
+        projectId: undefined,
       });
       setShowPermissions(false);
       onSubmit();
@@ -297,46 +314,108 @@ export function UserForm({ onSubmit }: UserFormProps) {
               />
             </div>
             
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>الصلاحية</FormLabel>
-                  <Select 
-                    onValueChange={handleRoleChange} 
-                    value={field.value} 
-                    disabled={mutation.isPending}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
-                        <SelectValue placeholder="اختر الصلاحية" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="admin" className="flex items-center">
-                        <div className="flex items-center">
-                          <ShieldIcon className="h-4 w-4 ml-2 text-red-500" />
-                          مدير
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="user" className="flex items-center">
-                        <div className="flex items-center">
-                          <UserIcon className="h-4 w-4 ml-2 text-blue-500" />
-                          مستخدم
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    {field.value === "admin" 
-                      ? "المدير لديه صلاحيات كاملة للنظام" 
-                      : "المستخدم يحتاج لتحديد صلاحيات محددة"}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الصلاحية</FormLabel>
+                    <Select 
+                      onValueChange={handleRoleChange} 
+                      value={field.value} 
+                      disabled={mutation.isPending}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                          <SelectValue placeholder="اختر الصلاحية" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="admin" className="flex items-center">
+                          <div className="flex items-center">
+                            <ShieldIcon className="h-4 w-4 ml-2 text-red-500" />
+                            مدير
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="user" className="flex items-center">
+                          <div className="flex items-center">
+                            <UserIcon className="h-4 w-4 ml-2 text-blue-500" />
+                            مستخدم
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {field.value === "admin" 
+                        ? "المدير لديه صلاحيات كاملة للنظام" 
+                        : "المستخدم يحتاج لتحديد صلاحيات محددة"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* اختيار المشروع المخصص للمستخدم */}
+              {form.watch("role") === "user" && (
+                <FormField
+                  control={form.control}
+                  name="projectId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center">
+                        المشروع المخصص
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                              <p>يمكن تخصيص مشروع محدد للمستخدم للعمل عليه فقط</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          // إذا كانت القيمة فارغة، اجعلها undefined وإلا حولها إلى رقم
+                          field.onChange(value === "" ? undefined : parseInt(value));
+                        }} 
+                        value={field.value?.toString() || ""} 
+                        disabled={mutation.isPending || projectsLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger 
+                            className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300"
+                          >
+                            <SelectValue placeholder="اختر المشروع المخصص" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">
+                            <div className="flex items-center">
+                              <span className="text-gray-500">بدون تخصيص مشروع</span>
+                            </div>
+                          </SelectItem>
+                          {projects?.map((project: Project) => (
+                            <SelectItem key={project.id} value={project.id.toString()}>
+                              <div className="flex items-center">
+                                <FolderIcon className="h-4 w-4 ml-2 text-blue-500" />
+                                {project.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        اختر المشروع الذي سيتمكن المستخدم من الوصول إليه.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
             
             {showPermissions && (
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">

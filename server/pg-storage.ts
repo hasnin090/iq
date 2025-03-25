@@ -7,7 +7,8 @@ import {
   transactions, Transaction, InsertTransaction,
   documents, Document, InsertDocument,
   activityLogs, ActivityLog, InsertActivityLog,
-  settings, Setting, InsertSetting
+  settings, Setting, InsertSetting,
+  userProjects, UserProject, InsertUserProject
 } from '../shared/schema';
 import { IStorage } from './storage';
 
