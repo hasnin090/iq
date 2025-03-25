@@ -48,12 +48,24 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
   
   const mutation = useMutation({
     mutationFn: (data: ProjectFormValues) => {
-      return apiRequest('POST', '/api/projects', data);
+      // التأكد من أن اسم المشروع غير فارغ
+      if (!data.name || data.name.trim() === '') {
+        throw new Error("اسم المشروع مطلوب");
+      }
+      
+      // إضافة نسبة تقدم افتراضية إذا كانت غير موجودة
+      const projectData = {
+        ...data,
+        progress: 0, // بداية المشروع دائماً تكون 0%
+        name: data.name.trim() // إزالة المسافات الزائدة
+      };
+      
+      return apiRequest('POST', '/api/projects', projectData);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "تمت العملية بنجاح",
-        description: "تم حفظ المشروع بنجاح",
+        description: `تم حفظ المشروع "${data.name || 'الجديد'}" بنجاح`,
       });
       form.reset({
         name: "",
@@ -61,6 +73,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
         startDate: new Date(),
         status: "active",
       });
+      // تحديث القائمة مباشرة
       onSubmit();
     },
     onError: (error) => {

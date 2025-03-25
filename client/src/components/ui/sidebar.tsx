@@ -53,19 +53,17 @@ export function Sidebar() {
 
   return (
     <>
-      {/* زر القائمة المتنقلة - تم إصلاح مشكلة الوميض */}
+      {/* زر القائمة المتنقلة - تم تحسينه لتجنب الإعاقة البصرية */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 right-6 z-50 bg-[hsl(var(--primary))] rounded-full w-14 h-14 flex items-center justify-center text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95"
+        className="fixed top-6 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-12 h-10 flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 opacity-80 hover:opacity-100"
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
-        <div className="relative w-full h-full flex items-center justify-center">
-          <div className="w-6 h-5 flex flex-col justify-between">
-            <span className="h-0.5 w-full bg-white rounded-full"></span>
-            <span className="h-0.5 w-full bg-white rounded-full"></span>
-            <span className="h-0.5 w-full bg-white rounded-full"></span>
-          </div>
-        </div>
+        {isOpen ? (
+          <i className="fas fa-times text-lg"></i>
+        ) : (
+          <i className="fas fa-bars text-lg"></i>
+        )}
       </button>
       
       {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها في الهواتف */}
