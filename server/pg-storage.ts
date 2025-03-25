@@ -71,11 +71,18 @@ export class PgStorage implements IStorage {
   
   async deleteUser(id: number): Promise<boolean> {
     try {
+      // 1. التعامل مع علاقات المستخدم مع المشاريع
       try {
-        // 1. التحقق من وجود جدول user_projects قبل محاولة الحذف
-        const userProjectsTableExists = await this.checkTableExists('user_projects');
-        if (userProjectsTableExists) {
-          // حذف علاقات المستخدم مع المشاريع
+        const userProjectsExists = await db.execute(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'user_projects'
+          );
+        `);
+        const exists = userProjectsExists.rows[0]?.exists === true;
+        
+        if (exists) {
+          console.log("جدول user_projects موجود، جاري حذف علاقات المستخدم");
           await db.delete(userProjects).where(eq(userProjects.userId, id));
         } else {
           console.log("جدول user_projects غير موجود، تخطي حذف العلاقات");
@@ -85,33 +92,99 @@ export class PgStorage implements IStorage {
         // استمرار التنفيذ حتى إذا فشلت هذه الخطوة
       }
       
-      // 2. تحديث المستندات التي قام المستخدم برفعها (تعيين uploadedBy إلى 1 - المدير)
-      await db.update(documents)
-        .set({ uploadedBy: 1 })
-        .where(eq(documents.uploadedBy, id));
+      // 2. تحديث المستندات التي قام المستخدم برفعها
+      try {
+        const documentsExists = await db.execute(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'documents'
+          );
+        `);
+        const exists = documentsExists.rows[0]?.exists === true;
+        
+        if (exists) {
+          console.log("جدول documents موجود، جاري تحديث المستندات");
+          await db.update(documents)
+            .set({ uploadedBy: 1 })
+            .where(eq(documents.uploadedBy, id));
+        } else {
+          console.log("جدول documents غير موجود، تخطي تحديث المستندات");
+        }
+      } catch (error) {
+        console.error("خطأ عند التعامل مع جدول documents:", error);
+      }
       
-      // 3. تحديث المعاملات المالية التي قام المستخدم بإنشائها (تعيين createdBy إلى 1 - المدير)
-      await db.update(transactions)
-        .set({ createdBy: 1 })
-        .where(eq(transactions.createdBy, id));
+      // 3. تحديث المعاملات المالية التي قام المستخدم بإنشائها
+      try {
+        const transactionsExists = await db.execute(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'transactions'
+          );
+        `);
+        const exists = transactionsExists.rows[0]?.exists === true;
+        
+        if (exists) {
+          console.log("جدول transactions موجود، جاري تحديث المعاملات");
+          await db.update(transactions)
+            .set({ createdBy: 1 })
+            .where(eq(transactions.createdBy, id));
+        } else {
+          console.log("جدول transactions غير موجود، تخطي تحديث المعاملات");
+        }
+      } catch (error) {
+        console.error("خطأ عند التعامل مع جدول transactions:", error);
+      }
       
-      // 4. تحديث المشاريع التي قام المستخدم بإنشائها (تعيين createdBy إلى 1 - المدير)
-      await db.update(projects)
-        .set({ createdBy: 1 })
-        .where(eq(projects.createdBy, id));
+      // 4. تحديث المشاريع التي قام المستخدم بإنشائها
+      try {
+        const projectsExists = await db.execute(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'projects'
+          );
+        `);
+        const exists = projectsExists.rows[0]?.exists === true;
+        
+        if (exists) {
+          console.log("جدول projects موجود، جاري تحديث المشاريع");
+          await db.update(projects)
+            .set({ createdBy: 1 })
+            .where(eq(projects.createdBy, id));
+        } else {
+          console.log("جدول projects غير موجود، تخطي تحديث المشاريع");
+        }
+      } catch (error) {
+        console.error("خطأ عند التعامل مع جدول projects:", error);
+      }
       
-      // 5. البحث عن صناديق المستخدم وتحديثها
-      await db.update(funds)
-        .set({ ownerId: 1 }) // تعيين المالك إلى المدير الافتراضي
-        .where(eq(funds.ownerId, id));
+      // 5. تحديث صناديق المستخدم
+      try {
+        const fundsExists = await db.execute(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'funds'
+          );
+        `);
+        const exists = fundsExists.rows[0]?.exists === true;
+        
+        if (exists) {
+          console.log("جدول funds موجود، جاري تحديث الصناديق");
+          await db.update(funds)
+            .set({ ownerId: 1 }) // تعيين المالك إلى المدير الافتراضي
+            .where(eq(funds.ownerId, id));
+        } else {
+          console.log("جدول funds غير موجود، تخطي تحديث الصناديق");
+        }
+      } catch (error) {
+        console.error("خطأ عند التعامل مع جدول funds:", error);
+      }
       
-      // 6. نحتفظ بسجلات النشاط الخاصة بالمستخدم (لا داعي لحذفها)
-      
-      // 7. أخيراً، حذف المستخدم
+      // 6. أخيراً، حذف المستخدم
       const result = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
       return result.length > 0;
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("خطأ في حذف المستخدم:", error);
       throw error;
     }
   }
