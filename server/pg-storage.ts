@@ -18,6 +18,22 @@ import { IStorage } from './storage';
  * تنفذ واجهة IStorage المحددة سابقًا
  */
 export class PgStorage implements IStorage {
+  // دالة مساعدة للتحقق من وجود جدول في قاعدة البيانات
+  async checkTableExists(tableName: string): Promise<boolean> {
+    try {
+      const result = await db.execute(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = $1
+        );
+      `, [tableName]);
+      
+      return result.rows[0]?.exists === true;
+    } catch (error) {
+      console.error(`خطأ في التحقق من وجود جدول ${tableName}:`, error);
+      return false;
+    }
+  }
   
   // ======== إدارة المستخدمين ========
   
@@ -55,8 +71,19 @@ export class PgStorage implements IStorage {
   
   async deleteUser(id: number): Promise<boolean> {
     try {
-      // 1. حذف علاقات المستخدم مع المشاريع
-      await db.delete(userProjects).where(eq(userProjects.userId, id));
+      try {
+        // 1. التحقق من وجود جدول user_projects قبل محاولة الحذف
+        const userProjectsTableExists = await this.checkTableExists('user_projects');
+        if (userProjectsTableExists) {
+          // حذف علاقات المستخدم مع المشاريع
+          await db.delete(userProjects).where(eq(userProjects.userId, id));
+        } else {
+          console.log("جدول user_projects غير موجود، تخطي حذف العلاقات");
+        }
+      } catch (error) {
+        console.error("خطأ عند التعامل مع جدول user_projects:", error);
+        // استمرار التنفيذ حتى إذا فشلت هذه الخطوة
+      }
       
       // 2. تحديث المستندات التي قام المستخدم برفعها (تعيين uploadedBy إلى 1 - المدير)
       await db.update(documents)
