@@ -290,7 +290,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       userData.password = await bcrypt.hash(userData.password, 10);
       
+      // استخراج معرف المشروع قبل إنشاء المستخدم إذا كان موجودًا
+      const projectId = userData.projectId;
+      delete userData.projectId; // إزالة الحقل غير المستخدم في إنشاء المستخدم
+      
       const user = await storage.createUser(userData);
+      
+      // إذا تم تحديد مشروع، يتم تخصيصه للمستخدم
+      if (projectId) {
+        try {
+          await storage.assignUserToProject({
+            userId: user.id,
+            projectId: projectId,
+            assignedBy: req.session.userId as number
+          });
+          
+          await storage.createActivityLog({
+            action: "update",
+            entityType: "user_project",
+            entityId: user.id,
+            details: `تخصيص المستخدم ${user.name} للمشروع رقم ${projectId}`,
+            userId: req.session.userId as number
+          });
+        } catch (err) {
+          console.error("خطأ في تخصيص المشروع للمستخدم:", err);
+          // استمر بدون توقف عند حدوث خطأ في تخصيص المشروع
+        }
+      }
       
       await storage.createActivityLog({
         action: "create",
@@ -315,6 +341,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userData = req.body;
       
+      // استخراج معرف المشروع قبل تحديث المستخدم إذا كان موجودًا
+      const projectId = userData.projectId;
+      delete userData.projectId; // إزالة الحقل غير المستخدم في تحديث المستخدم
+      
       if (userData.password) {
         userData.password = await bcrypt.hash(userData.password, 10);
       }
@@ -323,6 +353,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!updatedUser) {
         return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      // إدارة تخصيص المشروع إذا تم تحديده
+      if (projectId !== undefined) {
+        try {
+          // أولاً، نزيل أي علاقات موجودة للمستخدم مع المشاريع الأخرى
+          // يمكن تغيير هذا السلوك لاحقًا إذا كان المستخدم يمكن أن ينتمي إلى عدة مشاريع
+          
+          // إذا كان معرف المشروع قيمة صالحة (ليس صفر أو null)، قم بتخصيص المشروع
+          if (projectId) {
+            // تحقق إذا كان المستخدم مخصص بالفعل لهذا المشروع
+            const hasAccess = await storage.checkUserProjectAccess(id, projectId);
+            
+            if (!hasAccess) {
+              // إذا لم يكن المستخدم مخصصًا بالفعل لهذا المشروع، قم بتخصيصه
+              await storage.assignUserToProject({
+                userId: id,
+                projectId: projectId,
+                assignedBy: req.session.userId as number
+              });
+              
+              await storage.createActivityLog({
+                action: "update",
+                entityType: "user_project",
+                entityId: id,
+                details: `تخصيص المستخدم ${updatedUser.name} للمشروع رقم ${projectId}`,
+                userId: req.session.userId as number
+              });
+            }
+          } else {
+            // إذا كان المستخدم يجب أن لا ينتمي إلى أي مشروع، فقم بإزالة جميع العلاقات
+            // ملاحظة: يمكن تنفيذ ذلك لاحقًا إذا لزم الأمر
+          }
+        } catch (err) {
+          console.error("خطأ في تخصيص المشروع للمستخدم:", err);
+          // استمر بدون توقف عند حدوث خطأ في تخصيص المشروع
+        }
       }
       
       await storage.createActivityLog({
@@ -706,6 +773,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json(logs);
     } catch (error) {
       return res.status(500).json({ message: "خطأ في استرجاع سجلات النشاط" });
+    }
+  });
+
+  // User Projects routes
+  app.get("/api/users/:userId/projects", authenticate, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // التحقق من وجود المستخدم
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      // التحقق من الصلاحيات - يمكن للمستخدم الوصول إلى مشاريعه فقط، بينما يمكن للمدير الوصول إلى مشاريع أي مستخدم
+      if (req.session.userId !== userId && req.session.role !== "admin") {
+        return res.status(403).json({ message: "غير مصرح لك بالوصول إلى مشاريع هذا المستخدم" });
+      }
+      
+      const projects = await storage.getUserProjects(userId);
+      return res.status(200).json(projects);
+    } catch (error) {
+      console.error("خطأ في استرجاع مشاريع المستخدم:", error);
+      return res.status(500).json({ message: "خطأ في استرجاع مشاريع المستخدم" });
+    }
+  });
+
+  app.get("/api/projects/:projectId/users", authenticate, async (req: Request, res: Response) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // التحقق من وجود المشروع
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "المشروع غير موجود" });
+      }
+      
+      // التحقق إذا كان المستخدم الحالي لديه حق الوصول إلى هذا المشروع
+      if (req.session.role !== "admin") {
+        const hasAccess = await storage.checkUserProjectAccess(req.session.userId as number, projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "غير مصرح لك بالوصول إلى هذا المشروع" });
+        }
+      }
+      
+      const users = await storage.getProjectUsers(projectId);
+      return res.status(200).json(users);
+    } catch (error) {
+      console.error("خطأ في استرجاع مستخدمي المشروع:", error);
+      return res.status(500).json({ message: "خطأ في استرجاع مستخدمي المشروع" });
+    }
+  });
+
+  app.post("/api/user-projects", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { userId, projectId } = req.body;
+      
+      if (!userId || !projectId) {
+        return res.status(400).json({ message: "معرف المستخدم ومعرف المشروع مطلوبان" });
+      }
+      
+      // التحقق من وجود المستخدم والمشروع
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "المشروع غير موجود" });
+      }
+      
+      // التحقق إذا كان المستخدم مخصص بالفعل لهذا المشروع
+      const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+      if (hasAccess) {
+        return res.status(400).json({ message: "المستخدم مخصص بالفعل لهذا المشروع" });
+      }
+      
+      const userProject = await storage.assignUserToProject({
+        userId,
+        projectId,
+        assignedBy: req.session.userId as number
+      });
+      
+      await storage.createActivityLog({
+        action: "create",
+        entityType: "user_project",
+        entityId: userProject.id,
+        details: `تخصيص المستخدم ${user.name} للمشروع ${project.name}`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(201).json(userProject);
+    } catch (error) {
+      console.error("خطأ في تخصيص المشروع للمستخدم:", error);
+      return res.status(500).json({ message: "خطأ في تخصيص المشروع للمستخدم" });
+    }
+  });
+
+  app.delete("/api/user-projects", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { userId, projectId } = req.body;
+      
+      if (!userId || !projectId) {
+        return res.status(400).json({ message: "معرف المستخدم ومعرف المشروع مطلوبان" });
+      }
+      
+      // التحقق من وجود المستخدم والمشروع
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "المشروع غير موجود" });
+      }
+      
+      // التحقق إذا كان المستخدم مخصص لهذا المشروع
+      const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+      if (!hasAccess) {
+        return res.status(400).json({ message: "المستخدم غير مخصص لهذا المشروع" });
+      }
+      
+      const result = await storage.removeUserFromProject(userId, projectId);
+      
+      if (result) {
+        await storage.createActivityLog({
+          action: "delete",
+          entityType: "user_project",
+          entityId: 0, // لا نملك معرف محدد هنا
+          details: `إلغاء تخصيص المستخدم ${user.name} من المشروع ${project.name}`,
+          userId: req.session.userId as number
+        });
+      }
+      
+      return res.status(200).json({ success: result });
+    } catch (error) {
+      console.error("خطأ في إلغاء تخصيص المشروع للمستخدم:", error);
+      return res.status(500).json({ message: "خطأ في إلغاء تخصيص المشروع للمستخدم" });
     }
   });
 
