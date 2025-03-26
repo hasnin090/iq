@@ -53,16 +53,20 @@ export function Sidebar() {
 
   return (
     <>
-      {/* زر القائمة المتنقلة - تم تحسينه لتجنب الإعاقة البصرية */}
+      {/* زر القائمة المتنقلة - تم تحسينه لتجنب الإعاقة البصرية مع إضافة ثلاثة خطوط داخله */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-12 h-10 flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 opacity-80 hover:opacity-100"
+        className="fixed top-6 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-12 h-10 flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 opacity-90 hover:opacity-100"
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
         {isOpen ? (
           <i className="fas fa-times text-lg"></i>
         ) : (
-          <i className="fas fa-bars text-lg"></i>
+          <div className="w-6 h-5 flex flex-col justify-between">
+            <span className="h-0.5 w-full bg-white rounded-full"></span>
+            <span className="h-0.5 w-full bg-white rounded-full"></span>
+            <span className="h-0.5 w-full bg-white rounded-full"></span>
+          </div>
         )}
       </button>
       
