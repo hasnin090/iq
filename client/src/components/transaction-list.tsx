@@ -116,12 +116,16 @@ export function TransactionList({
   // إعادة تعيين قيم النموذج عند اختيار معاملة للتعديل
   useEffect(() => {
     if (transactionToEdit) {
+      // تأكد من أن نوع المعاملة ليس فارغًا
+      const type = transactionToEdit.type || "income";
+      
       form.reset({
         date: new Date(transactionToEdit.date),
-        type: transactionToEdit.type,
+        type: type,
         amount: transactionToEdit.amount,
-        description: transactionToEdit.description,
-        projectId: transactionToEdit.projectId || null,
+        description: transactionToEdit.description || "",
+        // تأكد من أن قيمة projectId إما رقم أو null وليست undefined
+        projectId: transactionToEdit.projectId !== undefined ? transactionToEdit.projectId : null,
       });
     }
   }, [transactionToEdit, form]);
@@ -480,7 +484,7 @@ export function TransactionList({
                     <FormLabel>نوع المعاملة</FormLabel>
                     <Select
                       dir="rtl"
-                      value={field.value}
+                      value={field.value ? field.value : "income"}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
