@@ -2,48 +2,44 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, pgEn
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// تعريف قيم الأدوار المتاحة في النظام
-export const roleEnum = pgEnum('role_type', ['admin', 'manager', 'user', 'viewer']);
+// تعريف قيم وأنواع الأدوار والصلاحيات للاستخدام في التطبيق
+// ملاحظة: نحتفظ بهذه الأنواع كمرجع ولكن لا ننشئ الجداول الآن بسبب قيود الترحيل
 
-// تعريف نوع الصلاحيات المتاحة في النظام
-export const permissionEnum = pgEnum('permission_type', [
-  'view_dashboard',
-  'manage_users',
-  'view_users',
-  'manage_projects',
-  'view_projects',
-  'manage_project_transactions',
-  'view_project_transactions',
-  'manage_transactions',
-  'view_transactions',
-  'manage_documents',
-  'view_documents',
-  'view_reports',
-  'view_activity_logs',
-  'manage_settings'
-]);
+// قائمة الأدوار المتاحة (للاستخدام البرمجي فقط، لا تنشئ جدولاً)
+export const ROLES = {
+  ADMIN: 'admin',
+  MANAGER: 'manager',
+  USER: 'user',
+  VIEWER: 'viewer'
+} as const;
 
-// جدول الصلاحيات - يحدد الصلاحيات المخصصة لكل دور
-export const rolePermissions = pgTable('role_permissions', {
-  id: serial('id').primaryKey(),
-  role: roleEnum('role').notNull(),
-  permission: permissionEnum('permission').notNull(),
-}, (table) => {
-  return {
-    rolePermissionUnique: unique().on(table.role, table.permission)
-  }
-});
+// قائمة الصلاحيات المتاحة (للاستخدام البرمجي فقط، لا تنشئ جدولاً)
+export const PERMISSIONS = {
+  VIEW_DASHBOARD: 'view_dashboard',
+  MANAGE_USERS: 'manage_users',
+  VIEW_USERS: 'view_users',
+  MANAGE_PROJECTS: 'manage_projects',
+  VIEW_PROJECTS: 'view_projects',
+  MANAGE_PROJECT_TRANSACTIONS: 'manage_project_transactions',
+  VIEW_PROJECT_TRANSACTIONS: 'view_project_transactions',
+  MANAGE_TRANSACTIONS: 'manage_transactions',
+  VIEW_TRANSACTIONS: 'view_transactions',
+  MANAGE_DOCUMENTS: 'manage_documents',
+  VIEW_DOCUMENTS: 'view_documents',
+  VIEW_REPORTS: 'view_reports',
+  VIEW_ACTIVITY_LOGS: 'view_activity_logs',
+  MANAGE_SETTINGS: 'manage_settings'
+} as const;
 
-// Users table
+// Users table - نستخدم البنية الحالية
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  role: roleEnum("role").notNull().default("user"),
-  // الصلاحيات الإضافية الخاصة التي تتجاوز صلاحيات الدور
-  customPermissions: jsonb("custom_permissions").default([]).notNull(),
+  role: text("role").notNull().default("user"), // admin, user, manager, viewer
+  permissions: jsonb("permissions").default([]).notNull(),
   active: boolean("active").notNull().default(true),
 });
 
@@ -129,17 +125,13 @@ export const funds = pgTable("funds", {
 });
 
 // Insertion schemas
-// Schema for role permissions
-export const insertRolePermissionSchema = createInsertSchema(rolePermissions)
-  .omit({ id: true });
-
 export const insertUserSchema = createInsertSchema(users)
-  .omit({ id: true, customPermissions: true })
+  .omit({ id: true })
   .extend({
     password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
     email: z.string().email("البريد الإلكتروني غير صالح"),
     projectId: z.number().optional(), // إضافة حقل projectId كخاصية إضافية لا تتطابق مع الجدول
-    customPermissions: z.array(z.enum(permissionEnum.enumValues)).optional(), // صلاحيات إضافية للمستخدم
+    permissions: z.array(z.string()).optional(), // صلاحيات المستخدم
   });
 
 export const insertProjectSchema = createInsertSchema(projects)
@@ -196,10 +188,8 @@ export type InsertFund = z.infer<typeof insertFundSchema>;
 export type Fund = typeof funds.$inferSelect;
 
 // Permission types
-export type RolePermission = typeof rolePermissions.$inferSelect;
-export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
-export type Permission = typeof permissionEnum.enumValues[number];
-export type Role = typeof roleEnum.enumValues[number];
+export type Permission = keyof typeof PERMISSIONS;
+export type Role = keyof typeof ROLES;
 
 // Auth types
 export const loginSchema = z.object({

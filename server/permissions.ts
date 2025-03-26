@@ -1,11 +1,12 @@
 import { db } from './db';
 import { eq, and } from 'drizzle-orm';
 import { 
-  rolePermissions, 
   users, 
   Permission,
   Role,
-  User
+  User,
+  PERMISSIONS,
+  ROLES
 } from '@shared/schema';
 
 /**
