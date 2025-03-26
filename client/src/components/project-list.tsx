@@ -114,19 +114,19 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((project) => (
           <div key={project.id} className="bg-secondary-light rounded-xl shadow-card overflow-hidden">
-            <div className="bg-primary-dark p-4">
-              <h3 className="text-lg font-bold text-white">{project.name || 'مشروع جديد'}</h3>
+            <div className="bg-primary p-4">
+              <h3 className="text-lg font-bold text-white tracking-wide">{project.name || 'مشروع جديد'}</h3>
             </div>
             <div className="p-6 space-y-4">
-              <p className="text-neutral-light">{project.description}</p>
+              <p className="text-foreground">{project.description}</p>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral">تاريخ البدء: {formatDate(project.startDate)}</span>
+                <span className="text-sm text-foreground">تاريخ البدء: <span className="font-medium">{formatDate(project.startDate)}</span></span>
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(project.status)}`}>
                   {getStatusText(project.status)}
                 </span>
               </div>
               <div className="pt-2">
-                <p className="text-sm text-neutral mb-1">التقدم في العمل</p>
+                <p className="text-sm text-foreground mb-1">التقدم في العمل: <span className="font-medium">{project.progress}%</span></p>
                 <div className="w-full h-2 bg-secondary rounded-full">
                   <div 
                     className="h-2 bg-primary-light rounded-full" 
