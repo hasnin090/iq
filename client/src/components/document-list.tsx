@@ -59,9 +59,10 @@ interface DocumentListProps {
   projects: Project[];
   isLoading: boolean;
   onDocumentUpdated: () => void;
+  isManagerSection?: boolean; // إضافة خاصية لتحديد ما إذا كان قسم المدراء
 }
 
-export function DocumentList({ documents, projects, isLoading, onDocumentUpdated }: DocumentListProps) {
+export function DocumentList({ documents, projects, isLoading, onDocumentUpdated, isManagerSection = false }: DocumentListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);

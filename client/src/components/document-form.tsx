@@ -97,7 +97,7 @@ const documentSchema = z.object({
 
 type DocumentFormValues = z.infer<typeof documentSchema>;
 
-export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProps) {
+export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument = false }: DocumentFormProps) {
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -222,7 +222,8 @@ export function DocumentForm({ projects, onSubmit, isLoading }: DocumentFormProp
           fileUrl: fileUrl,
           fileType: file.type,
           uploadDate: new Date(),
-          uploadedBy: user?.id
+          uploadedBy: user?.id,
+          isManagerDocument: isManagerDocument // إضافة معلومات عن نوع المستند (إداري أم لا)
         });
       } catch (error) {
         // إعادة تعيين شريط التقدم في حالة وجود خطأ
