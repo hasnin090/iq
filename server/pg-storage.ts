@@ -626,8 +626,17 @@ export class PgStorage implements IStorage {
     }
 
     // البحث عن صندوق المدير (نستخدم المستخدم رقم 1 كمدير افتراضي)
+    console.log(`processDeposit - جاري البحث عن صندوق المدير بمعرف المالك = 1`);
+    
+    // البحث عن جميع الصناديق للتشخيص
+    const allFunds = await db.select().from(funds);
+    console.log(`processDeposit - جميع الصناديق الموجودة:`, JSON.stringify(allFunds));
+    
     let adminFund = await this.getFundByOwner(1);
+    console.log(`processDeposit - نتيجة البحث عن صندوق المدير:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
+    
     if (!adminFund) {
+      console.log(`processDeposit - صندوق المدير غير موجود، جاري إنشاء صندوق جديد`);
       // إنشاء صندوق المدير إذا لم يكن موجوداً
       adminFund = await this.createFund({
         name: "صندوق المدير الرئيسي",
@@ -636,6 +645,7 @@ export class PgStorage implements IStorage {
         ownerId: 1,
         projectId: null
       });
+      console.log(`processDeposit - تم إنشاء صندوق المدير الجديد:`, JSON.stringify(adminFund));
     }
     
     console.log(`processDeposit - رصيد المدير قبل العملية: ${adminFund.balance}`);
