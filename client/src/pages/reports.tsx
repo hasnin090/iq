@@ -33,7 +33,7 @@ export default function Reports() {
   
   // Prepare data for financial report
   const getFinancialData = () => {
-    if (!transactions) return { income: 0, expense: 0, profit: 0, transactions: [] };
+    if (!transactions || !Array.isArray(transactions)) return { income: 0, expense: 0, profit: 0, transactions: [] };
     
     let filteredTransactions = [...transactions];
     
@@ -70,8 +70,8 @@ export default function Reports() {
   
   // Get project name by id
   const getProjectName = (projectId?: number) => {
-    if (!projectId || !projects) return 'عام';
-    const project = projects.find(p => p.id === projectId);
+    if (!projectId) return 'عام';
+    const project = projects && Array.isArray(projects) ? projects.find(p => p.id === projectId) : null;
     return project ? project.name : 'غير معروف';
   };
   
@@ -134,21 +134,21 @@ export default function Reports() {
     }
     
     // Projects chart
-    if (projectsChartRef.current && activeTab === 'projects' && projects && transactions) {
+    if (projectsChartRef.current && activeTab === 'projects' && Array.isArray(projects) && Array.isArray(transactions)) {
       const ctx = projectsChartRef.current.getContext('2d');
       if (ctx) {
         if (projectsChart) projectsChart.destroy();
         
         // Calculate total amount per project
-        const projectData = projects.map(project => {
-          const projectTransactions = transactions.filter(t => t.projectId === project.id);
+        const projectData = projects.map((project: any) => {
+          const projectTransactions = transactions.filter((t: any) => t.projectId === project.id);
           const income = projectTransactions
-            .filter(t => t.type === 'income')
-            .reduce((sum, t) => sum + t.amount, 0);
+            .filter((t: any) => t.type === 'income')
+            .reduce((sum: number, t: any) => sum + t.amount, 0);
           
           const expense = projectTransactions
-            .filter(t => t.type === 'expense')
-            .reduce((sum, t) => sum + t.amount, 0);
+            .filter((t: any) => t.type === 'expense')
+            .reduce((sum: number, t: any) => sum + t.amount, 0);
             
           return {
             name: project.name,
@@ -279,11 +279,11 @@ export default function Reports() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل المشاريع</SelectItem>
-                {projects?.map((project) => (
+                {Array.isArray(projects) ? projects.map((project: any) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
                   </SelectItem>
-                ))}
+                )) : null}
               </SelectContent>
             </Select>
           </div>
