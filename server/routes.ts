@@ -655,9 +655,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let result: any;
       
-      // معالجة العملية حسب نوعها ووجود مشروع
-      if (projectId) {
-        // إذا كان المشروع محددًا
+      // معالجة العملية حسب نوعها ووجود مشروع ودور المستخدم
+      if (userRole === 'admin') {
+        // المدير له حق إجراء معاملات على الصندوق الرئيسي أو المشاريع
+        if (projectId) {
+          // إذا كان المشروع محددًا من قبل المدير
+          if (type === "income") {
+            // عملية إيداع في المشروع (تستقطع من حساب المدير)
+            result = await storage.processDeposit(userId, projectId, amount, description);
+          } else if (type === "expense") {
+            // عملية صرف من المشروع
+            result = await storage.processWithdrawal(userId, projectId, amount, description);
+          }
+        } else {
+          // عملية للمدير على الصندوق الرئيسي (إيراد أو صرف)
+          result = await storage.processAdminTransaction(userId, type, amount, description);
+        }
+      } else {
+        // المستخدم العادي لا يمكنه إجراء معاملات إلا على المشاريع المخصصة له
+        if (!projectId) {
+          return res.status(400).json({ message: "يجب تحديد مشروع للعملية" });
+        }
+        
         if (type === "income") {
           // عملية إيداع في المشروع (تستقطع من حساب المدير)
           result = await storage.processDeposit(userId, projectId, amount, description);
@@ -665,9 +684,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // عملية صرف من المشروع
           result = await storage.processWithdrawal(userId, projectId, amount, description);
         }
-      } else {
-        // عملية للمدير (إيراد أو صرف)
-        result = await storage.processAdminTransaction(userId, type, amount, description);
       }
       
       // إذا لم تتم معالجة العملية بأي من الطرق السابقة
