@@ -2,6 +2,38 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, pgEn
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// تعريف قيم الأدوار المتاحة في النظام
+export const roleEnum = pgEnum('role_type', ['admin', 'manager', 'user', 'viewer']);
+
+// تعريف نوع الصلاحيات المتاحة في النظام
+export const permissionEnum = pgEnum('permission_type', [
+  'view_dashboard',
+  'manage_users',
+  'view_users',
+  'manage_projects',
+  'view_projects',
+  'manage_project_transactions',
+  'view_project_transactions',
+  'manage_transactions',
+  'view_transactions',
+  'manage_documents',
+  'view_documents',
+  'view_reports',
+  'view_activity_logs',
+  'manage_settings'
+]);
+
+// جدول الصلاحيات - يحدد الصلاحيات المخصصة لكل دور
+export const rolePermissions = pgTable('role_permissions', {
+  id: serial('id').primaryKey(),
+  role: roleEnum('role').notNull(),
+  permission: permissionEnum('permission').notNull(),
+}, (table) => {
+  return {
+    rolePermissionUnique: unique().on(table.role, table.permission)
+  }
+});
+
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -9,8 +41,9 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role").notNull().default("user"), // admin, user
-  permissions: jsonb("permissions").default([]).notNull(),
+  role: roleEnum("role").notNull().default("user"),
+  // الصلاحيات الإضافية الخاصة التي تتجاوز صلاحيات الدور
+  customPermissions: jsonb("custom_permissions").default([]).notNull(),
   active: boolean("active").notNull().default(true),
 });
 
@@ -96,12 +129,17 @@ export const funds = pgTable("funds", {
 });
 
 // Insertion schemas
+// Schema for role permissions
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions)
+  .omit({ id: true });
+
 export const insertUserSchema = createInsertSchema(users)
-  .omit({ id: true, permissions: true })
+  .omit({ id: true, customPermissions: true })
   .extend({
     password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
     email: z.string().email("البريد الإلكتروني غير صالح"),
     projectId: z.number().optional(), // إضافة حقل projectId كخاصية إضافية لا تتطابق مع الجدول
+    customPermissions: z.array(z.enum(permissionEnum.enumValues)).optional(), // صلاحيات إضافية للمستخدم
   });
 
 export const insertProjectSchema = createInsertSchema(projects)
@@ -156,6 +194,12 @@ export type UserProject = typeof userProjects.$inferSelect;
 
 export type InsertFund = z.infer<typeof insertFundSchema>;
 export type Fund = typeof funds.$inferSelect;
+
+// Permission types
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type Permission = typeof permissionEnum.enumValues[number];
+export type Role = typeof roleEnum.enumValues[number];
 
 // Auth types
 export const loginSchema = z.object({
