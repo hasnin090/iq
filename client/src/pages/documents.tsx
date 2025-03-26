@@ -231,7 +231,7 @@ export default function Documents() {
                       <div className="flex items-center space-x-4 space-x-reverse text-xs text-[hsl(var(--muted-foreground))]">
                         <p className="flex items-center space-x-1 space-x-reverse">
                           <i className="fas fa-folder-open"></i>
-                          <span>{projectName}</span>
+                          <span className="font-medium text-primary">{projectName}</span>
                         </p>
                         <p className="flex items-center space-x-1 space-x-reverse">
                           <i className="fas fa-calendar-alt"></i>

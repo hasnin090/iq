@@ -326,7 +326,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       )}
                     </div>
                     <div className="flex items-center mt-1 gap-2">
-                      <p className="text-sm text-muted-foreground line-clamp-1">
+                      <p className="text-sm font-medium text-primary line-clamp-1">
                         {getProjectName(document.projectId)}
                       </p>
                       {getFileTypeBadge(document.fileType)}
@@ -450,7 +450,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {getFileTypeBadge(document.fileType)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                       {getProjectName(document.projectId)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
@@ -567,7 +567,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
           <DialogFooter>
             <div className="flex justify-between w-full items-center">
               <div className="flex flex-col text-sm text-muted-foreground">
-                <span>المشروع: {currentDocument && getProjectName(currentDocument.projectId)}</span>
+                <span>المشروع: <span className="font-medium text-primary">{currentDocument && getProjectName(currentDocument.projectId)}</span></span>
                 <span>تاريخ الرفع: {currentDocument && formatDateTime(currentDocument.uploadDate)}</span>
               </div>
               <div className="flex gap-2">
