@@ -39,6 +39,7 @@ interface DocumentFormProps {
   projects: Project[];
   onSubmit: () => void;
   isLoading: boolean;
+  isManagerDocument?: boolean; // إضافة خاصية لتحديد ما إذا كان المستند إدارياً
 }
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
