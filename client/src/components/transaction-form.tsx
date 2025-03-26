@@ -63,10 +63,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   });
 
   // تحديد القيمة الافتراضية للمشروع (للمستخدم العادي يكون المشروع المخصص له إذا كان لديه مشروع واحد فقط)
-  const defaultProjectId = 
-    user?.role !== 'admin' && userProjects?.length === 1 
-      ? userProjects[0].id.toString()
-      : "";
+  // نستخدم ثابت فارغ مبدئياً ثم نقوم بتحديثه عند تحميل المشاريع
+  const defaultProjectId = "";
   
   // استخدام مخطط واحد موحد للجميع
   const selectedSchema = transactionSchema;
@@ -82,6 +80,13 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     },
   });
   
+  // تحديث قيمة المشروع الافتراضية عند تحميل مشاريع المستخدم
+  React.useEffect(() => {
+    if (user?.role !== 'admin' && userProjects?.length === 1) {
+      form.setValue('projectId', userProjects[0].id.toString());
+    }
+  }, [userProjects, user]);
+
   const mutation = useMutation({
     mutationFn: (data: TransactionFormValues) => {
       // نسخة جديدة من البيانات لتجنب تعديل البيانات الأصلية
