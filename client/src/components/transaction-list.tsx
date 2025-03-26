@@ -223,7 +223,7 @@ export function TransactionList({
       if (transaction.type === 'income') {
         return `تم استلام مبلغ من المدير للمشروع`;
       } else {
-        return `تم تحويل مبلغ إلى المدير`;
+        return `عملية صرف يومية من المشروع`;
       }
     }
   };
