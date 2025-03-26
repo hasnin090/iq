@@ -47,6 +47,7 @@ interface Document {
   uploadDate: string;
   projectId?: number;
   uploadedBy: number;
+  isManagerDocument?: boolean;
 }
 
 interface Project {
@@ -313,7 +314,15 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-foreground line-clamp-1">{document.name}</h3>
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <h3 className="text-lg font-medium text-foreground line-clamp-1">{document.name}</h3>
+                      {(document.isManagerDocument || isManagerSection) && (
+                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1">
+                          <Lock className="ml-1 h-3 w-3" />
+                          إداري
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex items-center mt-1 gap-2">
                       <p className="text-sm text-muted-foreground line-clamp-1">
                         {getProjectName(document.projectId)}
@@ -417,7 +426,15 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                           {getFileIcon(document.fileType)}
                         </div>
                         <div className="mr-2">
-                          <p className="font-medium">{document.name}</p>
+                          <div className="flex items-center space-x-2 space-x-reverse">
+                            <p className="font-medium">{document.name}</p>
+                            {(document.isManagerDocument || isManagerSection) && (
+                              <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
+                                <Lock className="ml-1 h-3 w-3" />
+                                إداري
+                              </Badge>
+                            )}
+                          </div>
                           {document.description && (
                             <p className="text-xs text-muted-foreground line-clamp-1">
                               {document.description}

@@ -88,6 +88,7 @@ export const documents = pgTable("documents", {
   uploadDate: timestamp("upload_date").notNull(),
   projectId: integer("project_id").references(() => projects.id),
   uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  isManagerDocument: boolean("is_manager_document").default(false), // إضافة حقل للإشارة إلى المستندات الإدارية
 });
 
 // Activity Logs table
@@ -148,7 +149,10 @@ export const insertTransactionSchema = createInsertSchema(transactions)
     createdBy: z.number().optional(), // سيتم تعيينه في الخلفية
   });
 
-export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true });
+export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true })
+  .extend({
+    isManagerDocument: z.boolean().optional().default(false),
+  });
 
 export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({ id: true, timestamp: true });
 
