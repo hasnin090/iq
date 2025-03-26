@@ -25,7 +25,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   FileText, FileImage, File, FileIcon, Download, Eye, 
-  Trash2, Loader2, Info, ArrowUpDown, Clock, Tag, CheckCircle2, XCircle 
+  Trash2, Loader2, Info, ArrowUpDown, Clock, Tag, CheckCircle2, XCircle, Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { deleteFile, getFileType, getReadableFileSize } from '@/lib/firebase-storage';
@@ -318,8 +318,10 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       <h3 className="text-lg font-medium text-foreground line-clamp-1">{document.name}</h3>
                       {(document.isManagerDocument || isManagerSection) && (
                         <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1">
-                          <Lock className="ml-1 h-3 w-3" />
-                          إداري
+                          <span className="inline-flex items-center">
+                            <Lock className="ml-1 h-3 w-3" />
+                            إداري
+                          </span>
                         </Badge>
                       )}
                     </div>
@@ -430,8 +432,10 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                             <p className="font-medium">{document.name}</p>
                             {(document.isManagerDocument || isManagerSection) && (
                               <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
-                                <Lock className="ml-1 h-3 w-3" />
-                                إداري
+                                <span className="inline-flex items-center">
+                                  <Lock className="ml-1 h-3 w-3" />
+                                  إداري
+                                </span>
                               </Badge>
                             )}
                           </div>
