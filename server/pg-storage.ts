@@ -611,6 +611,8 @@ export class PgStorage implements IStorage {
 
   // عملية الإيداع: يستقطع المبلغ من حساب المدير ويذهب إلى حساب المشروع
   async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+    console.log(`processDeposit - بدء عملية إيداع بواسطة المستخدم ${userId} في المشروع ${projectId} بمبلغ ${amount}`);
+    
     // التحقق من صلاحية المشروع
     const project = await this.getProject(projectId);
     if (!project) {
@@ -635,6 +637,8 @@ export class PgStorage implements IStorage {
         projectId: null
       });
     }
+    
+    console.log(`processDeposit - رصيد المدير قبل العملية: ${adminFund.balance}`);
 
     // التحقق من رصيد المدير
     if (adminFund.balance < amount) {
@@ -652,13 +656,19 @@ export class PgStorage implements IStorage {
         projectId
       });
     }
+    
+    console.log(`processDeposit - رصيد المشروع قبل العملية: ${projectFund.balance}`);
 
     // تنفيذ العملية في قاعدة البيانات كمعاملة واحدة
     // 1. خصم المبلغ من صندوق المدير
+    const originalAdminBalance = adminFund.balance;
     adminFund = await this.updateFundBalance(adminFund.id, -amount);
+    console.log(`processDeposit - المبلغ المخصوم من المدير: ${amount}, الرصيد قبل: ${originalAdminBalance}, الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
 
     // 2. إضافة المبلغ إلى صندوق المشروع
+    const originalProjectBalance = projectFund.balance;
     projectFund = await this.updateFundBalance(projectFund.id, amount);
+    console.log(`processDeposit - المبلغ المضاف للمشروع: ${amount}, الرصيد قبل: ${originalProjectBalance}, الرصيد بعد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
 
     // 3. إنشاء معاملة جديدة
     const transaction = await this.createTransaction({
@@ -678,6 +688,8 @@ export class PgStorage implements IStorage {
       details: `إيداع مبلغ ${amount} في المشروع: ${project.name}`,
       userId
     });
+    
+    console.log(`processDeposit - اكتمال العملية، تفاصيل النتيجة: المعاملة رقم ${transaction.id}, رصيد المدير الجديد: ${adminFund ? adminFund.balance : 'غير معروف'}, رصيد المشروع الجديد: ${projectFund ? projectFund.balance : 'غير معروف'}`)
 
     return {
       transaction,
@@ -688,6 +700,8 @@ export class PgStorage implements IStorage {
 
   // عملية السحب: يستقطع المبلغ من صندوق المشروع نفسه
   async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, projectFund?: Fund }> {
+    console.log(`processWithdrawal - بدء عملية صرف بواسطة المستخدم ${userId} من المشروع ${projectId} بمبلغ ${amount}`);
+    
     // التحقق من صلاحية المشروع
     const project = await this.getProject(projectId);
     if (!project) {
@@ -705,6 +719,8 @@ export class PgStorage implements IStorage {
     if (!projectFund) {
       throw new Error("صندوق المشروع غير موجود");
     }
+    
+    console.log(`processWithdrawal - رصيد المشروع قبل العملية: ${projectFund.balance}`);
 
     // التحقق من رصيد المشروع
     if (projectFund.balance < amount) {
@@ -712,7 +728,9 @@ export class PgStorage implements IStorage {
     }
 
     // خصم المبلغ من صندوق المشروع
+    const originalBalance = projectFund.balance;
     const updatedProjectFund = await this.updateFundBalance(projectFund.id, -amount);
+    console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
 
     // إنشاء معاملة جديدة
     const transaction = await this.createTransaction({
@@ -732,6 +750,8 @@ export class PgStorage implements IStorage {
       details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
       userId
     });
+    
+    console.log(`processWithdrawal - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمشروع: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`)
 
     return {
       transaction,
@@ -741,6 +761,8 @@ export class PgStorage implements IStorage {
 
   // عملية المدير: إيراد يضاف للصندوق، صرف يخصم من الصندوق
   async processAdminTransaction(userId: number, type: string, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund }> {
+    console.log(`processAdminTransaction - بدء عملية ${type} للمدير ${userId} بمبلغ ${amount}`);
+    
     // التحقق من أن المستخدم مدير
     const user = await this.getUser(userId);
     if (!user || user.role !== "admin") {
@@ -751,6 +773,7 @@ export class PgStorage implements IStorage {
     let adminFund = await this.getFundByOwner(userId);
     if (!adminFund) {
       // إنشاء صندوق افتراضي للمدير إذا لم يكن موجودا
+      console.log(`processAdminTransaction - إنشاء صندوق مدير جديد للمستخدم ${userId}`);
       adminFund = await this.createFund({
         name: `صندوق المدير: ${user.name}`,
         balance: type === "income" ? amount : 0, // إذا كانت العملية إيداع، ابدأ برصيد العملية
@@ -758,7 +781,10 @@ export class PgStorage implements IStorage {
         ownerId: userId,
         projectId: null
       });
+      console.log(`processAdminTransaction - تم إنشاء صندوق مدير برصيد ${adminFund.balance}`);
     } else {
+      console.log(`processAdminTransaction - رصيد المدير قبل العملية: ${adminFund.balance}`);
+      
       // التحقق من الرصيد في حالة الصرف
       if (type === "expense" && adminFund.balance < amount) {
         throw new Error("رصيد الصندوق غير كافي لإجراء العملية");
@@ -766,7 +792,9 @@ export class PgStorage implements IStorage {
 
       // تحديث رصيد صندوق المدير
       const updateAmount = type === "income" ? amount : -amount;
+      const originalBalance = adminFund.balance;
       adminFund = await this.updateFundBalance(adminFund.id, updateAmount);
+      console.log(`processAdminTransaction - ${type === "income" ? "إضافة" : "خصم"} مبلغ ${amount} ${type === "income" ? "إلى" : "من"} صندوق المدير. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
     }
 
     // إنشاء معاملة جديدة
@@ -787,6 +815,8 @@ export class PgStorage implements IStorage {
       details: `${type === "income" ? "إيراد" : "مصروف"} للمدير: ${amount}`,
       userId
     });
+    
+    console.log(`processAdminTransaction - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمدير: ${adminFund ? adminFund.balance : 'غير معروف'}`);
 
     return {
       transaction,
