@@ -571,10 +571,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/transactions", authenticate, async (req: Request, res: Response) => {
     try {
       let transactions = await storage.listTransactions();
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      // المدير يمكنه رؤية جميع المعاملات، المستخدم العادي يرى فقط معاملاته والمشاريع التي لديه وصول إليها
+      if (userRole !== "admin") {
+        // احصل على قائمة المشاريع المسموح للمستخدم بالوصول إليها
+        const userProjects = await storage.getUserProjects(userId);
+        const projectIds = userProjects.map(project => project.id);
+        
+        // فلترة المعاملات بحيث تظهر فقط:
+        // 1. المعاملات التي قام المستخدم بإنشائها
+        // 2. المعاملات المرتبطة بالمشاريع التي يملك وصولاً إليها
+        transactions = transactions.filter(t => 
+          t.createdBy === userId || 
+          (t.projectId && projectIds.includes(t.projectId))
+        );
+      }
       
       // Filter by project if specified
       const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
       if (projectId) {
+        // إذا كان المستخدم غير مدير، تحقق من وصوله للمشروع
+        if (userRole !== "admin") {
+          const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+          if (!hasAccess) {
+            return res.status(403).json({ message: "غير مصرح لك بالوصول إلى هذا المشروع" });
+          }
+        }
         transactions = transactions.filter(t => t.projectId === projectId);
       }
       
@@ -586,6 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(200).json(transactions);
     } catch (error) {
+      console.error("خطأ في استرجاع المعاملات:", error);
       return res.status(500).json({ message: "خطأ في استرجاع المعاملات" });
     }
   });
@@ -712,15 +737,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/documents", authenticate, async (req: Request, res: Response) => {
     try {
       let documents = await storage.listDocuments();
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      // المدير يمكنه رؤية جميع المستندات، المستخدم العادي يرى فقط مستنداته والمستندات المرتبطة بالمشاريع التي لديه وصول إليها
+      if (userRole !== "admin") {
+        // احصل على قائمة المشاريع المسموح للمستخدم بالوصول إليها
+        const userProjects = await storage.getUserProjects(userId);
+        const projectIds = userProjects.map(project => project.id);
+        
+        // فلترة المستندات بحيث تظهر فقط:
+        // 1. المستندات التي قام المستخدم بتحميلها
+        // 2. المستندات المرتبطة بالمشاريع التي يملك وصولاً إليها
+        // 3. المستندات العامة التي ليست مرتبطة بأي مشروع
+        documents = documents.filter(d => 
+          d.uploadedBy === userId || 
+          (d.projectId && projectIds.includes(d.projectId)) ||
+          (!d.projectId) // المستندات العامة غير المرتبطة بمشروع
+        );
+      }
       
       // Filter by project if specified
       const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
       if (projectId) {
+        // إذا كان المستخدم غير مدير، تحقق من وصوله للمشروع
+        if (userRole !== "admin") {
+          const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+          if (!hasAccess) {
+            return res.status(403).json({ message: "غير مصرح لك بالوصول إلى مستندات هذا المشروع" });
+          }
+        }
         documents = documents.filter(d => d.projectId === projectId);
       }
       
       return res.status(200).json(documents);
     } catch (error) {
+      console.error("خطأ في استرجاع المستندات:", error);
       return res.status(500).json({ message: "خطأ في استرجاع المستندات" });
     }
   });
@@ -992,8 +1044,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard statistics
   app.get("/api/dashboard", authenticate, async (req: Request, res: Response) => {
     try {
-      const transactions = await storage.listTransactions();
-      const projects = await storage.listProjects();
+      let transactions = await storage.listTransactions();
+      let projects = await storage.listProjects();
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      // تطبيق قيود الوصول للمستخدمين العاديين
+      if (userRole !== "admin") {
+        // احصل على قائمة المشاريع المسموح للمستخدم بالوصول إليها
+        const userProjects = await storage.getUserProjects(userId);
+        const projectIds = userProjects.map(project => project.id);
+        
+        // فلترة المعاملات بحيث تظهر فقط المعاملات الخاصة بالمستخدم أو بالمشاريع التي يملك وصولاً إليها
+        transactions = transactions.filter(t => 
+          t.createdBy === userId || 
+          (t.projectId && projectIds.includes(t.projectId))
+        );
+        
+        // فلترة المشاريع بحيث تظهر فقط المشاريع التي يملك المستخدم وصولاً إليها
+        projects = userProjects;
+      }
       
       // Calculate totals
       const totalIncome = transactions
@@ -1011,14 +1081,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 5);
       
+      // حساب عدد المشاريع النشطة
+      const activeProjects = projects.filter(p => p.status === "active").length;
+      
       return res.status(200).json({
         totalIncome,
         totalExpenses,
         netProfit,
-        activeProjects: projects.filter(p => p.status === "active").length,
+        activeProjects,
         recentTransactions
       });
     } catch (error) {
+      console.error("خطأ في استرجاع إحصائيات لوحة التحكم:", error);
       return res.status(500).json({ message: "خطأ في استرجاع إحصائيات لوحة التحكم" });
     }
   });
