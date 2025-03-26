@@ -233,6 +233,11 @@ export function TransactionList({
     return format(date, 'yyyy/MM/dd', { locale: ar });
   };
   
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, 'yyyy/MM/dd HH:mm', { locale: ar });
+  };
+  
   const exportToPdf = () => {
     const element = document.getElementById('transactions-content');
     if (!element) return;
@@ -391,7 +396,7 @@ export function TransactionList({
               <table className="min-w-full divide-y divide-secondary">
                 <thead>
                   <tr>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">التاريخ</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">التاريخ والوقت</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الوصف</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">المشروع</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">النوع</th>
