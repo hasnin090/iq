@@ -351,7 +351,7 @@ export function TransactionList({
               {transactions.map((transaction) => (
                 <div key={transaction.id} className="bg-secondary p-4 rounded-lg border border-border">
                   <div className="flex justify-between items-start mb-3">
-                    <span className="text-sm text-muted-foreground">{formatDate(transaction.date)}</span>
+                    <span className="text-sm text-muted-foreground">{formatDateTime(transaction.date)}</span>
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       transaction.type === 'income' 
                         ? 'bg-success bg-opacity-20 text-success' 
@@ -408,7 +408,7 @@ export function TransactionList({
                   {transactions.map((transaction) => (
                     <tr key={transaction.id}>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light">
-                        {formatDate(transaction.date)}
+                        {formatDateTime(transaction.date)}
                       </td>
                       <td className="px-4 py-3 text-sm text-neutral-light">
                         {getCustomTransactionDescription(transaction)}

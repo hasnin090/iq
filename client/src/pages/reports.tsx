@@ -23,11 +23,11 @@ export default function Reports() {
   const projectsChartRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery({
     queryKey: ['/api/projects'],
   });
   
-  const { data: transactions } = useQuery({
+  const { data: transactions = [] } = useQuery({
     queryKey: ['/api/transactions'],
   });
   
@@ -79,6 +79,12 @@ export default function Reports() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, 'yyyy/MM/dd', { locale: ar });
+  };
+  
+  // Format date and time
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, 'yyyy/MM/dd HH:mm', { locale: ar });
   };
   
   // Initialize charts
@@ -387,7 +393,7 @@ export default function Reports() {
                     <table className="min-w-full divide-y divide-secondary">
                       <thead>
                         <tr>
-                          <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">التاريخ</th>
+                          <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">التاريخ والوقت</th>
                           <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الوصف</th>
                           <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">المشروع</th>
                           <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">النوع</th>
@@ -399,7 +405,7 @@ export default function Reports() {
                           filteredTransactions.map((transaction) => (
                             <tr key={transaction.id}>
                               <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light">
-                                {formatDate(transaction.date)}
+                                {formatDateTime(transaction.date)}
                               </td>
                               <td className="px-4 py-3 text-sm text-neutral-light">
                                 {transaction.description}
