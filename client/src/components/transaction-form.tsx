@@ -29,8 +29,8 @@ interface TransactionFormProps {
   isLoading: boolean;
 }
 
-// Schema for admin users
-const adminTransactionSchema = z.object({
+// نستخدم مخطط واحد للجميع حيث أن المشروع سيتم تعيينه تلقائياً للمستخدم العادي
+const transactionSchema = z.object({
   date: z.date({
     required_error: "التاريخ مطلوب",
   }),
@@ -38,27 +38,13 @@ const adminTransactionSchema = z.object({
     required_error: "نوع العملية مطلوب",
   }),
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
+  // ليس هناك حاجة لجعل المشروع إلزامي حيث سيتم ضبطه في المخدم
   projectId: z.string().optional(),
   description: z.string().min(3, "الوصف يجب أن يحتوي على الأقل 3 أحرف"),
 });
 
-// Schema for regular users (project is required)
-const userTransactionSchema = z.object({
-  date: z.date({
-    required_error: "التاريخ مطلوب",
-  }),
-  type: z.enum(["income", "expense"], {
-    required_error: "نوع العملية مطلوب",
-  }),
-  amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
-  projectId: z.string({
-    required_error: "المشروع مطلوب للمستخدم العادي"
-  }),
-  description: z.string().min(3, "الوصف يجب أن يحتوي على الأقل 3 أحرف"),
-});
-
-// استخدام النوع الأكثر قيوداً لضمان التوافق مع جميع المخططات
-type TransactionFormValues = z.infer<typeof userTransactionSchema>;
+// تحديد نوع النموذج
+type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFormProps) {
   const { toast } = useToast();
@@ -82,8 +68,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       ? userProjects[0].id.toString()
       : "";
   
-  // اختيار المخطط المناسب حسب دور المستخدم - لا يوجد مخطط افتراضي بعد الآن
-  const selectedSchema = user?.role === 'admin' ? adminTransactionSchema : userTransactionSchema;
+  // استخدام مخطط واحد موحد للجميع
+  const selectedSchema = transactionSchema;
   
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(selectedSchema),
@@ -98,10 +84,20 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   
   const mutation = useMutation({
     mutationFn: (data: TransactionFormValues) => {
-      const formData = {
-        ...data,
-        projectId: data.projectId && data.projectId !== "none" ? parseInt(data.projectId) : undefined
-      };
+      // نسخة جديدة من البيانات لتجنب تعديل البيانات الأصلية
+      let formData: any = { ...data };
+      
+      // للمستخدم العادي، قم بإضافة المشروع المخصص له تلقائياً
+      if (user?.role !== 'admin' && userProjects?.length === 1) {
+        formData.projectId = parseInt(userProjects[0].id.toString());
+      } else if (formData.projectId && formData.projectId !== "none") {
+        // تحويل معرف المشروع إلى رقم إذا تم اختياره
+        formData.projectId = parseInt(formData.projectId);
+      } else {
+        // إذا لم يتم تحديد مشروع أو تم اختيار "بدون مشروع"
+        delete formData.projectId;
+      }
+      
       return apiRequest('POST', '/api/transactions', formData);
     },
     onSuccess: () => {
@@ -258,7 +254,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              {/* حقل المبلغ يأخذ العمود الكامل للمستخدم العادي الذي لديه مشروع واحد فقط */}
+              <div className={user?.role !== 'admin' && userProjects?.length === 1 ? "col-span-2" : ""}>
                 <FormField
                   control={form.control}
                   name="amount"
@@ -305,27 +302,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 />
               </div>
               
-              <FormField
-                control={form.control}
-                name="projectId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center">
-                      المشروع
-                      {user?.role !== 'admin' && userProjects?.length === 1 && (
-                        <Badge variant="outline" className="mr-2 bg-blue-50 text-blue-600 border-blue-200">
-                          تم تحديد المشروع تلقائياً
-                        </Badge>
-                      )}
-                    </FormLabel>
-                    
-                    {/* إذا كان المستخدم عادي وله مشروع واحد فقط، نعرض اسم المشروع بدون إمكانية تغييره */}
-                    {user?.role !== 'admin' && userProjects?.length === 1 ? (
-                      <div className="flex justify-between items-center w-full h-10 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-foreground">
-                        <span>{userProjects[0].name}</span>
-                        <AlertTriangle className="h-4 w-4 text-blue-500" />
-                      </div>
-                    ) : (
+              {/* أظهر حقل المشروع فقط للمدير أو المستخدم الذي له أكثر من مشروع */}
+              {(user?.role === 'admin' || (user?.role !== 'admin' && userProjects && userProjects.length > 1)) && (
+                <FormField
+                  control={form.control}
+                  name="projectId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>المشروع</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
                         value={field.value} 
@@ -360,11 +344,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           )}
                         </SelectContent>
                       </Select>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
             
             <div>
