@@ -1,20 +1,22 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, CoinsIcon, InfoIcon, Loader2, PiggyBankIcon, SaveIcon } from 'lucide-react';
+import { AlertTriangle, CalendarIcon, CoinsIcon, InfoIcon, Loader2, PiggyBankIcon, SaveIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 
 interface Project {
   id: number;
@@ -43,6 +45,25 @@ type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // الحصول على مشاريع المستخدم فقط إذا كان مستخدماً عادياً
+  const { data: userProjects } = useQuery<Project[]>({
+    queryKey: ['/api/users', user?.id, 'projects'],
+    queryFn: async () => {
+      if (user?.role === 'admin') return []; // المدير يمكنه رؤية جميع المشاريع
+      const response = await fetch(`/api/users/${user?.id}/projects`);
+      if (!response.ok) throw new Error('Failed to fetch user projects');
+      return response.json();
+    },
+    enabled: !!user && user.role !== 'admin', // فقط إذا كان المستخدم غير مدير
+  });
+
+  // تحديد القيمة الافتراضية للمشروع (للمستخدم العادي يكون المشروع المخصص له إذا كان لديه مشروع واحد فقط)
+  const defaultProjectId = 
+    user?.role !== 'admin' && userProjects?.length === 1 
+      ? userProjects[0].id.toString()
+      : "";
   
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
@@ -50,7 +71,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       date: new Date(),
       type: "income",
       amount: undefined,
-      projectId: "",
+      projectId: defaultProjectId,
       description: "",
     },
   });
@@ -269,26 +290,57 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 name="projectId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>المشروع</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value} 
-                      disabled={isLoading || mutation.isPending}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
-                          <SelectValue placeholder="اختر المشروع" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">عام (بدون مشروع)</SelectItem>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id.toString()}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel className="flex items-center">
+                      المشروع
+                      {user?.role !== 'admin' && userProjects?.length === 1 && (
+                        <Badge variant="outline" className="mr-2 bg-blue-50 text-blue-600 border-blue-200">
+                          تم تحديد المشروع تلقائياً
+                        </Badge>
+                      )}
+                    </FormLabel>
+                    
+                    {/* إذا كان المستخدم عادي وله مشروع واحد فقط، نعرض اسم المشروع بدون إمكانية تغييره */}
+                    {user?.role !== 'admin' && userProjects?.length === 1 ? (
+                      <div className="flex justify-between items-center w-full h-10 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-foreground">
+                        <span>{userProjects[0].name}</span>
+                        <AlertTriangle className="h-4 w-4 text-blue-500" />
+                      </div>
+                    ) : (
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value} 
+                        disabled={isLoading || mutation.isPending}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                            <SelectValue placeholder="اختر المشروع" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {/* عرض "عام (بدون مشروع)" للمدير فقط */}
+                          {user?.role === 'admin' && (
+                            <SelectItem value="none">عام (بدون مشروع)</SelectItem>
+                          )}
+                          
+                          {/* عرض قائمة المشاريع المناسبة حسب دور المستخدم */}
+                          {user?.role === 'admin' ? (
+                            // للمدير: عرض كل المشاريع
+                            projects.map((project) => (
+                              <SelectItem key={project.id} value={project.id.toString()}>
+                                {project.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            // للمستخدم العادي: عرض فقط المشاريع المخصصة له
+                            userProjects?.map((project) => (
+                              <SelectItem key={project.id} value={project.id.toString()}>
+                                {project.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

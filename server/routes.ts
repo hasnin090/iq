@@ -620,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Transaction creation request:", req.body);
 
       if (!req.body.date || !req.body.amount || !req.body.type || !req.body.description) {
-        return res.status(400).json({ message: "Required" });
+        return res.status(400).json({ message: "جميع الحقول مطلوبة" });
       }
 
       // تحويل قيمة المشروع من none إلى undefined
@@ -629,10 +629,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
       const amount = Number(req.body.amount);
       const type = req.body.type as string;
       const description = req.body.description as string;
       const projectId = req.body.projectId ? Number(req.body.projectId) : undefined;
+      
+      // التحقق من صلاحيات المستخدم
+      // 1. إذا لم يتم تحديد مشروع، فقط المدير يمكنه إنشاء معاملات عامة
+      if (!projectId && userRole !== "admin") {
+        return res.status(403).json({ 
+          message: "غير مصرح للمستخدم العادي بإنشاء معاملات بدون تحديد مشروع"
+        });
+      }
+      
+      // 2. إذا تم تحديد مشروع وكان المستخدم غير مدير، يجب التحقق من وصوله للمشروع
+      if (projectId && userRole !== "admin") {
+        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            message: "غير مصرح لك بإنشاء معاملات لهذا المشروع"
+          });
+        }
+      }
       
       let result: any;
       
