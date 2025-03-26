@@ -834,9 +834,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Activity Logs routes
+  // Activity Logs routes - للمدير فقط
   app.get("/api/activity-logs", authenticate, async (req: Request, res: Response) => {
     try {
+      // التحقق من صلاحيات المستخدم - فقط المدير يمكنه الوصول إلى سجلات النشاط
+      if (req.session.role !== "admin") {
+        return res.status(403).json({ message: "غير مصرح لك بالوصول إلى سجلات النشاط" });
+      }
+      
       let logs = await storage.listActivityLogs();
       
       // Filter by user if specified
@@ -858,6 +863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(200).json(logs);
     } catch (error) {
+      console.error("خطأ في استرجاع سجلات النشاط:", error);
       return res.status(500).json({ message: "خطأ في استرجاع سجلات النشاط" });
     }
   });

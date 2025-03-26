@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ActivityLog {
   id: number;
@@ -27,6 +29,20 @@ interface Filter {
 
 export default function Activities() {
   const [filter, setFilter] = useState<Filter>({});
+  const { user } = useAuth();
+  const [location, setLocation] = useLocation();
+  
+  // التحقق من صلاحيات المستخدم، إذا لم يكن مدير يتم التوجيه إلى الصفحة الرئيسية
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      setLocation('/');
+    }
+  }, [user, setLocation]);
+  
+  // إذا لم يكن المستخدم مدير، لا نعرض أي محتوى
+  if (!user || user.role !== 'admin') {
+    return null;
+  }
   
   const { data: logs, isLoading: logsLoading } = useQuery<ActivityLog[]>({
     queryKey: ['/api/activity-logs', filter],

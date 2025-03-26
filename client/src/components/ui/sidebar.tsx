@@ -205,22 +205,22 @@ export function Sidebar() {
               <h3 className="text-[hsl(var(--primary))] font-semibold">الإدارة</h3>
             </div>
             <nav className="p-3 space-y-2">
-              <Link
-                href="/activities"
-                className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl no-flicker ${
-                  location === "/activities" 
-                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
-                } transition-all duration-200 transform`}
-              >
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center no-flicker ${location === "/activities" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-history"></i>
-                </div>
-                <span>سجل النشاطات</span>
-              </Link>
-              
               {user?.role === "admin" && (
                 <>
+                  <Link
+                    href="/activities"
+                    className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl no-flicker ${
+                      location === "/activities" 
+                        ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                        : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-105"
+                    } transition-all duration-200 transform`}
+                  >
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center no-flicker ${location === "/activities" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                      <i className="fas fa-history"></i>
+                    </div>
+                    <span>سجل النشاطات</span>
+                  </Link>
+                  
                   <Link
                     href="/users"
                     className={`flex items-center space-x-reverse space-x-4 px-4 py-3 rounded-xl no-flicker ${
