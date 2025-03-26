@@ -686,8 +686,8 @@ export class PgStorage implements IStorage {
     };
   }
 
-  // عملية السحب: يستقطع المبلغ من حساب المشروع
-  async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+  // عملية السحب: يستقطع المبلغ من صندوق المستخدم نفسه
+  async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, userFund?: Fund, projectFund?: Fund }> {
     // التحقق من صلاحية المشروع
     const project = await this.getProject(projectId);
     if (!project) {
@@ -700,26 +700,38 @@ export class PgStorage implements IStorage {
       throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
     }
 
-    // البحث عن صندوق المشروع
-    const projectFund = await this.getFundByProject(projectId);
-    if (!projectFund) {
-      throw new Error("صندوق المشروع غير موجود");
+    // البحث عن صندوق المستخدم
+    let userFund = await this.getFundByOwner(userId);
+    if (!userFund) {
+      // إنشاء صندوق للمستخدم إذا لم يكن موجوداً
+      const user = await this.getUser(userId);
+      if (!user) {
+        throw new Error("المستخدم غير موجود");
+      }
+      
+      userFund = await this.createFund({
+        name: `صندوق المستخدم: ${user.name}`,
+        balance: 0, // رصيد افتراضي صفر
+        type: "admin", // نوع الصندوق
+        ownerId: userId,
+        projectId: null
+      });
     }
 
-    // التحقق من رصيد المشروع
-    if (projectFund.balance < amount) {
-      throw new Error("رصيد المشروع غير كافي لإجراء العملية");
+    // التحقق من رصيد المستخدم
+    if (userFund.balance < amount) {
+      throw new Error("رصيد المستخدم غير كافي لإجراء العملية");
     }
 
-    // خصم المبلغ من صندوق المشروع
-    const updatedProjectFund = await this.updateFundBalance(projectFund.id, -amount);
+    // خصم المبلغ من صندوق المستخدم
+    const updatedUserFund = await this.updateFundBalance(userFund.id, -amount);
 
     // إنشاء معاملة جديدة
     const transaction = await this.createTransaction({
       date: new Date(),
       amount,
       type: "expense",
-      description: description || `صرف مبلغ من المشروع: ${project.name}`,
+      description: description || `صرف مبلغ من المستخدم للمشروع: ${project.name}`,
       projectId,
       createdBy: userId
     });
@@ -729,13 +741,17 @@ export class PgStorage implements IStorage {
       action: "create",
       entityType: "transaction",
       entityId: transaction.id,
-      details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
+      details: `صرف مبلغ ${amount} من المستخدم للمشروع: ${project.name}`,
       userId
     });
 
+    // الحصول على صندوق المشروع للمعلومات فقط
+    const projectFund = await this.getFundByProject(projectId);
+
     return {
       transaction,
-      projectFund: updatedProjectFund
+      userFund: updatedUserFund,
+      projectFund
     };
   }
 
