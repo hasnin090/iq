@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -200,6 +201,29 @@ export function TransactionList({
     return project ? project.name : 'غير معروف';
   };
   
+  // تحديد وصف المعاملة حسب نوع المستخدم والمعاملة
+  const { user } = useAuth();
+  const getCustomTransactionDescription = (transaction: Transaction) => {
+    if (!transaction.projectId) return transaction.description;
+    
+    // إذا كان المستخدم مديراً
+    if (user?.role === 'admin') {
+      if (transaction.type === 'income') {
+        return `تم تحويل مبلغ إلى مشروع: ${getProjectName(transaction.projectId)}`;
+      } else {
+        return `تم استلام مبلغ من مشروع: ${getProjectName(transaction.projectId)}`;
+      }
+    } 
+    // إذا كان مستخدم عادي أو مسؤول مشروع
+    else {
+      if (transaction.type === 'income') {
+        return `تم استلام مبلغ من المدير للمشروع`;
+      } else {
+        return `تم تحويل مبلغ إلى المدير`;
+      }
+    }
+  };
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, 'yyyy/MM/dd', { locale: ar });
@@ -278,7 +302,7 @@ export function TransactionList({
                       {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
                     </span>
                   </div>
-                  <p className="font-medium mb-2">{transaction.description}</p>
+                  <p className="font-medium mb-2">{getCustomTransactionDescription(transaction)}</p>
                   <p className="text-sm text-muted-foreground mb-3">
                     المشروع: {getProjectName(transaction.projectId)}
                   </p>
@@ -329,7 +353,7 @@ export function TransactionList({
                         {formatDate(transaction.date)}
                       </td>
                       <td className="px-4 py-3 text-sm text-neutral-light">
-                        {transaction.description}
+                        {getCustomTransactionDescription(transaction)}
                       </td>
                       <td className="px-4 py-3 text-sm text-neutral-light">
                         {getProjectName(transaction.projectId)}
