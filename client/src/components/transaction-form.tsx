@@ -29,7 +29,8 @@ interface TransactionFormProps {
   isLoading: boolean;
 }
 
-const transactionSchema = z.object({
+// Schema for admin users
+const adminTransactionSchema = z.object({
   date: z.date({
     required_error: "التاريخ مطلوب",
   }),
@@ -41,7 +42,23 @@ const transactionSchema = z.object({
   description: z.string().min(3, "الوصف يجب أن يحتوي على الأقل 3 أحرف"),
 });
 
-type TransactionFormValues = z.infer<typeof transactionSchema>;
+// Schema for regular users (project is required)
+const userTransactionSchema = z.object({
+  date: z.date({
+    required_error: "التاريخ مطلوب",
+  }),
+  type: z.enum(["income", "expense"], {
+    required_error: "نوع العملية مطلوب",
+  }),
+  amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
+  projectId: z.string({
+    required_error: "المشروع مطلوب للمستخدم العادي"
+  }),
+  description: z.string().min(3, "الوصف يجب أن يحتوي على الأقل 3 أحرف"),
+});
+
+// استخدام النوع الأكثر قيوداً لضمان التوافق مع جميع المخططات
+type TransactionFormValues = z.infer<typeof userTransactionSchema>;
 
 export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFormProps) {
   const { toast } = useToast();
@@ -65,8 +82,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       ? userProjects[0].id.toString()
       : "";
   
+  // اختيار المخطط المناسب حسب دور المستخدم - لا يوجد مخطط افتراضي بعد الآن
+  const selectedSchema = user?.role === 'admin' ? adminTransactionSchema : userTransactionSchema;
+  
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(selectedSchema),
     defaultValues: {
       date: new Date(),
       type: "income",
