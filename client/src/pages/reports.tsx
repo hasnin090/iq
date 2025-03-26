@@ -204,15 +204,49 @@ export default function Reports() {
     const element = document.getElementById('report-content');
     if (!element) return;
     
+    // نسخ العنصر لإجراء تعديلات على النسخة دون التأثير على الواجهة
+    const printElement = element.cloneNode(true) as HTMLElement;
+    
+    // تحسين تنسيق الجدول للطباعة في تبويب المعاملات
+    if (activeTab === 'transactions') {
+      const tableElement = printElement.querySelector('table');
+      if (tableElement) {
+        // إضافة تنسيق إضافي للجدول
+        tableElement.style.width = '100%';
+        tableElement.style.borderCollapse = 'collapse';
+        tableElement.style.direction = 'rtl';
+        
+        // تعديل تنسيق رؤوس الأعمدة
+        const headerCells = tableElement.querySelectorAll('th');
+        headerCells.forEach(cell => {
+          cell.style.backgroundColor = '#f3f4f6';
+          cell.style.color = '#111827';
+          cell.style.fontWeight = 'bold';
+          cell.style.textAlign = 'right';
+          cell.style.padding = '8px';
+          cell.style.borderBottom = '2px solid #e5e7eb';
+        });
+        
+        // تعديل تنسيق خلايا البيانات
+        const dataCells = tableElement.querySelectorAll('td');
+        dataCells.forEach(cell => {
+          cell.style.padding = '8px';
+          cell.style.borderBottom = '1px solid #e5e7eb';
+          cell.style.textAlign = 'right';
+        });
+      }
+    }
+    
     const opt = {
       margin: 10,
       filename: `${activeTab}-report.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: activeTab === 'transactions' ? 'landscape' : 'portrait' }
     };
     
-    html2pdf().from(element).set(opt).save();
+    // استخدام النسخة المعدلة للطباعة
+    html2pdf().from(printElement).set(opt).save();
     
     toast({
       title: "تم التصدير بنجاح",
