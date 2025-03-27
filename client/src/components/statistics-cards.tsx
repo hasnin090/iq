@@ -38,7 +38,13 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
               </p>
             </div>
             <div className="bg-white p-3 rounded-full shadow-md">
-              <i className="fas fa-wallet text-blue-600 text-xl"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                <path d="M3 5H21"></path>
+                <path d="M3 9H21"></path>
+                <path d="M3 5V19c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5c-1.1 0-2 .9-2 2z"></path>
+                <path d="M9 11h6"></path>
+                <path d="M9 15h6"></path>
+              </svg>
             </div>
           </div>
         </div>
@@ -48,13 +54,16 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 overflow-hidden relative">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-gray-600 text-sm mb-1">إجمالي الإيرادات</p>
+              <h3 className="text-gray-700 text-sm font-semibold mb-1">إجمالي الإيرادات</h3>
               <p className="text-xl font-bold text-green-600" id="totalIncome">
                 {formatCurrency(income)}
               </p>
             </div>
             <div className="bg-green-100 p-2 rounded-lg">
-              <i className="fas fa-hand-holding-usd text-green-600 text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
             </div>
           </div>
           <div className="w-full h-1 bg-green-100 rounded-full mt-3 mb-1">
@@ -71,13 +80,16 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 overflow-hidden relative">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-gray-600 text-sm mb-1">إجمالي المصروفات</p>
+              <h3 className="text-gray-700 text-sm font-semibold mb-1">إجمالي المصروفات</h3>
               <p className="text-xl font-bold text-red-600" id="totalExpenses">
                 {formatCurrency(expenses)}
               </p>
             </div>
             <div className="bg-red-100 p-2 rounded-lg">
-              <i className="fas fa-file-invoice-dollar text-red-600 text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <polyline points="19 12 12 19 5 12"></polyline>
+              </svg>
             </div>
           </div>
           <div className="w-full h-1 bg-red-100 rounded-full mt-3 mb-1">
@@ -94,13 +106,16 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 overflow-hidden relative">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-gray-600 text-sm mb-1">صافي الربح</p>
+              <h3 className="text-gray-700 text-sm font-semibold mb-1">صافي الربح</h3>
               <p className="text-xl font-bold text-blue-600" id="netProfit">
                 {formatCurrency(profit)}
               </p>
             </div>
             <div className="bg-blue-100 p-2 rounded-lg">
-              <i className="fas fa-chart-line text-blue-600 text-lg"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
             </div>
           </div>
           <div className="w-full h-1 bg-blue-100 rounded-full mt-3 mb-1">
