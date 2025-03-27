@@ -67,8 +67,8 @@ export default function Transactions() {
   // فلترة العمليات المالية حسب التبويب النشط
   const filteredTransactions = useMemo(() => {
     if (activeTab === 'all') return transactions;
-    if (activeTab === 'admin') return transactions?.filter(t => !t.projectId) || [];
-    if (activeTab === 'projects') return transactions?.filter(t => t.projectId) || [];
+    if (activeTab === 'admin') return transactions?.filter(t => t.projectId === null || t.projectId === undefined) || [];
+    if (activeTab === 'projects') return transactions?.filter(t => t.projectId !== null && t.projectId !== undefined) || [];
     return transactions;
   }, [transactions, activeTab]);
 

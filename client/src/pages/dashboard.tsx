@@ -68,11 +68,11 @@ export default function Dashboard() {
     if (!stats?.recentTransactions) return [];
     
     if (displayMode === 'admin') {
-      // عرض معاملات الصندوق الرئيسي فقط (بدون معرف مشروع)
-      return stats.recentTransactions.filter(t => !t.projectId);
+      // عرض معاملات الصندوق الرئيسي فقط (بدون معرف مشروع أو projectId = null)
+      return stats.recentTransactions.filter(t => t.projectId === null || t.projectId === undefined);
     } else {
-      // عرض معاملات المشاريع فقط (بمعرف مشروع)
-      return stats.recentTransactions.filter(t => !!t.projectId);
+      // عرض معاملات المشاريع فقط (مع وجود معرف المشروع)
+      return stats.recentTransactions.filter(t => t.projectId !== null && t.projectId !== undefined);
     }
   };
 
