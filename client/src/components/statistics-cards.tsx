@@ -67,7 +67,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
           ></div>
         </div>
         <p className="text-xs text-neutral-DEFAULT">
-          إجمالي الإيرادات لجميع المشاريع
+          {isAdmin ? 'إجمالي إيراد صندوق المدير' : 'إجمالي الإيرادات للمشاريع المعينة لك'}
         </p>
       </div>
       
@@ -90,7 +90,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
           ></div>
         </div>
         <p className="text-xs text-neutral-DEFAULT">
-          إجمالي المصروفات لجميع المشاريع
+          {isAdmin ? 'إجمالي مصروفات صندوق المدير' : 'إجمالي المصروفات للمشاريع المعينة لك'}
         </p>
       </div>
       
@@ -113,7 +113,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
           ></div>
         </div>
         <p className="text-xs text-neutral-DEFAULT">
-          الفرق بين الإيرادات والمصروفات
+          {isAdmin ? 'الفرق بين إيرادات ومصروفات صندوق المدير' : 'الفرق بين الإيرادات والمصروفات للمشاريع المعينة لك'}
         </p>
       </div>
     </div>
