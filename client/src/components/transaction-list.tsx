@@ -208,7 +208,16 @@ export function TransactionList({
   // تحديد وصف المعاملة حسب نوع المستخدم والمعاملة
   const { user } = useAuth();
   const getCustomTransactionDescription = (transaction: Transaction) => {
-    if (!transaction.projectId) return transaction.description;
+    // إذا كانت عملية الصندوق الرئيسي (بدون مشروع)
+    if (!transaction.projectId) {
+      if (transaction.type === 'income') {
+        return `إيراد للصندوق الرئيسي: ${transaction.description}`;
+      } else {
+        return `مصروف من الصندوق الرئيسي: ${transaction.description}`;
+      }
+    }
+    
+    // إذا كانت عملية متعلقة بمشروع
     
     // إذا كان المستخدم مديراً
     if (user?.role === 'admin') {
@@ -349,16 +358,30 @@ export function TransactionList({
           {viewType === 'cards' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
               {transactions.map((transaction) => (
-                <div key={transaction.id} className="bg-secondary p-4 rounded-lg border border-border">
+                <div 
+                  key={transaction.id} 
+                  className={`p-4 rounded-lg border ${
+                    !transaction.projectId
+                      ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
+                      : 'bg-secondary border-border' // مشاريع
+                  }`}
+                >
                   <div className="flex justify-between items-start mb-3">
                     <span className="text-sm text-muted-foreground">{formatDateTime(transaction.date)}</span>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      transaction.type === 'income' 
-                        ? 'bg-success bg-opacity-20 text-success' 
-                        : 'bg-destructive bg-opacity-20 text-destructive'
-                    }`}>
-                      {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {!transaction.projectId && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                          صندوق رئيسي
+                        </span>
+                      )}
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        transaction.type === 'income' 
+                          ? 'bg-success bg-opacity-20 text-success' 
+                          : 'bg-destructive bg-opacity-20 text-destructive'
+                      }`}>
+                        {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
+                      </span>
+                    </div>
                   </div>
                   <p className="font-medium mb-2">{getCustomTransactionDescription(transaction)}</p>
                   <p className="text-sm text-muted-foreground mb-3">
@@ -406,7 +429,10 @@ export function TransactionList({
                 </thead>
                 <tbody className="divide-y divide-secondary-light">
                   {transactions.map((transaction) => (
-                    <tr key={transaction.id}>
+                    <tr 
+                      key={transaction.id}
+                      className={!transaction.projectId ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : ''}
+                    >
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light">
                         {formatDateTime(transaction.date)}
                       </td>
@@ -414,7 +440,13 @@ export function TransactionList({
                         {getCustomTransactionDescription(transaction)}
                       </td>
                       <td className="px-4 py-3 text-sm text-neutral-light">
-                        {getProjectName(transaction.projectId)}
+                        {!transaction.projectId ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            صندوق رئيسي
+                          </span>
+                        ) : (
+                          getProjectName(transaction.projectId)
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
