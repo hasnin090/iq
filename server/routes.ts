@@ -778,8 +778,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId as number;
       const userRole = req.session.role as string;
       
+      // فلترة المستندات بناءً على معيار isManagerDocument
+      const isManagerDocument = req.query.isManagerDocument === 'true';
+      
+      // فلترة المستندات الإدارية أو العادية
+      documents = documents.filter(d => !!d.isManagerDocument === isManagerDocument);
+      
       // المدير يمكنه رؤية جميع المستندات، المستخدم العادي يرى فقط مستنداته والمستندات المرتبطة بالمشاريع التي لديه وصول إليها
-      if (userRole !== "admin") {
+      if (userRole !== "admin" && userRole !== "manager") {
+        // إذا كانت المستندات الإدارية والمستخدم ليس مديرًا، فلا يمكنه رؤيتها
+        if (isManagerDocument) {
+          return res.status(403).json({ message: "غير مصرح لك بالوصول إلى المستندات الإدارية" });
+        }
+        
         // احصل على قائمة المشاريع المسموح للمستخدم بالوصول إليها
         const userProjects = await storage.getUserProjects(userId);
         const projectIds = userProjects.map(project => project.id);
@@ -799,7 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
       if (projectId) {
         // إذا كان المستخدم غير مدير، تحقق من وصوله للمشروع
-        if (userRole !== "admin") {
+        if (userRole !== "admin" && userRole !== "manager") {
           const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
           if (!hasAccess) {
             return res.status(403).json({ message: "غير مصرح لك بالوصول إلى مستندات هذا المشروع" });
@@ -821,13 +832,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       documentData.uploadedBy = req.session.userId as number;
       documentData.uploadDate = new Date();
       
+      // التحقق من صلاحية المستخدم للمستندات الإدارية
+      const userRole = req.session.role as string;
+      if (documentData.isManagerDocument === true && userRole !== "admin" && userRole !== "manager") {
+        return res.status(403).json({ 
+          message: "غير مصرح لك بإنشاء مستندات إدارية" 
+        });
+      }
+      
+      // التحقق من صلاحية المستخدم للوصول للمشروع إذا تم تحديده
+      if (documentData.projectId) {
+        const projectId = Number(documentData.projectId);
+        if (userRole !== "admin" && userRole !== "manager") {
+          const hasAccess = await storage.checkUserProjectAccess(documentData.uploadedBy, projectId);
+          if (!hasAccess) {
+            return res.status(403).json({ 
+              message: "غير مصرح لك بإضافة مستندات لهذا المشروع" 
+            });
+          }
+        }
+      }
+      
       const document = await storage.createDocument(documentData);
       
       await storage.createActivityLog({
         action: "create",
         entityType: "document",
         entityId: document.id,
-        details: `إضافة مستند جديد: ${document.name}`,
+        details: `إضافة مستند جديد: ${document.name}${document.isManagerDocument ? " (إداري)" : ""}`,
         userId: req.session.userId as number
       });
       

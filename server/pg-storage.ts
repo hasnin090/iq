@@ -336,7 +336,7 @@ export class PgStorage implements IStorage {
   
   async createDocument(document: InsertDocument): Promise<Document> {
     // تحديد حقول المستند التي سيتم إدخالها
-    const { name, description, fileUrl, fileType, projectId } = document;
+    const { name, description, fileUrl, fileType, projectId, isManagerDocument } = document;
     const uploadDate = document.uploadDate || new Date();
     const uploadedBy = document.uploadedBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد uploadedBy
     
@@ -348,7 +348,8 @@ export class PgStorage implements IStorage {
       fileType,
       uploadDate,
       projectId,
-      uploadedBy
+      uploadedBy,
+      isManagerDocument: isManagerDocument || false // استخدام القيمة المحددة أو false كقيمة افتراضية
     }).returning();
     
     return newDocument;
@@ -722,7 +723,11 @@ export class PgStorage implements IStorage {
       console.log(`processDeposit - المبلغ المضاف للمشروع: ${amount}, الرصيد قبل: ${originalProjectBalance}, الرصيد بعد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
     } catch (error) {
       console.error(`خطأ أثناء تحديث الأرصدة:`, error);
-      throw new Error(`فشل في تحديث الأرصدة: ${error.message}`);
+      if (error instanceof Error) {
+        throw new Error(`فشل في تحديث الأرصدة: ${error.message}`);
+      } else {
+        throw new Error(`فشل في تحديث الأرصدة: خطأ غير معروف`);
+      }
     }
 
     // 3. إنشاء معاملة جديدة
