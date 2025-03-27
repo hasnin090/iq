@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { StatisticsCards } from '@/components/statistics-cards';
 import { Charts } from '@/components/charts';
@@ -18,6 +18,8 @@ interface Transaction {
 interface Project {
   id: number;
   name: string;
+  balance: number;
+  status?: string;
 }
 
 interface DashboardStats {
@@ -27,20 +29,30 @@ interface DashboardStats {
   activeProjects: number;
   adminFundBalance: number;
   recentTransactions: Transaction[];
+  projects: Project[];
 }
 
 export default function Dashboard() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    const userString = localStorage.getItem("user");
+    if (!userString) return;
+    try {
+      const user = JSON.parse(userString);
+      setIsAdmin(user.role === 'admin');
+    } catch (e) {
+      setIsAdmin(false);
+    }
+  }, []);
+
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard'],
   });
 
-  const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
-  });
-
   const getProjectName = (projectId?: number) => {
-    if (!projectId || !projects) return 'عام';
-    const project = projects.find(p => p.id === projectId);
+    if (!projectId || !stats?.projects) return 'عام';
+    const project = stats.projects.find(p => p.id === projectId);
     return project ? project.name : 'غير معروف';
   };
 
@@ -84,8 +96,52 @@ export default function Dashboard() {
             />
           </div>
           
+          {/* Projects Balances */}
+          {stats?.projects && stats.projects.length > 0 && (
+            <div className="card mt-8 slide-in-up" style={{animationDelay: '0.3s'}}>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[hsl(var(--primary))]">أرصدة المشاريع</h3>
+                <Link href="/projects" className="action-button-secondary text-sm flex items-center btn-hover-effect py-1.5 px-3">
+                  عرض جميع المشاريع
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="m9 18 6-6-6-6"/></svg>
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                {stats.projects.map((project, index) => (
+                  <div 
+                    key={project.id}
+                    className="bg-white shadow-sm border border-[hsl(var(--border))] rounded-xl p-4 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 zoom-in"
+                    style={{animationDelay: `${0.1 * (index + 1)}s`}}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium">{project.name}</h4>
+                      {project.status && (
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          project.status === 'active' 
+                            ? 'bg-green-100 text-green-600' 
+                            : 'bg-gray-100 text-gray-600'
+                        } shadow-sm`}>
+                          {project.status === 'active' ? 'نشط' : 'غير نشط'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3 text-lg font-bold flex items-center justify-end text-blue-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                        <rect width="18" height="18" x="3" y="3" rx="2" />
+                        <path d="M3 9h18" />
+                        <path d="M9 21V9" />
+                      </svg>
+                      {formatCurrency(project.balance)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {/* Recent Transactions */}
-          <div className="card mt-8 slide-in-up" style={{animationDelay: '0.3s'}}>
+          <div className="card mt-8 slide-in-up" style={{animationDelay: '0.4s'}}>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-[hsl(var(--primary))]">آخر العمليات المالية</h3>
               <Link href="/transactions" className="action-button-secondary text-sm flex items-center btn-hover-effect py-1.5 px-3">

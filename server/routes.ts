@@ -1166,6 +1166,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           adminFundBalance = adminFund.balance;
         }
       }
+
+      // استرجاع أرصدة المشاريع
+      const projectFunds = await db.select().from(funds)
+        .where(eq(funds.type, 'project'));
+      
+      // إنشاء خريطة تربط المشاريع بأرصدتها
+      const projectFundsMap = new Map();
+      for (const fund of projectFunds) {
+        if (fund.projectId) {
+          projectFundsMap.set(fund.projectId, fund.balance);
+        }
+      }
       
       // تطبيق قيود الوصول للمستخدمين العاديين
       if (userRole !== "admin") {
@@ -1182,6 +1194,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // فلترة المشاريع بحيث تظهر فقط المشاريع التي يملك المستخدم وصولاً إليها
         projects = userProjects;
       }
+      
+      // إضافة معلومات الرصيد للمشاريع
+      const projectsWithBalance = projects.map(project => {
+        return {
+          ...project,
+          balance: projectFundsMap.get(project.id) || 0
+        };
+      });
       
       // Calculate totals
       const totalIncome = transactions
@@ -1208,7 +1228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         netProfit,
         activeProjects,
         adminFundBalance,
-        recentTransactions
+        recentTransactions,
+        projects: projectsWithBalance
       });
     } catch (error) {
       console.error("خطأ في استرجاع إحصائيات لوحة التحكم:", error);
