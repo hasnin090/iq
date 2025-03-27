@@ -148,7 +148,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       "دفعة من العميل",
       "إيراد مبيعات",
       "دفعة مقدمة للمشروع",
-      "إيجار مرافق"
+      "إيجار مرافق",
+      "تمويل المشروع من قِبل المستخدم المسؤول"
     ],
     expense: [
       "شراء مستلزمات مكتبية",
