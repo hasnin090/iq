@@ -688,15 +688,42 @@ export class PgStorage implements IStorage {
     console.log(`processDeposit - رصيد المشروع قبل العملية: ${projectFund.balance}`);
 
     // تنفيذ العملية في قاعدة البيانات كمعاملة واحدة
-    // 1. خصم المبلغ من صندوق المدير
-    const originalAdminBalance = adminFund.balance;
-    adminFund = await this.updateFundBalance(adminFund.id, -amount);
-    console.log(`processDeposit - المبلغ المخصوم من المدير: ${amount}, الرصيد قبل: ${originalAdminBalance}, الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
-
-    // 2. إضافة المبلغ إلى صندوق المشروع
-    const originalProjectBalance = projectFund.balance;
-    projectFund = await this.updateFundBalance(projectFund.id, amount);
-    console.log(`processDeposit - المبلغ المضاف للمشروع: ${amount}, الرصيد قبل: ${originalProjectBalance}, الرصيد بعد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
+    try {
+      // 1. خصم المبلغ من صندوق المدير - نقوم بتمرير قيمة سالبة للخصم
+      const originalAdminBalance = adminFund.balance;
+      
+      // تحديث مباشر لصندوق المدير
+      const [updatedAdminFund] = await db.update(funds)
+        .set({ 
+          balance: originalAdminBalance - amount, // نخصم المبلغ مباشرة
+          updatedAt: new Date()
+        })
+        .where(eq(funds.id, adminFund.id))
+        .returning();
+        
+      adminFund = updatedAdminFund;
+          
+      console.log(`processDeposit - المبلغ المخصوم من المدير: ${amount}, الرصيد قبل: ${originalAdminBalance}, الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
+  
+      // 2. إضافة المبلغ إلى صندوق المشروع
+      const originalProjectBalance = projectFund.balance;
+      
+      // تحديث مباشر لصندوق المشروع
+      const [updatedProjectFund] = await db.update(funds)
+        .set({ 
+          balance: originalProjectBalance + amount, // نضيف المبلغ مباشرة
+          updatedAt: new Date()
+        })
+        .where(eq(funds.id, projectFund.id))
+        .returning();
+        
+      projectFund = updatedProjectFund;
+          
+      console.log(`processDeposit - المبلغ المضاف للمشروع: ${amount}, الرصيد قبل: ${originalProjectBalance}, الرصيد بعد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
+    } catch (error) {
+      console.error(`خطأ أثناء تحديث الأرصدة:`, error);
+      throw new Error(`فشل في تحديث الأرصدة: ${error.message}`);
+    }
 
     // 3. إنشاء معاملة جديدة
     const transaction = await this.createTransaction({
@@ -756,35 +783,50 @@ export class PgStorage implements IStorage {
     }
 
     // خصم المبلغ من صندوق المشروع
-    const originalBalance = projectFund.balance;
-    const updatedProjectFund = await this.updateFundBalance(projectFund.id, -amount);
-    console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
-
-    // إنشاء معاملة جديدة
-    const transaction = await this.createTransaction({
-      date: new Date(),
-      amount,
-      type: "expense",
-      description: description || `صرف مبلغ من المشروع: ${project.name}`,
-      projectId,
-      createdBy: userId
-    });
-
-    // إنشاء سجل نشاط
-    await this.createActivityLog({
-      action: "create",
-      entityType: "transaction",
-      entityId: transaction.id,
-      details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
-      userId
-    });
-    
-    console.log(`processWithdrawal - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمشروع: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`)
-
-    return {
-      transaction,
-      projectFund: updatedProjectFund
-    };
+    try {
+      const originalBalance = projectFund.balance;
+      
+      // تحديث مباشر لصندوق المشروع
+      const [updatedProjectFund] = await db.update(funds)
+        .set({ 
+          balance: originalBalance - amount, // نخصم المبلغ مباشرة
+          updatedAt: new Date()
+        })
+        .where(eq(funds.id, projectFund.id))
+        .returning();
+      
+      console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
+      
+      // إنشاء معاملة جديدة
+      const transaction = await this.createTransaction({
+        date: new Date(),
+        amount,
+        type: "expense",
+        description: description || `صرف مبلغ من المشروع: ${project.name}`,
+        projectId,
+        createdBy: userId
+      });
+  
+      // إنشاء سجل نشاط
+      await this.createActivityLog({
+        action: "create",
+        entityType: "transaction",
+        entityId: transaction.id,
+        details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
+        userId
+      });
+      
+      console.log(`processWithdrawal - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمشروع: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
+      
+      return {
+        transaction,
+        projectFund: updatedProjectFund
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`خطأ أثناء تحديث رصيد المشروع:`, error);
+      throw new Error(`فشل في تحديث رصيد المشروع: ${errorMessage}`);
+    }
   }
 
   // عملية المدير: إيراد يضاف للصندوق، صرف يخصم من الصندوق
@@ -831,11 +873,28 @@ export class PgStorage implements IStorage {
         throw new Error("رصيد الصندوق غير كافي لإجراء العملية");
       }
 
-      // تحديث رصيد صندوق المدير
-      const updateAmount = type === "income" ? amount : -amount;
-      const originalBalance = adminFund.balance;
-      adminFund = await this.updateFundBalance(adminFund.id, updateAmount);
-      console.log(`processAdminTransaction - ${type === "income" ? "إضافة" : "خصم"} مبلغ ${amount} ${type === "income" ? "إلى" : "من"} صندوق المدير. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
+      try {
+        // تحديث رصيد صندوق المدير مباشرة
+        const originalBalance = adminFund.balance;
+        const newBalance = type === "income" ? originalBalance + amount : originalBalance - amount;
+        
+        // تحديث مباشر لصندوق المدير
+        const [updatedAdminFund] = await db.update(funds)
+          .set({ 
+            balance: newBalance,
+            updatedAt: new Date()
+          })
+          .where(eq(funds.id, adminFund.id))
+          .returning();
+          
+        adminFund = updatedAdminFund;
+        
+        console.log(`processAdminTransaction - ${type === "income" ? "إضافة" : "خصم"} مبلغ ${amount} ${type === "income" ? "إلى" : "من"} صندوق المدير. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`خطأ أثناء تحديث رصيد المدير:`, error);
+        throw new Error(`فشل في تحديث رصيد المدير: ${errorMessage}`);
+      }
     }
 
     // إنشاء معاملة جديدة
