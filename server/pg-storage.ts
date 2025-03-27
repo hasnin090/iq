@@ -542,14 +542,27 @@ export class PgStorage implements IStorage {
     return result.length > 0 ? result[0] : undefined;
   }
 
-  async getFundByOwner(ownerId: number): Promise<Fund | undefined> {
+  /**
+   * البحث عن صندوق بناءً على المالك
+   * @param ownerId معرف المالك
+   * @param useMainAdmin عندما تكون true، ستستخدم دائماً صندوق المدير الرئيسي (معرف=1) بغض النظر عن المعرف المدخل
+   * @returns صندوق المالك إذا وجد
+   */
+  async getFundByOwner(ownerId: number, useMainAdmin: boolean = false): Promise<Fund | undefined> {
+    // إذا كانت قيمة useMainAdmin هي true، استخدم دائماً صندوق المدير الرئيسي (معرف=1)
+    const effectiveOwnerId = useMainAdmin ? 1 : ownerId;
+    
+    console.log(`getFundByOwner - البحث عن صندوق للمالك: ${effectiveOwnerId}, useMainAdmin: ${useMainAdmin}`);
+    
     const result = await db.select().from(funds)
       .where(
         and(
           eq(funds.type, 'admin'),
-          eq(funds.ownerId, ownerId)
+          eq(funds.ownerId, effectiveOwnerId)
         )
       );
+      
+    console.log(`getFundByOwner - نتيجة البحث:`, result.length > 0 ? "تم العثور على صندوق" : "لم يتم العثور على صندوق");
     return result.length > 0 ? result[0] : undefined;
   }
 
@@ -625,27 +638,32 @@ export class PgStorage implements IStorage {
       throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
     }
 
-    // البحث عن صندوق المدير (نستخدم المستخدم رقم 1 كمدير افتراضي)
-    console.log(`processDeposit - جاري البحث عن صندوق المدير بمعرف المالك = 1`);
+    // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
+    console.log(`processDeposit - جاري البحث عن صندوق المدير الرئيسي (المستخدم رقم 1)`);
     
-    // البحث عن جميع الصناديق للتشخيص
-    const allFunds = await db.select().from(funds);
-    console.log(`processDeposit - جميع الصناديق الموجودة:`, JSON.stringify(allFunds));
-    
-    let adminFund = await this.getFundByOwner(1);
-    console.log(`processDeposit - نتيجة البحث عن صندوق المدير:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
+    // البحث عن صندوق المدير الرئيسي بشكل مباشر
+    const adminFundsResult = await db.select().from(funds)
+      .where(
+        and(
+          eq(funds.type, 'admin'),
+          eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
+        )
+      );
+      
+    let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
+    console.log(`processDeposit - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
     
     if (!adminFund) {
-      console.log(`processDeposit - صندوق المدير غير موجود، جاري إنشاء صندوق جديد`);
+      console.log(`processDeposit - صندوق المدير الرئيسي غير موجود، جاري إنشاء صندوق جديد`);
       // إنشاء صندوق المدير إذا لم يكن موجوداً
       adminFund = await this.createFund({
         name: "صندوق المدير الرئيسي",
         balance: 1000000, // رصيد افتراضي مليون وحدة
         type: "admin",
-        ownerId: 1,
+        ownerId: 1, // دائماً المستخدم رقم 1
         projectId: null
       });
-      console.log(`processDeposit - تم إنشاء صندوق المدير الجديد:`, JSON.stringify(adminFund));
+      console.log(`processDeposit - تم إنشاء صندوق المدير الرئيسي:`, JSON.stringify(adminFund));
     }
     
     console.log(`processDeposit - رصيد المدير قبل العملية: ${adminFund.balance}`);
@@ -779,19 +797,32 @@ export class PgStorage implements IStorage {
       throw new Error("هذه العملية متاحة للمدير فقط");
     }
 
-    // البحث عن صندوق المدير
-    let adminFund = await this.getFundByOwner(userId);
+    // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
+    console.log(`processAdminTransaction - جاري البحث عن صندوق المدير الرئيسي`);
+    
+    // البحث عن صندوق المدير الرئيسي بشكل مباشر
+    const adminFundsResult = await db.select().from(funds)
+      .where(
+        and(
+          eq(funds.type, 'admin'),
+          eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
+        )
+      );
+      
+    let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
+    console.log(`processAdminTransaction - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
+    
     if (!adminFund) {
       // إنشاء صندوق افتراضي للمدير إذا لم يكن موجودا
-      console.log(`processAdminTransaction - إنشاء صندوق مدير جديد للمستخدم ${userId}`);
+      console.log(`processAdminTransaction - إنشاء صندوق مدير رئيسي جديد`);
       adminFund = await this.createFund({
-        name: `صندوق المدير: ${user.name}`,
+        name: "صندوق المدير الرئيسي",
         balance: type === "income" ? amount : 0, // إذا كانت العملية إيداع، ابدأ برصيد العملية
         type: "admin",
-        ownerId: userId,
+        ownerId: 1, // دائماً المستخدم رقم 1
         projectId: null
       });
-      console.log(`processAdminTransaction - تم إنشاء صندوق مدير برصيد ${adminFund.balance}`);
+      console.log(`processAdminTransaction - تم إنشاء صندوق مدير رئيسي برصيد ${adminFund.balance}`);
     } else {
       console.log(`processAdminTransaction - رصيد المدير قبل العملية: ${adminFund.balance}`);
       
