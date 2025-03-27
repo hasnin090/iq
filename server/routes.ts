@@ -9,12 +9,15 @@ import {
   insertTransactionSchema,
   insertDocumentSchema,
   insertActivityLogSchema,
-  insertSettingSchema
+  insertSettingSchema,
+  funds
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 declare module "express-session" {
   interface SessionData {
@@ -1082,6 +1085,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // استرجاع رصيد صندوق المدير
+  app.get("/api/admin-fund", authenticate, async (req: Request, res: Response) => {
+    try {
+      // استرجاع صندوق المدير الرئيسي (معرف=1)
+      const adminFundsResult = await db.select().from(funds)
+        .where(
+          and(
+            eq(funds.type, 'admin'),
+            eq(funds.ownerId, 1)
+          )
+        );
+        
+      const adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : null;
+      
+      if (!adminFund) {
+        return res.status(200).json({ balance: 0 });
+      }
+      
+      return res.status(200).json({ balance: adminFund.balance });
+    } catch (error) {
+      console.error("خطأ في استرجاع رصيد صندوق المدير:", error);
+      return res.status(500).json({ message: "خطأ في استرجاع رصيد صندوق المدير" });
+    }
+  });
+
   // Dashboard statistics
   app.get("/api/dashboard", authenticate, async (req: Request, res: Response) => {
     try {
@@ -1089,6 +1117,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let projects = await storage.listProjects();
       const userId = req.session.userId as number;
       const userRole = req.session.role as string;
+      
+      // استرجاع رصيد صندوق المدير الرئيسي
+      let adminFundBalance = 0;
+      if (userRole === "admin") {
+        const adminFundsResult = await db.select().from(funds)
+          .where(
+            and(
+              eq(funds.type, 'admin'),
+              eq(funds.ownerId, 1)
+            )
+          );
+          
+        const adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : null;
+        if (adminFund) {
+          adminFundBalance = adminFund.balance;
+        }
+      }
       
       // تطبيق قيود الوصول للمستخدمين العاديين
       if (userRole !== "admin") {
@@ -1130,6 +1175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalExpenses,
         netProfit,
         activeProjects,
+        adminFundBalance,
         recentTransactions
       });
     } catch (error) {

@@ -25,6 +25,7 @@ interface DashboardStats {
   totalExpenses: number;
   netProfit: number;
   activeProjects: number;
+  adminFundBalance: number;
   recentTransactions: Transaction[];
 }
 
@@ -69,7 +70,8 @@ export default function Dashboard() {
             <StatisticsCards 
               income={stats?.totalIncome || 0} 
               expenses={stats?.totalExpenses || 0} 
-              profit={stats?.netProfit || 0} 
+              profit={stats?.netProfit || 0}
+              adminFundBalance={stats?.adminFundBalance || 0}
             />
           </div>
           
