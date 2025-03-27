@@ -51,23 +51,24 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
         </div>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`rounded-xl shadow-md p-4 overflow-hidden relative ${isAdmin ? 'bg-gradient-to-br from-green-50 to-green-100 border border-green-200' : 'bg-white border border-gray-100'}`}>
+      {/* تعديل حجم بطاقات الإحصائيات لتكون أكبر بعد إزالة أرصدة المشاريع */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`rounded-xl shadow-md p-5 overflow-hidden relative ${isAdmin ? 'bg-gradient-to-br from-green-50 to-green-100 border border-green-200' : 'bg-white border border-gray-100'}`}>
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-gray-800 text-base font-bold mb-2">إجمالي الإيرادات</h3>
-              <p className="text-2xl font-bold text-green-600" id="totalIncome">
+              <h3 className="text-gray-800 text-lg font-bold mb-3">إجمالي الإيرادات</h3>
+              <p className="text-3xl font-bold text-green-600" id="totalIncome">
                 {formatCurrency(income)}
               </p>
             </div>
-            <div className="bg-green-100 p-3 rounded-lg shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+            <div className="bg-green-100 p-4 rounded-lg shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
                 <line x1="12" y1="19" x2="12" y2="5"></line>
                 <polyline points="5 12 12 5 19 12"></polyline>
               </svg>
             </div>
           </div>
-          <div className="w-full h-2 bg-green-100 rounded-full mt-4 mb-2">
+          <div className="w-full h-2 bg-green-100 rounded-full mt-5 mb-3">
             <div 
               className="h-2 bg-green-600 rounded-full" 
               style={{ width: income > 0 ? '75%' : '0%' }}
@@ -78,22 +79,22 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
           </p>
         </div>
         
-        <div className={`rounded-xl shadow-md p-4 overflow-hidden relative ${isAdmin ? 'bg-gradient-to-br from-red-50 to-red-100 border border-red-200' : 'bg-white border border-gray-100'}`}>
+        <div className={`rounded-xl shadow-md p-5 overflow-hidden relative ${isAdmin ? 'bg-gradient-to-br from-red-50 to-red-100 border border-red-200' : 'bg-white border border-gray-100'}`}>
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-gray-800 text-base font-bold mb-2">إجمالي المصروفات</h3>
-              <p className="text-2xl font-bold text-red-600" id="totalExpenses">
+              <h3 className="text-gray-800 text-lg font-bold mb-3">إجمالي المصروفات</h3>
+              <p className="text-3xl font-bold text-red-600" id="totalExpenses">
                 {formatCurrency(expenses)}
               </p>
             </div>
-            <div className="bg-red-100 p-3 rounded-lg shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+            <div className="bg-red-100 p-4 rounded-lg shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <polyline points="19 12 12 19 5 12"></polyline>
               </svg>
             </div>
           </div>
-          <div className="w-full h-2 bg-red-100 rounded-full mt-4 mb-2">
+          <div className="w-full h-2 bg-red-100 rounded-full mt-5 mb-3">
             <div 
               className="h-2 bg-red-600 rounded-full" 
               style={{ width: expenses > 0 ? '60%' : '0%' }}
@@ -104,21 +105,21 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance }: 
           </p>
         </div>
         
-        <div className={`rounded-xl shadow-md p-4 overflow-hidden relative ${isAdmin ? 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200' : 'bg-white border border-gray-100'}`}>
+        <div className={`rounded-xl shadow-md p-5 overflow-hidden relative ${isAdmin ? 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200' : 'bg-white border border-gray-100'}`}>
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-gray-800 text-base font-bold mb-2">صافي الربح</h3>
-              <p className="text-2xl font-bold text-blue-600" id="netProfit">
+              <h3 className="text-gray-800 text-lg font-bold mb-3">صافي الربح</h3>
+              <p className="text-3xl font-bold text-blue-600" id="netProfit">
                 {formatCurrency(profit)}
               </p>
             </div>
-            <div className="bg-blue-100 p-3 rounded-lg shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+            <div className="bg-blue-100 p-4 rounded-lg shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
               </svg>
             </div>
           </div>
-          <div className="w-full h-2 bg-blue-100 rounded-full mt-4 mb-2">
+          <div className="w-full h-2 bg-blue-100 rounded-full mt-5 mb-3">
             <div 
               className="h-2 bg-blue-600 rounded-full" 
               style={{ width: profit > 0 ? '45%' : '0%' }}
