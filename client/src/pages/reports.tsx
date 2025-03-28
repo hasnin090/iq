@@ -33,32 +33,90 @@ export default function Reports() {
   
   // Prepare data for financial report
   const getFinancialData = () => {
-    if (!transactions || !Array.isArray(transactions)) return { income: 0, expense: 0, profit: 0, transactions: [] };
+    if (!transactions || !Array.isArray(transactions)) {
+      console.log("No transactions data or not an array");
+      return { income: 0, expense: 0, profit: 0, transactions: [] };
+    }
+    
+    console.log("Total transactions before filtering:", transactions.length);
+    console.log("Selected project:", projectId);
+    console.log("Selected month:", selectedMonth);
     
     let filteredTransactions = [...transactions];
     
     // Filter by project if selected
-    if (projectId) {
-      filteredTransactions = filteredTransactions.filter(t => t.projectId === parseInt(projectId));
+    if (projectId && projectId !== 'all') {
+      const projectIdNum = parseInt(projectId);
+      filteredTransactions = filteredTransactions.filter(t => {
+        const match = t.projectId === projectIdNum;
+        return match;
+      });
+      console.log(`After project filtering (projectId=${projectId}):`, filteredTransactions.length);
     }
     
     // Filter by month if selected
     if (selectedMonth) {
       const year = selectedMonth.getFullYear();
       const month = selectedMonth.getMonth();
+      
+      console.log(`Filtering by date: Year=${year}, Month=${month}`);
+      
       filteredTransactions = filteredTransactions.filter(t => {
+        // تأكد من أن حقل التاريخ صالح
+        if (!t.date) {
+          console.log("Transaction missing date field:", t);
+          return false;
+        }
+        
+        // تحويل التاريخ إلى كائن Date بشكل صحيح
         const date = new Date(t.date);
-        return date.getFullYear() === year && date.getMonth() === month;
+        
+        // التأكد من صحة الكائن وإمكانية قراءة الشهر والسنة منه
+        if (isNaN(date.getTime())) {
+          console.log("Invalid date:", t.date);
+          return false;
+        }
+        
+        const tYear = date.getFullYear();
+        const tMonth = date.getMonth();
+        
+        const match = tYear === year && tMonth === month;
+        return match;
       });
+      
+      console.log("After date filtering:", filteredTransactions.length);
     }
     
-    const income = filteredTransactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
+    // تعزيز مرشحات النوع بإضافة تسجيل وفحص إضافي
+    const incomeTransactions = filteredTransactions.filter(t => {
+      const isIncome = t.type === 'income';
+      return isIncome;
+    });
     
-    const expense = filteredTransactions
-      .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
+    const expenseTransactions = filteredTransactions.filter(t => {
+      const isExpense = t.type === 'expense';
+      return isExpense;
+    });
+    
+    console.log("Income transactions count:", incomeTransactions.length);
+    console.log("Expense transactions count:", expenseTransactions.length);
+    
+    // تحسين حساب المبالغ مع إضافة فحص إضافي
+    const income = incomeTransactions.reduce((sum, t) => {
+      // التأكد من أن t.amount هو رقم
+      const amount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+      return sum + amount;
+    }, 0);
+    
+    const expense = expenseTransactions.reduce((sum, t) => {
+      // التأكد من أن t.amount هو رقم
+      const amount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+      return sum + amount;
+    }, 0);
+    
+    console.log("Total income:", income);
+    console.log("Total expense:", expense);
+    console.log("Profit:", income - expense);
     
     return {
       income,
@@ -89,8 +147,8 @@ export default function Reports() {
   
   // Initialize charts
   useEffect(() => {
-    let financialChart: Chart | null = null;
-    let projectsChart: Chart | null = null;
+    let financialChart: Chart | undefined;
+    let projectsChart: Chart | undefined;
     
     const { income, expense, profit } = getFinancialData();
     
@@ -98,7 +156,10 @@ export default function Reports() {
     if (financialChartRef.current && activeTab === 'financial') {
       const ctx = financialChartRef.current.getContext('2d');
       if (ctx) {
-        if (financialChart) financialChart.destroy();
+        // Destroy previous chart if it exists
+        if (financialChart instanceof Chart) {
+          financialChart.destroy();
+        }
         
         financialChart = new Chart(ctx, {
           type: 'bar',
@@ -137,19 +198,41 @@ export default function Reports() {
     if (projectsChartRef.current && activeTab === 'projects' && Array.isArray(projects) && Array.isArray(transactions)) {
       const ctx = projectsChartRef.current.getContext('2d');
       if (ctx) {
-        if (projectsChart) projectsChart.destroy();
+        // Destroy previous chart if it exists
+        if (projectsChart instanceof Chart) {
+          projectsChart.destroy();
+        }
+        
+        console.log("Generating project chart with", projects.length, "projects");
         
         // Calculate total amount per project
         const projectData = projects.map((project: any) => {
-          const projectTransactions = transactions.filter((t: any) => t.projectId === project.id);
-          const income = projectTransactions
-            .filter((t: any) => t.type === 'income')
-            .reduce((sum: number, t: any) => sum + t.amount, 0);
+          // تحسين تصفية المعاملات الخاصة بالمشروع
+          const projectTransactions = transactions.filter((t: any) => {
+            // التأكد من أن المعاملة تحتوي على معرف المشروع وأنه يطابق المشروع الحالي
+            return t && t.projectId === project.id;
+          });
           
-          const expense = projectTransactions
-            .filter((t: any) => t.type === 'expense')
-            .reduce((sum: number, t: any) => sum + t.amount, 0);
+          console.log(`Project ${project.name} (ID: ${project.id}) has ${projectTransactions.length} transactions`);
+          
+          // تصفية وحساب الإيرادات
+          const incomeTransactions = projectTransactions.filter((t: any) => t.type === 'income');
+          const income = incomeTransactions.reduce((sum: number, t: any) => {
+            // التأكد من أن t.amount هو رقم
+            const amount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+            return sum + amount;
+          }, 0);
+          
+          // تصفية وحساب المصروفات
+          const expenseTransactions = projectTransactions.filter((t: any) => t.type === 'expense');
+          const expense = expenseTransactions.reduce((sum: number, t: any) => {
+            // التأكد من أن t.amount هو رقم
+            const amount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount) || 0;
+            return sum + amount;
+          }, 0);
             
+          console.log(`Project ${project.name}: Income=${income}, Expense=${expense}, Profit=${income - expense}`);
+          
           return {
             name: project.name,
             income,
@@ -200,8 +283,8 @@ export default function Reports() {
     }
     
     return () => {
-      if (financialChart) financialChart.destroy();
-      if (projectsChart) projectsChart.destroy();
+      if (financialChart instanceof Chart) financialChart.destroy();
+      if (projectsChart instanceof Chart) projectsChart.destroy();
     };
   }, [activeTab, projectId, selectedMonth, transactions, projects]);
   
@@ -308,7 +391,7 @@ export default function Reports() {
                 <Calendar
                   mode="single"
                   selected={selectedMonth}
-                  onSelect={setSelectedMonth}
+                  onSelect={(date) => date && setSelectedMonth(date)}
                   initialFocus
                   locale={ar}
                 />

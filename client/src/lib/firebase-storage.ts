@@ -4,26 +4,53 @@ import { FirebaseStorage } from "firebase/storage";
 import { getStorage } from "firebase/storage";
 import { initializeApp } from "firebase/app";
 
+// التحقق من وجود مفاتيح Firebase في متغيرات البيئة
+const checkFirebaseKeys = (): boolean => {
+  // لقد أصبحت المفاتيح مدمجة مباشرة في الكود، لذا سنعيد دائماً true
+  return true;
+};
+
 // التأكد من تهيئة Firebase Storage في حالة كان التخزين غير متاح
 const getFirebaseStorage = (): FirebaseStorage => {
   if (storage) {
     return storage;
   }
   
-  // إذا لم يكن التخزين متاحًا، نقوم بتهيئته
+  // إذا لم يكن التخزين متاحًا، نحاول استخدام التخزين من الملف firebase.ts
   try {
+    // استيراد التخزين من ملف firebase.ts
+    const { storage: importedStorage } = require('./firebase');
+    if (importedStorage) {
+      console.log("استخدام التخزين الموجود في firebase.ts");
+      return importedStorage;
+    }
+    
+    // إذا لم يكن التخزين متاحًا، نقوم بتهيئة تكوين جديد
+    console.log("تهيئة Firebase Storage من جديد");
+    
     const firebaseConfig = {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
-      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      apiKey: "AIzaSyBLJb_pYS00-9VMPE9nnH5WyTKv18UGlcA",
+      authDomain: "grokapp-5e120.firebaseapp.com",
+      projectId: "grokapp-5e120",
+      storageBucket: "grokapp-5e120.firebasestorage.app",
+      messagingSenderId: "846888480997",
+      appId: "1:846888480997:web:971ec7fa47b901e27b640c",
+      measurementId: "G-GS4CWFRC9Q"
     };
     
-    const app = initializeApp(firebaseConfig);
+    // استخدام getApps للتحقق من وجود تطبيق مهيأ بالفعل
+    const { getApps } = require('firebase/app');
+    
+    let app;
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApps()[0];
+    }
+    
     return getStorage(app);
   } catch (error) {
-    console.error("Firebase initialization error:", error);
+    console.error("Firebase Storage initialization error:", error);
     throw new Error("فشل في تهيئة Firebase Storage");
   }
 };
@@ -41,8 +68,28 @@ export const uploadFile = async (
   progressCallback?: (progress: number) => void
 ): Promise<string> => {
   try {
+    console.log("بدء عملية رفع الملف:", file.name, "الحجم:", file.size);
+    
+    // التحقق من وجود مفاتيح Firebase
+    if (!checkFirebaseKeys()) {
+      console.error("مفاتيح Firebase غير متوفرة");
+      throw new Error("تعذر رفع الملف: مفاتيح Firebase غير متوفرة. يرجى التواصل مع مدير النظام.");
+    }
+    
+    // تحديث التقدم إلى 1% لإظهار بدء العملية
+    if (progressCallback) {
+      progressCallback(1);
+      console.log("تم تحديث نسبة التقدم إلى 1%");
+    }
+    
+    // تحقق من حجم الملف
+    if (file.size > 20 * 1024 * 1024) {
+      throw new Error("حجم الملف كبير جداً، يجب أن يكون أقل من 20 ميجابايت");
+    }
+    
     // الحصول على كائن التخزين
     const firebaseStorage = getFirebaseStorage();
+    console.log("تم الحصول على Firebase Storage بنجاح");
     
     // إنشاء اسم فريد للملف بناءً على الوقت الحالي وتصفية الاسم من الأحرف الخاصة
     const timestamp = new Date().getTime();
@@ -51,15 +98,26 @@ export const uploadFile = async (
       .replace(/[^a-zA-Z0-9._-]/g, '_');
     const fileName = `${timestamp}_${safeFileName}`;
     const fullPath = `${path}/${fileName}`;
+    console.log("مسار الملف الكامل:", fullPath);
     
     // إنشاء مرجع للملف في Firebase Storage
     const fileRef = ref(firebaseStorage, fullPath);
+    console.log("تم إنشاء مرجع الملف بنجاح");
     
     // إنشاء مهمة تحميل قابلة للاستئناف
     const uploadTask = uploadBytesResumable(fileRef, file);
+    console.log("تم بدء مهمة التحميل");
+    
+    // تحديث التقدم إلى 5% بعد بدء التحميل
+    if (progressCallback) {
+      progressCallback(5);
+      console.log("تم تحديث نسبة التقدم إلى 5%");
+    }
     
     // استخدام Promise لتتبع التحميل وإرجاع الرابط
     return new Promise<string>((resolve, reject) => {
+      console.log("داخل وعد التحميل (Promise)");
+      
       // إضافة مستمع لحدث تغيير الحالة لتتبع التقدم
       uploadTask.on(
         'state_changed',
@@ -69,21 +127,38 @@ export const uploadFile = async (
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100
           );
           
+          // معلومات إضافية عن الحالة للتصحيح
+          const bytesTransferred = snapshot.bytesTransferred;
+          const totalBytes = snapshot.totalBytes;
+          
+          // طباعة معلومات مفصلة في وحدة التحكم
+          console.log(`تقدم رفع الملف: ${progress}% (${bytesTransferred}/${totalBytes} bytes)`);
+          
           // استدعاء دالة رد الاستدعاء للتقدم إذا تم توفيرها
           if (progressCallback) {
-            progressCallback(progress);
+            // تأكد من أن التقدم لا يقل عن 5% لتجنب ظهوره كأنه 0%
+            progressCallback(Math.max(progress, 5));
           }
         },
         (error) => {
           // معالجة الأخطاء أثناء التحميل
           console.error("خطأ في تحميل الملف:", error);
-          reject(new Error("فشل في تحميل الملف. يرجى المحاولة مرة أخرى."));
+          console.error("تفاصيل الخطأ:", JSON.stringify(error));
+          reject(new Error(`فشل في تحميل الملف: ${error.message || 'خطأ غير معروف'}`));
         },
         async () => {
+          console.log("اكتمل التحميل بنجاح، جاري الحصول على رابط التنزيل...");
           // عند اكتمال التحميل بنجاح
           try {
+            // تأكد من تحديث التقدم إلى 100%
+            if (progressCallback) {
+              progressCallback(100);
+              console.log("تم تحديث نسبة التقدم إلى 100%");
+            }
+            
             // الحصول على رابط التنزيل
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log("تم رفع الملف بنجاح، رابط التنزيل:", downloadURL);
             resolve(downloadURL);
           } catch (error) {
             console.error("خطأ في الحصول على رابط التنزيل:", error);
@@ -94,6 +169,9 @@ export const uploadFile = async (
     });
   } catch (error) {
     console.error("خطأ في إعداد تحميل الملف:", error);
+    if (error instanceof Error) {
+      throw error; // إعادة إلقاء الخطأ الأصلي إذا كان متاحاً
+    }
     throw new Error("فشل في إعداد عملية تحميل الملف. يرجى المحاولة مرة أخرى.");
   }
 };

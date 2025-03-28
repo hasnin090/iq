@@ -1,4 +1,4 @@
-import { initializeApp, FirebaseApp } from "firebase/app";
+import { initializeApp, FirebaseApp, getApps } from "firebase/app";
 import { 
   getAuth, 
   signInWithRedirect, 
@@ -10,23 +10,34 @@ import {
 } from "firebase/auth";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 
+// تكوين Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyBLJb_pYS00-9VMPE9nnH5WyTKv18UGlcA",
+  authDomain: "grokapp-5e120.firebaseapp.com",
+  projectId: "grokapp-5e120",
+  storageBucket: "grokapp-5e120.firebasestorage.app",
+  messagingSenderId: "846888480997",
+  appId: "1:846888480997:web:971ec7fa47b901e27b640c",
+  measurementId: "G-GS4CWFRC9Q"
+};
+
 // تعريف المتغيرات باستخدام أنواع محددة
-let app: FirebaseApp | undefined;
-let auth: Auth | undefined;
-let storage: FirebaseStorage | undefined;
-let googleProvider: GoogleAuthProvider | undefined;
+let app: FirebaseApp;
+let auth: Auth;
+let storage: FirebaseStorage;
+let googleProvider: GoogleAuthProvider;
 
 try {
-  const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  };
-
-  // تهيئة تطبيق Firebase
-  app = initializeApp(firebaseConfig);
+  // التحقق مما إذا كان التطبيق مهيأ بالفعل لتجنب التهيئة المزدوجة
+  if (getApps().length === 0) {
+    // تهيئة تطبيق Firebase إذا لم يكن مهيأ بالفعل
+    app = initializeApp(firebaseConfig);
+    console.log("Firebase initialized successfully");
+  } else {
+    // استخدام التطبيق المهيأ بالفعل
+    app = getApps()[0];
+    console.log("Using existing Firebase app");
+  }
 
   // الحصول على خدمة المصادقة
   auth = getAuth(app);
@@ -38,6 +49,7 @@ try {
   googleProvider = new GoogleAuthProvider();
 } catch (error) {
   console.error("Firebase initialization error:", error);
+  throw new Error("Firebase initialization failed");
 }
 
 // وظيفة تسجيل الدخول بواسطة جوجل
