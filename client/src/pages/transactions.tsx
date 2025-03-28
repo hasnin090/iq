@@ -6,6 +6,7 @@ import { queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Filter, ArrowDown, ArrowUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/chart-utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -118,45 +119,59 @@ export default function Transactions() {
                   <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
                   <span>العمليات المالية</span>
                 </h3>
-                <div className="relative flex-1 max-w-md overflow-hidden">
-                  <TabsList className="flex rounded-full p-1 bg-slate-100/80 backdrop-blur-sm shadow-inner w-full justify-between border border-slate-200 overflow-hidden">
-                    {/* إظهار تبويب "الكل" للمدير فقط */}
-                    {user?.role === 'admin' && (
-                      <TabsTrigger 
-                        value="all" 
-                        className="flex-1 rounded-full py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-slate-800 data-[state=active]:shadow-sm"
-                      >
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Filter className="h-4 w-4" />
-                          <span>الكل</span>
-                        </div>
-                      </TabsTrigger>
-                    )}
-                    
-                    {/* إظهار تبويب "الصندوق الرئيسي" للمدير فقط */}
-                    {user?.role === 'admin' && (
-                      <TabsTrigger 
-                        value="admin" 
-                        className="flex-1 rounded-full py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm"
-                      >
-                        <div className="flex items-center justify-center gap-1.5">
-                          <ArrowUp className="h-4 w-4 text-blue-500" />
-                          <span>الصندوق الرئيسي</span>
-                        </div>
-                      </TabsTrigger>
-                    )}
-                    
-                    {/* تبويب "المشاريع" مرئي للجميع */}
-                    <TabsTrigger 
-                      value="projects" 
-                      className="flex-1 rounded-full py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm"
-                    >
-                      <div className="flex items-center justify-center gap-1.5">
-                        <ArrowDown className="h-4 w-4 text-green-500" />
-                        <span>المشاريع</span>
+                <div className="mr-auto">
+                  {/* استخدام قائمة منسدلة لاختيار نوع العمليات المالية */}
+                  <Select 
+                    defaultValue={defaultTab}
+                    onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}
+                  >
+                    <SelectTrigger className="w-56 h-10 rounded-lg border border-slate-200 bg-white shadow-sm">
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        {activeTab === 'all' && <Filter className="h-4 w-4 text-slate-500 ml-2" />}
+                        {activeTab === 'admin' && <ArrowUp className="h-4 w-4 text-blue-500 ml-2" />}
+                        {activeTab === 'projects' && <ArrowDown className="h-4 w-4 text-green-500 ml-2" />}
+                        <SelectValue placeholder="اختر نوع العمليات" className="text-sm font-medium" />
                       </div>
-                    </TabsTrigger>
-                  </TabsList>
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-slate-200 shadow-md rounded-lg">
+                      {/* إظهار خيار "الكل" للمدير فقط */}
+                      {user?.role === 'admin' && (
+                        <SelectItem 
+                          value="all" 
+                          className="hover:bg-slate-50 transition-colors py-2.5"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Filter className="h-4 w-4 ml-2 text-slate-500" />
+                            <span className="font-medium">جميع العمليات المالية</span>
+                          </div>
+                        </SelectItem>
+                      )}
+                      
+                      {/* إظهار خيار "الصندوق الرئيسي" للمدير فقط */}
+                      {user?.role === 'admin' && (
+                        <SelectItem 
+                          value="admin" 
+                          className="hover:bg-blue-50 transition-colors py-2.5"
+                        >
+                          <div className="flex items-center gap-2">
+                            <ArrowUp className="h-4 w-4 ml-2 text-blue-500" />
+                            <span className="font-medium text-blue-700">عمليات الصندوق الرئيسي</span>
+                          </div>
+                        </SelectItem>
+                      )}
+                      
+                      {/* خيار "المشاريع" مرئي للجميع */}
+                      <SelectItem 
+                        value="projects" 
+                        className="hover:bg-green-50 transition-colors py-2.5"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ArrowDown className="h-4 w-4 ml-2 text-green-500" />
+                          <span className="font-medium text-green-700">عمليات المشاريع</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               
