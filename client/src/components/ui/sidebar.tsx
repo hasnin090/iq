@@ -11,7 +11,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
-  // Close sidebar on route change on mobile
+  // حالة القائمة الجانبية - مفتوحة افتراضيًا في الشاشات الكبيرة فقط
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
@@ -26,6 +26,7 @@ export function Sidebar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // إغلاق القائمة عند تغيير الصفحة على الأجهزة المحمولة
   useEffect(() => {
     if (window.innerWidth < 768) {
       setIsOpen(false);
@@ -51,6 +52,18 @@ export function Sidebar() {
     }
   };
 
+  // استمع لحدث تبديل الشريط الجانبي
+  useEffect(() => {
+    const handleToggleSidebar = () => {
+      setIsOpen(!isOpen);
+    };
+
+    window.addEventListener('toggle-sidebar', handleToggleSidebar);
+    return () => {
+      window.removeEventListener('toggle-sidebar', handleToggleSidebar);
+    };
+  }, [isOpen]);
+
   return (
     <>
       {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها في الهواتف */}
@@ -61,25 +74,24 @@ export function Sidebar() {
         ></div>
       )}
 
+      {/* زر ثابت لفتح القائمة الجانبية */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`fixed top-4 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-12 h-10 flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 ${isOpen ? "opacity-0" : "opacity-100"}`}
+        aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
+      >
+        <div className="w-6 h-5 flex flex-col justify-between">
+          <span className="h-0.5 w-full bg-white rounded-full"></span>
+          <span className="h-0.5 w-full bg-white rounded-full"></span>
+          <span className="h-0.5 w-full bg-white rounded-full"></span>
+        </div>
+      </button>
+
       <aside
         className={`fixed top-0 right-0 h-full w-72 bg-white border-l border-blue-100 transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-xl ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } md:translate-x-0 flex flex-col`}
       >
-        {/* إضافة زر القائمة داخل الشريط الجانبي - يتحرك مع الشريط كجزء منه */}
-        <div className="absolute -left-14 top-6 transform md:hidden">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className={`z-50 bg-[hsl(var(--primary))] rounded-r-lg rounded-l-none w-14 h-11 flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none transform hover:scale-105 active:scale-95 opacity-90 hover:opacity-100 ${isOpen ? "opacity-0" : "opacity-100"}`}
-            aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
-          >
-            <div className="w-6 h-5 flex flex-col justify-between">
-              <span className="h-0.5 w-full bg-white rounded-full"></span>
-              <span className="h-0.5 w-full bg-white rounded-full"></span>
-              <span className="h-0.5 w-full bg-white rounded-full"></span>
-            </div>
-          </button>
-        </div>
         <div className="p-6 flex-grow">
           {/* Header with app logo */}
           <div className="flex items-center justify-between mb-8">
