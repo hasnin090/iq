@@ -2,6 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
+/* أنماط خاصة بالطباعة */
+@media print {
+  /* إخفاء العناصر غير المطلوبة عند الطباعة */
+  nav, 
+  aside, 
+  header,
+  aside[class*="sidebar"],
+  div[class*="sidebar"],
+  button,
+  .button,
+  .action-button,
+  .main-header,
+  .sidebar-container,
+  .top-header,
+  .nav-sidebar,
+  .navigation-menu,
+  footer,
+  .p-4.flex.justify-end,
+  .p-4.flex.justify-end.gap-2 {
+    display: none !important;
+  }
+  
+  /* إظهار فقط الصفحة الحالية */
+  body * {
+    visibility: hidden;
+  }
+  
+  #transactions-content, 
+  #transactions-content * {
+    visibility: visible;
+  }
+  
+  #transactions-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* تأكيد أن كامل الصفحة يظهر في الطباعة */
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background-color: white !important;
+    font-size: 12pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* تحسين عرض الجداول في الطباعة */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+  
+  /* منع فصل صفوف الجدول */
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+  
+  /* تحسين مظهر خلايا الجدول */
+  th, td {
+    padding: 0.3cm !important;
+    border-bottom: 1px solid #ddd !important;
+    text-align: right !important;
+  }
+  
+  /* تحسين رؤوس الجدول */
+  th {
+    background-color: #f3f4f6 !important;
+    color: black !important;
+    font-weight: bold !important;
+  }
+  
+  /* تعديل البطاقات لتظهر بشكل صحيح عند الطباعة */
+  .grid {
+    display: block !important;
+  }
+  
+  /* إضافة عنوان للطباعة */
+  #transactions-content::before {
+    content: "نظام المحاسبة - تقرير المعاملات المالية";
+    display: block;
+    text-align: center;
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 1cm;
+    visibility: visible;
+  }
+  
+  /* إزالة الهوامش وتحسين مظهر الطباعة */
+  .bg-secondary-light.rounded-xl.shadow-card {
+    background-color: white !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* إخفاء أزرار التعديل والحذف في جداول المعاملات */
+  button[class*="bg-blue-50"], 
+  button[class*="bg-red-50"],
+  td:last-child {
+    display: none !important;
+  }
+  
+  /* إزالة آخر عمود في الجدول (عمود الإجراءات) */
+  table thead tr th:last-child,
+  table tbody tr td:last-child {
+    display: none !important;
+  }
+}
+
 @layer base {
   :root {
     --background: 210 40% 98%;
