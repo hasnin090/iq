@@ -118,12 +118,12 @@ export default function Transactions() {
                   <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
                   <span>العمليات المالية</span>
                 </h3>
-                <TabsList className="mr-auto">
+                <TabsList className="mr-auto bg-white shadow-sm p-1 rounded-md overflow-hidden border border-slate-200">
                   {/* إظهار تبويب "الكل" للمدير فقط */}
                   {user?.role === 'admin' && (
                     <TabsTrigger 
                       value="all" 
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 data-[state=active]:bg-slate-100 text-slate-700"
                     >
                       <Filter className="h-4 w-4" />
                       <span>الكل</span>
@@ -134,9 +134,9 @@ export default function Transactions() {
                   {user?.role === 'admin' && (
                     <TabsTrigger 
                       value="admin" 
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700"
                     >
-                      <ArrowUp className="h-4 w-4 text-green-500" />
+                      <ArrowUp className="h-4 w-4 text-blue-500" />
                       <span>الصندوق الرئيسي</span>
                     </TabsTrigger>
                   )}
@@ -144,9 +144,9 @@ export default function Transactions() {
                   {/* تبويب "المشاريع" مرئي للجميع */}
                   <TabsTrigger 
                     value="projects" 
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 data-[state=active]:bg-green-100 data-[state=active]:text-green-700"
                   >
-                    <ArrowDown className="h-4 w-4 text-blue-500" />
+                    <ArrowDown className="h-4 w-4 text-green-500" />
                     <span>المشاريع</span>
                   </TabsTrigger>
                 </TabsList>
