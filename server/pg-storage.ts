@@ -624,7 +624,7 @@ export class PgStorage implements IStorage {
   }
 
   // عملية الإيداع: يستقطع المبلغ من حساب المدير ويذهب إلى حساب المشروع
-  async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+  async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminTransaction?: Transaction, adminFund?: Fund, projectFund?: Fund }> {
     console.log(`processDeposit - بدء عملية إيداع بواسطة المستخدم ${userId} في المشروع ${projectId} بمبلغ ${amount}`);
     
     // التحقق من صلاحية المشروع
@@ -730,8 +730,8 @@ export class PgStorage implements IStorage {
       }
     }
 
-    // 3. إنشاء معاملة جديدة
-    const transaction = await this.createTransaction({
+    // 3. إنشاء معاملة إيراد للمشروع
+    const projectTransaction = await this.createTransaction({
       date: new Date(),
       amount,
       type: "income",
@@ -740,19 +740,30 @@ export class PgStorage implements IStorage {
       createdBy: userId
     });
 
-    // 4. إنشاء سجل نشاط
+    // 4. إنشاء معاملة مصروف للمدير (لتسجيل خروج المبلغ من صندوق المدير)
+    const adminTransaction = await this.createTransaction({
+      date: new Date(),
+      amount,
+      type: "expense",
+      description: `مصروف تمويل المشروع: ${project.name}`,
+      projectId: null, // لا يرتبط بمشروع محدد لأنه معاملة للمدير
+      createdBy: userId
+    });
+
+    // 5. إنشاء سجل نشاط
     await this.createActivityLog({
       action: "create",
       entityType: "transaction",
-      entityId: transaction.id,
+      entityId: projectTransaction.id,
       details: `إيداع مبلغ ${amount} في المشروع: ${project.name}`,
       userId
     });
     
-    console.log(`processDeposit - اكتمال العملية، تفاصيل النتيجة: المعاملة رقم ${transaction.id}, رصيد المدير الجديد: ${adminFund ? adminFund.balance : 'غير معروف'}, رصيد المشروع الجديد: ${projectFund ? projectFund.balance : 'غير معروف'}`)
+    console.log(`processDeposit - اكتمال العملية، تفاصيل النتيجة: معاملة المشروع رقم ${projectTransaction.id}, معاملة المدير رقم ${adminTransaction.id}, رصيد المدير الجديد: ${adminFund ? adminFund.balance : 'غير معروف'}, رصيد المشروع الجديد: ${projectFund ? projectFund.balance : 'غير معروف'}`)
 
     return {
-      transaction,
+      transaction: projectTransaction, // نرجع معاملة المشروع للتوافقية مع الكود القديم
+      adminTransaction: adminTransaction, // معاملة المصاريف للمدير
       adminFund,
       projectFund
     };
