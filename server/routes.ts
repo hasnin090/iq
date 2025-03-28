@@ -1212,15 +1212,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Calculate totals
-      const totalIncome = transactions
+      // تقسيم المعاملات إلى مجموعات للصندوق الرئيسي والمشاريع
+      const adminTransactions = transactions.filter(t => t.projectId === null || t.projectId === undefined);
+      const projectTransactions = transactions.filter(t => t.projectId !== null && t.projectId !== undefined);
+      
+      // حساب إجماليات الصندوق الرئيسي
+      const adminTotalIncome = adminTransactions
         .filter(t => t.type === "income")
         .reduce((sum, t) => sum + t.amount, 0);
       
-      const totalExpenses = transactions
+      const adminTotalExpenses = adminTransactions
         .filter(t => t.type === "expense")
         .reduce((sum, t) => sum + t.amount, 0);
       
+      const adminNetProfit = adminTotalIncome - adminTotalExpenses;
+      
+      // حساب إجماليات المشاريع
+      const projectTotalIncome = projectTransactions
+        .filter(t => t.type === "income")
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const projectTotalExpenses = projectTransactions
+        .filter(t => t.type === "expense")
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const projectNetProfit = projectTotalIncome - projectTotalExpenses;
+      
+      // الإجماليات الكلية (تستخدم للتوافق القديم إذا لزم الأمر)
+      const totalIncome = adminTotalIncome + projectTotalIncome;
+      const totalExpenses = adminTotalExpenses + projectTotalExpenses;
       const netProfit = totalIncome - totalExpenses;
       
       // Get recent transactions
@@ -1232,11 +1252,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activeProjects = projects.filter(p => p.status === "active").length;
       
       return res.status(200).json({
-        totalIncome,
+        // البيانات الإجمالية للتوافق القديم
+        totalIncome,  
         totalExpenses,
         netProfit,
-        activeProjects,
+        
+        // بيانات الصندوق الرئيسي
+        adminTotalIncome,
+        adminTotalExpenses,
+        adminNetProfit,
         adminFundBalance,
+        
+        // بيانات المشاريع
+        projectTotalIncome,
+        projectTotalExpenses,
+        projectNetProfit,
+        
+        // البيانات الأخرى
+        activeProjects,
         recentTransactions,
         projects: projectsWithBalance
       });

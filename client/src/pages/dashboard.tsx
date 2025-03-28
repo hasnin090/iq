@@ -23,11 +23,24 @@ interface Project {
 }
 
 interface DashboardStats {
+  // البيانات الإجمالية (للتوافق القديم)
   totalIncome: number;
   totalExpenses: number;
   netProfit: number;
-  activeProjects: number;
+  
+  // بيانات الصندوق الرئيسي
+  adminTotalIncome: number;
+  adminTotalExpenses: number;
+  adminNetProfit: number;
   adminFundBalance: number;
+  
+  // بيانات المشاريع
+  projectTotalIncome: number;
+  projectTotalExpenses: number;
+  projectNetProfit: number;
+  
+  // بيانات أخرى
+  activeProjects: number;
   recentTransactions: Transaction[];
   projects: Project[];
 }
@@ -139,9 +152,9 @@ export default function Dashboard() {
           {/* Stats Cards */}
           <div className="slide-in-up" style={{animationDelay: '0.1s'}}>
             <StatisticsCards 
-              income={stats?.totalIncome || 0} 
-              expenses={stats?.totalExpenses || 0} 
-              profit={stats?.netProfit || 0}
+              income={displayMode === 'admin' ? stats?.adminTotalIncome || 0 : stats?.projectTotalIncome || 0} 
+              expenses={displayMode === 'admin' ? stats?.adminTotalExpenses || 0 : stats?.projectTotalExpenses || 0} 
+              profit={displayMode === 'admin' ? stats?.adminNetProfit || 0 : stats?.projectNetProfit || 0}
               adminFundBalance={stats?.adminFundBalance || 0}
               displayMode={displayMode}
             />
@@ -150,9 +163,9 @@ export default function Dashboard() {
           {/* Charts Section */}
           <div className="slide-in-up" style={{animationDelay: '0.2s'}}>
             <Charts 
-              income={stats?.totalIncome || 0} 
-              expenses={stats?.totalExpenses || 0} 
-              profit={stats?.netProfit || 0}
+              income={displayMode === 'admin' ? stats?.adminTotalIncome || 0 : stats?.projectTotalIncome || 0} 
+              expenses={displayMode === 'admin' ? stats?.adminTotalExpenses || 0 : stats?.projectTotalExpenses || 0} 
+              profit={displayMode === 'admin' ? stats?.adminNetProfit || 0 : stats?.projectNetProfit || 0}
               displayMode={displayMode}
             />
           </div>
