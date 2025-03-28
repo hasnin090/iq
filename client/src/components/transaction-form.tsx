@@ -160,20 +160,37 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     { value: 5000, label: "٥٠٠٠ د.ع" }
   ];
   
-  // اقتراحات سريعة للوصف حسب النوع
+  // اقتراحات سريعة للوصف حسب النوع والدور
   const descriptionSuggestions = {
-    income: [
+    income: user?.role === 'admin' ? [
+      // اقتراحات الإيرادات للمدير (تؤكد على أنها للصندوق الرئيسي)
+      "إيراد للصندوق الرئيسي",
+      "إيداع في الصندوق الرئيسي",
+      "دفعة مستلمة للصندوق العام",
+      "إيراد مبيعات للصندوق الرئيسي",
+      "تمويل وارد للصندوق الرئيسي"
+    ] : [
+      // اقتراحات الإيرادات للمستخدم العادي (تمويل مشروع)
       "دفعة من العميل",
-      "إيراد مبيعات",
+      "تمويل المشروع من قِبل المستخدم المسؤول",
       "دفعة مقدمة للمشروع",
-      "إيجار مرافق",
-      "تمويل المشروع من قِبل المستخدم المسؤول"
+      "إيداع في صندوق المشروع",
+      "تمويل وارد للمشروع"
     ],
-    expense: [
-      "شراء مستلزمات مكتبية",
-      "رواتب الموظفين",
-      "مصاريف نقل",
-      "صيانة معدات"
+    expense: user?.role === 'admin' && !form.getValues().projectId ? [
+      // مصروفات المدير من الصندوق الرئيسي
+      "مصروفات تشغيلية من الصندوق الرئيسي",
+      "رواتب الموظفين من الصندوق الرئيسي",
+      "مصاريف عامة للإدارة",
+      "نفقات إدارية من الصندوق الرئيسي",
+      "صيانة مقر الشركة"
+    ] : [
+      // مصروفات من صندوق المشروع
+      "شراء مستلزمات مكتبية للمشروع",
+      "رواتب فريق المشروع",
+      "مصاريف نقل متعلقة بالمشروع",
+      "صيانة معدات المشروع",
+      "نفقات تشغيلية للمشروع"
     ]
   };
   
@@ -248,6 +265,12 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       onValueChange={(value) => {
                         field.onChange(value);
                         form.setValue("description", ""); // مسح الوصف عند تغيير النوع
+                        // إذا كان المستخدم هو المدير وتم اختيار إيراد، قم بتعيين projectId إلى "none" تلقائياً
+                        if (user?.role === 'admin' && value === 'income') {
+                          form.setValue("projectId", "none");
+                          // إضافة اقتراح توضيحي للإيراد للصندوق الرئيسي
+                          form.setValue("description", "إيراد للصندوق الرئيسي");
+                        }
                       }} 
                       value={field.value} 
                       disabled={isLoading || mutation.isPending}
@@ -261,7 +284,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         <SelectItem value="income" className="flex items-center gap-2">
                           <div className="flex items-center">
                             <PiggyBankIcon className="h-4 w-4 ml-2 text-green-500" />
-                            إيراد
+                            {user?.role === 'admin' ? 'إيراد (للصندوق الرئيسي)' : 'إيراد'}
                           </div>
                         </SelectItem>
                         <SelectItem value="expense" className="flex items-center gap-2">
@@ -272,6 +295,12 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                    {user?.role === 'admin' && field.value === 'income' && (
+                      <p className="text-xs text-green-600 mt-1 flex items-center font-medium">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        سيتم إضافة الإيراد للصندوق الرئيسي فقط
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -333,7 +362,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               2. للمدير عند اختيار نوع العملية "مصروف"
               3. للمدير فقط عند اختيار "إيراد" ومع تقييد الخيارات حسب الحالة
               */}
-              {((user?.role === 'admin' && (form.watch('type') === 'expense' || form.watch('type') === 'income')) || 
+              {((user?.role === 'admin' && form.watch('type') === 'expense') || 
                 (user?.role !== 'admin' && userProjects && userProjects.length > 1)) && (
                 <FormField
                   control={form.control}
@@ -382,12 +411,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                      {user?.role === 'admin' && form.watch('type') === 'income' && (
-                        <p className="text-xs text-blue-500 mt-1 flex items-center">
-                          <AlertTriangle className="w-3 h-3 mr-1" />
-                          الإيرادات للمدير تضاف دائمًا إلى الصندوق الرئيسي
-                        </p>
-                      )}
+                      {/* لحذف التعليق السابق حيث أصبح الحقل مخفي عندما يختار المدير الإيراد */}
                     </FormItem>
                   )}
                 />
