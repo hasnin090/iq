@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Filter, ArrowDown, ArrowUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/chart-utils';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Filter {
   projectId?: number;
@@ -17,6 +18,7 @@ interface Filter {
 }
 
 export default function Transactions() {
+  const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>({});
   const [currentView, setCurrentView] = useState<'cards' | 'table'>('cards');
   
@@ -62,7 +64,9 @@ export default function Transactions() {
     queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
   };
   
-  const [activeTab, setActiveTab] = useState<'all' | 'admin' | 'projects'>('all');
+  // تعيين التبويب الافتراضي حسب دور المستخدم
+  const defaultTab = user?.role === 'admin' ? 'all' : 'projects';
+  const [activeTab, setActiveTab] = useState<'all' | 'admin' | 'projects'>(defaultTab);
   
   // فلترة العمليات المالية حسب التبويب النشط
   const filteredTransactions = useMemo(() => {
@@ -108,27 +112,36 @@ export default function Transactions() {
           
           {/* تبويبات العمليات المالية */}
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
-            <Tabs defaultValue="all" onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}>
+            <Tabs defaultValue={defaultTab} onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}>
               <div className="flex justify-between items-center mb-5">
                 <h3 className="text-xl font-bold text-[hsl(var(--primary))] flex items-center space-x-2 space-x-reverse">
                   <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
                   <span>العمليات المالية</span>
                 </h3>
                 <TabsList className="mr-auto">
-                  <TabsTrigger 
-                    value="all" 
-                    className="flex items-center gap-2"
-                  >
-                    <Filter className="h-4 w-4" />
-                    <span>الكل</span>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="admin" 
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowUp className="h-4 w-4 text-green-500" />
-                    <span>الصندوق الرئيسي</span>
-                  </TabsTrigger>
+                  {/* إظهار تبويب "الكل" للمدير فقط */}
+                  {user?.role === 'admin' && (
+                    <TabsTrigger 
+                      value="all" 
+                      className="flex items-center gap-2"
+                    >
+                      <Filter className="h-4 w-4" />
+                      <span>الكل</span>
+                    </TabsTrigger>
+                  )}
+                  
+                  {/* إظهار تبويب "الصندوق الرئيسي" للمدير فقط */}
+                  {user?.role === 'admin' && (
+                    <TabsTrigger 
+                      value="admin" 
+                      className="flex items-center gap-2"
+                    >
+                      <ArrowUp className="h-4 w-4 text-green-500" />
+                      <span>الصندوق الرئيسي</span>
+                    </TabsTrigger>
+                  )}
+                  
+                  {/* تبويب "المشاريع" مرئي للجميع */}
                   <TabsTrigger 
                     value="projects" 
                     className="flex items-center gap-2"
@@ -206,48 +219,54 @@ export default function Transactions() {
               </div>
               
               {/* محتوى التبويبات */}
-              <TabsContent value="all" className="pt-4">
-                <div className="mb-4 px-1">
-                  <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                    جميع العمليات المالية
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    عرض كافة العمليات المالية في النظام
-                  </p>
-                </div>
-                <TransactionList 
-                  transactions={filteredTransactions || []} 
-                  projects={projects || []} 
-                  viewType={currentView}
-                  isLoading={transactionsLoading || projectsLoading}
-                  onTransactionUpdated={() => {
-                    queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-                    queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-                  }}
-                />
-              </TabsContent>
+              {/* محتوى تبويب "الكل" - يظهر للمدير فقط */}
+              {user?.role === 'admin' && (
+                <TabsContent value="all" className="pt-4">
+                  <div className="mb-4 px-1">
+                    <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                      جميع العمليات المالية
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      عرض كافة العمليات المالية في النظام
+                    </p>
+                  </div>
+                  <TransactionList 
+                    transactions={filteredTransactions || []} 
+                    projects={projects || []} 
+                    viewType={currentView}
+                    isLoading={transactionsLoading || projectsLoading}
+                    onTransactionUpdated={() => {
+                      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+                      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+                    }}
+                  />
+                </TabsContent>
+              )}
               
-              <TabsContent value="admin" className="pt-4">
-                <div className="mb-4 px-1">
-                  <h3 className="text-lg font-medium text-blue-700 dark:text-blue-400 flex items-center">
-                    <i className="fas fa-university ml-2"></i>
-                    عمليات الصندوق الرئيسي
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    عرض العمليات المالية الخاصة بالصندوق الرئيسي فقط
-                  </p>
-                </div>
-                <TransactionList 
-                  transactions={filteredTransactions || []} 
-                  projects={projects || []} 
-                  viewType={currentView}
-                  isLoading={transactionsLoading || projectsLoading}
-                  onTransactionUpdated={() => {
-                    queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-                    queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-                  }}
-                />
-              </TabsContent>
+              {/* محتوى تبويب "الصندوق الرئيسي" - يظهر للمدير فقط */}
+              {user?.role === 'admin' && (
+                <TabsContent value="admin" className="pt-4">
+                  <div className="mb-4 px-1">
+                    <h3 className="text-lg font-medium text-blue-700 dark:text-blue-400 flex items-center">
+                      <i className="fas fa-university ml-2"></i>
+                      عمليات الصندوق الرئيسي
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      عرض العمليات المالية الخاصة بالصندوق الرئيسي فقط
+                    </p>
+                  </div>
+                  <TransactionList 
+                    transactions={filteredTransactions || []} 
+                    projects={projects || []} 
+                    viewType={currentView}
+                    isLoading={transactionsLoading || projectsLoading}
+                    onTransactionUpdated={() => {
+                      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+                      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+                    }}
+                  />
+                </TabsContent>
+              )}
               
               <TabsContent value="projects" className="pt-4">
                 <div className="mb-4 px-1">

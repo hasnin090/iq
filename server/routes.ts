@@ -577,18 +577,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session.userId as number;
       const userRole = req.session.role as string;
       
-      // المدير يمكنه رؤية جميع المعاملات، المستخدم العادي يرى فقط معاملاته والمشاريع التي لديه وصول إليها
+      // المدير يمكنه رؤية جميع المعاملات، المستخدم العادي يرى فقط معاملات المشاريع التي لديه وصول إليها
       if (userRole !== "admin") {
         // احصل على قائمة المشاريع المسموح للمستخدم بالوصول إليها
         const userProjects = await storage.getUserProjects(userId);
         const projectIds = userProjects.map(project => project.id);
         
         // فلترة المعاملات بحيث تظهر فقط:
-        // 1. المعاملات التي قام المستخدم بإنشائها
-        // 2. المعاملات المرتبطة بالمشاريع التي يملك وصولاً إليها
+        // معاملات المشاريع التي يملك المستخدم وصولاً إليها، واستبعاد معاملات الصندوق الرئيسي تماماً
         transactions = transactions.filter(t => 
-          t.createdBy === userId || 
-          (t.projectId && projectIds.includes(t.projectId))
+          t.projectId && projectIds.includes(t.projectId)
         );
       }
       
@@ -1194,10 +1192,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userProjects = await storage.getUserProjects(userId);
         const projectIds = userProjects.map(project => project.id);
         
-        // فلترة المعاملات بحيث تظهر فقط المعاملات الخاصة بالمستخدم أو بالمشاريع التي يملك وصولاً إليها
+        // فلترة المعاملات بحيث تظهر فقط المعاملات الخاصة بالمشاريع التي يملك المستخدم وصولاً إليها
+        // استبعاد معاملات الصندوق الرئيسي (التي لا تحتوي على projectId)
         transactions = transactions.filter(t => 
-          t.createdBy === userId || 
-          (t.projectId && projectIds.includes(t.projectId))
+          t.projectId && projectIds.includes(t.projectId)
         );
         
         // فلترة المشاريع بحيث تظهر فقط المشاريع التي يملك المستخدم وصولاً إليها

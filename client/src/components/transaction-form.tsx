@@ -171,11 +171,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       "تمويل وارد للصندوق الرئيسي"
     ] : [
       // اقتراحات الإيرادات للمستخدم العادي (تمويل مشروع)
-      "دفعة من العميل",
-      "تمويل المشروع من قِبل المستخدم المسؤول",
+      "دفعة من العميل للمشروع",
+      "تمويل المشروع من قِبل المدير",
       "دفعة مقدمة للمشروع",
       "إيداع في صندوق المشروع",
-      "تمويل وارد للمشروع"
+      "تمويل وارد للمشروع من المدير"
     ],
     expense: user?.role === 'admin' && !form.getValues().projectId ? [
       // مصروفات المدير من الصندوق الرئيسي
@@ -284,7 +284,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         <SelectItem value="income" className="flex items-center gap-2">
                           <div className="flex items-center">
                             <PiggyBankIcon className="h-4 w-4 ml-2 text-green-500" />
-                            {user?.role === 'admin' ? 'إيراد (للصندوق الرئيسي)' : 'إيراد'}
+                            {user?.role === 'admin' ? 'إيراد (للصندوق الرئيسي)' : 'إيراد (للمشروع)'}
                           </div>
                         </SelectItem>
                         <SelectItem value="expense" className="flex items-center gap-2">
@@ -295,10 +295,12 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    {user?.role === 'admin' && field.value === 'income' && (
+                    {field.value === 'income' && (
                       <p className="text-xs text-green-600 mt-1 flex items-center font-medium">
                         <AlertTriangle className="w-3 h-3 mr-1" />
-                        سيتم إضافة الإيراد للصندوق الرئيسي فقط
+                        {user?.role === 'admin' 
+                          ? 'سيتم إضافة الإيراد للصندوق الرئيسي فقط'
+                          : 'سيتم إضافة الإيراد للمشروع المحدد فقط'}
                       </p>
                     )}
                     <FormMessage />
