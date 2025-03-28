@@ -61,37 +61,6 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
         </div>
       )}
       
-      {/* بطاقة عرض المشاريع (تظهر فقط للمدير وفي وضع المشاريع) */}
-      {isAdmin && !isShowingAdmin && (
-        <div className="bg-gradient-to-l from-green-700 to-green-900 rounded-xl shadow-xl overflow-hidden relative">
-          <div className="p-5 flex justify-between items-center">
-            <div className="flex-1">
-              <h3 className="text-white text-lg font-bold mb-2">المشاريع النشطة</h3>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-white">
-                  أرصدة المشاريع
-                </p>
-                <span className="text-white text-lg opacity-90">
-                  {formatCurrency(income - expenses)}
-                </span>
-              </div>
-              <p className="text-sm text-green-100 mt-2">
-                إجمالي أرصدة المشاريع الإدارية
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-full shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-700">
-                <rect width="7" height="9" x="3" y="3" rx="1" />
-                <rect width="7" height="5" x="14" y="3" rx="1" />
-                <rect width="7" height="9" x="14" y="12" rx="1" />
-                <rect width="7" height="5" x="3" y="16" rx="1" />
-              </svg>
-            </div>
-          </div>
-          <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-l from-green-400 to-green-600"></div>
-        </div>
-      )}
-      
       {/* بطاقات الإحصائيات */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className={`rounded-xl shadow-md p-5 overflow-hidden relative ${
