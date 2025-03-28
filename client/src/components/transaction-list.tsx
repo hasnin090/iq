@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/chart-utils';
 import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx';
 import { z } from 'zod';
 import {
   Form,
@@ -331,6 +332,51 @@ export function TransactionList({
     });
   };
   
+  // تصدير المعاملات إلى Excel
+  const exportToExcel = () => {
+    // إنشاء مصفوفة من بيانات المعاملات معدلة للتصدير
+    const data = transactions.map(transaction => ({
+      'التاريخ والوقت': formatDateTime(transaction.date),
+      'الوصف': getCustomTransactionDescription(transaction),
+      'المشروع': getProjectName(transaction.projectId),
+      'النوع': transaction.type === 'income' ? 'ايراد' : 'مصروف',
+      'المبلغ': transaction.amount,
+      'نوع الصندوق': isAdminFundTransaction(transaction) 
+        ? 'صندوق رئيسي' 
+        : isProjectFundingTransaction(transaction) 
+          ? 'تمويل مشروع' 
+          : 'صرف مشروع'
+    }));
+
+    // إنشاء ورقة عمل جديدة
+    const worksheet = XLSX.utils.json_to_sheet(data, { 
+      header: ['التاريخ والوقت', 'الوصف', 'المشروع', 'النوع', 'المبلغ', 'نوع الصندوق'],
+    });
+
+    // تعديل عرض الأعمدة
+    const wscols = [
+      { wch: 20 },  // عرض عمود التاريخ
+      { wch: 40 },  // عرض عمود الوصف
+      { wch: 20 },  // عرض عمود المشروع
+      { wch: 15 },  // عرض عمود النوع
+      { wch: 15 },  // عرض عمود المبلغ
+      { wch: 15 },  // عرض عمود نوع الصندوق
+    ];
+    worksheet['!cols'] = wscols;
+
+    // إنشاء كتاب عمل جديد وإضافة ورقة العمل إليه
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعاملات المالية');
+
+    // تصدير كتاب العمل إلى ملف Excel
+    XLSX.writeFile(workbook, 'transactions.xlsx');
+    
+    toast({
+      title: "تم التصدير بنجاح",
+      description: "تم تصدير المعاملات المالية إلى ملف Excel بنجاح",
+    });
+  };
+  
   if (isLoading) {
     return (
       <div className="text-center py-20">
@@ -352,7 +398,7 @@ export function TransactionList({
   return (
     <>
       <div className="bg-secondary-light rounded-xl shadow-card">
-        <div className="p-4 flex justify-end space-x-2">
+        <div className="p-4 flex justify-end gap-2">
           <Button 
             variant="outline" 
             onClick={() => window.print()}
@@ -365,7 +411,14 @@ export function TransactionList({
             onClick={exportToPdf}
             className="px-3 py-2 bg-secondary rounded-lg text-neutral-light border border-secondary-light hover:border-primary-light transition-all"
           >
-            <i className="fas fa-download mr-2"></i> تنزيل PDF
+            <i className="fas fa-file-pdf mr-2"></i> PDF
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={exportToExcel}
+            className="px-3 py-2 bg-secondary rounded-lg text-neutral-light border border-secondary-light hover:border-primary-light transition-all"
+          >
+            <i className="fas fa-file-excel mr-2"></i> Excel
           </Button>
         </div>
         
