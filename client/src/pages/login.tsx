@@ -111,6 +111,9 @@ export default function Login() {
       <div className="w-full max-w-md p-6">
         {/* إضافة شعار وعنوان البرنامج قبل بطاقة تسجيل الدخول */}
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-5">
+            <img src="/logo.svg" alt="شعار Code-01" className="h-24 w-auto" />
+          </div>
           <h1 className="text-4xl font-bold text-primary mb-3 drop-shadow-md">Code-01</h1>
           <div className="bg-blue-900/10 rounded-lg py-2 px-4 inline-block">
             <p className="text-blue-900 text-lg font-medium">نظام المحاسبة المتكامل</p>
