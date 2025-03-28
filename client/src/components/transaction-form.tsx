@@ -93,15 +93,33 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       // نسخة جديدة من البيانات لتجنب تعديل البيانات الأصلية
       let formData: any = { ...data };
       
-      // للمستخدم العادي، قم بإضافة المشروع المخصص له تلقائياً
-      if (user?.role !== 'admin' && userProjects?.length === 1) {
-        formData.projectId = parseInt(userProjects[0].id.toString());
-      } else if (formData.projectId && formData.projectId !== "none") {
-        // تحويل معرف المشروع إلى رقم إذا تم اختياره
-        formData.projectId = parseInt(formData.projectId);
+      // التعامل مع projectId حسب نوع المستخدم ونوع العملية
+      if (user?.role === 'admin') {
+        // للمدير:
+        // 1. إذا كانت العملية "إيراد"، حذف المشروع دائمًا لضمان إضافة الإيراد للصندوق الرئيسي
+        // 2. إذا كانت العملية "مصروف"، يتم التعامل حسب المشروع المحدد
+        if (formData.type === 'income') {
+          // إيراد للمدير يذهب للصندوق الرئيسي دائمًا
+          delete formData.projectId;
+        } else if (formData.projectId && formData.projectId !== "none") {
+          // مصروف للمدير مع تحديد مشروع
+          formData.projectId = parseInt(formData.projectId);
+        } else {
+          // مصروف للمدير بدون تحديد مشروع
+          delete formData.projectId;
+        }
       } else {
-        // إذا لم يتم تحديد مشروع أو تم اختيار "بدون مشروع"
-        delete formData.projectId;
+        // للمستخدم العادي:
+        if (userProjects?.length === 1) {
+          // إذا كان لديه مشروع واحد فقط، استخدمه تلقائيًا
+          formData.projectId = parseInt(userProjects[0].id.toString());
+        } else if (formData.projectId) {
+          // إذا تم تحديد مشروع، استخدمه
+          formData.projectId = parseInt(formData.projectId);
+        } else {
+          // إذا لم يتم تحديد مشروع، نفترض أن هناك خطأ
+          throw new Error("يجب تحديد مشروع للعملية");
+        }
       }
       
       return apiRequest('POST', '/api/transactions', formData);
@@ -309,8 +327,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 />
               </div>
               
-              {/* أظهر حقل المشروع فقط للمدير أو المستخدم الذي له أكثر من مشروع */}
-              {(user?.role === 'admin' || (user?.role !== 'admin' && userProjects && userProjects.length > 1)) && (
+              {/* 
+              أظهر حقل المشروع في الحالات التالية:
+              1. للمستخدم العادي الذي له أكثر من مشروع
+              2. للمدير عند اختيار نوع العملية "مصروف"
+              3. للمدير فقط عند اختيار "إيراد" ومع تقييد الخيارات حسب الحالة
+              */}
+              {((user?.role === 'admin' && (form.watch('type') === 'expense' || form.watch('type') === 'income')) || 
+                (user?.role !== 'admin' && userProjects && userProjects.length > 1)) && (
                 <FormField
                   control={form.control}
                   name="projectId"
@@ -328,19 +352,25 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {/* عرض "عام (بدون مشروع)" للمدير فقط */}
+                          {/* عرض "عام (بدون مشروع)" للمدير دائمًا، ويكون هو الخيار الوحيد للإيرادات */}
                           {user?.role === 'admin' && (
                             <SelectItem value="none">عام (بدون مشروع)</SelectItem>
                           )}
                           
-                          {/* عرض قائمة المشاريع المناسبة حسب دور المستخدم */}
+                          {/* 
+                          عرض قائمة المشاريع المناسبة حسب دور المستخدم ونوع العملية:
+                          - للمدير عند اختيار "مصروف": يمكنه اختيار أي مشروع
+                          - للمستخدم العادي: عرض فقط المشاريع المخصصة له دائمًا
+                          */}
                           {user?.role === 'admin' ? (
-                            // للمدير: عرض كل المشاريع
-                            projects.map((project) => (
-                              <SelectItem key={project.id} value={project.id.toString()}>
-                                {project.name}
-                              </SelectItem>
-                            ))
+                            // للمدير: عرض المشاريع فقط عند اختيار نوع العملية "مصروف"
+                            form.watch('type') === 'expense' ? (
+                              projects.map((project) => (
+                                <SelectItem key={project.id} value={project.id.toString()}>
+                                  {project.name}
+                                </SelectItem>
+                              ))
+                            ) : null // لا تعرض المشاريع للمدير عند اختيار "إيراد"
                           ) : (
                             // للمستخدم العادي: عرض فقط المشاريع المخصصة له
                             userProjects?.map((project) => (
@@ -352,6 +382,12 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                      {user?.role === 'admin' && form.watch('type') === 'income' && (
+                        <p className="text-xs text-blue-500 mt-1 flex items-center">
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          الإيرادات للمدير تضاف دائمًا إلى الصندوق الرئيسي
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />

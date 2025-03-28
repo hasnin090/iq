@@ -661,18 +661,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // معالجة العملية حسب نوعها ووجود مشروع ودور المستخدم
       if (userRole === 'admin') {
         // المدير له حق إجراء معاملات على الصندوق الرئيسي أو المشاريع
-        if (projectId) {
-          // إذا كان المشروع محددًا من قبل المدير
-          if (type === "income") {
-            // عملية إيداع في المشروع (تستقطع من حساب المدير)
-            result = await storage.processDeposit(userId, projectId, amount, description);
-          } else if (type === "expense") {
+        if (type === "income") {
+          // عمليات إيراد للمدير يجب أن تكون على الصندوق الرئيسي فقط
+          if (projectId) {
+            // إذا تم تحديد مشروع، نرفض العملية
+            return res.status(400).json({ 
+              message: "إيرادات المدير يجب أن تكون للصندوق الرئيسي فقط، لا يمكن إضافة إيرادات مباشرة للمشاريع" 
+            });
+          }
+          
+          // عملية إيراد للصندوق الرئيسي
+          result = await storage.processAdminTransaction(userId, type, amount, description);
+        } else if (type === "expense") {
+          // عمليات مصروفات للمدير يمكن أن تكون على الصندوق الرئيسي أو المشاريع
+          if (projectId) {
             // عملية صرف من المشروع
             result = await storage.processWithdrawal(userId, projectId, amount, description);
+          } else {
+            // عملية صرف من الصندوق الرئيسي
+            result = await storage.processAdminTransaction(userId, type, amount, description);
           }
-        } else {
-          // عملية للمدير على الصندوق الرئيسي (إيراد أو صرف)
-          result = await storage.processAdminTransaction(userId, type, amount, description);
         }
       } else {
         // المستخدم العادي لا يمكنه إجراء معاملات إلا على المشاريع المخصصة له
@@ -682,6 +690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (type === "income") {
           // عملية إيداع في المشروع (تستقطع من حساب المدير)
+          // هذه العملية تعني أن المستخدم يقوم بتحويل مبلغ من صندوق المدير إلى صندوق المشروع
           result = await storage.processDeposit(userId, projectId, amount, description);
         } else if (type === "expense") {
           // عملية صرف من المشروع
