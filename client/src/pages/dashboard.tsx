@@ -48,16 +48,21 @@ interface DashboardStats {
 export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   // إضافة متغير لتتبع نوع العرض: 'admin' للصندوق الرئيسي و 'projects' للمشاريع
-  const [displayMode, setDisplayMode] = useState<'admin' | 'projects'>('admin');
+  const [displayMode, setDisplayMode] = useState<'admin' | 'projects'>('projects');
   
   useEffect(() => {
     const userString = localStorage.getItem("user");
     if (!userString) return;
     try {
       const user = JSON.parse(userString);
-      setIsAdmin(user.role === 'admin');
+      const isAdminUser = user.role === 'admin';
+      setIsAdmin(isAdminUser);
+      // للمستخدمين العاديين، اجعل العرض الافتراضي هو المشاريع دائمًا
+      // للمدراء، يمكن عرض الصندوق الرئيسي افتراضيًا
+      setDisplayMode(isAdminUser ? 'admin' : 'projects');
     } catch (e) {
       setIsAdmin(false);
+      setDisplayMode('projects');
     }
   }, []);
 
@@ -102,30 +107,43 @@ export default function Dashboard() {
         <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--primary))] slide-in-right">لوحة التحكم</h2>
         
         <div className="flex items-center gap-4">
-          {/* زر التبديل بين العروض */}
-          <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-1 flex items-center">
-            <button
-              onClick={() => setDisplayMode('admin')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-all duration-300 ${
-                displayMode === 'admin'
-                  ? 'bg-blue-100 text-blue-700 shadow-sm'
-                  : 'hover:bg-gray-100 text-gray-600'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-              الصندوق الرئيسي
-            </button>
-            <button
-              onClick={() => setDisplayMode('projects')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-all duration-300 ${
-                displayMode === 'projects'
-                  ? 'bg-green-100 text-green-700 shadow-sm'
-                  : 'hover:bg-gray-100 text-gray-600'
-              }`}
-            >
+          {/* زر التبديل بين العروض - يظهر فقط للمديرين */}
+          {isAdmin ? (
+            <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-1 flex items-center">
+              <button
+                onClick={() => setDisplayMode('admin')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-all duration-300 ${
+                  displayMode === 'admin'
+                    ? 'bg-blue-100 text-blue-700 shadow-sm'
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                الصندوق الرئيسي
+              </button>
+              <button
+                onClick={() => setDisplayMode('projects')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-all duration-300 ${
+                  displayMode === 'projects'
+                    ? 'bg-green-100 text-green-700 shadow-sm'
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="7" height="9" x="3" y="3" rx="1" />
+                  <rect width="7" height="5" x="14" y="3" rx="1" />
+                  <rect width="7" height="9" x="14" y="12" rx="1" />
+                  <rect width="7" height="5" x="3" y="16" rx="1" />
+                </svg>
+                المشاريع
+              </button>
+            </div>
+          ) : (
+            // للمستخدمين العاديين نعرض فقط عنوان المشاريع بدون أزرار تبديل
+            <div className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect width="7" height="9" x="3" y="3" rx="1" />
                 <rect width="7" height="5" x="14" y="3" rx="1" />
@@ -133,8 +151,8 @@ export default function Dashboard() {
                 <rect width="7" height="5" x="3" y="16" rx="1" />
               </svg>
               المشاريع
-            </button>
-          </div>
+            </div>
+          )}
 
           <span className="bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] text-xs px-3 py-1.5 rounded-full font-medium shadow-sm zoom-in">
             {new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}

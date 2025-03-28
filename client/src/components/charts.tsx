@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import { 
   getFinancialSummaryOptions, 
@@ -17,6 +17,18 @@ interface ChartsProps {
 export function Charts({ income, expenses, profit, displayMode = 'admin' }: ChartsProps) {
   const financialChartRef = useRef<HTMLCanvasElement>(null);
   const expenseChartRef = useRef<HTMLCanvasElement>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    const userString = localStorage.getItem("user");
+    if (!userString) return;
+    try {
+      const user = JSON.parse(userString);
+      setIsAdmin(user.role === 'admin');
+    } catch (e) {
+      setIsAdmin(false);
+    }
+  }, []);
   
   useEffect(() => {
     // تحديد إذا كان العرض الحالي هو الصندوق الرئيسي أم المشاريع للاستخدام في الرسوم البيانية
@@ -66,7 +78,8 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
   }, [income, expenses, profit, displayMode]);
   
   // تحديد إذا كان العرض الحالي هو الصندوق الرئيسي أم المشاريع
-  const isShowingAdmin = displayMode === 'admin';
+  // للمستخدمين العاديين، دائمًا يكون العرض هو "المشاريع" بغض النظر عن قيمة displayMode
+  const isShowingAdmin = isAdmin ? displayMode === 'admin' : false;
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
