@@ -11,45 +11,40 @@ interface ChartsProps {
   income: number;
   expenses: number;
   profit: number;
+  displayMode?: 'admin' | 'projects';
 }
 
-export function Charts({ income, expenses, profit }: ChartsProps) {
+export function Charts({ income, expenses, profit, displayMode = 'admin' }: ChartsProps) {
   const financialChartRef = useRef<HTMLCanvasElement>(null);
   const expenseChartRef = useRef<HTMLCanvasElement>(null);
   
   useEffect(() => {
-    let financialChart: Chart | null = null;
-    let expenseChart: Chart | null = null;
+    // تحديد إذا كان العرض الحالي هو الصندوق الرئيسي أم المشاريع للاستخدام في الرسوم البيانية
+    const isAdminView = displayMode === 'admin';
     
-    // Create the financial summary chart
+    // تخزين مرجع للمخططات لاستخدامها في التنظيف
+    let chartInstances: Chart[] = [];
+    
+    // إنشاء مخطط الملخص المالي
     if (financialChartRef.current) {
       const ctx = financialChartRef.current.getContext('2d');
       if (ctx) {
-        // Destroy existing chart if it exists
-        if (financialChart) {
-          financialChart.destroy();
-        }
-        
-        // Create new chart
-        financialChart = new Chart(ctx, {
+        // إنشاء مخطط جديد
+        const financialChart = new Chart(ctx, {
           type: 'bar',
           data: createFinancialSummaryData(income, expenses, profit),
           options: getFinancialSummaryOptions()
         });
+        chartInstances.push(financialChart);
       }
     }
     
-    // Create the expense distribution chart
+    // إنشاء مخطط توزيع المصروفات
     if (expenseChartRef.current) {
       const ctx = expenseChartRef.current.getContext('2d');
       if (ctx) {
-        // Destroy existing chart if it exists
-        if (expenseChart) {
-          expenseChart.destroy();
-        }
-        
-        // Create new chart
-        expenseChart = new Chart(ctx, {
+        // إنشاء مخطط جديد
+        const expenseChart = new Chart(ctx, {
           type: 'doughnut',
           data: createExpenseDistributionData(
             ['رواتب', 'مشتريات', 'خدمات', 'إيجار', 'أخرى'],
@@ -57,31 +52,55 @@ export function Charts({ income, expenses, profit }: ChartsProps) {
           ),
           options: getExpenseDistributionOptions()
         });
+        chartInstances.push(expenseChart);
       }
     }
     
-    // Cleanup on component unmount
+    // تنظيف عند فك تركيب المكون
     return () => {
-      if (financialChart) {
-        financialChart.destroy();
-      }
-      if (expenseChart) {
-        expenseChart.destroy();
-      }
+      // تدمير جميع المخططات
+      chartInstances.forEach(chart => {
+        chart.destroy();
+      });
     };
-  }, [income, expenses, profit]);
+  }, [income, expenses, profit, displayMode]);
+  
+  // تحديد إذا كان العرض الحالي هو الصندوق الرئيسي أم المشاريع
+  const isShowingAdmin = displayMode === 'admin';
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-      <div className="bg-secondary-light rounded-xl shadow-card p-6">
-        <h3 className="text-lg font-bold text-primary-light mb-4">ملخص الوضع المالي</h3>
+      <div className={`rounded-xl shadow-card p-6 ${
+        isShowingAdmin 
+          ? 'bg-blue-50/50 border border-blue-100' 
+          : 'bg-green-50/50 border border-green-100'
+      }`}>
+        <h3 className={`text-lg font-bold mb-4 ${
+          isShowingAdmin ? 'text-blue-700' : 'text-green-700'
+        }`}>
+          {isShowingAdmin 
+            ? 'ملخص الصندوق الرئيسي' 
+            : 'ملخص أموال المشاريع'
+          }
+        </h3>
         <div className="h-64">
           <canvas ref={financialChartRef}></canvas>
         </div>
       </div>
       
-      <div className="bg-secondary-light rounded-xl shadow-card p-6">
-        <h3 className="text-lg font-bold text-primary-light mb-4">توزيع المصروفات</h3>
+      <div className={`rounded-xl shadow-card p-6 ${
+        isShowingAdmin 
+          ? 'bg-blue-50/50 border border-blue-100' 
+          : 'bg-green-50/50 border border-green-100'
+      }`}>
+        <h3 className={`text-lg font-bold mb-4 ${
+          isShowingAdmin ? 'text-blue-700' : 'text-green-700'
+        }`}>
+          {isShowingAdmin 
+            ? 'توزيع مصروفات الصندوق الرئيسي' 
+            : 'توزيع مصروفات المشاريع'
+          }
+        </h3>
         <div className="h-64">
           <canvas ref={expenseChartRef}></canvas>
         </div>

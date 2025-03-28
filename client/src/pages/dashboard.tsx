@@ -71,13 +71,11 @@ export default function Dashboard() {
       // عرض معاملات الصندوق الرئيسي فقط (بدون معرف مشروع أو projectId = null)
       return stats.recentTransactions.filter(t => t.projectId === null || t.projectId === undefined);
     } else {
-      // عرض معاملات المشاريع (مع وجود معرف المشروع)
-      // بالإضافة إلى عمليات الإيداع الرئيسية (لأنها تمثل الأموال التي ستغذي المشاريع)
+      // عرض معاملات المشاريع فقط (مع وجود معرف المشروع)
+      // بدون إظهار إيرادات المدير في قسم المشاريع
       return stats.recentTransactions.filter(t => 
-        // المعاملات المرتبطة بمشروع
-        (t.projectId !== null && t.projectId !== undefined) ||
-        // أو المعاملات من نوع إيراد في الصندوق الرئيسي (تغذية الصندوق)
-        (t.type === 'income' && (t.projectId === null || t.projectId === undefined))
+        // المعاملات المرتبطة بمشروع محدد فقط
+        (t.projectId !== null && t.projectId !== undefined)
       );
     }
   };
@@ -154,7 +152,8 @@ export default function Dashboard() {
             <Charts 
               income={stats?.totalIncome || 0} 
               expenses={stats?.totalExpenses || 0} 
-              profit={stats?.netProfit || 0} 
+              profit={stats?.netProfit || 0}
+              displayMode={displayMode}
             />
           </div>
           
