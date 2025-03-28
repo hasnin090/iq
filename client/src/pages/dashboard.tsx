@@ -48,19 +48,29 @@ interface DashboardStats {
 export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   // إضافة متغير لتتبع نوع العرض: 'admin' للصندوق الرئيسي و 'projects' للمشاريع
+  // تحديد القيمة الافتراضية كـ 'admin' للعرض المبدئي لصندوق المدير
   const [displayMode, setDisplayMode] = useState<'admin' | 'projects'>('admin');
   
   useEffect(() => {
     const userString = localStorage.getItem("user");
+    console.log("Dashboard - User data from localStorage:", userString);
+    
     if (!userString) return;
+    
     try {
       const user = JSON.parse(userString);
       const isAdminUser = user.role === 'admin';
+      console.log("Dashboard - User role:", user.role, "isAdmin:", isAdminUser);
+      
       setIsAdmin(isAdminUser);
+      
       // للمستخدمين العاديين، اجعل العرض الافتراضي هو المشاريع دائمًا
-      // للمدراء، يمكن عرض الصندوق الرئيسي افتراضيًا
-      setDisplayMode(isAdminUser ? 'admin' : 'projects');
+      // للمدراء، اجعل العرض الافتراضي هو صندوق المدير
+      const mode = isAdminUser ? 'admin' : 'projects';
+      console.log("Dashboard - Setting display mode to:", mode);
+      setDisplayMode(mode);
     } catch (e) {
+      console.error("Dashboard - Error parsing user data:", e);
       setIsAdmin(false);
       setDisplayMode('projects');
     }

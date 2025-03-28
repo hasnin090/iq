@@ -27,6 +27,8 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
   // تحديد إذا كان العرض الحالي يعرض صندوق المدير أم المشاريع
   // للمستخدمين العاديين، دائمًا يكون العرض هو "المشاريع" بغض النظر عن قيمة displayMode
   const isShowingAdmin = isAdmin ? displayMode === 'admin' : false;
+  
+  console.log("StatisticsCards - isAdmin:", isAdmin, "displayMode:", displayMode, "isShowingAdmin:", isShowingAdmin);
 
   return (
     <div className="space-y-6">
