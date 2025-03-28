@@ -48,7 +48,7 @@ interface DashboardStats {
 export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   // إضافة متغير لتتبع نوع العرض: 'admin' للصندوق الرئيسي و 'projects' للمشاريع
-  const [displayMode, setDisplayMode] = useState<'admin' | 'projects'>('projects');
+  const [displayMode, setDisplayMode] = useState<'admin' | 'projects'>('admin');
   
   useEffect(() => {
     const userString = localStorage.getItem("user");
