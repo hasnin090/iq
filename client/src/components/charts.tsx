@@ -20,12 +20,14 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
   const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
-    const userString = localStorage.getItem("user");
+    const userString = localStorage.getItem("auth_user");
     if (!userString) return;
     try {
       const user = JSON.parse(userString);
       setIsAdmin(user.role === 'admin');
+      console.log("Charts - User role from localStorage:", user.role);
     } catch (e) {
+      console.error("Charts - Error parsing user data:", e);
       setIsAdmin(false);
     }
   }, []);

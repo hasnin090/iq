@@ -14,12 +14,14 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
   const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
-    const userString = localStorage.getItem("user");
+    const userString = localStorage.getItem("auth_user");
     if (!userString) return;
     try {
       const user = JSON.parse(userString);
       setIsAdmin(user.role === 'admin');
+      console.log("StatisticsCards - User role from localStorage:", user.role);
     } catch (e) {
+      console.error("StatisticsCards - Error parsing user data:", e);
       setIsAdmin(false);
     }
   }, []);

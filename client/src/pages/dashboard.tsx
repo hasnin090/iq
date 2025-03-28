@@ -52,7 +52,7 @@ export default function Dashboard() {
   const [displayMode, setDisplayMode] = useState<'admin' | 'projects'>('admin');
   
   useEffect(() => {
-    const userString = localStorage.getItem("user");
+    const userString = localStorage.getItem("auth_user");
     console.log("Dashboard - User data from localStorage:", userString);
     
     if (!userString) return;
