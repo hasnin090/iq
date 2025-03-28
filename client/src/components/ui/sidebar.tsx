@@ -53,23 +53,6 @@ export function Sidebar() {
 
   return (
     <>
-      {/* زر القائمة المتنقلة - تم تحسينه لتجنب الإعاقة البصرية مع إضافة ثلاثة خطوط داخله */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-6 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-12 h-10 flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 opacity-90 hover:opacity-100"
-        aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
-      >
-        {isOpen ? (
-          <i className="fas fa-times text-lg"></i>
-        ) : (
-          <div className="w-6 h-5 flex flex-col justify-between">
-            <span className="h-0.5 w-full bg-white rounded-full"></span>
-            <span className="h-0.5 w-full bg-white rounded-full"></span>
-            <span className="h-0.5 w-full bg-white rounded-full"></span>
-          </div>
-        )}
-      </button>
-      
       {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها في الهواتف */}
       {isOpen && (
         <div
@@ -83,6 +66,20 @@ export function Sidebar() {
           isOpen ? "translate-x-0" : "translate-x-full"
         } md:translate-x-0 flex flex-col`}
       >
+        {/* إضافة زر القائمة داخل الشريط الجانبي - يتحرك مع الشريط كجزء منه */}
+        <div className="absolute -left-14 top-6 transform md:hidden">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className={`z-50 bg-[hsl(var(--primary))] rounded-r-lg rounded-l-none w-14 h-11 flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none transform hover:scale-105 active:scale-95 opacity-90 hover:opacity-100 ${isOpen ? "opacity-0" : "opacity-100"}`}
+            aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
+          >
+            <div className="w-6 h-5 flex flex-col justify-between">
+              <span className="h-0.5 w-full bg-white rounded-full"></span>
+              <span className="h-0.5 w-full bg-white rounded-full"></span>
+              <span className="h-0.5 w-full bg-white rounded-full"></span>
+            </div>
+          </button>
+        </div>
         <div className="p-6 flex-grow">
           {/* Header with app logo */}
           <div className="flex items-center justify-between mb-8">
