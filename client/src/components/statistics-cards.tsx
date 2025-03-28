@@ -34,32 +34,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
 
   return (
     <div className="space-y-6">
-      {/* بطاقة صندوق المدير (تظهر فقط للمدير وفي وضع الصندوق الرئيسي) */}
-      {isAdmin && isShowingAdmin && (
-        <div className="bg-gradient-to-l from-blue-700 to-blue-900 rounded-xl shadow-xl overflow-hidden relative">
-          <div className="p-5 flex justify-between items-center">
-            <div className="flex-1">
-              <h3 className="text-white text-lg font-bold mb-2">رصيد صندوق المدير</h3>
-              <p className="text-3xl font-bold text-white" id="adminFundBalance">
-                {formatCurrency(adminFundBalance || 0)}
-              </p>
-              <p className="text-sm text-blue-100 mt-2">
-                الرصيد المتاح في الصندوق الرئيسي للمدير
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-full shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-700">
-                <path d="M3 5H21"></path>
-                <path d="M3 9H21"></path>
-                <path d="M3 5V19c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5c-1.1 0-2 .9-2 2z"></path>
-                <path d="M9 11h6"></path>
-                <path d="M9 15h6"></path>
-              </svg>
-            </div>
-          </div>
-          <div className="absolute top-0 right-0 w-full h-2 bg-gradient-to-l from-blue-400 to-blue-600"></div>
-        </div>
-      )}
+      {/* تم إزالة بطاقة صندوق المدير بناءً على طلب المستخدم */}
       
       {/* بطاقات الإحصائيات */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
