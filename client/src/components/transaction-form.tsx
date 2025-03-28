@@ -280,14 +280,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           <SelectValue placeholder="اختر نوع العملية" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="income" className="flex items-center gap-2">
+                      <SelectContent className="bg-white border border-blue-100">
+                        <SelectItem value="income" className="flex items-center gap-2 hover:bg-green-50">
                           <div className="flex items-center">
                             <PiggyBankIcon className="h-4 w-4 ml-2 text-green-500" />
                             {user?.role === 'admin' ? 'إيراد (للصندوق الرئيسي)' : 'إيراد (للمشروع)'}
                           </div>
                         </SelectItem>
-                        <SelectItem value="expense" className="flex items-center gap-2">
+                        <SelectItem value="expense" className="flex items-center gap-2 hover:bg-red-50">
                           <div className="flex items-center">
                             <CoinsIcon className="h-4 w-4 ml-2 text-red-500" />
                             مصروف
@@ -382,10 +382,17 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                             <SelectValue placeholder="اختر المشروع" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-white border border-blue-100">
                           {/* عرض "عام (بدون مشروع)" للمدير دائمًا، ويكون هو الخيار الوحيد للإيرادات */}
                           {user?.role === 'admin' && (
-                            <SelectItem value="none">عام (بدون مشروع)</SelectItem>
+                            <SelectItem value="none" className="hover:bg-blue-50 text-blue-700 font-medium">
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                                الصندوق الرئيسي
+                              </div>
+                            </SelectItem>
                           )}
                           
                           {/* 
@@ -397,16 +404,26 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                             // للمدير: عرض المشاريع فقط عند اختيار نوع العملية "مصروف"
                             form.watch('type') === 'expense' ? (
                               projects.map((project) => (
-                                <SelectItem key={project.id} value={project.id.toString()}>
-                                  {project.name}
+                                <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-green-50">
+                                  <div className="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                    {project.name}
+                                  </div>
                                 </SelectItem>
                               ))
                             ) : null // لا تعرض المشاريع للمدير عند اختيار "إيراد"
                           ) : (
                             // للمستخدم العادي: عرض فقط المشاريع المخصصة له
                             userProjects?.map((project) => (
-                              <SelectItem key={project.id} value={project.id.toString()}>
-                                {project.name}
+                              <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-green-50">
+                                <div className="flex items-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                  </svg>
+                                  {project.name}
+                                </div>
                               </SelectItem>
                             ))
                           )}
