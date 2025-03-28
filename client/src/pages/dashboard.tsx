@@ -71,8 +71,14 @@ export default function Dashboard() {
       // عرض معاملات الصندوق الرئيسي فقط (بدون معرف مشروع أو projectId = null)
       return stats.recentTransactions.filter(t => t.projectId === null || t.projectId === undefined);
     } else {
-      // عرض معاملات المشاريع فقط (مع وجود معرف المشروع)
-      return stats.recentTransactions.filter(t => t.projectId !== null && t.projectId !== undefined);
+      // عرض معاملات المشاريع (مع وجود معرف المشروع)
+      // بالإضافة إلى عمليات الإيداع الرئيسية (لأنها تمثل الأموال التي ستغذي المشاريع)
+      return stats.recentTransactions.filter(t => 
+        // المعاملات المرتبطة بمشروع
+        (t.projectId !== null && t.projectId !== undefined) ||
+        // أو المعاملات من نوع إيراد في الصندوق الرئيسي (تغذية الصندوق)
+        (t.type === 'income' && (t.projectId === null || t.projectId === undefined))
+      );
     }
   };
 

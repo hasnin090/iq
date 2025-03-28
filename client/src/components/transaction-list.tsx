@@ -205,11 +205,26 @@ export function TransactionList({
     return project ? project.name : 'غير معروف';
   };
   
+  // التحقق ما إذا كانت المعاملة هي من الصندوق الرئيسي
+  const isAdminFundTransaction = (transaction: Transaction) => {
+    return transaction.projectId === null || transaction.projectId === undefined;
+  };
+  
+  // التحقق ما إذا كانت المعاملة تمثل عملية تغذية للصندوق الرئيسي
+  const isAdminFundDeposit = (transaction: Transaction) => {
+    return isAdminFundTransaction(transaction) && transaction.type === 'income';
+  };
+  
+  // التحقق ما إذا كانت المعاملة تمثل عملية تغذية للمشروع من الصندوق الرئيسي
+  const isProjectFundingTransaction = (transaction: Transaction) => {
+    return !isAdminFundTransaction(transaction) && transaction.type === 'income';
+  };
+  
   // تحديد وصف المعاملة حسب نوع المستخدم والمعاملة
   const { user } = useAuth();
   const getCustomTransactionDescription = (transaction: Transaction) => {
     // إذا كانت عملية الصندوق الرئيسي (بدون مشروع)
-    if (!transaction.projectId) {
+    if (isAdminFundTransaction(transaction)) {
       if (transaction.type === 'income') {
         return `إيراد للصندوق الرئيسي: ${transaction.description}`;
       } else {
@@ -361,17 +376,30 @@ export function TransactionList({
                 <div 
                   key={transaction.id} 
                   className={`p-4 rounded-lg border ${
-                    !transaction.projectId
+                    isAdminFundTransaction(transaction)
                       ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
-                      : 'bg-secondary border-border' // مشاريع
+                      : isProjectFundingTransaction(transaction)
+                        ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900' // تمويل مشروع
+                        : 'bg-secondary border-border' // عمليات أخرى
                   }`}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <span className="text-sm text-muted-foreground">{formatDateTime(transaction.date)}</span>
                     <div className="flex items-center gap-2">
-                      {!transaction.projectId && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      {isAdminFundTransaction(transaction) && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2v20M2 12h20"></path>
+                          </svg>
                           صندوق رئيسي
+                        </span>
+                      )}
+                      {isProjectFundingTransaction(transaction) && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7"></path>
+                          </svg>
+                          تمويل مشروع
                         </span>
                       )}
                       <span className={`px-2 py-1 text-xs rounded-full ${
@@ -431,7 +459,13 @@ export function TransactionList({
                   {transactions.map((transaction) => (
                     <tr 
                       key={transaction.id}
-                      className={!transaction.projectId ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : ''}
+                      className={`${
+                        isAdminFundTransaction(transaction)
+                          ? 'bg-indigo-50/50 dark:bg-indigo-950/20' // صندوق رئيسي
+                          : isProjectFundingTransaction(transaction)
+                            ? 'bg-green-50/50 dark:bg-green-950/20' // تمويل مشروع
+                            : ''
+                      }`}
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light">
                         {formatDateTime(transaction.date)}
@@ -440,12 +474,24 @@ export function TransactionList({
                         {getCustomTransactionDescription(transaction)}
                       </td>
                       <td className="px-4 py-3 text-sm text-neutral-light">
-                        {!transaction.projectId ? (
+                        {isAdminFundTransaction(transaction) ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 2v20M2 12h20"></path>
+                            </svg>
                             صندوق رئيسي
                           </span>
+                        ) : isProjectFundingTransaction(transaction) ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 12h14M12 5l7 7-7 7"></path>
+                            </svg>
+                            {getProjectName(transaction.projectId)}
+                          </span>
                         ) : (
-                          getProjectName(transaction.projectId)
+                          <span className="inline-flex items-center">
+                            {getProjectName(transaction.projectId)}
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">

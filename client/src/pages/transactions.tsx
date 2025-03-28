@@ -67,8 +67,20 @@ export default function Transactions() {
   // فلترة العمليات المالية حسب التبويب النشط
   const filteredTransactions = useMemo(() => {
     if (activeTab === 'all') return transactions;
-    if (activeTab === 'admin') return transactions?.filter(t => t.projectId === null || t.projectId === undefined) || [];
-    if (activeTab === 'projects') return transactions?.filter(t => t.projectId !== null && t.projectId !== undefined) || [];
+    if (activeTab === 'admin') {
+      // للصندوق الرئيسي: عرض جميع المعاملات التي ليس لها مشروع
+      return transactions?.filter(t => t.projectId === null || t.projectId === undefined) || [];
+    }
+    if (activeTab === 'projects') {
+      // للمشاريع: عرض المعاملات المرتبطة بمشاريع
+      // بالإضافة إلى عمليات الإيداع في الصندوق الرئيسي (لأنها مصدر تمويل المشاريع)
+      return transactions?.filter(t => 
+        // المعاملات المرتبطة بمشروع
+        (t.projectId !== null && t.projectId !== undefined) ||
+        // أو المعاملات من نوع إيراد في الصندوق الرئيسي (تغذية الصندوق)
+        (t.type === 'income' && (t.projectId === null || t.projectId === undefined))
+      ) || [];
+    }
     return transactions;
   }, [transactions, activeTab]);
 
