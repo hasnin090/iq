@@ -107,8 +107,16 @@ export default function Login() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center z-50 transition-opacity duration-300">
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
       <div className="w-full max-w-md p-6">
+        {/* إضافة شعار وعنوان البرنامج قبل بطاقة تسجيل الدخول */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-primary mb-3 drop-shadow-md">Code-01</h1>
+          <div className="bg-blue-900/10 rounded-lg py-2 px-4 inline-block">
+            <p className="text-blue-900 text-lg font-medium">نظام المحاسبة المتكامل</p>
+          </div>
+        </div>
+        
         <div className={`bg-white rounded-2xl p-8 shadow-xl border border-gray-100 transition-all ${shakeAnimation ? 'shake' : ''}`}>
           <h2 className="text-gray-800 text-2xl font-bold text-center mb-6">تسجيل الدخول إلى النظام</h2>
           
@@ -199,6 +207,11 @@ export default function Login() {
             </form>
           </Form>
         </div>
+      </div>
+      
+      {/* إضافة حقوق الملكية في أسفل الصفحة */}
+      <div className="mt-8 text-center text-xs text-gray-500">
+        <p>جميع الحقوق محفوظة &copy; {new Date().getFullYear()} Code-01</p>
       </div>
     </div>
   );
