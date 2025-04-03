@@ -107,7 +107,7 @@ export function TransactionList({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       date: new Date(),
-      type: "",
+      type: "income", // تعيين القيمة الافتراضية إلى "income" بدلاً من ""
       amount: 0,
       description: "",
       projectId: null,
@@ -193,9 +193,18 @@ export function TransactionList({
   
   const onEditSubmit = (values: TransactionFormValues) => {
     if (transactionToEdit) {
+      // تأكد من صحة البيانات قبل الإرسال
+      const formattedData = {
+        ...values,
+        // التأكد من أن projectId هو null أو رقم صحيح وليس undefined
+        projectId: values.projectId === undefined ? null : values.projectId
+      };
+      
+      console.log("تحديث المعاملة - القيم:", formattedData);
+      
       updateMutation.mutate({
         id: transactionToEdit.id,
-        transaction: values
+        transaction: formattedData
       });
     }
   };
@@ -669,7 +678,7 @@ export function TransactionList({
                     <FormLabel>نوع المعاملة</FormLabel>
                     <Select
                       dir="rtl"
-                      value={field.value ? field.value : "income"}
+                      value={field.value || "income"}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
@@ -738,9 +747,9 @@ export function TransactionList({
                     <FormLabel>المشروع</FormLabel>
                     <Select
                       dir="rtl"
-                      value={field.value?.toString() || ""}
+                      value={field.value !== null && field.value !== undefined ? field.value.toString() : "none"}
                       onValueChange={(value) => {
-                        if (value === "") {
+                        if (value === "none") {
                           field.onChange(null);
                         } else {
                           field.onChange(Number(value));
@@ -753,7 +762,7 @@ export function TransactionList({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent position="popper">
-                        <SelectItem value="">عام (بدون مشروع)</SelectItem>
+                        <SelectItem value="none">عام (بدون مشروع)</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>{project.name}</SelectItem>
                         ))}

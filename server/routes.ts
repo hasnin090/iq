@@ -716,7 +716,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/transactions/:id", authenticate, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const transactionData = req.body;
+      
+      // التحقق من صحة البيانات المستلمة باستخدام Zod
+      const transactionSchema = z.object({
+        date: z.string().or(z.date()),
+        type: z.enum(["income", "expense"]),
+        amount: z.number().positive(),
+        description: z.string(),
+        projectId: z.number().nullable().optional(),
+      });
+      
+      // التحقق من البيانات وإرجاع أي أخطاء
+      let transactionData;
+      try {
+        transactionData = transactionSchema.parse(req.body);
+        console.log("البيانات المدخلة للتحديث:", transactionData);
+      } catch (validationError) {
+        if (validationError instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "بيانات غير صحيحة", 
+            errors: validationError.errors.map(e => e.message)
+          });
+        }
+        throw validationError;
+      }
       
       const transaction = await storage.getTransaction(id);
       if (!transaction) {
@@ -728,7 +751,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "غير مصرح لك بتحديث هذه المعاملة" });
       }
       
-      const updatedTransaction = await storage.updateTransaction(id, transactionData);
+      // تنسيق البيانات (التأكد من أن projectId هو null أو رقم وليس undefined)
+      const formattedData = {
+        ...transactionData,
+        projectId: transactionData.projectId === undefined ? null : transactionData.projectId
+      };
+      
+      const updatedTransaction = await storage.updateTransaction(id, formattedData);
       
       if (updatedTransaction) {
         await storage.createActivityLog({
@@ -742,6 +771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(200).json(updatedTransaction);
     } catch (error) {
+      console.error("خطأ في تحديث المعاملة:", error);
       return res.status(500).json({ message: "خطأ في تحديث المعاملة" });
     }
   });
