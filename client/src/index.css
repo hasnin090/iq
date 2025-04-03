@@ -123,40 +123,79 @@
 @layer base {
   :root {
     --background: 210 40% 98%;
-    --foreground: 220 20% 15%;
+    --foreground: 215 25% 25%;
     
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 215 25% 25%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover-foreground: 215 25% 25%;
     
-    --primary: 216 80% 50%;
+    --primary: 214 80% 56%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 220 20% 15%;
+    --secondary: 215 32% 95%;
+    --secondary-foreground: 215 25% 25%;
     
     --muted: 210 20% 80%;
-    --muted-foreground: 220 15% 40%;
+    --muted-foreground: 215 15% 45%;
     
-    --accent: 216 80% 60%;
+    --accent: 214 85% 60%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 216 80% 50%;
+    --border: 215 32% 91%;
+    --input: 215 32% 91%;
+    --ring: 214 80% 56%;
     
-    --radius: 1rem;
+    --radius: 0.75rem;
     
-    --chart-1: 216 80% 50%;
+    --chart-1: 214 80% 56%;
     --chart-2: 0 84% 60%;
     --chart-3: 141 70% 45%;
     --chart-4: 39 100% 50%;
     --chart-5: 187 92% 53%;
+    
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 95% 55%;
+    --warning-foreground: 0 0% 100%;
+    
+    --info: 200 80% 55%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 215 25% 15%;
+    --foreground: 210 40% 98%;
+    
+    --card: 215 25% 20%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 215 25% 20%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 214 80% 56%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 215 25% 25%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 215 25% 35%;
+    --muted-foreground: 210 20% 80%;
+    
+    --accent: 214 85% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 215 25% 28%;
+    --input: 215 25% 25%;
+    --ring: 214 80% 56%;
   }
   
   * {
@@ -166,6 +205,9 @@
   body {
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-sans antialiased;
     font-family: 'Cairo', sans-serif;
+    font-weight: 450; /* جعل الخط أثقل قليلاً للوضوح */
+    font-size: 15px; /* زيادة حجم الخط قليلاً للوضوح */
+    letter-spacing: 0.01em; /* تحسين المسافة بين الحروف */
     direction: rtl;
   }
   
@@ -218,12 +260,12 @@
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-[hsl(var(--border))] p-4 md:p-6 transition-all duration-300 hover:shadow-md transform hover:-translate-y-1;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[hsl(var(--border))] p-4 md:p-6 transition-all duration-300 hover:shadow-md transform hover:-translate-y-1;
   }
 
   /* تحسين بطاقات العرض للهاتف */
   .mobile-card {
-    @apply bg-white rounded-xl shadow-sm border border-[hsl(var(--border))] p-3.5 transition-all;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[hsl(var(--border))] p-3.5 transition-all;
   }
   
   .action-button {
@@ -249,11 +291,21 @@
   
   /* تحسينات عرض الجداول في الشاشات الصغيرة */
   .responsive-table-container {
-    @apply w-full overflow-x-auto rounded-lg border border-[hsl(var(--border))] bg-white shadow-sm;
+    @apply w-full overflow-x-auto rounded-lg border border-[hsl(var(--border))] bg-white dark:bg-gray-800 shadow-sm;
   }
   
   .responsive-table {
-    @apply w-full min-w-full table-auto divide-y divide-[hsl(var(--border))];
+    @apply w-full min-w-full table-auto divide-y divide-[hsl(var(--border))] dark:divide-gray-700;
+  }
+  
+  /* تحسين عرض الخطوط في رؤوس الجداول */
+  .table-header {
+    @apply text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50;
+  }
+  
+  /* تحسين عرض النصوص في خلايا الجداول */
+  .table-cell {
+    @apply py-2.5 px-4 text-sm text-gray-800 dark:text-gray-200;
   }
   
   /* الحاويات المتجاوبة للبطاقات */
@@ -271,12 +323,23 @@
   }
   
   .mobile-friendly-heading {
-    @apply text-xl sm:text-2xl md:text-3xl font-bold;
+    @apply text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 tracking-tight;
   }
   
   .mobile-friendly-subheading {
-    @apply text-lg sm:text-xl font-semibold;
+    @apply text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-200 tracking-tight;
   }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-bold text-gray-800 dark:text-gray-100;
+  }
+  
+  h1 { @apply text-3xl md:text-4xl; }
+  h2 { @apply text-2xl md:text-3xl; }
+  h3 { @apply text-xl md:text-2xl; }
+  h4 { @apply text-lg md:text-xl; }
+  h5 { @apply text-base md:text-lg; }
+  h6 { @apply text-sm md:text-base; }
   
   /* تحسين أزرار الهاتف المحمول */
   .mobile-action-button {
@@ -317,15 +380,32 @@
   
   /* تحسين عرض البطاقات في الشاشات الصغيرة */
   .mobile-stats-card {
-    @apply p-3 sm:p-4 rounded-lg border border-[hsl(var(--border))] bg-white flex flex-col;
+    @apply p-3 sm:p-4 rounded-lg border border-[hsl(var(--border))] bg-white dark:bg-gray-800 flex flex-col;
   }
   
   .mobile-stats-value {
-    @apply text-xl sm:text-2xl font-bold text-[hsl(var(--primary))];
+    @apply text-xl sm:text-2xl font-bold text-[hsl(var(--primary))] dark:text-blue-400;
   }
   
   .mobile-stats-label {
-    @apply text-xs sm:text-sm text-gray-500;
+    @apply text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-medium;
+  }
+  
+  /* بطاقات الإحصائيات المحسنة */
+  .stats-card {
+    @apply p-5 rounded-xl border border-[hsl(var(--border))] bg-white dark:bg-gray-800 flex flex-col relative overflow-hidden;
+  }
+  
+  .stats-card-value {
+    @apply text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-1;
+  }
+  
+  .stats-card-label {
+    @apply text-sm text-gray-600 dark:text-gray-300 font-medium;
+  }
+  
+  .stats-card-icon {
+    @apply absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-500/10 text-5xl;
   }
   
   /* تحسين التباعد في الشاشات الصغيرة */
