@@ -40,19 +40,42 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
     mutationFn: (id: number) => {
       return apiRequest('DELETE', `/api/projects/${id}`, undefined);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "تم الحذف بنجاح",
         description: "تم حذف المشروع بنجاح",
       });
       onProjectUpdated();
     },
-    onError: (error) => {
+    onError: async (error: any) => {
+      // محاولة استخراج رسالة الخطأ من استجابة الخادم
+      let errorMessage = "فشل في حذف المشروع";
+      
+      try {
+        if (error.response && error.response.status === 400) {
+          // استجابة 400 تعني أن هناك سبب محدد لعدم القدرة على حذف المشروع
+          const responseData = await error.response.json();
+          
+          if (responseData.message) {
+            errorMessage = responseData.message;
+            
+            // إضافة تفاصيل إضافية إذا كانت متوفرة
+            if (responseData.transactionsCount) {
+              errorMessage += ` (عدد المعاملات المرتبطة: ${responseData.transactionsCount})`;
+            }
+          }
+        }
+      } catch (jsonError) {
+        console.error("خطأ في معالجة استجابة الخطأ:", jsonError);
+      }
+      
       toast({
         variant: "destructive",
-        title: "خطأ",
-        description: error instanceof Error ? error.message : "فشل في حذف المشروع",
+        title: "تعذر حذف المشروع",
+        description: errorMessage,
       });
+      
+      console.error("خطأ حذف المشروع:", error);
     },
   });
   

@@ -10,7 +10,8 @@ import {
   insertDocumentSchema,
   insertActivityLogSchema,
   insertSettingSchema,
-  funds
+  funds,
+  type Transaction
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -538,20 +539,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id", authenticate, async (req: Request, res: Response) => {
+  app.delete("/api/projects/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      
+      console.log(`محاولة حذف المشروع رقم: ${id} بواسطة المستخدم: ${req.session.userId}, الدور: ${req.session.role}`);
       
       const project = await storage.getProject(id);
       if (!project) {
         return res.status(404).json({ message: "المشروع غير موجود" });
       }
       
-      // Only project creator or admin can delete
-      if (project.createdBy !== req.session.userId && req.session.role !== "admin") {
-        return res.status(403).json({ message: "غير مصرح لك بحذف هذا المشروع" });
+      // التحقق مما إذا كان المشروع مرتبط بأي معاملات مالية
+      const projectTransactions = await storage.getTransactionsByProject(id);
+      if (projectTransactions.length > 0) {
+        return res.status(400).json({ 
+          message: "لا يمكن حذف المشروع لأنه يحتوي على معاملات مالية مرتبطة به",
+          transactionsCount: projectTransactions.length
+        });
       }
       
+      // التحقق مما إذا كان المشروع مرتبط بصندوق
+      const projectFund = await storage.getFundByProject(id);
+      if (projectFund) {
+        return res.status(400).json({ 
+          message: "لا يمكن حذف المشروع لأنه يحتوي على صندوق مالي مرتبط به",
+          fundId: projectFund.id
+        });
+      }
+      
+      // حذف أي مستندات مرتبطة بالمشروع
+      const projectDocuments = await storage.getDocumentsByProject(id);
+      for (const document of projectDocuments) {
+        await storage.deleteDocument(document.id);
+      }
+      
+      // إزالة أي مستخدمين مرتبطين بالمشروع
+      const projectUsers = await storage.getProjectUsers(id);
+      for (const user of projectUsers) {
+        await storage.removeUserFromProject(user.id, id);
+      }
+      
+      // بعد التحقق من عدم وجود أي عناصر مرتبطة، يمكننا حذف المشروع
       const result = await storage.deleteProject(id);
       
       if (result) {
@@ -562,11 +591,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: `حذف مشروع: ${project.name}`,
           userId: req.session.userId as number
         });
+        
+        return res.status(200).json({ success: true, message: "تم حذف المشروع بنجاح" });
+      } else {
+        return res.status(500).json({ message: "فشل في حذف المشروع لسبب غير معروف" });
       }
-      
-      return res.status(200).json({ success: result });
     } catch (error) {
-      return res.status(500).json({ message: "خطأ في حذف المشروع" });
+      console.error("خطأ في حذف المشروع:", error);
+      return res.status(500).json({ 
+        message: "خطأ في حذف المشروع", 
+        error: error instanceof Error ? error.message : "خطأ غير معروف" 
+      });
     }
   });
 
@@ -752,8 +787,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // تنسيق البيانات (التأكد من أن projectId هو null أو رقم وليس undefined)
+      // تحويل البيانات إلى الصيغة المناسبة
       const formattedData = {
-        ...transactionData,
+        date: new Date(transactionData.date.toString()),
+        type: transactionData.type,
+        amount: transactionData.amount,
+        description: transactionData.description,
         projectId: transactionData.projectId === undefined ? null : transactionData.projectId
       };
       
