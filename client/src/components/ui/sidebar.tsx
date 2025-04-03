@@ -84,10 +84,10 @@ export function Sidebar() {
       {/* زر ثابت لفتح القائمة الجانبية */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed top-4 right-5 z-50 bg-[hsl(var(--primary))] rounded-lg w-10 h-10 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        className={`fixed top-4 right-14 z-50 bg-[hsl(var(--primary))] rounded-lg w-8 h-8 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
-        <div className="w-5 h-4 flex flex-col justify-between">
+        <div className="w-4 h-3 flex flex-col justify-between">
           <span className="h-0.5 w-full bg-white rounded-full"></span>
           <span className="h-0.5 w-full bg-white rounded-full"></span>
           <span className="h-0.5 w-full bg-white rounded-full"></span>
