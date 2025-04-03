@@ -397,35 +397,35 @@ export function TransactionList({
   
   if (transactions.length === 0) {
     return (
-      <div className="bg-secondary-light rounded-xl shadow-card p-10 text-center">
+      <div className="bg-secondary-light dark:bg-gray-800 rounded-xl shadow-card p-10 text-center">
         <p className="text-muted-foreground">لا توجد معاملات مالية حتى الآن</p>
-        <p className="text-sm text-muted mt-2">أضف معاملة جديدة باستخدام النموذج أعلاه</p>
+        <p className="text-sm text-muted mt-2 dark:text-gray-400">أضف معاملة جديدة باستخدام النموذج أعلاه</p>
       </div>
     );
   }
   
   return (
     <>
-      <div className="bg-secondary-light rounded-xl shadow-card">
+      <div className="bg-secondary-light dark:bg-gray-800 rounded-xl shadow-card">
         <div className="p-4 flex justify-end gap-2">
           <Button 
             variant="outline" 
             onClick={() => window.print()}
-            className="px-3 py-2 bg-secondary rounded-lg text-neutral-light border border-secondary-light hover:border-primary-light transition-all"
+            className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
           >
             <i className="fas fa-print mr-2"></i> طباعة
           </Button>
           <Button 
             variant="outline" 
             onClick={exportToPdf}
-            className="px-3 py-2 bg-secondary rounded-lg text-neutral-light border border-secondary-light hover:border-primary-light transition-all"
+            className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
           >
             <i className="fas fa-file-pdf mr-2"></i> PDF
           </Button>
           <Button 
             variant="outline" 
             onClick={exportToExcel}
-            className="px-3 py-2 bg-secondary rounded-lg text-neutral-light border border-secondary-light hover:border-primary-light transition-all"
+            className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
           >
             <i className="fas fa-file-excel mr-2"></i> Excel
           </Button>
@@ -495,14 +495,14 @@ export function TransactionList({
                     </span>
                     <div className="flex gap-1.5">
                       <button 
-                        className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium flex items-center"
+                        className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center"
                         onClick={() => handleEditClick(transaction)}
                       >
                         <i className="fas fa-edit ml-1"></i>
                         تعديل
                       </button>
                       <button 
-                        className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium flex items-center"
+                        className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center"
                         onClick={() => handleDeleteClick(transaction)}
                       >
                         <i className="fas fa-trash-alt ml-1"></i>
@@ -515,18 +515,18 @@ export function TransactionList({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-secondary">
-                <thead>
+              <table className="min-w-full divide-y divide-secondary dark:divide-gray-600">
+                <thead className="dark:bg-gray-700">
                   <tr>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">التاريخ والوقت</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الوصف</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">المشروع</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">النوع</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">المبلغ</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الإجراءات</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">التاريخ والوقت</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">الوصف</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">المشروع</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">النوع</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-secondary-light">
+                <tbody className="divide-y divide-secondary-light dark:divide-gray-600">
                   {transactions.map((transaction) => (
                     <tr 
                       key={transaction.id}
@@ -538,13 +538,13 @@ export function TransactionList({
                             : ''
                       }`}
                     >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light dark:text-gray-300">
                         {formatDateTime(transaction.date)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-neutral-light">
+                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300">
                         {getCustomTransactionDescription(transaction)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-neutral-light">
+                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300">
                         {isAdminFundTransaction(transaction) ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -583,14 +583,14 @@ export function TransactionList({
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
                           <button 
-                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium flex items-center"
+                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center"
                             onClick={() => handleEditClick(transaction)}
                           >
                             <i className="fas fa-edit ml-1"></i>
                             تعديل
                           </button>
                           <button 
-                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium flex items-center"
+                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center"
                             onClick={() => handleDeleteClick(transaction)}
                           >
                             <i className="fas fa-trash-alt ml-1"></i>
