@@ -85,6 +85,7 @@ export function Sidebar() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed top-4 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-12 h-12 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        style={{ position: 'fixed', top: '16px', right: '16px' }}
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
         <div className="w-6 h-5 flex flex-col justify-between">

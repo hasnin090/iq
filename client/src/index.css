@@ -399,6 +399,14 @@
     to { transform: scale(1); opacity: 1; }
   }
   
+  /* إصلاح مشكلة زر القائمة الجانبية */
+  [aria-label="فتح القائمة"], [aria-label="إغلاق القائمة"] {
+    position: fixed !important;
+    top: 16px !important;
+    right: 16px !important;
+    z-index: 999 !important;
+  }
+  
   /* تأثيرات حركية للأزرار */
   .btn-hover-effect {
     position: relative;
