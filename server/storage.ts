@@ -234,7 +234,32 @@ export class MemStorage implements IStorage {
   }
 
   async deleteProject(id: number): Promise<boolean> {
-    return this.projectsData.delete(id);
+    try {
+      // التحقق من وجود صندوق مرتبط بالمشروع وحذفه
+      const projectFund = await this.getFundByProject(id);
+      if (projectFund) {
+        // حذف الصندوق إذا كان رصيده صفر
+        if (projectFund.balance === 0) {
+          await db.delete(funds).where(eq(funds.id, projectFund.id));
+        } else {
+          throw new Error("لا يمكن حذف المشروع لأن الصندوق المرتبط به يحتوي على رصيد");
+        }
+      }
+
+      // حذف كل المستندات المرتبطة بالمشروع
+      await db.delete(documents).where(eq(documents.projectId, id));
+      
+      // حذف علاقات المستخدمين بالمشروع
+      await db.delete(userProjects).where(eq(userProjects.projectId, id));
+      
+      // حذف المشروع نفسه
+      await db.delete(projects).where(eq(projects.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("خطأ في حذف المشروع:", error);
+      throw error;
+    }
   }
 
   // User Projects
