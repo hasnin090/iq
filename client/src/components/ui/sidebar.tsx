@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -84,7 +85,7 @@ export function Sidebar() {
       {/* زر ثابت لفتح القائمة الجانبية */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed top-4 right-14 z-50 bg-[hsl(var(--primary))] rounded-lg w-8 h-8 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        className={`fixed top-4 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-8 h-8 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
         <div className="w-4 h-3 flex flex-col justify-between">
@@ -93,6 +94,14 @@ export function Sidebar() {
           <span className="h-0.5 w-full bg-white rounded-full"></span>
         </div>
       </button>
+      
+      {/* زر ثابت لتبديل الوضع المظلم/الفاتح في الهاتف */}
+      <div className={`fixed top-4 right-14 z-50 md:hidden ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+        <ThemeToggle 
+          className="bg-[hsl(var(--primary))] rounded-lg w-8 h-8 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none transform hover:scale-105 active:scale-95 touch-target"
+          iconClassName="h-4 w-4 text-white"
+        />
+      </div>
 
       {/* شريط تنقل متحرك للهاتف */}
       {isMobile && !isOpen && (
@@ -123,7 +132,7 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed top-0 right-0 h-full w-[85%] sm:w-80 md:w-72 bg-white border-l border-blue-100 transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl ${
+        className={`fixed top-0 right-0 h-full w-[85%] sm:w-80 md:w-72 bg-white dark:bg-gray-800 border-l border-blue-100 dark:border-gray-700 transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } md:translate-x-0 flex flex-col`}
         style={{
@@ -152,15 +161,15 @@ export function Sidebar() {
           
           {/* User profile card */}
           {user && (
-            <div className="mb-6 bg-blue-50 p-4 rounded-2xl border border-blue-100 shadow-md relative overflow-hidden zoom-in">
-              <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--primary))/5] to-transparent"></div>
+            <div className="mb-6 bg-blue-50 dark:bg-gray-700 p-4 rounded-2xl border border-blue-100 dark:border-gray-600 shadow-md relative overflow-hidden zoom-in">
+              <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--primary))/5] to-transparent dark:from-[hsl(var(--primary))/10] dark:to-transparent"></div>
               <div className="flex items-center space-x-4 space-x-reverse relative z-10">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center shadow-md">
                   <i className="fas fa-user text-lg sm:text-xl text-white"></i>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--primary))] font-medium text-base sm:text-lg">{user.name}</div>
-                  <div className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] mt-1 flex items-center">
+                  <div className="text-[hsl(var(--primary))] dark:text-white font-medium text-base sm:text-lg">{user.name}</div>
+                  <div className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] dark:text-gray-300 mt-1 flex items-center">
                     <i className="fas fa-circle text-[6px] mr-2 text-[hsl(var(--primary))]"></i>
                     <span>{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</span>
                   </div>
@@ -170,9 +179,9 @@ export function Sidebar() {
           )}
           
           {/* Main menu section - المحتوى الرئيسي */}
-          <div className="mt-6 border border-blue-100 rounded-2xl overflow-hidden shadow-sm bg-blue-50/30 slide-in-up">
-            <div className="py-2.5 px-4 bg-gradient-to-l from-[hsl(var(--primary))/20] to-[hsl(var(--primary))/5] border-b border-blue-100">
-              <h3 className="text-[hsl(var(--primary))] font-semibold text-sm sm:text-base">القائمة الرئيسية</h3>
+          <div className="mt-6 border border-blue-100 dark:border-gray-600 rounded-2xl overflow-hidden shadow-sm bg-blue-50/30 dark:bg-gray-700 slide-in-up">
+            <div className="py-2.5 px-4 bg-gradient-to-l from-[hsl(var(--primary))/20] to-[hsl(var(--primary))/5] dark:from-[hsl(var(--primary))/30] dark:to-[hsl(var(--primary))/10] border-b border-blue-100 dark:border-gray-600">
+              <h3 className="text-[hsl(var(--primary))] dark:text-white font-semibold text-sm sm:text-base">القائمة الرئيسية</h3>
             </div>
             <nav className="p-2.5 space-y-1.5">
               <Link
@@ -180,10 +189,10 @@ export function Sidebar() {
                 className={`flex items-center space-x-reverse space-x-3 px-3 py-2.5 rounded-xl no-flicker touch-target ${
                   location === "/" 
                     ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-102"
+                    : "text-[hsl(var(--primary))] dark:text-white hover:bg-blue-50 dark:hover:bg-gray-600 hover:scale-102"
                 } transition-all duration-200 transform`}
               >
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/" ? "bg-white/20 text-white" : "bg-blue-100 dark:bg-gray-600"}`}>
                   <i className="fas fa-home"></i>
                 </div>
                 <span className="text-sm sm:text-base">لوحة التحكم</span>
@@ -249,9 +258,9 @@ export function Sidebar() {
           
           {/* Administration section - قسم الإدارة */}
           {user?.role === "admin" && (
-            <div className="mt-4 border border-blue-100 rounded-2xl overflow-hidden shadow-sm bg-blue-50/30 slide-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="py-2.5 px-4 bg-gradient-to-l from-[hsl(var(--primary))/20] to-[hsl(var(--primary))/5] border-b border-blue-100">
-                <h3 className="text-[hsl(var(--primary))] font-semibold text-sm sm:text-base">الإدارة</h3>
+            <div className="mt-4 border border-blue-100 dark:border-gray-600 rounded-2xl overflow-hidden shadow-sm bg-blue-50/30 dark:bg-gray-700 slide-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="py-2.5 px-4 bg-gradient-to-l from-[hsl(var(--primary))/20] to-[hsl(var(--primary))/5] dark:from-[hsl(var(--primary))/30] dark:to-[hsl(var(--primary))/10] border-b border-blue-100 dark:border-gray-600">
+                <h3 className="text-[hsl(var(--primary))] dark:text-white font-semibold text-sm sm:text-base">الإدارة</h3>
               </div>
               <nav className="p-2.5 space-y-1.5">
                 <Link
@@ -303,18 +312,32 @@ export function Sidebar() {
           <div className="pt-4 mt-6">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl text-[hsl(var(--destructive))] hover:bg-red-100 hover:scale-102 transition-all duration-200 text-right bg-red-50/30 border border-red-100 no-flicker touch-target"
+              className="w-full flex items-center space-x-reverse space-x-3 px-4 py-3 rounded-xl text-[hsl(var(--destructive))] dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:scale-102 transition-all duration-200 text-right bg-red-50/30 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 no-flicker touch-target"
             >
-              <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shadow-sm no-flicker">
-                <i className="fas fa-sign-out-alt text-lg"></i>
+              <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shadow-sm no-flicker">
+                <i className="fas fa-sign-out-alt text-lg text-red-500 dark:text-red-300"></i>
               </div>
               <span className="font-medium text-sm sm:text-base">تسجيل خروج</span>
             </button>
           </div>
         </div>
         
+        {/* Dark mode toggle button - زر تبديل الوضع المظلم/الفاتح */}
+        <div className="px-5 py-3 mb-1 flex items-center justify-between">
+          <div className="flex items-center space-x-reverse space-x-2">
+            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-gray-700 flex items-center justify-center shadow-sm">
+              <i className="fas fa-palette text-[hsl(var(--primary))] dark:text-white"></i>
+            </div>
+            <span className="text-sm text-[hsl(var(--primary))] dark:text-white font-medium">وضع الألوان</span>
+          </div>
+          <ThemeToggle 
+            className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm hover:shadow hover:bg-blue-100 dark:bg-gray-700 dark:border-gray-600"
+            iconClassName="h-5 w-5 text-[hsl(var(--primary))] dark:text-white"
+          />
+        </div>
+          
         {/* Footer with app version - تذييل مع إصدار التطبيق */}
-        <div className="p-4 text-center text-xs text-gray-500 border-t border-blue-100">
+        <div className="p-4 text-center text-xs text-gray-500 border-t border-blue-100 dark:border-gray-700 dark:text-gray-400">
           <p>نظام Code-01 - الإصدار 1.0.2</p>
           <p className="mt-1">© 2025 جميع الحقوق محفوظة</p>
         </div>

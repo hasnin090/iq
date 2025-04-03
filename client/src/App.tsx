@@ -80,12 +80,12 @@ function AppRoutes() {
   return (
     <div className="flex">
       <Sidebar />
-      <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 bg-[hsl(var(--background))]">
+      <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
         {/* شريط ثابت في أعلى الصفحة يعرض عنوان الصفحة الحالية */}
         {isMobile && (
-          <div className={`fixed top-0 left-0 right-0 z-20 px-6 py-3 flex items-center justify-center bg-white shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
-            <h1 className="text-lg font-semibold text-[hsl(var(--primary))] mr-20">{getPageTitle()}</h1>
-            <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))/10] flex items-center justify-center absolute left-4">
+          <div className={`fixed top-0 left-0 right-0 z-20 px-6 py-3 flex items-center justify-center bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
+            <h1 className="text-lg font-semibold text-[hsl(var(--primary))] dark:text-white mr-20">{getPageTitle()}</h1>
+            <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))/10] dark:bg-[hsl(var(--primary))/20] flex items-center justify-center absolute left-4">
               <i className={`fas fa-${location === '/' ? 'home' : 
                             location === '/transactions' ? 'money-bill-wave' : 
                             location === '/projects' ? 'project-diagram' : 
@@ -94,7 +94,7 @@ function AppRoutes() {
                             location === '/activities' ? 'history' : 
                             location === '/users' ? 'users' : 
                             location === '/settings' ? 'cog' : 'question'} 
-                            text-[hsl(var(--primary))]`}></i>
+                            text-[hsl(var(--primary))] dark:text-white`}></i>
             </div>
           </div>
         )}

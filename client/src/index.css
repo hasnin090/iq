@@ -285,15 +285,15 @@
   
   /* شريط التنقل المتجاوب للهاتف */
   .mobile-navbar {
-    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-50 md:hidden;
+    @apply fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-2 px-4 flex justify-around items-center z-50 md:hidden;
   }
   
   .mobile-nav-item {
-    @apply flex flex-col items-center justify-center text-xs text-gray-600;
+    @apply flex flex-col items-center justify-center text-xs text-gray-600 dark:text-gray-400;
   }
   
   .mobile-nav-item.active {
-    @apply text-[hsl(var(--primary))];
+    @apply text-[hsl(var(--primary))] dark:text-white;
   }
   
   .mobile-nav-icon {
@@ -440,7 +440,7 @@
   }
   
   .mobile-dropdown-content {
-    @apply absolute left-0 right-0 mt-2 p-2 bg-white rounded-lg shadow-lg border border-gray-200 z-50 transition-all duration-300 ease-in-out transform origin-top scale-95 opacity-0 invisible;
+    @apply absolute left-0 right-0 mt-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-300 ease-in-out transform origin-top scale-95 opacity-0 invisible;
   }
   
   .mobile-dropdown.open .mobile-dropdown-content {
@@ -449,10 +449,10 @@
   
   /* زخرفة الصفحة للتأثيرات البصرية */
   .page-decoration {
-    @apply fixed top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-blue-500/5 to-transparent -z-10;
+    @apply fixed top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-blue-500/5 to-transparent dark:from-blue-500/10 -z-10;
   }
   
   .page-decoration-2 {
-    @apply fixed bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-blue-500/5 to-transparent -z-10;
+    @apply fixed bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-blue-500/5 to-transparent dark:from-blue-500/10 -z-10;
   }
 }

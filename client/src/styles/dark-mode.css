@@ -1,0 +1,189 @@
+/* أنماط الوضع المظلم العامة */
+
+/* متغيرات الألوان */
+:root.dark {
+  --card-bg: #1f2937;
+  --card-border: #374151;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --highlight: hsl(var(--primary));
+  --input-bg: #111827;
+  --input-border: #4b5563;
+  --hover-bg: #374151;
+}
+
+/* الأنماط العامة */
+.dark body {
+  color: var(--text-primary);
+  background-color: #111827;
+}
+
+/* البطاقات والقوائم */
+.dark .card,
+.dark .dashboard-card,
+.dark .transaction-card,
+.dark .project-card,
+.dark .document-card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+/* العناوين */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: var(--text-primary);
+}
+
+/* الجداول */
+.dark table {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--card-border);
+}
+
+.dark th {
+  background-color: #374151;
+}
+
+.dark td {
+  border-color: var(--card-border);
+}
+
+.dark tr:hover {
+  background-color: var(--hover-bg);
+}
+
+/* ألوان النص */
+.dark .text-muted,
+.dark .text-secondary {
+  color: var(--text-secondary);
+}
+
+/* حقول الإدخال */
+.dark input, 
+.dark select, 
+.dark textarea {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+.dark input::placeholder {
+  color: #6b7280;
+}
+
+/* الأزرار */
+.dark button:not(.primary-button):not([class*="bg-"]) {
+  background-color: #374151;
+  color: var(--text-primary);
+  border-color: var(--card-border);
+}
+
+.dark button:not(.primary-button):not([class*="bg-"]):hover {
+  background-color: #4b5563;
+}
+
+/* النوافذ المنبثقة */
+.dark .dialog, 
+.dark .modal, 
+.dark .popover {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* المخططات البيانية */
+.dark .recharts-cartesian-axis-line,
+.dark .recharts-cartesian-axis-tick-line,
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: #4b5563;
+}
+
+.dark .recharts-cartesian-axis-tick-value {
+  fill: var(--text-secondary);
+}
+
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .recharts-tooltip-item-name,
+.dark .recharts-tooltip-item-value {
+  color: var(--text-primary) !important;
+}
+
+/* شارات النوع */
+.dark .badge {
+  border-color: var(--card-border);
+}
+
+/* الشارات المختلفة حسب النوع */
+.dark .badge-income {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.dark .badge-expense {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
+}
+
+.dark .badge-transfer {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+}
+
+.dark .badge-pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: rgb(245, 158, 11);
+}
+
+/* المحتوى المطبوع */
+@media print {
+  .dark * {
+    color: black !important;
+    background-color: white !important;
+    border-color: #ddd !important;
+  }
+  
+  .dark .card, 
+  .dark .dashboard-card,
+  .dark .transaction-card,
+  .dark .project-card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+  }
+}
+
+/* تلميحات الأزرار */
+.dark [data-tooltip]:hover:after {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+/* تنسيقات خاصة بصفحة تسجيل الدخول */
+.dark .login-container {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+}
+
+.dark .login-sidebar {
+  background-color: var(--highlight);
+  color: white;
+}
+
+.dark .login-form input {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+/* المخططات والرسوم البيانية */
+.dark .chart-container {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+}
