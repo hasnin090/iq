@@ -695,16 +695,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userRole === 'admin') {
         // المدير له حق إجراء معاملات على الصندوق الرئيسي أو المشاريع
         if (type === "income") {
-          // عمليات إيراد للمدير يجب أن تكون على الصندوق الرئيسي فقط
+          // عندما يكون النوع "income" - إيراد
           if (projectId) {
-            // إذا تم تحديد مشروع، نرفض العملية مع رسالة توضيحية
-            return res.status(400).json({ 
-              message: "عملية الإيراد للمدير يجب أن تضاف للصندوق الرئيسي فقط. لتمويل المشاريع، قم أولاً بإضافة الإيراد للصندوق الرئيسي ثم استخدم حساب المستخدم لتحويل المبلغ إلى المشروع المطلوب." 
-            });
+            // إذا تم تحديد مشروع مع نوع إيراد، فالمدير يريد إضافة إيراد مباشرة للمشروع
+            // نستخدم وظيفة خاصة لإضافة رصيد للمشروع من المدير دون خصم من صندوق المدير
+            try {
+              // إضافة رصيد مباشرة إلى صندوق المشروع
+              // نحصل على صندوق المشروع أو ننشئه إذا لم يكن موجوداً
+              let projectFund = await storage.getFundByProject(projectId);
+              if (!projectFund) {
+                const project = await storage.getProject(projectId);
+                if (!project) {
+                  return res.status(400).json({ message: "المشروع غير موجود" });
+                }
+                
+                projectFund = await storage.createFund({
+                  name: `صندوق المشروع: ${project.name}`,
+                  balance: 0,
+                  type: "project",
+                  ownerId: null,
+                  projectId
+                });
+              }
+              
+              // تحديث رصيد المشروع
+              const originalBalance = projectFund.balance;
+              const [updatedProjectFund] = await db.update(funds)
+                .set({ 
+                  balance: originalBalance + amount,
+                  updatedAt: new Date()
+                })
+                .where(eq(funds.id, projectFund.id))
+                .returning();
+              
+              // إنشاء معاملة إيراد للمشروع
+              const transaction = await storage.createTransaction({
+                date: new Date(),
+                amount,
+                type: "income",
+                description: description || `إضافة رصيد للمشروع من قبل المدير`,
+                projectId,
+                createdBy: userId
+              });
+              
+              // إنشاء سجل نشاط
+              await storage.createActivityLog({
+                action: "create",
+                entityType: "transaction",
+                entityId: transaction.id,
+                details: `إضافة رصيد مباشرة للمشروع ${projectId} بقيمة ${amount} من قبل المدير`,
+                userId
+              });
+              
+              result = { transaction, projectFund: updatedProjectFund };
+            } catch (error) {
+              console.error("خطأ في إضافة رصيد للمشروع:", error);
+              throw error;
+            }
+          } else {
+            // عملية إيراد للصندوق الرئيسي
+            result = await storage.processAdminTransaction(userId, type, amount, description);
           }
-          
-          // عملية إيراد للصندوق الرئيسي
-          result = await storage.processAdminTransaction(userId, type, amount, description);
         } else if (type === "expense") {
           // عمليات مصروفات للمدير يمكن أن تكون على الصندوق الرئيسي أو المشاريع
           if (projectId) {
