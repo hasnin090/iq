@@ -518,22 +518,33 @@ export class PgStorage implements IStorage {
   }
 
   async checkUserProjectAccess(userId: number, projectId: number): Promise<boolean> {
-    // المدير لديه وصول لجميع المشاريع
-    const user = await this.getUser(userId);
-    if (user?.role === 'admin') {
-      return true;
-    }
+    try {
+      console.log(`checkUserProjectAccess - التحقق من صلاحيات المستخدم ${userId} للوصول إلى المشروع ${projectId}`);
+      
+      // المدير لديه وصول لجميع المشاريع
+      const user = await this.getUser(userId);
+      if (user?.role === 'admin') {
+        console.log(`checkUserProjectAccess - المستخدم هو مدير ولديه صلاحية الوصول لجميع المشاريع`);
+        return true;
+      }
 
-    // التحقق من وجود علاقة بين المستخدم والمشروع
-    const result = await db.select().from(userProjects)
-      .where(
-        and(
-          eq(userProjects.userId, userId),
-          eq(userProjects.projectId, projectId)
-        )
-      );
-    
-    return result.length > 0;
+      // التحقق من وجود علاقة بين المستخدم والمشروع
+      const result = await db.select().from(userProjects)
+        .where(
+          and(
+            eq(userProjects.userId, userId),
+            eq(userProjects.projectId, projectId)
+          )
+        );
+      
+      const hasAccess = result.length > 0;
+      console.log(`checkUserProjectAccess - نتيجة التحقق من الصلاحيات للمستخدم ${userId}:`, hasAccess ? "مصرح" : "غير مصرح");
+      return hasAccess;
+    } catch (error) {
+      console.error(`checkUserProjectAccess - خطأ أثناء التحقق من صلاحيات المستخدم:`, error);
+      // في حالة حدوث خطأ، نفترض أن المستخدم ليس لديه صلاحيات
+      return false;
+    }
   }
 
   // ======== إدارة الصناديق ========
@@ -627,221 +638,269 @@ export class PgStorage implements IStorage {
   async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminTransaction?: Transaction, adminFund?: Fund, projectFund?: Fund }> {
     console.log(`processDeposit - بدء عملية إيداع بواسطة المستخدم ${userId} في المشروع ${projectId} بمبلغ ${amount}`);
     
-    // التحقق من صلاحية المشروع
-    const project = await this.getProject(projectId);
-    if (!project) {
-      throw new Error("المشروع غير موجود");
-    }
-
-    // التحقق من صلاحية المستخدم للوصول للمشروع
-    const hasAccess = await this.checkUserProjectAccess(userId, projectId);
-    if (!hasAccess) {
-      throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
-    }
-
-    // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
-    console.log(`processDeposit - جاري البحث عن صندوق المدير الرئيسي (المستخدم رقم 1)`);
-    
-    // البحث عن صندوق المدير الرئيسي بشكل مباشر
-    const adminFundsResult = await db.select().from(funds)
-      .where(
-        and(
-          eq(funds.type, 'admin'),
-          eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
-        )
-      );
-      
-    let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
-    console.log(`processDeposit - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
-    
-    if (!adminFund) {
-      console.log(`processDeposit - صندوق المدير الرئيسي غير موجود، جاري إنشاء صندوق جديد`);
-      // إنشاء صندوق المدير إذا لم يكن موجوداً
-      adminFund = await this.createFund({
-        name: "صندوق المدير الرئيسي",
-        balance: 1000000, // رصيد افتراضي مليون وحدة
-        type: "admin",
-        ownerId: 1, // دائماً المستخدم رقم 1
-        projectId: null
-      });
-      console.log(`processDeposit - تم إنشاء صندوق المدير الرئيسي:`, JSON.stringify(adminFund));
-    }
-    
-    console.log(`processDeposit - رصيد المدير قبل العملية: ${adminFund.balance}`);
-
-    // التحقق من رصيد المدير
-    if (adminFund.balance < amount) {
-      throw new Error("رصيد المدير غير كافي لإجراء العملية");
-    }
-
-    // البحث عن صندوق المشروع أو إنشاء صندوق جديد
-    let projectFund = await this.getFundByProject(projectId);
-    if (!projectFund) {
-      projectFund = await this.createFund({
-        name: `صندوق المشروع: ${project.name}`,
-        balance: 0,
-        type: "project",
-        ownerId: null,
-        projectId
-      });
-    }
-    
-    console.log(`processDeposit - رصيد المشروع قبل العملية: ${projectFund.balance}`);
-
-    // تنفيذ العملية في قاعدة البيانات كمعاملة واحدة
     try {
-      // 1. خصم المبلغ من صندوق المدير - نقوم بتمرير قيمة سالبة للخصم
-      const originalAdminBalance = adminFund.balance;
-      
-      // تحديث مباشر لصندوق المدير
-      const [updatedAdminFund] = await db.update(funds)
-        .set({ 
-          balance: originalAdminBalance - amount, // نخصم المبلغ مباشرة
-          updatedAt: new Date()
-        })
-        .where(eq(funds.id, adminFund.id))
-        .returning();
-        
-      adminFund = updatedAdminFund;
-          
-      console.log(`processDeposit - المبلغ المخصوم من المدير: ${amount}, الرصيد قبل: ${originalAdminBalance}, الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
-  
-      // 2. إضافة المبلغ إلى صندوق المشروع
-      const originalProjectBalance = projectFund.balance;
-      
-      // تحديث مباشر لصندوق المشروع
-      const [updatedProjectFund] = await db.update(funds)
-        .set({ 
-          balance: originalProjectBalance + amount, // نضيف المبلغ مباشرة
-          updatedAt: new Date()
-        })
-        .where(eq(funds.id, projectFund.id))
-        .returning();
-        
-      projectFund = updatedProjectFund;
-          
-      console.log(`processDeposit - المبلغ المضاف للمشروع: ${amount}, الرصيد قبل: ${originalProjectBalance}, الرصيد بعد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
-    } catch (error) {
-      console.error(`خطأ أثناء تحديث الأرصدة:`, error);
-      if (error instanceof Error) {
-        throw new Error(`فشل في تحديث الأرصدة: ${error.message}`);
-      } else {
-        throw new Error(`فشل في تحديث الأرصدة: خطأ غير معروف`);
+      // التحقق من صلاحية المشروع
+      const project = await this.getProject(projectId);
+      if (!project) {
+        console.log(`processDeposit - المشروع رقم ${projectId} غير موجود`);
+        throw new Error("المشروع غير موجود");
       }
-    }
+      console.log(`processDeposit - تم العثور على المشروع: ${project.name}`);
 
-    // 3. إنشاء معاملة إيراد للمشروع
-    const projectTransaction = await this.createTransaction({
-      date: new Date(),
-      amount,
-      type: "income",
-      description: description || `إيداع مبلغ في المشروع: ${project.name}`,
-      projectId,
-      createdBy: userId
-    });
+      // التحقق من صلاحية المستخدم
+      const user = await this.getUser(userId);
+      if (!user) {
+        console.log(`processDeposit - المستخدم رقم ${userId} غير موجود`);
+        throw new Error("المستخدم غير موجود");
+      }
+      console.log(`processDeposit - تم العثور على المستخدم: ${user.username}, الدور: ${user.role}`);
 
-    // 4. إنشاء معاملة مصروف للمدير (لتسجيل خروج المبلغ من صندوق المدير)
-    const adminTransaction = await this.createTransaction({
-      date: new Date(),
-      amount,
-      type: "expense",
-      description: `مصروف تمويل المشروع: ${project.name}`,
-      projectId: null, // لا يرتبط بمشروع محدد لأنه معاملة للمدير
-      createdBy: userId
-    });
+      // منح الوصول مباشرة للمديرين
+      if (user.role === 'admin') {
+        console.log(`processDeposit - المستخدم مدير ولديه صلاحية الوصول لجميع المشاريع`);
+      } else {
+        // التحقق من صلاحية المستخدم للوصول للمشروع
+        const hasAccess = await this.checkUserProjectAccess(userId, projectId);
+        if (!hasAccess) {
+          console.log(`processDeposit - المستخدم ${userId} ليس لديه صلاحية الوصول للمشروع ${projectId}`);
+          throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
+        }
+        console.log(`processDeposit - تم التحقق من صلاحية المستخدم للوصول للمشروع`);
+      }
 
-    // 5. إنشاء سجل نشاط
-    await this.createActivityLog({
-      action: "create",
-      entityType: "transaction",
-      entityId: projectTransaction.id,
-      details: `إيداع مبلغ ${amount} في المشروع: ${project.name}`,
-      userId
-    });
+      // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
+      console.log(`processDeposit - جاري البحث عن صندوق المدير الرئيسي (المستخدم رقم 1)`);
+      
+      // البحث عن صندوق المدير الرئيسي بشكل مباشر
+      const adminFundsResult = await db.select().from(funds)
+        .where(
+          and(
+            eq(funds.type, 'admin'),
+            eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
+          )
+        );
+        
+      let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
+      console.log(`processDeposit - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
+      
+      if (!adminFund) {
+        console.log(`processDeposit - صندوق المدير الرئيسي غير موجود، جاري إنشاء صندوق جديد`);
+        // إنشاء صندوق المدير إذا لم يكن موجوداً
+        adminFund = await this.createFund({
+          name: "صندوق المدير الرئيسي",
+          balance: 1000000, // رصيد افتراضي مليون وحدة
+          type: "admin",
+          ownerId: 1, // دائماً المستخدم رقم 1
+          projectId: null
+        });
+        console.log(`processDeposit - تم إنشاء صندوق المدير الرئيسي:`, JSON.stringify(adminFund));
+      }
+      
+      console.log(`processDeposit - رصيد المدير قبل العملية: ${adminFund.balance}`);
+
+      // التحقق من رصيد المدير
+      if (adminFund.balance < amount) {
+        throw new Error("رصيد المدير غير كافي لإجراء العملية");
+      }
+
+      // البحث عن صندوق المشروع أو إنشاء صندوق جديد
+      let projectFund = await this.getFundByProject(projectId);
+      if (!projectFund) {
+        projectFund = await this.createFund({
+          name: `صندوق المشروع: ${project.name}`,
+          balance: 0,
+          type: "project",
+          ownerId: null,
+          projectId
+        });
+      }
+      
+      console.log(`processDeposit - رصيد المشروع قبل العملية: ${projectFund.balance}`);
+
+      // تنفيذ العملية في قاعدة البيانات كمعاملة واحدة
+      try {
+        // 1. خصم المبلغ من صندوق المدير - نقوم بتمرير قيمة سالبة للخصم
+        const originalAdminBalance = adminFund.balance;
+        
+        // تحديث مباشر لصندوق المدير
+        const [updatedAdminFund] = await db.update(funds)
+          .set({ 
+            balance: originalAdminBalance - amount, // نخصم المبلغ مباشرة
+            updatedAt: new Date()
+          })
+          .where(eq(funds.id, adminFund.id))
+          .returning();
+          
+        adminFund = updatedAdminFund;
+            
+        console.log(`processDeposit - المبلغ المخصوم من المدير: ${amount}, الرصيد قبل: ${originalAdminBalance}, الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
     
-    console.log(`processDeposit - اكتمال العملية، تفاصيل النتيجة: معاملة المشروع رقم ${projectTransaction.id}, معاملة المدير رقم ${adminTransaction.id}, رصيد المدير الجديد: ${adminFund ? adminFund.balance : 'غير معروف'}, رصيد المشروع الجديد: ${projectFund ? projectFund.balance : 'غير معروف'}`)
+        // 2. إضافة المبلغ إلى صندوق المشروع
+        const originalProjectBalance = projectFund.balance;
+        
+        // تحديث مباشر لصندوق المشروع
+        const [updatedProjectFund] = await db.update(funds)
+          .set({ 
+            balance: originalProjectBalance + amount, // نضيف المبلغ مباشرة
+            updatedAt: new Date()
+          })
+          .where(eq(funds.id, projectFund.id))
+          .returning();
+          
+        projectFund = updatedProjectFund;
+            
+        console.log(`processDeposit - المبلغ المضاف للمشروع: ${amount}, الرصيد قبل: ${originalProjectBalance}, الرصيد بعد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
+      } catch (error) {
+        console.error(`خطأ أثناء تحديث الأرصدة:`, error);
+        if (error instanceof Error) {
+          throw new Error(`فشل في تحديث الأرصدة: ${error.message}`);
+        } else {
+          throw new Error(`فشل في تحديث الأرصدة: خطأ غير معروف`);
+        }
+      }
 
-    return {
-      transaction: projectTransaction, // نرجع معاملة المشروع للتوافقية مع الكود القديم
-      adminTransaction: adminTransaction, // معاملة المصاريف للمدير
-      adminFund,
-      projectFund
-    };
+      // 3. إنشاء معاملة إيراد للمشروع
+      const projectTransaction = await this.createTransaction({
+        date: new Date(),
+        amount,
+        type: "income",
+        description: description || `إيداع مبلغ في المشروع: ${project.name}`,
+        projectId,
+        createdBy: userId
+      });
+
+      // 4. إنشاء معاملة مصروف للمدير (لتسجيل خروج المبلغ من صندوق المدير)
+      const adminTransaction = await this.createTransaction({
+        date: new Date(),
+        amount,
+        type: "expense",
+        description: `مصروف تمويل المشروع: ${project.name}`,
+        projectId: null, // لا يرتبط بمشروع محدد لأنه معاملة للمدير
+        createdBy: userId
+      });
+
+      // 5. إنشاء سجل نشاط
+      await this.createActivityLog({
+        action: "create",
+        entityType: "transaction",
+        entityId: projectTransaction.id,
+        details: `إيداع مبلغ ${amount} في المشروع: ${project.name}`,
+        userId
+      });
+      
+      console.log(`processDeposit - اكتمال العملية، تفاصيل النتيجة: معاملة المشروع رقم ${projectTransaction.id}, معاملة المدير رقم ${adminTransaction.id}, رصيد المدير الجديد: ${adminFund ? adminFund.balance : 'غير معروف'}, رصيد المشروع الجديد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
+
+      return {
+        transaction: projectTransaction, // نرجع معاملة المشروع للتوافقية مع الكود القديم
+        adminTransaction: adminTransaction, // معاملة المصاريف للمدير
+        adminFund,
+        projectFund
+      };
+    } catch (error) {
+      console.error(`processDeposit - خطأ أثناء معالجة العملية:`, error);
+      throw error; // إعادة إلقاء الخطأ للتعامل معه في الطبقة العليا
+    }
   }
 
   // عملية السحب: يستقطع المبلغ من صندوق المشروع نفسه
   async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, projectFund?: Fund }> {
     console.log(`processWithdrawal - بدء عملية صرف بواسطة المستخدم ${userId} من المشروع ${projectId} بمبلغ ${amount}`);
     
-    // التحقق من صلاحية المشروع
-    const project = await this.getProject(projectId);
-    if (!project) {
-      throw new Error("المشروع غير موجود");
-    }
-
-    // التحقق من صلاحية المستخدم للوصول للمشروع
-    const hasAccess = await this.checkUserProjectAccess(userId, projectId);
-    if (!hasAccess) {
-      throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
-    }
-
-    // البحث عن صندوق المشروع
-    const projectFund = await this.getFundByProject(projectId);
-    if (!projectFund) {
-      throw new Error("صندوق المشروع غير موجود");
-    }
-    
-    console.log(`processWithdrawal - رصيد المشروع قبل العملية: ${projectFund.balance}`);
-
-    // التحقق من رصيد المشروع
-    if (projectFund.balance < amount) {
-      throw new Error("رصيد المشروع غير كافي لإجراء العملية");
-    }
-
-    // خصم المبلغ من صندوق المشروع
     try {
-      const originalBalance = projectFund.balance;
-      
-      // تحديث مباشر لصندوق المشروع
-      const [updatedProjectFund] = await db.update(funds)
-        .set({ 
-          balance: originalBalance - amount, // نخصم المبلغ مباشرة
-          updatedAt: new Date()
-        })
-        .where(eq(funds.id, projectFund.id))
-        .returning();
-      
-      console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
-      
-      // إنشاء معاملة جديدة
-      const transaction = await this.createTransaction({
-        date: new Date(),
-        amount,
-        type: "expense",
-        description: description || `صرف مبلغ من المشروع: ${project.name}`,
-        projectId,
-        createdBy: userId
-      });
-  
-      // إنشاء سجل نشاط
-      await this.createActivityLog({
-        action: "create",
-        entityType: "transaction",
-        entityId: transaction.id,
-        details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
-        userId
-      });
-      
-      console.log(`processWithdrawal - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمشروع: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
-      
-      return {
-        transaction,
-        projectFund: updatedProjectFund
-      };
+      // التحقق من صلاحية المشروع
+      const project = await this.getProject(projectId);
+      if (!project) {
+        console.log(`processWithdrawal - المشروع رقم ${projectId} غير موجود`);
+        throw new Error("المشروع غير موجود");
+      }
+      console.log(`processWithdrawal - تم العثور على المشروع: ${project.name}`);
+
+      // التحقق من صلاحية المستخدم
+      const user = await this.getUser(userId);
+      if (!user) {
+        console.log(`processWithdrawal - المستخدم رقم ${userId} غير موجود`);
+        throw new Error("المستخدم غير موجود");
+      }
+      console.log(`processWithdrawal - تم العثور على المستخدم: ${user.username}, الدور: ${user.role}`);
+
+      // منح الوصول مباشرة للمديرين
+      if (user.role === 'admin') {
+        console.log(`processWithdrawal - المستخدم مدير ولديه صلاحية الوصول لجميع المشاريع`);
+      } else {
+        // التحقق من صلاحية المستخدم للوصول للمشروع
+        const hasAccess = await this.checkUserProjectAccess(userId, projectId);
+        if (!hasAccess) {
+          console.log(`processWithdrawal - المستخدم ${userId} ليس لديه صلاحية الوصول للمشروع ${projectId}`);
+          throw new Error("غير مصرح للمستخدم بالوصول لهذا المشروع");
+        }
+        console.log(`processWithdrawal - تم التحقق من صلاحية المستخدم للوصول للمشروع`);
+      }
+
+      // البحث عن صندوق المشروع
+      const projectFund = await this.getFundByProject(projectId);
+      if (!projectFund) {
+        console.log(`processWithdrawal - صندوق المشروع غير موجود للمشروع رقم ${projectId}`);
+        throw new Error("صندوق المشروع غير موجود");
+      }
+      console.log(`processWithdrawal - رصيد المشروع قبل العملية: ${projectFund.balance}`);
+
+      // التحقق من رصيد المشروع
+      if (projectFund.balance < amount) {
+        console.log(`processWithdrawal - رصيد المشروع غير كافي. الرصيد الحالي: ${projectFund.balance}, المبلغ المطلوب: ${amount}`);
+        throw new Error("رصيد المشروع غير كافي لإجراء العملية");
+      }
+
+      // خصم المبلغ من صندوق المشروع
+      try {
+        const originalBalance = projectFund.balance;
+        
+        // تحديث مباشر لصندوق المشروع
+        const [updatedProjectFund] = await db.update(funds)
+          .set({ 
+            balance: originalBalance - amount, // نخصم المبلغ مباشرة
+            updatedAt: new Date()
+          })
+          .where(eq(funds.id, projectFund.id))
+          .returning();
+        
+        console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
+        
+        // إنشاء معاملة جديدة
+        const transaction = await this.createTransaction({
+          date: new Date(),
+          amount,
+          type: "expense",
+          description: description || `صرف مبلغ من المشروع: ${project.name}`,
+          projectId,
+          createdBy: userId
+        });
+    
+        // إنشاء سجل نشاط
+        await this.createActivityLog({
+          action: "create",
+          entityType: "transaction",
+          entityId: transaction.id,
+          details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
+          userId
+        });
+        
+        console.log(`processWithdrawal - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمشروع: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
+        
+        return {
+          transaction,
+          projectFund: updatedProjectFund
+        };
+      } catch (error) {
+        console.error(`خطأ أثناء تحديث رصيد المشروع:`, error);
+        if (error instanceof Error) {
+          throw new Error(`فشل في تحديث رصيد المشروع: ${error.message}`);
+        } else {
+          throw new Error(`فشل في تحديث رصيد المشروع: خطأ غير معروف`);
+        }
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`خطأ أثناء تحديث رصيد المشروع:`, error);
-      throw new Error(`فشل في تحديث رصيد المشروع: ${errorMessage}`);
+      console.error(`processWithdrawal - خطأ أثناء معالجة عملية السحب:`, error);
+      throw error; // إعادة إلقاء الخطأ للتعامل معه في الطبقة العليا
     }
   }
 
@@ -849,95 +908,111 @@ export class PgStorage implements IStorage {
   async processAdminTransaction(userId: number, type: string, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund }> {
     console.log(`processAdminTransaction - بدء عملية ${type} للمدير ${userId} بمبلغ ${amount}`);
     
-    // التحقق من أن المستخدم مدير
-    const user = await this.getUser(userId);
-    if (!user || user.role !== "admin") {
-      throw new Error("هذه العملية متاحة للمدير فقط");
-    }
-
-    // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
-    console.log(`processAdminTransaction - جاري البحث عن صندوق المدير الرئيسي`);
-    
-    // البحث عن صندوق المدير الرئيسي بشكل مباشر
-    const adminFundsResult = await db.select().from(funds)
-      .where(
-        and(
-          eq(funds.type, 'admin'),
-          eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
-        )
-      );
+    try {
+      // التحقق من أن المستخدم مدير
+      const user = await this.getUser(userId);
+      if (!user) {
+        console.log(`processAdminTransaction - المستخدم رقم ${userId} غير موجود`);
+        throw new Error("المستخدم غير موجود");
+      }
+      console.log(`processAdminTransaction - تم العثور على المستخدم: ${user.username}, الدور: ${user.role}`);
       
-    let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
-    console.log(`processAdminTransaction - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
-    
-    if (!adminFund) {
-      // إنشاء صندوق افتراضي للمدير إذا لم يكن موجودا
-      console.log(`processAdminTransaction - إنشاء صندوق مدير رئيسي جديد`);
-      adminFund = await this.createFund({
-        name: "صندوق المدير الرئيسي",
-        balance: type === "income" ? amount : 0, // إذا كانت العملية إيداع، ابدأ برصيد العملية
-        type: "admin",
-        ownerId: 1, // دائماً المستخدم رقم 1
-        projectId: null
-      });
-      console.log(`processAdminTransaction - تم إنشاء صندوق مدير رئيسي برصيد ${adminFund.balance}`);
-    } else {
-      console.log(`processAdminTransaction - رصيد المدير قبل العملية: ${adminFund.balance}`);
-      
-      // التحقق من الرصيد في حالة الصرف
-      if (type === "expense" && adminFund.balance < amount) {
-        throw new Error("رصيد الصندوق غير كافي لإجراء العملية");
+      if (user.role !== "admin") {
+        console.log(`processAdminTransaction - المستخدم ليس مديرًا، الدور الحالي: ${user.role}`);
+        throw new Error("هذه العملية متاحة للمدير فقط");
       }
 
-      try {
-        // تحديث رصيد صندوق المدير مباشرة
-        const originalBalance = adminFund.balance;
-        const newBalance = type === "income" ? originalBalance + amount : originalBalance - amount;
+      // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
+      console.log(`processAdminTransaction - جاري البحث عن صندوق المدير الرئيسي`);
+      
+      // البحث عن صندوق المدير الرئيسي بشكل مباشر
+      const adminFundsResult = await db.select().from(funds)
+        .where(
+          and(
+            eq(funds.type, 'admin'),
+            eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
+          )
+        );
         
-        // تحديث مباشر لصندوق المدير
-        const [updatedAdminFund] = await db.update(funds)
-          .set({ 
-            balance: newBalance,
-            updatedAt: new Date()
-          })
-          .where(eq(funds.id, adminFund.id))
-          .returning();
+      let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
+      console.log(`processAdminTransaction - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
+      
+      if (!adminFund) {
+        // إنشاء صندوق افتراضي للمدير إذا لم يكن موجودا
+        console.log(`processAdminTransaction - إنشاء صندوق مدير رئيسي جديد`);
+        adminFund = await this.createFund({
+          name: "صندوق المدير الرئيسي",
+          balance: type === "income" ? amount : 0, // إذا كانت العملية إيداع، ابدأ برصيد العملية
+          type: "admin",
+          ownerId: 1, // دائماً المستخدم رقم 1
+          projectId: null
+        });
+        console.log(`processAdminTransaction - تم إنشاء صندوق مدير رئيسي برصيد ${adminFund.balance}`);
+      } else {
+        console.log(`processAdminTransaction - رصيد المدير قبل العملية: ${adminFund.balance}`);
+        
+        // التحقق من الرصيد في حالة الصرف
+        if (type === "expense" && adminFund.balance < amount) {
+          console.log(`processAdminTransaction - رصيد المدير غير كافي. الرصيد الحالي: ${adminFund.balance}, المبلغ المطلوب: ${amount}`);
+          throw new Error("رصيد الصندوق غير كافي لإجراء العملية");
+        }
+
+        try {
+          // تحديث رصيد صندوق المدير مباشرة
+          const originalBalance = adminFund.balance;
+          const newBalance = type === "income" ? originalBalance + amount : originalBalance - amount;
           
-        adminFund = updatedAdminFund;
-        
-        console.log(`processAdminTransaction - ${type === "income" ? "إضافة" : "خصم"} مبلغ ${amount} ${type === "income" ? "إلى" : "من"} صندوق المدير. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`خطأ أثناء تحديث رصيد المدير:`, error);
-        throw new Error(`فشل في تحديث رصيد المدير: ${errorMessage}`);
+          // تحديث مباشر لصندوق المدير
+          const [updatedAdminFund] = await db.update(funds)
+            .set({ 
+              balance: newBalance,
+              updatedAt: new Date()
+            })
+            .where(eq(funds.id, adminFund.id))
+            .returning();
+            
+          adminFund = updatedAdminFund;
+          
+          console.log(`processAdminTransaction - ${type === "income" ? "إضافة" : "خصم"} مبلغ ${amount} ${type === "income" ? "إلى" : "من"} صندوق المدير. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
+        } catch (error) {
+          console.error(`خطأ أثناء تحديث رصيد المدير:`, error);
+          if (error instanceof Error) {
+            throw new Error(`فشل في تحديث رصيد المدير: ${error.message}`);
+          } else {
+            throw new Error(`فشل في تحديث رصيد المدير: خطأ غير معروف`);
+          }
+        }
       }
+
+      // إنشاء معاملة جديدة
+      const transaction = await this.createTransaction({
+        date: new Date(),
+        amount,
+        type,
+        description: description || `${type === "income" ? "إيراد" : "مصروف"} للمدير`,
+        projectId: null, // لا يرتبط بمشروع
+        createdBy: userId
+      });
+
+      // إنشاء سجل نشاط
+      await this.createActivityLog({
+        action: "create",
+        entityType: "transaction",
+        entityId: transaction.id,
+        details: `${type === "income" ? "إيراد" : "مصروف"} للمدير: ${amount}`,
+        userId
+      });
+      
+      console.log(`processAdminTransaction - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمدير: ${adminFund ? adminFund.balance : 'غير معروف'}`);
+
+      return {
+        transaction,
+        adminFund
+      };
+    } catch (error) {
+      console.error(`processAdminTransaction - خطأ أثناء معالجة عملية ${type} للمدير:`, error);
+      throw error; // إعادة إلقاء الخطأ للتعامل معه في الطبقة العليا
     }
-
-    // إنشاء معاملة جديدة
-    const transaction = await this.createTransaction({
-      date: new Date(),
-      amount,
-      type,
-      description: description || `${type === "income" ? "إيراد" : "مصروف"} للمدير`,
-      projectId: null, // لا يرتبط بمشروع
-      createdBy: userId
-    });
-
-    // إنشاء سجل نشاط
-    await this.createActivityLog({
-      action: "create",
-      entityType: "transaction",
-      entityId: transaction.id,
-      details: `${type === "income" ? "إيراد" : "مصروف"} للمدير: ${amount}`,
-      userId
-    });
-    
-    console.log(`processAdminTransaction - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمدير: ${adminFund ? adminFund.balance : 'غير معروف'}`);
-
-    return {
-      transaction,
-      adminFund
-    };
   }
 }
 
