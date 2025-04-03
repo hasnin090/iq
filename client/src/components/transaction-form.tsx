@@ -228,7 +228,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         <FormControl>
                           <Button
                             variant="outline"
-                            className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300 text-right justify-between items-center"
+                            className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-right justify-between items-center"
                             disabled={isLoading || mutation.isPending}
                           >
                             {field.value ? (
@@ -240,13 +240,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-900" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) => date > new Date()}
                           initialFocus
+                          className="text-blue-900 dark:text-blue-200"
                         />
                       </PopoverContent>
                     </Popover>
