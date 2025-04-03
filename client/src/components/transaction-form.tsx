@@ -216,7 +216,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       <CardContent className="pt-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="date"
@@ -309,54 +309,52 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* حقل المبلغ يأخذ العمود الكامل للمستخدم العادي الذي لديه مشروع واحد فقط */}
-              <div className={user?.role !== 'admin' && userProjects?.length === 1 ? "col-span-2" : ""}>
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center">
-                        المبلغ (د.ع)
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
-                              <p>أدخل قيمة المبلغ المالي بالدينار</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          placeholder="أدخل المبلغ"
-                          className="w-full h-10 rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* حقل المبلغ */}
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      المبلغ (د.ع)
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                            <p>أدخل قيمة المبلغ المالي بالدينار</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="أدخل المبلغ"
+                        className="w-full h-10 rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                        disabled={isLoading || mutation.isPending}
+                      />
+                    </FormControl>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {commonAmounts.map((amount, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                          onClick={() => form.setValue('amount', amount.value)}
                           disabled={isLoading || mutation.isPending}
-                        />
-                      </FormControl>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {commonAmounts.map((amount, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
-                            onClick={() => form.setValue('amount', amount.value)}
-                            disabled={isLoading || mutation.isPending}
-                          >
-                            {amount.label}
-                          </button>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                        >
+                          {amount.label}
+                        </button>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               {/* 
               أظهر حقل المشروع في الحالات التالية:
@@ -430,14 +428,13 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectContent>
                       </Select>
                       <FormMessage />
-                      {/* لحذف التعليق السابق حيث أصبح الحقل مخفي عندما يختار المدير الإيراد */}
                     </FormItem>
                   )}
                 />
               )}
             </div>
             
-            <div>
+            <div className="col-span-1 md:col-span-3">
               <FormField
                 control={form.control}
                 name="description"
@@ -459,18 +456,18 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     <FormControl>
                       <Textarea
                         {...field}
-                        rows={2}
+                        rows={3}
                         placeholder="أدخل تفاصيل العملية"
                         className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                         disabled={isLoading || mutation.isPending}
                       />
                     </FormControl>
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="mt-2 flex flex-wrap gap-1.5">
                       {getDescriptionSuggestions().map((suggestion, idx) => (
                         <button
                           key={idx}
                           type="button"
-                          className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                          className="text-xs px-2.5 py-1.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
                           onClick={() => form.setValue('description', suggestion)}
                           disabled={isLoading || mutation.isPending}
                         >
