@@ -837,15 +837,28 @@ export class PgStorage implements IStorage {
       }
 
       // البحث عن صندوق المشروع
-      const projectFund = await this.getFundByProject(projectId);
+      let projectFund = await this.getFundByProject(projectId);
+      
+      // إذا لم يكن الصندوق موجوداً، قم بإنشائه
       if (!projectFund) {
-        console.log(`processWithdrawal - صندوق المشروع غير موجود للمشروع رقم ${projectId}`);
-        throw new Error("صندوق المشروع غير موجود");
+        console.log(`processWithdrawal - صندوق المشروع غير موجود للمشروع رقم ${projectId}، سيتم إنشاؤه`);
+        
+        projectFund = await this.createFund({
+          name: `صندوق المشروع: ${project.name}`,
+          balance: 0,
+          type: "project",
+          ownerId: null,
+          projectId
+        });
+        
+        console.log(`processWithdrawal - تم إنشاء صندوق جديد للمشروع بمعرف: ${projectFund.id}`);
       }
+      
       console.log(`processWithdrawal - رصيد المشروع قبل العملية: ${projectFund.balance}`);
 
       // التحقق من رصيد المشروع
-      if (projectFund.balance < amount) {
+      // إذا كان المستخدم مديرًا، نسمح بالسحب حتى لو كان الرصيد 0 (سيتم تسجيله كسحب على المكشوف)
+      if (user && user.role !== 'admin' && projectFund.balance < amount) {
         console.log(`processWithdrawal - رصيد المشروع غير كافي. الرصيد الحالي: ${projectFund.balance}, المبلغ المطلوب: ${amount}`);
         throw new Error("رصيد المشروع غير كافي لإجراء العملية");
       }
