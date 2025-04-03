@@ -201,19 +201,19 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   };
   
   return (
-    <Card className="border border-blue-100 shadow-md transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-2">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary">
+    <Card className="border border-blue-100 dark:border-blue-900 shadow-md transition-all duration-300 hover:shadow-lg bg-white dark:bg-gray-800">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 pb-2">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary dark:text-blue-400">
           {form.watch("type") === "income" ? (
-            <PiggyBankIcon className="h-5 w-5 text-green-500" />
+            <PiggyBankIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
           ) : (
-            <CoinsIcon className="h-5 w-5 text-red-500" />
+            <CoinsIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
           )}
           إضافة عملية مالية جديدة
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="pt-4">
+      <CardContent className="pt-4 bg-white dark:bg-gray-800">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -276,27 +276,27 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       disabled={isLoading || mutation.isPending}
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                        <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
                           <SelectValue placeholder="اختر نوع العملية" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-white border border-blue-100">
-                        <SelectItem value="income" className="flex items-center gap-2 hover:bg-green-50">
+                      <SelectContent className="bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-900">
+                        <SelectItem value="income" className="flex items-center gap-2 hover:bg-green-50 dark:hover:bg-green-900/30">
                           <div className="flex items-center">
-                            <PiggyBankIcon className="h-4 w-4 ml-2 text-green-500" />
+                            <PiggyBankIcon className="h-4 w-4 ml-2 text-green-500 dark:text-green-400" />
                             {user?.role === 'admin' ? 'إيراد (للصندوق الرئيسي)' : 'إيراد (للمشروع)'}
                           </div>
                         </SelectItem>
-                        <SelectItem value="expense" className="flex items-center gap-2 hover:bg-red-50">
+                        <SelectItem value="expense" className="flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/30">
                           <div className="flex items-center">
-                            <CoinsIcon className="h-4 w-4 ml-2 text-red-500" />
+                            <CoinsIcon className="h-4 w-4 ml-2 text-red-500 dark:text-red-400" />
                             مصروف
                           </div>
                         </SelectItem>
                       </SelectContent>
                     </Select>
                     {field.value === 'income' && (
-                      <p className="text-xs text-green-600 mt-1 flex items-center font-medium">
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center font-medium">
                         <AlertTriangle className="w-3 h-3 mr-1" />
                         {user?.role === 'admin' 
                           ? 'سيتم إضافة الإيراد للصندوق الرئيسي فقط'
@@ -323,7 +323,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           <TooltipTrigger asChild>
                             <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                          <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-800">
                             <p>أدخل قيمة المبلغ المالي بالدينار</p>
                           </TooltipContent>
                         </Tooltip>
@@ -334,7 +334,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         {...field}
                         type="number"
                         placeholder="أدخل المبلغ"
-                        className="w-full h-10 rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
                         disabled={isLoading || mutation.isPending}
                       />
                     </FormControl>
@@ -343,7 +343,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         <button
                           key={idx}
                           type="button"
-                          className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                          className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
                           onClick={() => form.setValue('amount', amount.value)}
                           disabled={isLoading || mutation.isPending}
                         >
@@ -376,16 +376,16 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         disabled={isLoading || mutation.isPending}
                       >
                         <FormControl>
-                          <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                          <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
                             <SelectValue placeholder="اختر المشروع" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-white border border-blue-100">
+                        <SelectContent className="bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-900">
                           {/* عرض "عام (بدون مشروع)" للمدير دائمًا، ويكون هو الخيار الوحيد للإيرادات */}
                           {user?.role === 'admin' && (
-                            <SelectItem value="none" className="hover:bg-blue-50 text-blue-700 font-medium">
+                            <SelectItem value="none" className="hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium">
                               <div className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                                 </svg>
                                 الصندوق الرئيسي
@@ -402,9 +402,9 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                             // للمدير: عرض المشاريع فقط عند اختيار نوع العملية "مصروف"
                             form.watch('type') === 'expense' ? (
                               projects.map((project) => (
-                                <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-green-50">
+                                <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-green-50 dark:hover:bg-green-900/30">
                                   <div className="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                     </svg>
                                     {project.name}
@@ -415,9 +415,9 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           ) : (
                             // للمستخدم العادي: عرض فقط المشاريع المخصصة له
                             userProjects?.map((project) => (
-                              <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-green-50">
+                              <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-green-50 dark:hover:bg-green-900/30">
                                 <div className="flex items-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                   </svg>
                                   {project.name}
@@ -447,7 +447,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           <TooltipTrigger asChild>
                             <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
                           </TooltipTrigger>
-                          <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                          <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-800">
                             <p>أدخل وصفًا تفصيليًا للعملية المالية</p>
                           </TooltipContent>
                         </Tooltip>
@@ -458,7 +458,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         {...field}
                         rows={3}
                         placeholder="أدخل تفاصيل العملية"
-                        className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                        className="w-full rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
                         disabled={isLoading || mutation.isPending}
                       />
                     </FormControl>
@@ -467,7 +467,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         <button
                           key={idx}
                           type="button"
-                          className="text-xs px-2.5 py-1.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                          className="text-xs px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
                           onClick={() => form.setValue('description', suggestion)}
                           disabled={isLoading || mutation.isPending}
                         >
