@@ -7,11 +7,11 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
+export async function apiRequest<T = any>(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<T> {
   console.log(`Making API request: ${method} ${url}`, data);
   
   try {
@@ -30,7 +30,9 @@ export async function apiRequest(
       throw new Error(`${res.status}: ${errorText || res.statusText}`);
     }
     
-    return res;
+    // تحويل الرد إلى JSON تلقائيًا
+    const jsonData = await res.json().catch(() => ({}));
+    return jsonData as T;
   } catch (error) {
     console.error(`Request failed to ${url}:`, error);
     throw error;

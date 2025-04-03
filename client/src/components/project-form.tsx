@@ -62,10 +62,10 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
       
       return apiRequest('POST', '/api/projects', projectData);
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "تمت العملية بنجاح",
-        description: `تم حفظ المشروع "${data.name || 'الجديد'}" بنجاح`,
+        description: `تم حفظ المشروع "${data?.name || 'الجديد'}" بنجاح`,
       });
       form.reset({
         name: "",
@@ -108,9 +108,9 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
   ];
   
   return (
-    <Card className="border border-blue-100 shadow-md transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-2">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary">
+    <Card className="border border-blue-100 dark:border-blue-800 shadow-md transition-all duration-300 hover:shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 pb-2">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary dark:text-blue-300">
           <SaveIcon className="h-5 w-5" />
           إضافة مشروع جديد
         </CardTitle>
@@ -133,7 +133,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                             <TooltipTrigger asChild>
                               <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
                             </TooltipTrigger>
-                            <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                            <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-700">
                               <p>أدخل اسم المشروع. يجب أن يكون الاسم واضحًا ومختصرًا.</p>
                             </TooltipContent>
                           </Tooltip>
@@ -143,7 +143,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                         <Input
                           {...field}
                           placeholder="أدخل اسم المشروع"
-                          className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                          className="w-full rounded-lg bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-800 focus:border-blue-300 dark:focus:border-blue-600 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-800 dark:text-gray-200 dark:placeholder-gray-400"
                           disabled={mutation.isPending}
                         />
                       </FormControl>
@@ -152,7 +152,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                           <button
                             key={idx}
                             type="button"
-                            className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                            className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
                             onClick={() => form.setValue('name', suggestion)}
                             disabled={mutation.isPending}
                           >
@@ -177,7 +177,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                         <FormControl>
                           <Button
                             variant="outline"
-                            className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300 text-right justify-between items-center"
+                            className="w-full h-10 rounded-lg bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 text-right justify-between items-center dark:text-gray-200"
                             disabled={mutation.isPending}
                           >
                             {field.value ? (
@@ -216,7 +216,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                     disabled={mutation.isPending}
                   >
                     <FormControl>
-                      <SelectTrigger className="w-full h-10 rounded-lg bg-white border border-blue-100 hover:border-blue-300">
+                      <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700 dark:text-gray-200">
                         <SelectValue placeholder="اختر حالة المشروع" />
                       </SelectTrigger>
                     </FormControl>
@@ -243,7 +243,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                         <TooltipTrigger asChild>
                           <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent className="bg-blue-50 text-blue-900 border-blue-200">
+                        <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-700">
                           <p>أدخل وصفًا تفصيليًا للمشروع وأهدافه.</p>
                         </TooltipContent>
                       </Tooltip>
@@ -254,7 +254,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                       {...field}
                       rows={3}
                       placeholder="أدخل وصف المشروع"
-                      className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                      className="w-full rounded-lg bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-800 focus:border-blue-300 dark:focus:border-blue-600 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-800 dark:text-gray-200 dark:placeholder-gray-400"
                       disabled={mutation.isPending}
                     />
                   </FormControl>
@@ -263,7 +263,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
                       <button
                         key={idx}
                         type="button"
-                        className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                        className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
                         onClick={() => form.setValue('description', suggestion)}
                         disabled={mutation.isPending}
                       >
