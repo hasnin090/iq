@@ -205,11 +205,11 @@
   }
   
   .button-primary {
-    @apply bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white font-medium py-2 px-4 rounded-lg hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 no-flicker;
+    @apply bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))] text-white font-semibold py-2.5 px-5 rounded-lg hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 no-flicker;
   }
   
   .input-field {
-    @apply w-full px-4 py-2.5 rounded-lg bg-white border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/20] text-[hsl(var(--foreground))] transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-lg bg-white border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))/20] text-[hsl(var(--foreground))] transition-all duration-200;
   }
   
   /* تحسينات للشاشات الصغيرة والتجاوب */
@@ -220,9 +220,14 @@
   .card {
     @apply bg-white rounded-xl shadow-sm border border-[hsl(var(--border))] p-4 md:p-6 transition-all duration-300 hover:shadow-md transform hover:-translate-y-1;
   }
+
+  /* تحسين بطاقات العرض للهاتف */
+  .mobile-card {
+    @apply bg-white rounded-xl shadow-sm border border-[hsl(var(--border))] p-3.5 transition-all;
+  }
   
   .action-button {
-    @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))/50] disabled:pointer-events-none disabled:opacity-50 transform hover:scale-105 active:scale-100;
+    @apply inline-flex items-center justify-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))/50] disabled:pointer-events-none disabled:opacity-50 transform hover:scale-105 active:scale-100;
   }
   
   .action-button-primary {
@@ -256,9 +261,76 @@
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6;
   }
   
+  /* تحسين المظهر للهواتف المحمولة */
+  .mobile-friendly-padding {
+    @apply px-3 py-2 sm:px-4 sm:py-3;
+  }
+  
+  .mobile-friendly-text {
+    @apply text-sm sm:text-base;
+  }
+  
+  .mobile-friendly-heading {
+    @apply text-xl sm:text-2xl md:text-3xl font-bold;
+  }
+  
+  .mobile-friendly-subheading {
+    @apply text-lg sm:text-xl font-semibold;
+  }
+  
+  /* تحسين أزرار الهاتف المحمول */
+  .mobile-action-button {
+    @apply fixed bottom-4 left-4 right-4 z-50 flex justify-center items-center py-3 rounded-xl bg-[hsl(var(--primary))] text-white font-bold shadow-lg md:hidden;
+  }
+  
+  /* شريط التنقل المتجاوب للهاتف */
+  .mobile-navbar {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 flex justify-around items-center z-50 md:hidden;
+  }
+  
+  .mobile-nav-item {
+    @apply flex flex-col items-center justify-center text-xs text-gray-600;
+  }
+  
+  .mobile-nav-item.active {
+    @apply text-[hsl(var(--primary))];
+  }
+  
+  .mobile-nav-icon {
+    @apply text-lg mb-1;
+  }
+  
+  /* تحسين شكل الإدخالات للهاتف */
+  .mobile-input {
+    @apply p-3 text-base rounded-xl border border-gray-300 focus:border-[hsl(var(--primary))] focus:ring-2 focus:ring-[hsl(var(--primary))/20] w-full;
+  }
+  
   /* تنسيق الشكل العام للنماذج */
   .form-container {
     @apply space-y-4 md:space-y-6;
+  }
+  
+  /* حاوية المحتوى الرئيسية المتجاوبة */
+  .main-content-container {
+    @apply px-3 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8;
+  }
+  
+  /* تحسين عرض البطاقات في الشاشات الصغيرة */
+  .mobile-stats-card {
+    @apply p-3 sm:p-4 rounded-lg border border-[hsl(var(--border))] bg-white flex flex-col;
+  }
+  
+  .mobile-stats-value {
+    @apply text-xl sm:text-2xl font-bold text-[hsl(var(--primary))];
+  }
+  
+  .mobile-stats-label {
+    @apply text-xs sm:text-sm text-gray-500;
+  }
+  
+  /* تحسين التباعد في الشاشات الصغيرة */
+  .mobile-spacing {
+    @apply space-y-3 sm:space-y-4 md:space-y-6;
   }
   
   /* تأثيرات حركية للبطاقات */
@@ -347,5 +419,32 @@
   
   .btn-hover-effect:hover:after {
     transform: translateX(100%);
+  }
+  
+  /* تحسينات تجربة المستخدم للهاتف المحمول */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* قائمة منسدلة محسنة للهاتف */
+  .mobile-dropdown {
+    @apply relative;
+  }
+  
+  .mobile-dropdown-content {
+    @apply absolute left-0 right-0 mt-2 p-2 bg-white rounded-lg shadow-lg border border-gray-200 z-50 transition-all duration-300 ease-in-out transform origin-top scale-95 opacity-0 invisible;
+  }
+  
+  .mobile-dropdown.open .mobile-dropdown-content {
+    @apply scale-100 opacity-100 visible;
+  }
+  
+  /* زخرفة الصفحة للتأثيرات البصرية */
+  .page-decoration {
+    @apply fixed top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-blue-500/5 to-transparent -z-10;
+  }
+  
+  .page-decoration-2 {
+    @apply fixed bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-blue-500/5 to-transparent -z-10;
   }
 }
