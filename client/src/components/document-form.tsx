@@ -206,9 +206,19 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
       }
       
       try {
+        // تحديث شريط التقدم للإشعار بأن العملية بدأت
+        setUploadProgress(10);
+        console.log("تحديث نسبة التقدم إلى 10% قبل بدء التحميل");
+        
         // تحميل الملف إلى Firebase Storage مع تتبع التقدم
         const userId = user?.id || 'unknown';
         const storageFolder = `documents/${userId}`;
+        console.log("جاري تحميل الملف للمجلد:", storageFolder);
+        console.log("معلومات الملف - الاسم:", file.name, "الحجم:", file.size, "النوع:", file.type);
+        
+        // مهلة قصيرة لإعطاء الواجهة وقتًا للتحديث قبل بدء التحميل الفعلي
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const fileUrl = await uploadFile(file, storageFolder, updateUploadProgress);
         
         // تحديث التقدم إلى 100% للتأكد من اكتمال العملية

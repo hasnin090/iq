@@ -136,8 +136,10 @@ export const uploadFile = async (
           
           // استدعاء دالة رد الاستدعاء للتقدم إذا تم توفيرها
           if (progressCallback) {
-            // تأكد من أن التقدم لا يقل عن 5% لتجنب ظهوره كأنه 0%
-            progressCallback(Math.max(progress, 5));
+            // تأكد من أن التقدم لا يقل عن 10% لتجنب ظهوره كأنه 0%
+            const adjustedProgress = Math.max(progress, 10);
+            console.log(`تحديث نسبة التقدم في واجهة المستخدم: ${adjustedProgress}%`);
+            progressCallback(adjustedProgress);
           }
         },
         (error) => {
@@ -200,24 +202,69 @@ export const uploadFile = async (
  */
 export const deleteFile = async (fileUrl: string): Promise<void> => {
   try {
+    console.log("بدء عملية حذف الملف:", fileUrl);
+    
+    // التحقق من تنسيق URL
+    if (!fileUrl || !fileUrl.includes('firebase') || !fileUrl.includes('storage')) {
+      console.error("تنسيق URL غير صالح:", fileUrl);
+      throw new Error("تنسيق URL غير صالح للملف المراد حذفه");
+    }
+    
     // الحصول على كائن التخزين
     const firebaseStorage = getFirebaseStorage();
+    console.log("تم الحصول على كائن Firebase Storage");
     
-    // الحصول على مرجع من URL
-    // ملاحظة: هذا يعمل فقط مع URLs من Firebase Storage
-    // إذا تم تخزين URL مباشرة من getDownloadURL()
-    const httpsReference = ref(firebaseStorage, fileUrl);
+    // استخراج المسار النسبي من URL إذا كان URL كاملاً
+    let filePath = fileUrl;
+    
+    // إذا كان URL كاملاً من firebase (يبدأ بـ https://firebasestorage.googleapis.com/)
+    if (fileUrl.startsWith('https://')) {
+      try {
+        // استخراج المسار من URL
+        const url = new URL(fileUrl);
+        // نمط URL القديم: /v0/b/{bucket}/o/{encoded_path}?alt=media&token={token}
+        // أو النمط الجديد: /b/{bucket}/o/{encoded_path}?alt=media&token={token}
+        const pathRegex = /\/o\/([^?]+)/;
+        const match = url.pathname.match(pathRegex);
+        
+        if (match && match[1]) {
+          // فك ترميز المسار لأنه قد يكون مشفراً في URL
+          filePath = decodeURIComponent(match[1]);
+          console.log("تم استخراج المسار النسبي من URL:", filePath);
+        } else {
+          throw new Error("تعذر استخراج المسار من URL");
+        }
+      } catch (err) {
+        console.error("خطأ في استخراج المسار من URL:", err);
+        throw new Error("تعذر معالجة URL الملف. تنسيق غير متوقع.");
+      }
+    }
+    
+    console.log("استخدام المسار النهائي للحذف:", filePath);
+    const fileRef = ref(firebaseStorage, filePath);
     
     // حذف الملف
-    await deleteObject(httpsReference);
+    await deleteObject(fileRef);
+    console.log("تم حذف الملف بنجاح");
   } catch (error) {
     console.error("خطأ في حذف الملف:", error);
-    // نلقي خطأ أكثر تفصيلاً
+    
+    // رسائل خطأ أكثر تفصيلاً بناءً على نوع الخطأ
+    let errorMessage = "فشل في حذف الملف. يرجى المحاولة مرة أخرى.";
+    
     if (error instanceof Error) {
-      throw new Error(`فشل في حذف الملف: ${error.message}`);
-    } else {
-      throw new Error("فشل في حذف الملف. يرجى المحاولة مرة أخرى.");
+      if (error.message.includes('unauthorized') || error.message.includes('permission-denied')) {
+        errorMessage = "ليس لديك الصلاحية لحذف هذا الملف. يرجى التواصل مع مدير النظام.";
+      } else if (error.message.includes('not-found') || error.message.includes('object-not-found')) {
+        errorMessage = "لم يتم العثور على الملف المطلوب حذفه. ربما تم حذفه بالفعل.";
+      } else if (error.message.includes('network') || error.message.includes('connection')) {
+        errorMessage = "فشل في الاتصال بخدمة التخزين. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.";
+      } else {
+        errorMessage = `فشل في حذف الملف: ${error.message}`;
+      }
     }
+    
+    throw new Error(errorMessage);
   }
 };
 
