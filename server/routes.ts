@@ -562,10 +562,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // التحقق مما إذا كان المشروع مرتبط بصندوق
       const projectFund = await storage.getFundByProject(id);
       if (projectFund) {
-        return res.status(400).json({ 
-          message: "لا يمكن حذف المشروع لأنه يحتوي على صندوق مالي مرتبط به",
-          fundId: projectFund.id
-        });
+        try {
+          // حذف الصندوق المرتبط بالمشروع
+          console.log(`محاولة حذف الصندوق المرتبط بالمشروع: ${projectFund.id}`);
+          
+          const [deletedFund] = await db.delete(funds)
+            .where(eq(funds.id, projectFund.id))
+            .returning();
+          
+          console.log(`تم حذف الصندوق المرتبط بالمشروع: ${JSON.stringify(deletedFund)}`);
+        } catch (error) {
+          console.error("خطأ أثناء حذف الصندوق المرتبط بالمشروع:", error);
+          return res.status(400).json({ 
+            message: "لا يمكن حذف الصندوق المرتبط بالمشروع. يرجى التحقق من أنه لا توجد معاملات مرتبطة به",
+            fundId: projectFund.id,
+            error: error instanceof Error ? error.message : "خطأ غير معروف"
+          });
+        }
       }
       
       // حذف أي مستندات مرتبطة بالمشروع
