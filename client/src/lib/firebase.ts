@@ -15,7 +15,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBLJb_pYS00-9VMPE9nnH5WyTKv18UGlcA",
   authDomain: "grokapp-5e120.firebaseapp.com",
   projectId: "grokapp-5e120",
-  storageBucket: "grokapp-5e120.firebasestorage.app",
+  storageBucket: "grokapp-5e120.appspot.com",
   messagingSenderId: "846888480997",
   appId: "1:846888480997:web:971ec7fa47b901e27b640c",
   measurementId: "G-GS4CWFRC9Q"

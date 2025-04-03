@@ -468,12 +468,23 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
           />
           
           {mutation.isPending && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">جاري رفع الملف...</span>
-                <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+            <div className="space-y-2 border-2 border-primary/10 rounded-lg p-3 bg-primary/5">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center">
+                  <Loader2 className="h-4 w-4 ml-2 animate-spin text-primary" />
+                  <span className="text-sm font-medium text-primary-light">جاري رفع الملف...</span>
+                </div>
+                <span className="text-sm font-bold text-primary bg-white px-3 py-1 rounded-full shadow-sm border border-primary/10">
+                  {uploadProgress}%
+                </span>
               </div>
-              <Progress value={uploadProgress} className="h-2" />
+              <Progress value={uploadProgress} className="h-3 bg-white" />
+              <p className="text-xs text-center text-muted-foreground mt-1">
+                {uploadProgress < 20 ? 'بدء التحميل...' : 
+                 uploadProgress < 60 ? 'جاري رفع الملف، يرجى الانتظار...' : 
+                 uploadProgress < 90 ? 'اقترب التحميل من الانتهاء...' : 
+                 'جاري إكمال العملية...'}
+              </p>
             </div>
           )}
           

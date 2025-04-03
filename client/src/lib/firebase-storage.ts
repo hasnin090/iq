@@ -32,7 +32,7 @@ const getFirebaseStorage = (): FirebaseStorage => {
       apiKey: "AIzaSyBLJb_pYS00-9VMPE9nnH5WyTKv18UGlcA",
       authDomain: "grokapp-5e120.firebaseapp.com",
       projectId: "grokapp-5e120",
-      storageBucket: "grokapp-5e120.firebasestorage.app",
+      storageBucket: "grokapp-5e120.appspot.com",
       messagingSenderId: "846888480997",
       appId: "1:846888480997:web:971ec7fa47b901e27b640c",
       measurementId: "G-GS4CWFRC9Q"
@@ -108,10 +108,10 @@ export const uploadFile = async (
     const uploadTask = uploadBytesResumable(fileRef, file);
     console.log("تم بدء مهمة التحميل");
     
-    // تحديث التقدم إلى 5% بعد بدء التحميل
+    // تحديث التقدم إلى 10% بعد بدء التحميل
     if (progressCallback) {
-      progressCallback(5);
-      console.log("تم تحديث نسبة التقدم إلى 5%");
+      progressCallback(10);
+      console.log("تم تحديث نسبة التقدم إلى 10%");
     }
     
     // استخدام Promise لتتبع التحميل وإرجاع الرابط
@@ -144,7 +144,25 @@ export const uploadFile = async (
           // معالجة الأخطاء أثناء التحميل
           console.error("خطأ في تحميل الملف:", error);
           console.error("تفاصيل الخطأ:", JSON.stringify(error));
-          reject(new Error(`فشل في تحميل الملف: ${error.message || 'خطأ غير معروف'}`));
+          
+          // رسالة خطأ أكثر توضيحًا للمستخدم
+          let errorMessage = "فشل في تحميل الملف";
+          
+          if (error.code === 'storage/unauthorized') {
+            errorMessage = "غير مصرح لك برفع الملفات. تأكد من تسجيل الدخول وأن لديك الصلاحيات المناسبة.";
+          } else if (error.code === 'storage/canceled') {
+            errorMessage = "تم إلغاء عملية رفع الملف. حاول مرة أخرى.";
+          } else if (error.code === 'storage/unknown') {
+            errorMessage = "حدث خطأ غير معروف أثناء رفع الملف. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.";
+          } else if (error.code === 'storage/quota-exceeded') {
+            errorMessage = "تم تجاوز الحد الأقصى لمساحة التخزين. الرجاء التواصل مع مدير النظام.";
+          } else if (error.code === 'storage/invalid-argument') {
+            errorMessage = "هناك مشكلة في الملف الذي تحاول رفعه. تأكد من أن الملف صالح وحاول مرة أخرى.";
+          } else if (error.message) {
+            errorMessage = `فشل في تحميل الملف: ${error.message}`;
+          }
+          
+          reject(new Error(errorMessage));
         },
         async () => {
           console.log("اكتمل التحميل بنجاح، جاري الحصول على رابط التنزيل...");
