@@ -437,7 +437,7 @@ export function TransactionList({
               {transactions.map((transaction) => (
                 <div 
                   key={transaction.id} 
-                  className={`p-4 rounded-lg border ${
+                  className={`p-5 rounded-lg border h-full flex flex-col ${
                     isAdminFundTransaction(transaction)
                       ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
                       : isProjectFundingTransaction(transaction)
@@ -445,26 +445,27 @@ export function TransactionList({
                         : 'bg-secondary border-border' // عمليات أخرى
                   }`}
                 >
+                  {/* الجزء العلوي للبطاقة - التاريخ والعلامات */}
                   <div className="flex justify-between items-start mb-3">
                     <span className="text-sm text-muted-foreground">{formatDateTime(transaction.date)}</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap gap-1 justify-end">
                       {isAdminFundTransaction(transaction) && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="px-2 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 2v20M2 12h20"></path>
                           </svg>
                           صندوق رئيسي
                         </span>
                       )}
                       {isProjectFundingTransaction(transaction) && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="px-2 py-0.5 text-[10px] rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14M12 5l7 7-7 7"></path>
                           </svg>
                           تمويل مشروع
                         </span>
                       )}
-                      <span className={`px-2 py-1 text-xs rounded-full ${
+                      <span className={`px-2 py-0.5 text-[10px] rounded-full ${
                         transaction.type === 'income' 
                           ? 'bg-success bg-opacity-20 text-success' 
                           : 'bg-destructive bg-opacity-20 text-destructive'
@@ -473,18 +474,26 @@ export function TransactionList({
                       </span>
                     </div>
                   </div>
-                  <p className="font-medium mb-2">{getCustomTransactionDescription(transaction)}</p>
-                  <p className="text-sm text-muted-foreground mb-3">
+                  
+                  {/* وصف المعاملة */}
+                  <div className="min-h-[60px] mb-2">
+                    <p className="font-medium text-sm leading-5 line-clamp-3">{getCustomTransactionDescription(transaction)}</p>
+                  </div>
+                  
+                  {/* معلومات المشروع */}
+                  <p className="text-xs text-muted-foreground mb-3">
                     المشروع: {getProjectName(transaction.projectId)}
                   </p>
-                  <div className="flex justify-between items-center">
+                  
+                  {/* المبلغ والأزرار */}
+                  <div className="flex justify-between items-center mt-auto">
                     <span className={`text-lg font-bold ${
                       transaction.type === 'income' ? 'text-success' : 'text-destructive'
                     }`}>
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </span>
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex gap-1.5">
                       <button 
                         className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-medium flex items-center"
                         onClick={() => handleEditClick(transaction)}
