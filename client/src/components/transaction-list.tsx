@@ -434,23 +434,28 @@ export function TransactionList({
         <div id="transactions-content">
           {viewType === 'cards' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-              {transactions.map((transaction) => (
+              {transactions.map((transaction, index) => (
                 <div 
                   key={transaction.id} 
-                  className={`p-5 rounded-lg border h-full flex flex-col ${
+                  className={`p-5 rounded-lg border h-full flex flex-col shadow-sm ${
                     isAdminFundTransaction(transaction)
                       ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
                       : isProjectFundingTransaction(transaction)
                         ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900' // تمويل مشروع
-                        : 'bg-secondary border-border' // عمليات أخرى
-                  }`}
+                        : index % 2 === 0 
+                          ? 'bg-gray-50 border-gray-200 dark:bg-gray-800/70 dark:border-gray-700' // صفوف زوجية
+                          : 'bg-white border-blue-100 dark:bg-gray-800 dark:border-blue-900/20' // صفوف فردية
+                  } hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-150`}
                 >
                   {/* الجزء العلوي للبطاقة - التاريخ والعلامات */}
                   <div className="flex justify-between items-start mb-3">
-                    <span className="text-sm text-muted-foreground">{formatDateTime(transaction.date)}</span>
+                    <span className="text-sm bg-gray-50 dark:bg-gray-900/50 px-2.5 py-1 rounded-lg text-gray-600 dark:text-gray-300 font-medium border border-gray-100 dark:border-gray-700 flex items-center">
+                      <i className="fas fa-calendar-alt ml-1.5 text-gray-500 dark:text-gray-400"></i>
+                      {formatDateTime(transaction.date)}
+                    </span>
                     <div className="flex flex-wrap gap-1 justify-end">
                       {isAdminFundTransaction(transaction) && (
-                        <span className="px-2 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center">
+                        <span className="px-2 py-1 text-[10px] rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center border border-blue-200 dark:border-blue-800">
                           <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 2v20M2 12h20"></path>
                           </svg>
@@ -458,18 +463,27 @@ export function TransactionList({
                         </span>
                       )}
                       {isProjectFundingTransaction(transaction) && (
-                        <span className="px-2 py-0.5 text-[10px] rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center">
+                        <span className="px-2 py-1 text-[10px] rounded-lg bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center border border-green-200 dark:border-green-800">
                           <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14M12 5l7 7-7 7"></path>
                           </svg>
                           تمويل مشروع
                         </span>
                       )}
-                      <span className={`px-2 py-0.5 text-[10px] rounded-full ${
+                      <span className={`px-2 py-1 text-[10px] rounded-lg flex items-center border ${
                         transaction.type === 'income' 
-                          ? 'bg-success bg-opacity-20 text-success' 
-                          : 'bg-destructive bg-opacity-20 text-destructive'
+                          ? 'bg-success/10 text-success border-success/20' 
+                          : 'bg-destructive/10 text-destructive border-destructive/20'
                       }`}>
+                        {transaction.type === 'income' ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 19V5M5 12l7-7 7 7"/>
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                          </svg>
+                        )}
                         {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
                       </span>
                     </div>
@@ -480,29 +494,40 @@ export function TransactionList({
                     <p className="font-medium text-sm leading-5 line-clamp-3">{getCustomTransactionDescription(transaction)}</p>
                   </div>
                   
+                  {/* تفاصيل المعاملة - إذا وجدت */}
+                  {transaction.description && (
+                    <div className="mb-3 bg-gray-50 dark:bg-gray-900/40 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">التفاصيل:</span>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{transaction.description}</p>
+                    </div>
+                  )}
+                  
                   {/* معلومات المشروع */}
-                  <p className="text-xs text-muted-foreground mb-3">
+                  <p className="text-xs bg-gray-50 dark:bg-gray-900/40 px-2 py-1 rounded-lg text-gray-600 dark:text-gray-300 mb-3 border border-gray-100 dark:border-gray-700 flex items-center">
+                    <i className="fas fa-folder ml-1.5 text-gray-500 dark:text-gray-400"></i>
                     المشروع: {getProjectName(transaction.projectId)}
                   </p>
                   
                   {/* المبلغ والأزرار */}
                   <div className="flex justify-between items-center mt-auto">
-                    <span className={`text-lg font-bold ${
-                      transaction.type === 'income' ? 'text-success' : 'text-destructive'
+                    <span className={`text-lg font-bold px-3 py-1.5 rounded-lg border ${
+                      transaction.type === 'income' 
+                        ? 'text-success bg-success/5 dark:bg-success/10 border-success/20' 
+                        : 'text-destructive bg-destructive/5 dark:bg-destructive/10 border-destructive/20'
                     }`}>
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </span>
                     <div className="flex gap-1.5">
                       <button 
-                        className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center"
+                        className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
                         onClick={() => handleEditClick(transaction)}
                       >
                         <i className="fas fa-edit ml-1"></i>
                         تعديل
                       </button>
                       <button 
-                        className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center"
+                        className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
                         onClick={() => handleDeleteClick(transaction)}
                       >
                         <i className="fas fa-trash-alt ml-1"></i>
@@ -515,19 +540,20 @@ export function TransactionList({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-secondary dark:divide-gray-600">
-                <thead className="dark:bg-gray-700">
+              <table className="min-w-full divide-y divide-secondary dark:divide-gray-600 border-collapse">
+                <thead className="bg-blue-50 dark:bg-gray-700">
                   <tr>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">التاريخ والوقت</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">الوصف</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">المشروع</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">النوع</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT dark:text-gray-300 uppercase tracking-wider">الإجراءات</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-36">التاريخ والوقت</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">الوصف</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">التفاصيل</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">المشروع</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-24">النوع</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المبلغ</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-40">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-secondary-light dark:divide-gray-600">
-                  {transactions.map((transaction) => (
+                  {transactions.map((transaction, index) => (
                     <tr 
                       key={transaction.id}
                       className={`${
@@ -535,16 +561,23 @@ export function TransactionList({
                           ? 'bg-indigo-50/50 dark:bg-indigo-950/20' // صندوق رئيسي
                           : isProjectFundingTransaction(transaction)
                             ? 'bg-green-50/50 dark:bg-green-950/20' // تمويل مشروع
-                            : ''
-                      }`}
+                            : index % 2 === 0 
+                              ? 'bg-gray-50/50 dark:bg-gray-800/50' // صفوف زوجية
+                              : 'bg-white/75 dark:bg-gray-900/30' // صفوف فردية
+                      } hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
                     >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light dark:text-gray-300">
-                        {formatDateTime(transaction.date)}
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light dark:text-gray-300 border-r border-blue-50/50 dark:border-blue-900/10">
+                        <span className="font-medium">{formatDateTime(transaction.date)}</span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300">
-                        {getCustomTransactionDescription(transaction)}
+                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300 max-w-[150px] border-r border-blue-50/50 dark:border-blue-900/10">
+                        <span className="font-medium">{getCustomTransactionDescription(transaction)}</span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300">
+                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300 max-w-[200px] border-r border-blue-50/50 dark:border-blue-900/10">
+                        <div className="line-clamp-2">
+                          {transaction.description || <span className="text-gray-400 dark:text-gray-500 italic">لا يوجد تفاصيل</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300 border-r border-blue-50/50 dark:border-blue-900/10">
                         {isAdminFundTransaction(transaction) ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -565,32 +598,45 @@ export function TransactionList({
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      <td className="px-4 py-3 whitespace-nowrap border-r border-blue-50/50 dark:border-blue-900/10">
+                        <span className={`px-2.5 py-1 inline-flex items-center text-xs leading-5 font-medium rounded-full ${
                           transaction.type === 'income' 
-                            ? 'bg-success bg-opacity-20 text-success' 
-                            : 'bg-destructive bg-opacity-20 text-destructive'
+                            ? 'bg-success/10 text-success border border-success/20' 
+                            : 'bg-destructive/10 text-destructive border border-destructive/20'
                         }`}>
+                          {transaction.type === 'income' ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 19V5M5 12l7-7 7 7"/>
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 5v14M5 12l7 7 7-7"/>
+                            </svg>
+                          )}
                           {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
                         </span>
                       </td>
-                      <td className={`px-4 py-3 whitespace-nowrap text-sm ${
+                      <td className={`px-4 py-3 whitespace-nowrap text-sm border-r border-blue-50/50 dark:border-blue-900/10 ${
                         transaction.type === 'income' ? 'text-success' : 'text-destructive'
                       } font-bold`}>
-                        {transaction.type === 'income' ? '+' : '-'}
-                        {formatCurrency(transaction.amount)}
+                        <div className="flex items-center justify-end">
+                          <span className="px-2 py-1 rounded bg-opacity-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                            {transaction.type === 'income' ? '+' : '-'}
+                            {formatCurrency(transaction.amount)}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 justify-end">
                           <button 
-                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center"
+                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
                             onClick={() => handleEditClick(transaction)}
                           >
                             <i className="fas fa-edit ml-1"></i>
                             تعديل
                           </button>
                           <button 
-                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center"
+                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
                             onClick={() => handleDeleteClick(transaction)}
                           >
                             <i className="fas fa-trash-alt ml-1"></i>
