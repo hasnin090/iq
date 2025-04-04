@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CalendarIcon, CoinsIcon, InfoIcon, Loader2, PiggyBankIcon, SaveIcon } from 'lucide-react';
+import { AlertTriangle, CalendarIcon, CoinsIcon, InfoIcon, Loader2, PiggyBankIcon, SaveIcon, ArrowRightCircleIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -35,7 +35,7 @@ const transactionSchema = z.object({
   date: z.date({
     required_error: "التاريخ مطلوب",
   }),
-  type: z.enum(["income", "expense"], {
+  type: z.enum(["income", "expense", "project_income"], {
     required_error: "نوع العملية مطلوب",
   }),
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
@@ -93,8 +93,22 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       // نسخة جديدة من البيانات لتجنب تعديل البيانات الأصلية
       let formData: any = { ...data };
       
+      // معالجة نوع إيراد المشروع الجديد للمدير (project_income)
+      if (formData.type === 'project_income') {
+        // في حالة "إيراد للمشروع"، نقوم بتعديل النوع إلى "income" العادي
+        // لكن نحتفظ بمعرف المشروع للإشارة إلى أن الإيراد للمشروع وليس للصندوق الرئيسي
+        formData.type = 'income';
+        
+        // التأكد من وجود معرف مشروع صالح
+        if (!formData.projectId || formData.projectId === "none") {
+          throw new Error("يجب تحديد مشروع عند إضافة إيراد للمشروع");
+        }
+        
+        // تحويل معرف المشروع إلى رقم
+        formData.projectId = parseInt(formData.projectId);
+      }
       // التعامل مع projectId حسب نوع المستخدم ونوع العملية
-      if (user?.role === 'admin') {
+      else if (user?.role === 'admin') {
         // للمدير:
         // 1. إذا كانت العملية "إيراد"، حذف المشروع دائمًا لضمان إضافة الإيراد للصندوق الرئيسي
         // 2. إذا كانت العملية "مصروف"، يتم التعامل حسب المشروع المحدد
@@ -191,12 +205,20 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       "مصاريف نقل متعلقة بالمشروع",
       "صيانة معدات المشروع",
       "نفقات تشغيلية للمشروع"
+    ],
+    project_income: [
+      // اقتراحات الإيرادات للمشاريع (من قبل المدير)
+      "إيراد مباشر للمشروع",
+      "تمويل إضافي للمشروع",
+      "دفعة من العميل للمشروع",
+      "إيراد مبيعات للمشروع",
+      "تمويل وارد للمشروع"
     ]
   };
   
   // الحصول على اقتراحات الوصف بناءً على نوع المعاملة
   const getDescriptionSuggestions = () => {
-    const type = form.getValues().type as "income" | "expense";
+    const type = form.getValues().type as "income" | "expense" | "project_income";
     return descriptionSuggestions[type] || [];
   };
   
@@ -206,6 +228,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary dark:text-blue-400">
           {form.watch("type") === "income" ? (
             <PiggyBankIcon className="h-5 w-5 text-green-500 dark:text-green-400" />
+          ) : form.watch("type") === "project_income" ? (
+            <ArrowRightCircleIcon className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />
           ) : (
             <CoinsIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
           )}
@@ -266,11 +290,25 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       onValueChange={(value) => {
                         field.onChange(value);
                         form.setValue("description", ""); // مسح الوصف عند تغيير النوع
-                        // إذا كان المستخدم هو المدير وتم اختيار إيراد، قم بتعيين projectId إلى "none" تلقائياً
-                        if (user?.role === 'admin' && value === 'income') {
-                          form.setValue("projectId", "none");
-                          // إضافة اقتراح توضيحي للإيراد للصندوق الرئيسي
-                          form.setValue("description", "إيراد للصندوق الرئيسي");
+                        
+                        // إذا كان المستخدم هو المدير:
+                        if (user?.role === 'admin') {
+                          if (value === 'income') {
+                            // إيراد للصندوق الرئيسي
+                            form.setValue("projectId", "none");
+                            form.setValue("description", "إيراد للصندوق الرئيسي");
+                          } 
+                          else if (value === 'project_income') {
+                            // إيراد للمشروع
+                            // إذا كان هناك مشروع واحد فقط، نختاره تلقائياً
+                            if (projects?.length === 1) {
+                              form.setValue("projectId", projects[0].id.toString());
+                              form.setValue("description", "إيراد مباشر للمشروع");
+                            } else {
+                              // وإلا نعيد تعيين معرف المشروع ليختار المستخدم
+                              form.setValue("projectId", "");
+                            }
+                          }
                         }
                       }} 
                       value={field.value} 
@@ -288,6 +326,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                             {user?.role === 'admin' ? 'إيراد (للصندوق الرئيسي)' : 'إيراد (للمشروع)'}
                           </div>
                         </SelectItem>
+                        {user?.role === 'admin' && (
+                          <SelectItem value="project_income" className="flex items-center gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/30">
+                            <div className="flex items-center">
+                              <ArrowRightCircleIcon className="h-4 w-4 ml-2 text-emerald-500 dark:text-emerald-400" />
+                              إيراد للمشروع
+                            </div>
+                          </SelectItem>
+                        )}
                         <SelectItem value="expense" className="flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/30">
                           <div className="flex items-center">
                             <CoinsIcon className="h-4 w-4 ml-2 text-red-500 dark:text-red-400" />
@@ -302,6 +348,12 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         {user?.role === 'admin' 
                           ? 'سيتم إضافة الإيراد للصندوق الرئيسي فقط'
                           : 'سيتم إضافة الإيراد للمشروع المحدد فقط'}
+                      </p>
+                    )}
+                    {field.value === 'project_income' && (
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 flex items-center font-medium">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        يجب تحديد المشروع الذي سيتم إضافة الإيراد إليه
                       </p>
                     )}
                     <FormMessage />
@@ -360,10 +412,9 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               {/* 
               أظهر حقل المشروع في الحالات التالية:
               1. للمستخدم العادي الذي له أكثر من مشروع
-              2. للمدير عند اختيار نوع العملية "مصروف"
-              3. للمدير فقط عند اختيار "إيراد" ومع تقييد الخيارات حسب الحالة
+              2. للمدير عند اختيار نوع العملية "مصروف" أو "إيراد للمشروع"
               */}
-              {((user?.role === 'admin' && form.watch('type') === 'expense') || 
+              {((user?.role === 'admin' && ['expense', 'project_income'].includes(form.watch('type'))) || 
                 (user?.role !== 'admin' && userProjects && userProjects.length > 1)) && (
                 <FormField
                   control={form.control}
@@ -400,8 +451,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           - للمستخدم العادي: عرض فقط المشاريع المخصصة له دائمًا
                           */}
                           {user?.role === 'admin' ? (
-                            // للمدير: عرض المشاريع فقط عند اختيار نوع العملية "مصروف"
-                            form.watch('type') === 'expense' ? (
+                            // للمدير: عرض المشاريع عند اختيار نوع العملية "مصروف" أو "إيراد للمشروع"
+                            ['expense', 'project_income'].includes(form.watch('type')) ? (
                               projects.map((project) => (
                                 <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-green-50 dark:hover:bg-green-900/30">
                                   <div className="flex items-center">
@@ -412,7 +463,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                                   </div>
                                 </SelectItem>
                               ))
-                            ) : null // لا تعرض المشاريع للمدير عند اختيار "إيراد"
+                            ) : null // لا تعرض المشاريع للمدير عند اختيار "إيراد" للصندوق الرئيسي
                           ) : (
                             // للمستخدم العادي: عرض فقط المشاريع المخصصة له
                             userProjects?.map((project) => (
@@ -488,7 +539,9 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 className={`px-6 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 ${
                   form.watch("type") === "income" 
                     ? "bg-gradient-to-r from-green-600 to-green-500" 
-                    : "bg-gradient-to-r from-blue-600 to-blue-500"
+                    : form.watch("type") === "project_income"
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500"
+                      : "bg-gradient-to-r from-blue-600 to-blue-500"
                 }`}
                 disabled={isLoading || mutation.isPending}
               >
