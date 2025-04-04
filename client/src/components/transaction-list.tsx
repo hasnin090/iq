@@ -713,20 +713,24 @@ export function TransactionList({
                       {formatCurrency(transaction.amount)}
                     </span>
                     <div className="flex gap-1.5">
-                      <button 
-                        className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
-                        onClick={() => handleEditClick(transaction)}
-                      >
-                        <i className="fas fa-edit ml-1"></i>
-                        تعديل
-                      </button>
-                      <button 
-                        className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
-                        onClick={() => handleDeleteClick(transaction)}
-                      >
-                        <i className="fas fa-trash-alt ml-1"></i>
-                        حذف
-                      </button>
+                      {user?.role !== 'viewer' && (
+                        <>
+                          <button 
+                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                            onClick={() => handleEditClick(transaction)}
+                          >
+                            <i className="fas fa-edit ml-1"></i>
+                            تعديل
+                          </button>
+                          <button 
+                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                            onClick={() => handleDeleteClick(transaction)}
+                          >
+                            <i className="fas fa-trash-alt ml-1"></i>
+                            حذف
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -822,20 +826,24 @@ export function TransactionList({
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
                         <div className="flex gap-2 justify-end">
-                          <button 
-                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
-                            onClick={() => handleEditClick(transaction)}
-                          >
-                            <i className="fas fa-edit ml-1"></i>
-                            تعديل
-                          </button>
-                          <button 
-                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
-                            onClick={() => handleDeleteClick(transaction)}
-                          >
-                            <i className="fas fa-trash-alt ml-1"></i>
-                            حذف
-                          </button>
+                          {user?.role !== 'viewer' && (
+                            <>
+                              <button 
+                                className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                                onClick={() => handleEditClick(transaction)}
+                              >
+                                <i className="fas fa-edit ml-1"></i>
+                                تعديل
+                              </button>
+                              <button 
+                                className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                                onClick={() => handleDeleteClick(transaction)}
+                              >
+                                <i className="fas fa-trash-alt ml-1"></i>
+                                حذف
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

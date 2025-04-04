@@ -96,20 +96,22 @@ export default function Transactions() {
         <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة المعاملات المالية للإيرادات والمصروفات</p>
       </div>
       
-      <div className="mb-8 fade-in">
-        {/* Transaction Form - Now occupies full width at the top */}
-        <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm">
-          <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-            <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
-            <span>إضافة معاملة جديدة</span>
-          </h3>
-          <TransactionForm 
-            projects={projects || []} 
-            onSubmit={handleFormSubmit} 
-            isLoading={projectsLoading}
-          />
+      {user?.role !== 'viewer' && (
+        <div className="mb-8 fade-in">
+          {/* Transaction Form - Now occupies full width at the top */}
+          <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm">
+            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+              <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
+              <span>إضافة معاملة جديدة</span>
+            </h3>
+            <TransactionForm 
+              projects={projects || []} 
+              onSubmit={handleFormSubmit} 
+              isLoading={projectsLoading}
+            />
+          </div>
         </div>
-      </div>
+      )}
       
       {/* تبويبات العمليات المالية - الآن تأخذ عرض الصفحة بالكامل */}
       <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">

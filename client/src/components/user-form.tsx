@@ -35,7 +35,7 @@ const userSchema = z.object({
   username: z.string().min(3, "اسم المستخدم يجب أن يحتوي على الأقل 3 أحرف"),
   name: z.string().min(3, "الاسم يجب أن يحتوي على الأقل 3 أحرف"),
   password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
-  role: z.enum(["admin", "user"], {
+  role: z.enum(["admin", "user", "viewer"], {
     required_error: "الصلاحية مطلوبة",
   }),
   permissions: z.array(z.string()).optional(),
@@ -120,12 +120,19 @@ export function UserForm({ onSubmit }: UserFormProps) {
   
   // Update role and show/hide permissions
   const handleRoleChange = (role: string) => {
-    form.setValue("role", role as "admin" | "user");
+    form.setValue("role", role as "admin" | "user" | "viewer");
+    
+    // إظهار قسم الصلاحيات فقط للمستخدم العادي
     setShowPermissions(role === "user");
     
     // إذا تم تغيير الدور إلى مدير، قم بإعادة تعيين الصلاحيات
     if (role === "admin") {
       form.setValue("permissions", []);
+    }
+    
+    // إذا تم تغيير الدور إلى مشاهد فقط، قم بتعيين صلاحية المشاهدة فقط تلقائيًا
+    if (role === "viewer") {
+      form.setValue("permissions", ["viewOnly"]);
     }
   };
   
@@ -298,20 +305,28 @@ export function UserForm({ onSubmit }: UserFormProps) {
                             مستخدم
                           </div>
                         </SelectItem>
+                        <SelectItem value="viewer" className="flex items-center">
+                          <div className="flex items-center">
+                            <EyeIcon className="h-4 w-4 ml-2 text-green-500" />
+                            مشاهد فقط
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription className="dark:text-gray-300">
                       {field.value === "admin" 
                         ? "المدير لديه صلاحيات كاملة للنظام" 
-                        : "المستخدم يحتاج لتحديد صلاحيات محددة"}
+                        : field.value === "viewer"
+                          ? "المشاهد يستطيع فقط عرض البيانات دون تعديلها"
+                          : "المستخدم يحتاج لتحديد صلاحيات محددة"}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              {/* اختيار المشروع المخصص للمستخدم */}
-              {form.watch("role") === "user" && (
+              {/* اختيار المشروع المخصص للمستخدم أو المشاهد */}
+              {(form.watch("role") === "user" || form.watch("role") === "viewer") && (
                 <FormField
                   control={form.control}
                   name="projectId"
