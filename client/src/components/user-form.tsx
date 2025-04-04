@@ -148,14 +148,14 @@ export function UserForm({ onSubmit }: UserFormProps) {
   
   return (
     <Card className="border border-blue-100 dark:border-blue-900 shadow-md transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/40 pb-2">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold text-primary dark:text-blue-300">
-          <UserIcon className="h-5 w-5" />
+      <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 pb-4">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
+          <UserIcon className="h-6 w-6" />
           إضافة مستخدم جديد
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="pt-4">
+      <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -418,23 +418,33 @@ export function UserForm({ onSubmit }: UserFormProps) {
             </div>
             
             {showPermissions && (
-              <div className="bg-blue-50 dark:bg-blue-950/50 p-4 rounded-lg border border-blue-100 dark:border-blue-900">
-                <FormLabel className="mb-2 block font-medium text-blue-700 dark:text-blue-300">الصلاحيات:</FormLabel>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 p-5 rounded-lg border-2 border-blue-200 dark:border-blue-800 shadow-inner mt-2">
+                <FormLabel className="mb-3 block font-semibold text-blue-700 dark:text-blue-300 text-lg">
+                  <div className="flex items-center">
+                    <ShieldIcon className="h-5 w-5 ml-2 text-blue-600 dark:text-blue-400" />
+                    صلاحيات المستخدم:
+                  </div>
+                </FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {permissions.map((permission) => (
                     <FormField
                       key={permission.id}
                       control={form.control}
                       name="permissions"
                       render={({ field }) => {
+                        const isChecked = field.value?.includes(permission.id);
                         return (
                           <FormItem
                             key={permission.id}
-                            className="flex flex-row items-center space-x-reverse space-x-2 space-y-0 py-1.5 px-2 rounded-lg hover:bg-blue-100/50 dark:hover:bg-blue-900/20"
+                            className={`flex flex-row items-center space-x-reverse space-x-3 space-y-0 py-2 px-3 rounded-lg transition-all duration-200 ${
+                              isChecked 
+                                ? 'bg-blue-200/70 dark:bg-blue-800/50 shadow-sm border border-blue-300 dark:border-blue-700' 
+                                : 'hover:bg-blue-100/50 dark:hover:bg-blue-900/20 border border-transparent'
+                            }`}
                           >
                             <FormControl>
                               <Checkbox
-                                checked={field.value?.includes(permission.id)}
+                                checked={isChecked}
                                 onCheckedChange={(checked) => {
                                   const currentPermissions = field.value || [];
                                   return checked
@@ -443,10 +453,10 @@ export function UserForm({ onSubmit }: UserFormProps) {
                                         currentPermissions.filter((value) => value !== permission.id)
                                       );
                                 }}
-                                className="border-blue-300 dark:border-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                                className="border-blue-400 dark:border-blue-600 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 h-5 w-5"
                               />
                             </FormControl>
-                            <FormLabel className="text-sm font-normal dark:text-gray-200 cursor-pointer flex items-center">
+                            <FormLabel className="text-base font-medium dark:text-gray-200 cursor-pointer flex items-center">
                               {permission.icon}
                               {permission.label}
                             </FormLabel>
@@ -459,21 +469,21 @@ export function UserForm({ onSubmit }: UserFormProps) {
               </div>
             )}
             
-            <div className="flex justify-center pt-2">
+            <div className="flex justify-center pt-6 mt-2 border-t border-blue-100 dark:border-blue-800">
               <Button 
                 type="submit" 
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-700 dark:to-blue-600 text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                className="px-6 py-6 bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 dark:from-blue-600 dark:to-blue-500 dark:hover:from-blue-700 dark:hover:to-blue-600 text-white font-bold rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-lg min-w-[200px]"
                 disabled={mutation.isPending}
               >
                 {mutation.isPending ? (
                   <>
-                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                    جاري الحفظ...
+                    <Loader2 className="ml-3 h-5 w-5 animate-spin" />
+                    <span className="font-bold">جاري الحفظ...</span>
                   </>
                 ) : (
                   <>
-                    <SaveIcon className="ml-2 h-4 w-4" />
-                    حفظ المستخدم
+                    <SaveIcon className="ml-3 h-5 w-5" />
+                    <span className="font-bold">إضافة مستخدم جديد</span>
                   </>
                 )}
               </Button>

@@ -50,17 +50,19 @@ export default function Users() {
   return (
     <div className="py-6 px-4">
       <div className="mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--primary))]">إدارة المستخدمين</h2>
-        <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة حسابات المستخدمين والصلاحيات</p>
+        <div className="bg-gradient-to-l from-blue-600 to-blue-700 text-white py-4 px-6 rounded-lg shadow-lg mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold">إدارة المستخدمين</h2>
+          <p className="text-blue-100 mt-2">إدارة حسابات المستخدمين والصلاحيات</p>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           {/* User List */}
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
-            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-users text-[hsl(var(--primary))]"></i>
-              <span>قائمة المستخدمين</span>
+          <div className="bg-[hsl(var(--card))] border-2 border-[hsl(var(--border))] p-6 rounded-xl shadow-lg fade-in">
+            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+              <i className="fas fa-users text-blue-600 dark:text-blue-400 text-xl"></i>
+              <span className="text-blue-700 dark:text-blue-300">قائمة المستخدمين</span>
             </h3>
             <UserList 
               users={users || []} 
@@ -73,11 +75,7 @@ export default function Users() {
         
         <div>
           {/* User Form */}
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm sticky top-4 fade-in">
-            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-user-plus text-[hsl(var(--primary))]"></i>
-              <span>إضافة مستخدم جديد</span>
-            </h3>
+          <div className="sticky top-4 fade-in">
             <UserForm onSubmit={handleUserUpdated} />
           </div>
         </div>
