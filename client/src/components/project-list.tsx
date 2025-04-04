@@ -14,6 +14,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
 interface Project {
@@ -36,6 +43,13 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const { toast } = useToast();
   
+  const [errorData, setErrorData] = useState<{
+    message: string;
+    transactionsCount?: number;
+    projectId?: number;
+  } | null>(null);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  
   const deleteMutation = useMutation({
     mutationFn: (id: number) => {
       return apiRequest('DELETE', `/api/projects/${id}`, undefined);
@@ -50,6 +64,8 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
     onError: async (error: any) => {
       // محاولة استخراج رسالة الخطأ من استجابة الخادم
       let errorMessage = "فشل في حذف المشروع";
+      let transactionsCount = 0;
+      let projectId = projectToDelete?.id;
       
       try {
         if (error.response && error.response.status === 400) {
@@ -58,17 +74,31 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
           
           if (responseData.message) {
             errorMessage = responseData.message;
+            transactionsCount = responseData.transactionsCount || 0;
             
-            // إضافة تفاصيل إضافية إذا كانت متوفرة
-            if (responseData.transactionsCount) {
-              errorMessage += ` (عدد المعاملات المرتبطة: ${responseData.transactionsCount})`;
-            }
+            // عرض مربع حوار خطأ تفصيلي بدلاً من toast فقط
+            setErrorData({
+              message: errorMessage,
+              transactionsCount,
+              projectId
+            });
+            setErrorDialogOpen(true);
+            
+            // لا نزال نعرض إشعار toast للتنبيه
+            toast({
+              variant: "destructive",
+              title: "تعذر حذف المشروع",
+              description: "يرجى مراجعة التفاصيل في نافذة الخطأ",
+            });
+            
+            return; // الخروج مبكرًا لأننا سنعرض مربع حوار مخصص
           }
         }
       } catch (jsonError) {
         console.error("خطأ في معالجة استجابة الخطأ:", jsonError);
       }
       
+      // في حالة فشل استخراج تفاصيل الخطأ، نظهر إشعار toast قياسي
       toast({
         variant: "destructive",
         title: "تعذر حذف المشروع",
@@ -189,7 +219,18 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من رغبتك في حذف هذا المشروع؟ سيتم حذف جميع البيانات المرتبطة به. هذا الإجراء لا يمكن التراجع عنه.
+              هل أنت متأكد من رغبتك في حذف هذا المشروع؟ 
+              <ul className="mt-2 list-disc list-inside space-y-1">
+                <li>سيتم حذف جميع المستندات المرتبطة بالمشروع</li>
+                <li>سيتم إزالة جميع المستخدمين المرتبطين بالمشروع</li>
+                <li className="text-destructive font-medium">ملاحظة: لا يمكن حذف المشروع إذا كان يحتوي على معاملات مالية مرتبطة به</li>
+              </ul>
+              <div className="mt-2 text-sm bg-amber-50 dark:bg-amber-900/30 p-3 rounded-md border border-amber-200 dark:border-amber-800">
+                <p className="font-medium text-amber-800 dark:text-amber-300">
+                  <i className="fas fa-exclamation-triangle ml-1"></i>
+                  إجراء الحذف لا يمكن التراجع عنه!
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -206,6 +247,55 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* مربع حوار تفاصيل خطأ الحذف */}
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center">
+              <i className="fas fa-exclamation-circle ml-2"></i>
+              تعذر حذف المشروع
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-destructive/10 p-4 rounded-md border border-destructive/20">
+              <p className="text-destructive font-medium">{errorData?.message}</p>
+              
+              {errorData?.transactionsCount ? (
+                <p className="mt-2 flex items-center text-sm">
+                  <i className="fas fa-info-circle ml-1.5"></i>
+                  عدد المعاملات المرتبطة: <span className="font-bold mr-1">{errorData.transactionsCount}</span>
+                </p>
+              ) : null}
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-medium">الحلول الممكنة:</h4>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>حذف أو نقل المعاملات المالية المرتبطة بالمشروع أولاً</li>
+                <li>في حالة عدم استخدام المشروع، يمكن تحديثه إلى حالة "مكتمل" بدلاً من حذفه</li>
+              </ul>
+            </div>
+            
+            {errorData?.projectId ? (
+              <div className="pt-2 border-t flex justify-end">
+                <Button 
+                  variant="outline"
+                  className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                  onClick={() => {
+                    // توجيه المستخدم إلى صفحة المعاملات المالية مع تصفية المشروع المحدد
+                    window.location.href = `/transactions?projectId=${errorData.projectId}`;
+                  }}
+                >
+                  <i className="fas fa-search ml-1.5"></i>
+                  عرض المعاملات المرتبطة
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
