@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { 
@@ -64,6 +65,7 @@ interface DocumentListProps {
 }
 
 export function DocumentList({ documents, projects, isLoading, onDocumentUpdated, isManagerSection = false }: DocumentListProps) {
+  const { user } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
@@ -383,14 +385,16 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       تنزيل
                     </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                    onClick={() => handleDeleteClick(document)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {user?.role !== 'viewer' && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                      onClick={() => handleDeleteClick(document)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -472,14 +476,16 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                         >
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteClick(document)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {user?.role !== 'viewer' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteClick(document)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -578,18 +584,20 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                   <Download className="h-4 w-4 ml-2" />
                   تنزيل
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    if (currentDocument) {
-                      setPreviewDialogOpen(false);
-                      handleDeleteClick(currentDocument);
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 ml-2" />
-                  حذف المستند
-                </Button>
+                {user?.role !== 'viewer' && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (currentDocument) {
+                        setPreviewDialogOpen(false);
+                        handleDeleteClick(currentDocument);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 ml-2" />
+                    حذف المستند
+                  </Button>
+                )}
               </div>
             </div>
           </DialogFooter>

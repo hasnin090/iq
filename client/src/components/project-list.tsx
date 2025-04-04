@@ -4,6 +4,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ interface ProjectListProps {
 }
 
 export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectListProps) {
+  const { user } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const { toast } = useToast();
@@ -187,28 +189,37 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
                   ></div>
                 </div>
               </div>
-              <div className="flex justify-between mt-4 pt-3 border-t border-gray-100">
-                <button 
-                  className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium flex items-center"
-                  onClick={() => {
-                    toast({
-                      title: "تعديل المشروع",
-                      description: `جاري تحميل المشروع: ${project.name}`,
-                    });
-                    // سيتم استبدال هذا بالتعديل الفعلي للمشروع في الإصدار القادم
-                  }}
-                >
-                  <i className="fas fa-edit ml-1.5"></i>
-                  تعديل
-                </button>
-                <button 
-                  className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium flex items-center"
-                  onClick={() => handleDeleteClick(project)}
-                >
-                  <i className="fas fa-trash-alt ml-1.5"></i>
-                  حذف
-                </button>
-              </div>
+              {user?.role !== 'viewer' ? (
+                <div className="flex justify-between mt-4 pt-3 border-t border-gray-100">
+                  <button 
+                    className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium flex items-center"
+                    onClick={() => {
+                      toast({
+                        title: "تعديل المشروع",
+                        description: `جاري تحميل المشروع: ${project.name}`,
+                      });
+                      // سيتم استبدال هذا بالتعديل الفعلي للمشروع في الإصدار القادم
+                    }}
+                  >
+                    <i className="fas fa-edit ml-1.5"></i>
+                    تعديل
+                  </button>
+                  <button 
+                    className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium flex items-center"
+                    onClick={() => handleDeleteClick(project)}
+                  >
+                    <i className="fas fa-trash-alt ml-1.5"></i>
+                    حذف
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-4 pt-3 border-t border-gray-100 text-muted-foreground text-xs text-center">
+                  <p>
+                    <i className="fas fa-eye ml-1"></i>
+                    مشاهدة فقط
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ))}

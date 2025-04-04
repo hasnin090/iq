@@ -327,24 +327,26 @@ export default function Documents() {
         
         <div className="space-y-8">
           {/* Document Form */}
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
-            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
-              <span>رفع مستند جديد</span>
-              {activeTab === "manager" && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2">
-                  <Lock className="ml-1 h-3 w-3" />
-                  إداري
-                </Badge>
-              )}
-            </h3>
-            <DocumentForm 
-              projects={projects || []} 
-              onSubmit={handleDocumentUpdated} 
-              isLoading={projectsLoading}
-              isManagerDocument={activeTab === "manager"}
-            />
-          </div>
+          {user?.role !== 'viewer' && (
+            <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
+              <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+                <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
+                <span>رفع مستند جديد</span>
+                {activeTab === "manager" && (
+                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2">
+                    <Lock className="ml-1 h-3 w-3" />
+                    إداري
+                  </Badge>
+                )}
+              </h3>
+              <DocumentForm 
+                projects={projects || []} 
+                onSubmit={handleDocumentUpdated} 
+                isLoading={projectsLoading}
+                isManagerDocument={activeTab === "manager"}
+              />
+            </div>
+          )}
           
           {/* Filter */}
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm slide-in-right">
