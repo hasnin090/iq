@@ -56,9 +56,14 @@ export default function Users() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          {/* User List */}
+      <div className="flex flex-col gap-6">
+        {/* User Form - الآن في الأعلى */}
+        <div className="w-full fade-in">
+          <UserForm onSubmit={handleUserUpdated} />
+        </div>
+        
+        {/* User List - الآن في الأسفل */}
+        <div className="w-full mt-6">
           <div className="bg-[hsl(var(--card))] border-2 border-[hsl(var(--border))] p-6 rounded-xl shadow-lg fade-in">
             <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
               <i className="fas fa-users text-blue-600 dark:text-blue-400 text-xl"></i>
@@ -70,13 +75,6 @@ export default function Users() {
               onUserUpdated={handleUserUpdated}
               currentUserId={user?.id}
             />
-          </div>
-        </div>
-        
-        <div>
-          {/* User Form */}
-          <div className="sticky top-4 fade-in">
-            <UserForm onSubmit={handleUserUpdated} />
           </div>
         </div>
       </div>
