@@ -189,7 +189,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
                   ></div>
                 </div>
               </div>
-              {user?.role !== 'viewer' ? (
+              {user?.role === 'admin' ? (
                 <div className="flex justify-between mt-4 pt-3 border-t border-gray-100">
                   <button 
                     className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium flex items-center"
@@ -216,7 +216,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
                 <div className="mt-4 pt-3 border-t border-gray-100 text-muted-foreground text-xs text-center">
                   <p>
                     <i className="fas fa-eye ml-1"></i>
-                    مشاهدة فقط
+                    {user?.role === 'viewer' ? 'مشاهدة فقط' : 'لا تملك صلاحية التعديل'}
                   </p>
                 </div>
               )}

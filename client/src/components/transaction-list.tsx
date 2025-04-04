@@ -713,7 +713,7 @@ export function TransactionList({
                       {formatCurrency(transaction.amount)}
                     </span>
                     <div className="flex gap-1.5">
-                      {user?.role !== 'viewer' && (
+                      {user?.role === 'admin' && (
                         <>
                           <button 
                             className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
@@ -826,7 +826,7 @@ export function TransactionList({
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
                         <div className="flex gap-2 justify-end">
-                          {user?.role !== 'viewer' && (
+                          {user?.role === 'admin' && (
                             <>
                               <button 
                                 className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"

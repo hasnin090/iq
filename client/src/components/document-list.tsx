@@ -385,7 +385,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       تنزيل
                     </Button>
                   </div>
-                  {user?.role !== 'viewer' && (
+                  {user?.role === 'admin' && (
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -476,7 +476,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                         >
                           <Download className="h-4 w-4" />
                         </Button>
-                        {user?.role !== 'viewer' && (
+                        {user?.role === 'admin' && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -584,7 +584,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                   <Download className="h-4 w-4 ml-2" />
                   تنزيل
                 </Button>
-                {user?.role !== 'viewer' && (
+                {user?.role === 'admin' && (
                   <Button
                     variant="destructive"
                     onClick={() => {

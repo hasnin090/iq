@@ -33,8 +33,8 @@ export default function Projects() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="order-2 lg:order-1 lg:col-span-2">
-          {/* Project Form - Moved to top for mobile and desktop */}
-          {user?.role !== 'viewer' && (
+          {/* Project Form - Only available for admins */}
+          {user?.role === 'admin' && (
             <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm mb-6 fade-in">
               <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
                 <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
