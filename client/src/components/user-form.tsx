@@ -34,7 +34,6 @@ interface UserFormProps {
 const userSchema = z.object({
   username: z.string().min(3, "اسم المستخدم يجب أن يحتوي على الأقل 3 أحرف"),
   name: z.string().min(3, "الاسم يجب أن يحتوي على الأقل 3 أحرف"),
-  email: z.string().email("البريد الإلكتروني غير صالح"),
   password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
   role: z.enum(["admin", "user"], {
     required_error: "الصلاحية مطلوبة",
@@ -78,7 +77,6 @@ export function UserForm({ onSubmit }: UserFormProps) {
     defaultValues: {
       username: "",
       name: "",
-      email: "",
       password: "",
       role: "user",
       permissions: [],
@@ -98,7 +96,6 @@ export function UserForm({ onSubmit }: UserFormProps) {
       form.reset({
         username: "",
         name: "",
-        email: "",
         password: "",
         role: "user",
         permissions: [],
@@ -143,8 +140,8 @@ export function UserForm({ onSubmit }: UserFormProps) {
     setShowPassword(true);
   };
   
-  // اقتراحات بريد إلكتروني
-  const emailDomains = ["@example.com", "@gmail.com", "@hotmail.com", "@yahoo.com"];
+  // لا حاجة لاقتراحات البريد الإلكتروني بعد الآن
+  // const emailDomains = ["@example.com", "@gmail.com", "@hotmail.com", "@yahoo.com"];
   
   return (
     <Card className="border border-blue-100 dark:border-blue-900 shadow-md transition-all duration-300 hover:shadow-lg">
@@ -216,49 +213,6 @@ export function UserForm({ onSubmit }: UserFormProps) {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium dark:text-gray-100">البريد الإلكتروني</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            {...field}
-                            type="email"
-                            placeholder="أدخل البريد الإلكتروني"
-                            className="w-full rounded-lg bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-800 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 pr-10"
-                            disabled={mutation.isPending}
-                          />
-                          <AtSignIcon className="absolute top-2.5 right-3 h-5 w-5 text-slate-400" />
-                        </div>
-                      </FormControl>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {emailDomains.map((domain, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/60 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
-                            onClick={() => {
-                              const username = form.getValues().username;
-                              if (username) {
-                                form.setValue('email', username + domain);
-                              }
-                            }}
-                            disabled={mutation.isPending || !form.getValues().username}
-                          >
-                            {domain}
-                          </button>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
               <FormField
                 control={form.control}
                 name="password"
