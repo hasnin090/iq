@@ -293,49 +293,274 @@ export default function Reports() {
     const element = document.getElementById('report-content');
     if (!element) return;
     
-    // نسخ العنصر لإجراء تعديلات على النسخة دون التأثير على الواجهة
-    const printElement = element.cloneNode(true) as HTMLElement;
+    // إنشاء عنصر مخصص للتصدير بتنسيق مناسب للطباعة
+    const exportContainer = document.createElement('div');
+    exportContainer.style.direction = 'rtl';
+    exportContainer.style.fontFamily = 'Arial, sans-serif';
+    exportContainer.style.textAlign = 'right';
+    exportContainer.style.padding = '20px';
     
-    // تحسين تنسيق الجدول للطباعة في تبويب المعاملات
-    if (activeTab === 'transactions') {
-      const tableElement = printElement.querySelector('table');
-      if (tableElement) {
-        // إضافة تنسيق إضافي للجدول
-        tableElement.style.width = '100%';
-        tableElement.style.borderCollapse = 'collapse';
-        tableElement.style.direction = 'rtl';
-        
-        // تعديل تنسيق رؤوس الأعمدة
-        const headerCells = tableElement.querySelectorAll('th');
-        headerCells.forEach(cell => {
-          cell.style.backgroundColor = '#f3f4f6';
-          cell.style.color = '#111827';
-          cell.style.fontWeight = 'bold';
-          cell.style.textAlign = 'right';
-          cell.style.padding = '8px';
-          cell.style.borderBottom = '2px solid #e5e7eb';
-        });
-        
-        // تعديل تنسيق خلايا البيانات
-        const dataCells = tableElement.querySelectorAll('td');
-        dataCells.forEach(cell => {
-          cell.style.padding = '8px';
-          cell.style.borderBottom = '1px solid #e5e7eb';
-          cell.style.textAlign = 'right';
-        });
+    // إضافة العنوان والتاريخ في أعلى المستند
+    const header = document.createElement('div');
+    header.style.marginBottom = '20px';
+    header.style.textAlign = 'center';
+    
+    const title = document.createElement('h1');
+    title.textContent = activeTab === 'transactions' ? 'تقرير المعاملات المالية' :
+                        activeTab === 'projects' ? 'تقرير المشاريع' :
+                        activeTab === 'users' ? 'تقرير المستخدمين' : 'تقرير مالي';
+    title.style.margin = '0 0 10px 0';
+    title.style.color = '#2563eb';
+    title.style.fontSize = '24px';
+    header.appendChild(title);
+    
+    const subtitle = document.createElement('p');
+    const currentDate = format(new Date(), 'yyyy/MM/dd', { locale: ar });
+    subtitle.textContent = `تم توليد التقرير بتاريخ: ${currentDate}`;
+    subtitle.style.margin = '0';
+    subtitle.style.fontSize = '14px';
+    subtitle.style.color = '#4b5563';
+    header.appendChild(subtitle);
+    
+    if (selectedMonth) {
+      const filterInfo = document.createElement('p');
+      filterInfo.textContent = `تصفية حسب الشهر: ${format(selectedMonth, 'MMMM yyyy', { locale: ar })}`;
+      filterInfo.style.margin = '5px 0 0 0';
+      filterInfo.style.fontSize = '14px';
+      filterInfo.style.color = '#4b5563';
+      header.appendChild(filterInfo);
+    }
+    
+    if (projectId !== 'all') {
+      const projectName = projects.find((p: any) => p.id.toString() === projectId)?.name || '';
+      if (projectName) {
+        const projectInfo = document.createElement('p');
+        projectInfo.textContent = `المشروع: ${projectName}`;
+        projectInfo.style.margin = '5px 0 0 0';
+        projectInfo.style.fontSize = '14px';
+        projectInfo.style.color = '#4b5563';
+        header.appendChild(projectInfo);
       }
     }
     
+    exportContainer.appendChild(header);
+    
+    // إضافة ملخص البيانات المالية
+    if (activeTab === 'financial' || activeTab === 'transactions') {
+      const financialSummary = document.createElement('div');
+      financialSummary.style.display = 'flex';
+      financialSummary.style.justifyContent = 'space-between';
+      financialSummary.style.gap = '16px';
+      financialSummary.style.marginBottom = '24px';
+      
+      const createSummaryCard = (title: string, value: string, color: string, iconClass: string) => {
+        const card = document.createElement('div');
+        card.style.flex = '1';
+        card.style.backgroundColor = '#ffffff';
+        card.style.border = '1px solid #e5e7eb';
+        card.style.borderRadius = '8px';
+        card.style.padding = '16px';
+        card.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+        
+        const cardTitle = document.createElement('p');
+        cardTitle.textContent = title;
+        cardTitle.style.fontSize = '16px';
+        cardTitle.style.color = '#4b5563';
+        cardTitle.style.marginBottom = '8px';
+        
+        const cardValue = document.createElement('p');
+        cardValue.textContent = value;
+        cardValue.style.fontSize = '24px';
+        cardValue.style.fontWeight = 'bold';
+        cardValue.style.color = color;
+        
+        const cardIcon = document.createElement('i');
+        cardIcon.className = iconClass;
+        cardIcon.style.marginLeft = '8px';
+        cardIcon.style.fontSize = '16px';
+        cardValue.prepend(cardIcon);
+        
+        card.appendChild(cardTitle);
+        card.appendChild(cardValue);
+        
+        return card;
+      };
+      
+      financialSummary.appendChild(createSummaryCard('الإيرادات', formatCurrency(income), '#047857', 'fas fa-arrow-up'));
+      financialSummary.appendChild(createSummaryCard('المصروفات', formatCurrency(expense), '#b91c1c', 'fas fa-arrow-down'));
+      financialSummary.appendChild(createSummaryCard('الرصيد', formatCurrency(profit), profit >= 0 ? '#1e40af' : '#b91c1c', profit >= 0 ? 'fas fa-plus-circle' : 'fas fa-minus-circle'));
+      
+      exportContainer.appendChild(financialSummary);
+    }
+    
+    // بناء جدول المعاملات المالية في تبويب المعاملات
+    if (activeTab === 'transactions') {
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      table.style.marginBottom = '20px';
+      table.style.fontSize = '14px';
+      
+      // إنشاء صف العناوين
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      
+      // تحديد أسماء الأعمدة ومحاذاتها
+      const columns = [
+        { title: 'التاريخ', align: 'right', width: '15%' },
+        { title: 'الوصف', align: 'right', width: '40%' },
+        { title: 'المشروع', align: 'right', width: '15%' },
+        { title: 'النوع', align: 'center', width: '10%' },
+        { title: 'المبلغ', align: 'left', width: '20%' }
+      ];
+      
+      columns.forEach(column => {
+        const th = document.createElement('th');
+        th.textContent = column.title;
+        th.style.padding = '12px 8px';
+        th.style.backgroundColor = '#f3f4f6';
+        th.style.color = '#111827';
+        th.style.fontWeight = 'bold';
+        th.style.textAlign = column.align;
+        th.style.borderBottom = '2px solid #e5e7eb';
+        th.style.width = column.width;
+        headerRow.appendChild(th);
+      });
+      
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      
+      // إنشاء صفوف البيانات
+      const tbody = document.createElement('tbody');
+      
+      filteredTransactions.forEach((transaction: any, index: number) => {
+        const tr = document.createElement('tr');
+        
+        // تنسيق الصفوف بألوان متناوبة
+        if (index % 2 === 0) {
+          tr.style.backgroundColor = '#f9fafb';
+        } else {
+          tr.style.backgroundColor = '#ffffff';
+        }
+        
+        // إضافة خلايا البيانات
+        const addCell = (content: string, align: string) => {
+          const td = document.createElement('td');
+          td.textContent = content;
+          td.style.padding = '10px 8px';
+          td.style.textAlign = align;
+          td.style.borderBottom = '1px solid #e5e7eb';
+          tr.appendChild(td);
+        };
+        
+        // التاريخ
+        const date = new Date(transaction.date);
+        addCell(format(date, 'yyyy/MM/dd', { locale: ar }), 'right');
+        
+        // الوصف
+        addCell(transaction.description || '', 'right');
+        
+        // المشروع
+        const projectName = projects.find((p: any) => p.id === transaction.projectId)?.name || 'عام';
+        addCell(projectName, 'right');
+        
+        // النوع (مع رمز)
+        const typeCell = document.createElement('td');
+        typeCell.style.padding = '10px 8px';
+        typeCell.style.textAlign = 'center';
+        typeCell.style.borderBottom = '1px solid #e5e7eb';
+        
+        const typeContent = document.createElement('span');
+        typeContent.style.display = 'inline-block';
+        typeContent.style.padding = '4px 8px';
+        typeContent.style.borderRadius = '4px';
+        typeContent.style.fontWeight = 'bold';
+        
+        if (transaction.type === 'income') {
+          typeContent.textContent = 'إيراد';
+          typeContent.style.backgroundColor = '#d1fae5';
+          typeContent.style.color = '#065f46';
+        } else {
+          typeContent.textContent = 'مصروف';
+          typeContent.style.backgroundColor = '#fee2e2';
+          typeContent.style.color = '#b91c1c';
+        }
+        
+        typeCell.appendChild(typeContent);
+        tr.appendChild(typeCell);
+        
+        // المبلغ (بتنسيق العملة)
+        const amountCell = document.createElement('td');
+        amountCell.textContent = formatCurrency(transaction.amount);
+        amountCell.style.padding = '10px 8px';
+        amountCell.style.textAlign = 'left';
+        amountCell.style.borderBottom = '1px solid #e5e7eb';
+        amountCell.style.fontWeight = 'bold';
+        amountCell.style.fontFamily = 'Tahoma, Arial, sans-serif'; // خط يدعم الأرقام بشكل أفضل
+        tr.appendChild(amountCell);
+        
+        tbody.appendChild(tr);
+      });
+      
+      table.appendChild(tbody);
+      exportContainer.appendChild(table);
+    }
+    
+    // إضافة رسوم بيانية إذا كانت موجودة
+    if (activeTab === 'financial') {
+      const chartsContainer = document.createElement('div');
+      chartsContainer.style.marginTop = '20px';
+      chartsContainer.style.display = 'flex';
+      chartsContainer.style.justifyContent = 'center';
+      chartsContainer.style.alignItems = 'center';
+      
+      // بدلاً من محاولة نسخ الرسم البياني، يمكننا إضافة ملاحظة
+      const chartNote = document.createElement('p');
+      chartNote.textContent = 'ملاحظة: يمكنك مشاهدة الرسوم البيانية التفاعلية في النظام.';
+      chartNote.style.textAlign = 'center';
+      chartNote.style.padding = '20px';
+      chartNote.style.backgroundColor = '#f9fafb';
+      chartNote.style.borderRadius = '8px';
+      chartNote.style.color = '#4b5563';
+      
+      chartsContainer.appendChild(chartNote);
+      exportContainer.appendChild(chartsContainer);
+    }
+    
+    // إضافة رقم الصفحة في التذييل
+    const footer = document.createElement('div');
+    footer.style.marginTop = '30px';
+    footer.style.textAlign = 'center';
+    footer.style.fontSize = '12px';
+    footer.style.color = '#6b7280';
+    footer.textContent = 'صفحة 1 من 1 - نظام المحاسبة المالية';
+    exportContainer.appendChild(footer);
+    
+    // إعدادات التصدير
     const opt = {
-      margin: 10,
-      filename: `${activeTab}-report.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: activeTab === 'transactions' ? 'landscape' : 'portrait' }
+      margin: [15, 10, 15, 10], // [top, right, bottom, left] بالملم
+      filename: `تقرير-${activeTab === 'transactions' ? 'المعاملات' : 
+                      activeTab === 'projects' ? 'المشاريع' : 
+                      activeTab === 'users' ? 'المستخدمين' : 'مالي'}-${currentDate}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        letterRendering: true,
+        allowTaint: true
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: activeTab === 'transactions' ? 'landscape' : 'portrait',
+        compress: true,
+        putOnlyUsedFonts: true,
+        floatPrecision: 16
+      }
     };
     
-    // استخدام النسخة المعدلة للطباعة
-    html2pdf().from(printElement).set(opt).save();
+    // استخدام النسخة المخصصة المنشأة للتصدير
+    html2pdf().from(exportContainer).set(opt).save();
     
     toast({
       title: "تم التصدير بنجاح",
