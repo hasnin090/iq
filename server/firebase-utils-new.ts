@@ -8,9 +8,12 @@ const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY,
   authDomain: `${process.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${process.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || `${process.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
   appId: process.env.VITE_FIREBASE_APP_ID,
 };
+
+// طباعة تفاصيل تكوين Firebase Storage للتصحيح
+console.log(`تهيئة Firebase Storage مع bucket: ${firebaseConfig.storageBucket}`);
 
 // تهيئة Firebase
 const app = initializeApp(firebaseConfig);
