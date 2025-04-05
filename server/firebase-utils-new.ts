@@ -8,7 +8,8 @@ const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY,
   authDomain: `${process.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || `${process.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+  // استخدام bucket المحدد - يمكن أن يكون بصيغة gs:// أو URL عادي
+  storageBucket: "grokapp-5e120.firebasestorage.app", 
   appId: process.env.VITE_FIREBASE_APP_ID,
 };
 
@@ -84,10 +85,23 @@ export const deleteFile = async (fileUrl: string): Promise<boolean> => {
   }
   
   try {
-    // التحقق مما إذا كان عنوان URL من Firebase Storage
-    if (!fileUrl.includes('firebasestorage.googleapis.com')) {
+    // إضافة مزيد من المرونة في معالجة عناوين URL
+    // نجرب عدة تنسيقات محتملة لعنوان URL من Firebase Storage
+    if (!fileUrl.includes('firebasestorage.googleapis.com') && 
+        !fileUrl.includes('firebasestorage.app') && 
+        !fileUrl.startsWith('gs://')) {
       console.warn(`عنوان URL غير صالح لـ Firebase Storage: ${fileUrl}`);
-      return false;
+      
+      // محاولة التعامل مع المسار المباشرة كعنوان محلي محتمل
+      try {
+        const fileRef = ref(storage, fileUrl);
+        await deleteObject(fileRef);
+        console.log(`تم حذف الملف بنجاح باستخدام المسار المباشر: ${fileUrl}`);
+        return true;
+      } catch (localError: any) {
+        console.error('لا يمكن العثور على الملف في Firebase Storage:', localError);
+        return false;
+      }
     }
     
     // استخراج المسار من عنوان URL
