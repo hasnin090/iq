@@ -26,7 +26,8 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   FileText, FileImage, File, FileIcon, Download, Eye, 
-  Trash2, Loader2, Info, ArrowUpDown, Clock, Tag, CheckCircle2, XCircle, Lock
+  Trash2, Loader2, Info, ArrowUpDown, Clock, Tag, CheckCircle2, XCircle, Lock,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { deleteFile, getFileType, getReadableFileSize } from '@/lib/firebase-storage';
@@ -63,9 +64,10 @@ interface DocumentListProps {
   isLoading: boolean;
   onDocumentUpdated: () => void;
   isManagerSection?: boolean; // إضافة خاصية لتحديد ما إذا كان قسم المدراء
+  searchQuery?: string; // إضافة خاصية للبحث النصي
 }
 
-export function DocumentList({ documents, projects, isLoading, onDocumentUpdated, isManagerSection = false }: DocumentListProps) {
+export function DocumentList({ documents, projects, isLoading, onDocumentUpdated, isManagerSection = false, searchQuery = '' }: DocumentListProps) {
   const { user } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -132,6 +134,29 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, 'yyyy/MM/dd HH:mm', { locale: ar });
+  };
+  
+  // دالة لإبراز النص المبحوث عنه
+  const highlightText = (text: string, searchQuery: string) => {
+    if (!searchQuery || !text) return text;
+    
+    const lowerSearchQuery = searchQuery.toLowerCase().trim();
+    if (!lowerSearchQuery) return text;
+    
+    const index = text.toLowerCase().indexOf(lowerSearchQuery);
+    if (index === -1) return text;
+    
+    const before = text.substring(0, index);
+    const match = text.substring(index, index + lowerSearchQuery.length);
+    const after = text.substring(index + lowerSearchQuery.length);
+    
+    return (
+      <>
+        {before}
+        <span className="bg-yellow-200 text-black font-medium px-1 rounded">{match}</span>
+        {after}
+      </>
+    );
   };
   
   const getProjectName = (projectId?: number) => {
@@ -239,6 +264,20 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
   
   return (
     <>
+      {searchQuery && (
+        <div className="bg-primary-light/20 rounded-xl p-3 mb-4 flex items-center">
+          <Search className="h-5 w-5 text-primary ml-2" />
+          <div>
+            <p className="text-primary font-medium">
+              نتائج البحث عن "{searchQuery}"
+            </p>
+            <p className="text-xs text-muted-foreground">
+              تم العثور على {documents.length} {documents.length === 1 ? 'مستند' : 'مستندات'}
+            </p>
+          </div>
+        </div>
+      )}
+      
       <div className="bg-secondary-light rounded-xl shadow-card p-4 mb-6">
         <div className="flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center gap-2">
@@ -302,7 +341,9 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 space-x-reverse">
-                      <h3 className="text-lg font-medium text-foreground line-clamp-1">{document.name}</h3>
+                      <h3 className="text-lg font-medium text-foreground line-clamp-1">
+                        {searchQuery ? highlightText(document.name, searchQuery) : document.name}
+                      </h3>
                       {(document.isManagerDocument || isManagerSection) && (
                         <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1">
                           <span className="inline-flex items-center">
@@ -347,7 +388,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                 
                 {document.description && (
                   <p className="text-sm text-muted-foreground mt-2 mb-4 line-clamp-2">
-                    {document.description}
+                    {searchQuery ? highlightText(document.description, searchQuery) : document.description}
                   </p>
                 )}
                 
@@ -418,7 +459,9 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                         </div>
                         <div className="mr-2">
                           <div className="flex items-center space-x-2 space-x-reverse">
-                            <p className="font-medium">{document.name}</p>
+                            <p className="font-medium">
+                              {searchQuery ? highlightText(document.name, searchQuery) : document.name}
+                            </p>
                             {(document.isManagerDocument || isManagerSection) && (
                               <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
                                 <span className="inline-flex items-center">
@@ -430,7 +473,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                           </div>
                           {document.description && (
                             <p className="text-xs text-muted-foreground line-clamp-1">
-                              {document.description}
+                              {searchQuery ? highlightText(document.description, searchQuery) : document.description}
                             </p>
                           )}
                         </div>
@@ -511,10 +554,16 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
           <DialogHeader>
             <DialogTitle className="flex items-center">
               {currentDocument && getFileIcon(currentDocument.fileType)}
-              <span className="mr-2">{currentDocument?.name}</span>
+              <span className="mr-2">
+                {searchQuery && currentDocument ? 
+                  highlightText(currentDocument.name, searchQuery) : 
+                  currentDocument?.name}
+              </span>
             </DialogTitle>
             <DialogDescription>
-              {currentDocument?.description}
+              {searchQuery && currentDocument?.description ? 
+                highlightText(currentDocument.description, searchQuery) : 
+                currentDocument?.description}
             </DialogDescription>
           </DialogHeader>
           

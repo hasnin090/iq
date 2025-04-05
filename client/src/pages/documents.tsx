@@ -37,6 +37,7 @@ interface Filter {
   projectId?: number;
   isManagerDocument?: boolean;
   fileType?: string;
+  searchQuery?: string;
   dateRange?: {
     from: Date | null | undefined;
     to: Date | null | undefined;
@@ -154,6 +155,18 @@ export default function Documents() {
       });
     }
     
+    // فلترة حسب البحث النصي
+    if (filter.searchQuery) {
+      const searchTerm = filter.searchQuery.toLowerCase().trim();
+      activeDocuments = activeDocuments.filter(doc => {
+        return (
+          doc.name.toLowerCase().includes(searchTerm) || 
+          (doc.description && doc.description.toLowerCase().includes(searchTerm)) ||
+          projects?.find(p => p.id === doc.projectId)?.name.toLowerCase().includes(searchTerm)
+        );
+      });
+    }
+    
     return activeDocuments;
   };
 
@@ -222,6 +235,26 @@ export default function Documents() {
           )}
         </TabsContent>
       </Tabs>
+      
+      {/* شريط نتائج الفلترة */}
+      {(filter.searchQuery || filter.projectId || filter.fileType || filter.dateRange?.from || filter.dateRange?.to) && (
+        <div className="bg-[hsl(var(--primary))]/5 border border-[hsl(var(--primary))]/10 rounded-lg p-4 mb-6 flex items-center justify-between">
+          <div className="flex items-center">
+            <Filter className="h-5 w-5 text-[hsl(var(--primary))] ml-2" />
+            <span className="font-medium">نتائج البحث: </span>
+            <span className="mr-2">{getActiveDocuments()?.length || 0} مستند</span>
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setFilter({})}
+            className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+          >
+            إعادة ضبط الفلاتر
+          </Button>
+        </div>
+      )}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -375,6 +408,7 @@ export default function Documents() {
               isLoading={isActiveTabLoading() || projectsLoading}
               onDocumentUpdated={handleDocumentUpdated}
               isManagerSection={activeTab === "manager"}
+              searchQuery={filter.searchQuery}
             />
           </div>
         </div>
@@ -409,6 +443,20 @@ export default function Documents() {
               <span>تصفية المستندات</span>
             </h3>
             <div className="space-y-4">
+              {/* حقل البحث */}
+              <div>
+                <Label htmlFor="searchQuery" className="block text-sm font-medium mb-2">البحث</Label>
+                <div className="relative">
+                  <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="searchQuery"
+                    placeholder="ابحث في المستندات..."
+                    className="pr-10 w-full"
+                    value={filter.searchQuery || ''}
+                    onChange={(e) => handleFilterChange({ searchQuery: e.target.value || undefined })}
+                  />
+                </div>
+              </div>
               <div>
                 <Label htmlFor="filterProject" className="block text-sm font-medium mb-2">حسب المشروع</Label>
                 <Select 
