@@ -1,74 +1,95 @@
 /* تحسينات لقائمة المستخدم المنسدلة في الوضع الداكن */
 
 /* خلفية القائمة المنسدلة */
-.dark .dropdown-menu {
-  background-color: #1f2937;
-  border-color: #374151;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+.dark [data-radix-popper-content-wrapper] [role="menu"],
+.dark [data-radix-popper-content-wrapper] > div {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  color: #f1f5f9 !important;
 }
 
 /* عناصر القائمة المنسدلة */
-.dark .dropdown-item {
-  color: #e2e8f0;
-}
-
-.dark .dropdown-item:hover {
-  background-color: #374151;
-  color: #f3f4f6;
-}
-
-/* اسم المستخدم في القائمة المنسدلة */
-.dark .user-menu .user-name {
-  color: #f3f4f6;
-}
-
-/* دور المستخدم في القائمة المنسدلة */
-.dark .user-menu .user-role {
-  color: #9ca3af;
-}
-
-/* فواصل القائمة */
-.dark .dropdown-divider {
-  border-color: #4b5563;
-}
-
-/* تحسينات خاصة بمكونات Radix UI */
-.dark [data-radix-popper-content-wrapper] [role="menu"] {
-  background-color: #1f2937;
-  border-color: #374151;
-  color: #e2e8f0;
-}
-
 .dark [data-radix-popper-content-wrapper] [role="menuitem"] {
-  color: #e2e8f0;
+  color: #e2e8f0 !important;
 }
 
 .dark [data-radix-popper-content-wrapper] [role="menuitem"]:hover,
 .dark [data-radix-popper-content-wrapper] [role="menuitem"]:focus {
-  background-color: #374151;
+  background-color: #334155 !important;
 }
 
 .dark [data-radix-popper-content-wrapper] [role="menuitem"][data-highlighted] {
-  background-color: #4b5563;
-  color: #f3f4f6;
+  background-color: #334155 !important;
+  color: #f8fafc !important;
 }
 
-/* القائمة المنسدلة من ShadCN */
+/* فواصل القائمة */
+.dark [data-radix-popper-content-wrapper] [role="separator"] {
+  background-color: #475569 !important;
+  margin: 6px 0 !important;
+  height: 1px !important;
+}
+
+/* اسم المستخدم وتفاصيله */
+.dark [data-radix-popper-content-wrapper] .font-medium {
+  color: #f1f5f9 !important;
+}
+
+.dark [data-radix-popper-content-wrapper] .text-muted-foreground,
+.dark [data-radix-popper-content-wrapper] .text-xs {
+  color: #cbd5e1 !important;
+}
+
+/* تحسين خلفية المؤشر الآيقوني */
+.dark [data-radix-popper-content-wrapper] .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark [data-radix-popper-content-wrapper] .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+/* تصميم الأيقونات */
+.dark [data-radix-popper-content-wrapper] svg {
+  color: #94a3b8 !important;
+}
+
+.dark [data-radix-popper-content-wrapper] [role="menuitem"]:hover svg {
+  color: #cbd5e1 !important;
+}
+
+/* تحسين لون زر تسجيل الخروج */
+.dark [data-radix-popper-content-wrapper] .text-red-600,
+.dark [data-radix-popper-content-wrapper] .text-red-500,
+.dark [data-radix-popper-content-wrapper] .text-red-400 {
+  color: #f87171 !important;
+}
+
+/* تحسينات القائمة المنسدلة لـ ShadCN */
 .dark .bg-popover {
-  background-color: #1f2937;
+  background-color: #1e293b !important;
 }
 
 .dark .text-popover-foreground {
-  color: #e2e8f0;
+  color: #f1f5f9 !important;
 }
 
-/* تخصيص نمط الايقونات في القائمة المنسدلة */
-.dark .dropdown-item svg,
-.dark .dropdown-item i {
-  color: #9ca3af;
+/* تطبيق الحدود والظلال للمستند بأكمله */
+.dark [data-radix-popper-content-wrapper] {
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.5)) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.4)) !important;
 }
 
-.dark .dropdown-item:hover svg,
-.dark .dropdown-item:hover i {
-  color: #e2e8f0;
+/* تحسين تباين عناصر القائمة */
+.dark [data-radix-popper-content-wrapper] [role="menuitem"] {
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* تحسين مظهر الشارات */
+.dark [data-radix-popper-content-wrapper] .dark\:bg-blue-900\/30 {
+  background-color: rgba(30, 58, 138, 0.3) !important;
+}
+
+.dark [data-radix-popper-content-wrapper] .dark\:text-blue-300 {
+  color: #93c5fd !important;
 }
