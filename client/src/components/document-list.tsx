@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { deleteFile, getFileType, getReadableFileSize } from '@/lib/firebase-storage';
+import { getFileTypeLabel, getFileTypeIcon, getFileTypeBadgeClasses } from '@/lib/file-helpers';
 import { Badge } from '@/components/ui/badge';
 import {
   HoverCard,
@@ -152,26 +153,10 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
   };
   
   const getFileTypeBadge = (fileType: string) => {
-    const type = getFileType(fileType);
-    
-    let color = "";
-    switch(type) {
-      case 'pdf':
-        color = "bg-destructive/10 text-destructive border-destructive/20";
-        break;
-      case 'image':
-        color = "bg-primary/10 text-primary border-primary/20";
-        break;
-      case 'document':
-        color = "bg-primary-light/10 text-primary-light border-primary-light/20";
-        break;
-      default:
-        color = "bg-muted/10 text-muted-foreground border-muted/20";
-    }
-    
     return (
-      <Badge variant="outline" className={`${color} capitalize`}>
-        {type}
+      <Badge variant="outline" className={`${getFileTypeBadgeClasses(fileType)} flex items-center`}>
+        {getFileTypeIcon(fileType)}
+        <span className="mr-1">{getFileTypeLabel(fileType)}</span>
       </Badge>
     );
   };

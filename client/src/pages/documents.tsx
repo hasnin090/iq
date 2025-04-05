@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from "@/components/ui/badge";
-import { Lock, Unlock, ShieldAlert, FileText, FileArchive, AlertCircle } from 'lucide-react';
+import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -18,10 +18,29 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { addDays, format } from "date-fns";
+import { ar } from "date-fns/locale";
+import {
+  Calendar
+} from "@/components/ui/calendar";
+import { getFileType } from "@/lib/firebase-storage";
+import { getFileTypeLabel, getFileTypeIcon, getFileTypeBadgeClasses } from "@/lib/file-helpers";
 
 interface Filter {
   projectId?: number;
   isManagerDocument?: boolean;
+  fileType?: string;
+  dateRange?: {
+    from: Date | null | undefined;
+    to: Date | null | undefined;
+  };
 }
 
 export default function Documents() {
@@ -96,12 +115,46 @@ export default function Documents() {
     setActiveTab(value);
   };
   
-  // تحديد المستندات المناسبة حسب علامة التبويب النشطة
+  // تحديد المستندات المناسبة حسب علامة التبويب النشطة وتطبيق الفلاتر
   const getActiveDocuments = () => {
-    if (activeTab === "manager") {
-      return managerDocuments || [];
+    let activeDocuments = activeTab === "manager" ? (managerDocuments || []) : (documents || []);
+    
+    // فلترة حسب نوع الملف
+    if (filter.fileType) {
+      activeDocuments = activeDocuments.filter(doc => {
+        const type = getFileType(doc.fileType);
+        return type === filter.fileType;
+      });
     }
-    return documents || [];
+    
+    // فلترة حسب التاريخ
+    if (filter.dateRange?.from || filter.dateRange?.to) {
+      activeDocuments = activeDocuments.filter(doc => {
+        const uploadDate = new Date(doc.uploadDate);
+        
+        // التحقق من تاريخ البداية
+        if (filter.dateRange?.from) {
+          const fromDate = new Date(filter.dateRange.from);
+          fromDate.setHours(0, 0, 0, 0);
+          if (uploadDate < fromDate) {
+            return false;
+          }
+        }
+        
+        // التحقق من تاريخ النهاية
+        if (filter.dateRange?.to) {
+          const toDate = new Date(filter.dateRange.to);
+          toDate.setHours(23, 59, 59, 999);
+          if (uploadDate > toDate) {
+            return false;
+          }
+        }
+        
+        return true;
+      });
+    }
+    
+    return activeDocuments;
   };
 
   // تحديد حالة التحميل المناسبة حسب علامة التبويب النشطة
@@ -221,8 +274,9 @@ export default function Documents() {
                             </Badge>
                           )}
                         </h4>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]`}>
-                          {doc.fileType}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${getFileTypeBadgeClasses(doc.fileType)}`}>
+                          {getFileTypeIcon(doc.fileType)}
+                          <span className="mr-1">{getFileTypeLabel(doc.fileType)}</span>
                         </span>
                       </div>
                       {doc.description && (
@@ -374,6 +428,104 @@ export default function Documents() {
                   </SelectContent>
                 </Select>
               </div>
+              
+              {/* فلتر نوع الملف */}
+              <div>
+                <Label htmlFor="filterFileType" className="block text-sm font-medium mb-2">حسب نوع الملف</Label>
+                <Select 
+                  onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
+                  value={filter.fileType || "all"}
+                >
+                  <SelectTrigger id="filterFileType" className="w-full">
+                    <SelectValue placeholder="كل أنواع الملفات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل أنواع الملفات</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="image">صور</SelectItem>
+                    <SelectItem value="document">مستندات</SelectItem>
+                    <SelectItem value="other">أخرى</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* فلتر بحسب التاريخ */}
+              <div className="space-y-2">
+                <Label className="block text-sm font-medium mb-2">حسب التاريخ</Label>
+                <div className="flex gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className="w-full justify-start text-right"
+                      >
+                        <CalendarIcon className="ml-2 h-4 w-4" />
+                        {filter.dateRange?.from ? (
+                          format(filter.dateRange.from, "yyyy/MM/dd", { locale: ar })
+                        ) : (
+                          <span>تاريخ البداية</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={filter.dateRange?.from || undefined}
+                        onSelect={(date) => {
+                          handleFilterChange({
+                            dateRange: {
+                              from: date || undefined,
+                              to: filter.dateRange?.to || undefined
+                            }
+                          });
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className="w-full justify-start text-right"
+                      >
+                        <CalendarIcon className="ml-2 h-4 w-4" />
+                        {filter.dateRange?.to ? (
+                          format(filter.dateRange.to, "yyyy/MM/dd", { locale: ar })
+                        ) : (
+                          <span>تاريخ النهاية</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={filter.dateRange?.to || undefined}
+                        onSelect={(date) => {
+                          handleFilterChange({
+                            dateRange: {
+                              from: filter.dateRange?.from || undefined,
+                              to: date || undefined
+                            }
+                          });
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              {/* زر إعادة ضبط الفلاتر */}
+              <Button 
+                variant="secondary" 
+                className="w-full mt-4"
+                onClick={() => setFilter({})}
+              >
+                <Filter className="ml-2 h-4 w-4" />
+                إعادة ضبط الفلاتر
+              </Button>
             </div>
           </div>
           
