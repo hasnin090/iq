@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CalendarIcon, CoinsIcon, InfoIcon, Loader2, PiggyBankIcon, SaveIcon, ArrowRightCircleIcon } from 'lucide-react';
+import { AlertTriangle, CalendarIcon, CoinsIcon, InfoIcon, Loader2, PiggyBankIcon, SaveIcon, ArrowRightCircleIcon, Paperclip, FileIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -30,6 +30,24 @@ interface TransactionFormProps {
   isLoading: boolean;
 }
 
+// تعريف الملفات المقبولة
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_FILE_TYPES = [
+  // صيغ الصور
+  "image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp", "image/svg+xml",
+  // صيغ المستندات
+  "application/pdf", "application/msword", 
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
+  "text/plain", "text/rtf", "application/rtf",
+  // صيغ جداول البيانات
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  // صيغ مضغوطة
+  "application/zip", "application/x-zip-compressed", "application/x-rar-compressed",
+];
+
+const ACCEPTED_FILE_EXTENSIONS = ".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.doc,.docx,.txt,.rtf,.xls,.xlsx,.zip,.rar";
+
 // نستخدم مخطط واحد للجميع حيث أن المشروع سيتم تعيينه تلقائياً للمستخدم العادي
 const transactionSchema = z.object({
   date: z.date({
@@ -42,6 +60,12 @@ const transactionSchema = z.object({
   // ليس هناك حاجة لجعل المشروع إلزامي حيث سيتم ضبطه في المخدم
   projectId: z.string().optional(),
   description: z.string().min(3, "الوصف يجب أن يحتوي على الأقل 3 أحرف"),
+  // إضافة حقل الملف المرفق (اختياري)
+  file: z.any().optional()
+    .refine(file => !file || (file instanceof File && file.size <= MAX_FILE_SIZE), 
+      file => ({ message: `حجم الملف يجب أن يكون أقل من ${MAX_FILE_SIZE / 1024 / 1024} ميجابايت` }))
+    .refine(file => !file || (file instanceof File && ACCEPTED_FILE_TYPES.includes(file.type)), 
+      file => ({ message: `صيغة الملف غير مدعومة. الصيغ المدعومة: ${ACCEPTED_FILE_EXTENSIONS}` })),
 });
 
 // تحديد نوع النموذج
@@ -89,54 +113,120 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   }, [userProjects, user]);
 
   const mutation = useMutation({
-    mutationFn: (data: TransactionFormValues) => {
-      // نسخة جديدة من البيانات لتجنب تعديل البيانات الأصلية
-      let formData: any = { ...data };
+    mutationFn: async (data: TransactionFormValues) => {
+      // إنشاء FormData إذا كان هناك ملف، وإلا يستخدم الإرسال العادي
+      const hasFile = data.file instanceof File;
       
-      // معالجة نوع إيراد المشروع الجديد للمدير (project_income)
-      if (formData.type === 'project_income') {
-        // في حالة "إيراد للمشروع"، نقوم بتعديل النوع إلى "income" العادي
-        // لكن نحتفظ بمعرف المشروع للإشارة إلى أن الإيراد للمشروع وليس للصندوق الرئيسي
-        formData.type = 'income';
+      if (hasFile) {
+        // إنشاء FormData لإرسال الملف
+        const formDataObj = new FormData();
         
-        // التأكد من وجود معرف مشروع صالح
-        if (!formData.projectId || formData.projectId === "none") {
-          throw new Error("يجب تحديد مشروع عند إضافة إيراد للمشروع");
+        // إضافة البيانات الأساسية للمعاملة
+        formDataObj.append('date', data.date.toISOString());
+        formDataObj.append('type', data.type);
+        formDataObj.append('amount', data.amount?.toString() || '0');
+        formDataObj.append('description', data.description);
+        
+        // معالجة نوع إيراد المشروع
+        if (data.type === 'project_income') {
+          // استبدال النوع ب "income" مع الاحتفاظ بمعرف المشروع
+          formDataObj.set('type', 'income');
+          
+          // التأكد من وجود معرف مشروع صالح
+          if (!data.projectId || data.projectId === "none") {
+            throw new Error("يجب تحديد مشروع عند إضافة إيراد للمشروع");
+          }
+          
+          formDataObj.append('projectId', data.projectId);
         }
-        
-        // تحويل معرف المشروع إلى رقم
-        formData.projectId = parseInt(formData.projectId);
-      }
-      // التعامل مع projectId حسب نوع المستخدم ونوع العملية
-      else if (user?.role === 'admin') {
-        // للمدير:
-        // 1. إذا كانت العملية "إيراد"، حذف المشروع دائمًا لضمان إضافة الإيراد للصندوق الرئيسي
-        // 2. إذا كانت العملية "مصروف"، يتم التعامل حسب المشروع المحدد
-        if (formData.type === 'income') {
-          // إيراد للمدير يذهب للصندوق الرئيسي دائمًا
-          delete formData.projectId;
-        } else if (formData.projectId && formData.projectId !== "none") {
-          // مصروف للمدير مع تحديد مشروع
-          formData.projectId = parseInt(formData.projectId);
+        // التعامل مع معرف المشروع حسب نوع المستخدم والعملية
+        else if (user?.role === 'admin') {
+          if (data.type === 'income') {
+            // الإيراد للمدير يذهب للصندوق الرئيسي (لا نضيف معرف مشروع)
+          } else if (data.projectId && data.projectId !== "none") {
+            // المصروف للمدير مع تحديد مشروع
+            formDataObj.append('projectId', data.projectId);
+          }
+          // وإلا، مصروف بدون تحديد مشروع (لا نضيف معرف مشروع)
         } else {
-          // مصروف للمدير بدون تحديد مشروع
-          delete formData.projectId;
+          // للمستخدم العادي:
+          if (userProjects?.length === 1) {
+            // إذا كان لديه مشروع واحد فقط، نستخدمه تلقائياً
+            formDataObj.append('projectId', userProjects[0].id.toString());
+          } else if (data.projectId) {
+            // إذا تم تحديد مشروع، نستخدمه
+            formDataObj.append('projectId', data.projectId);
+          } else {
+            // إذا لم يتم تحديد مشروع، هناك خطأ
+            throw new Error("يجب تحديد مشروع للعملية");
+          }
         }
+        
+        // إضافة الملف إلى FormData
+        if (data.file) {
+          formDataObj.append('file', data.file);
+        }
+        
+        // استخدام fetch بدلاً من apiRequest لإرسال FormData
+        const response = await fetch('/api/transactions', {
+          method: 'POST',
+          body: formDataObj,
+          // لا نحدد Content-Type لأن المتصفح سيضيفه تلقائياً مع multipart/form-data
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || "فشل في حفظ المعاملة المالية");
+        }
+        
+        return await response.json();
       } else {
-        // للمستخدم العادي:
-        if (userProjects?.length === 1) {
-          // إذا كان لديه مشروع واحد فقط، استخدمه تلقائيًا
-          formData.projectId = parseInt(userProjects[0].id.toString());
-        } else if (formData.projectId) {
-          // إذا تم تحديد مشروع، استخدمه
+        // استخدام الطريقة العادية للإرسال بدون ملفات
+        // نسخة جديدة من البيانات لتجنب تعديل البيانات الأصلية
+        let formData: any = { ...data };
+        delete formData.file; // حذف حقل الملف إذا كان فارغاً
+        
+        // معالجة نوع إيراد المشروع الجديد للمدير (project_income)
+        if (formData.type === 'project_income') {
+          // في حالة "إيراد للمشروع"، نقوم بتعديل النوع إلى "income" العادي
+          formData.type = 'income';
+          
+          // التأكد من وجود معرف مشروع صالح
+          if (!formData.projectId || formData.projectId === "none") {
+            throw new Error("يجب تحديد مشروع عند إضافة إيراد للمشروع");
+          }
+          
+          // تحويل معرف المشروع إلى رقم
           formData.projectId = parseInt(formData.projectId);
-        } else {
-          // إذا لم يتم تحديد مشروع، نفترض أن هناك خطأ
-          throw new Error("يجب تحديد مشروع للعملية");
         }
+        // التعامل مع projectId حسب نوع المستخدم ونوع العملية
+        else if (user?.role === 'admin') {
+          if (formData.type === 'income') {
+            // إيراد للمدير يذهب للصندوق الرئيسي دائمًا
+            delete formData.projectId;
+          } else if (formData.projectId && formData.projectId !== "none") {
+            // مصروف للمدير مع تحديد مشروع
+            formData.projectId = parseInt(formData.projectId);
+          } else {
+            // مصروف للمدير بدون تحديد مشروع
+            delete formData.projectId;
+          }
+        } else {
+          // للمستخدم العادي:
+          if (userProjects?.length === 1) {
+            // إذا كان لديه مشروع واحد فقط، استخدمه تلقائيًا
+            formData.projectId = parseInt(userProjects[0].id.toString());
+          } else if (formData.projectId) {
+            // إذا تم تحديد مشروع، استخدمه
+            formData.projectId = parseInt(formData.projectId);
+          } else {
+            // إذا لم يتم تحديد مشروع، نفترض أن هناك خطأ
+            throw new Error("يجب تحديد مشروع للعملية");
+          }
+        }
+        
+        return apiRequest('POST', '/api/transactions', formData);
       }
-      
-      return apiRequest('POST', '/api/transactions', formData);
     },
     onSuccess: () => {
       toast({
@@ -149,6 +239,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         amount: undefined,
         projectId: "",
         description: "",
+        file: undefined, // إعادة تعيين حقل الملف أيضاً
       });
       onSubmit();
     },
@@ -533,6 +624,77 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               />
             </div>
             
+            {/* حقل الملف المرفق */}
+            <div className="grid grid-cols-1 gap-4">
+              <FormField
+                control={form.control}
+                name="file"
+                render={({ field: { value, onChange, ...fieldProps } }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      الملف المرفق (اختياري)
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-800">
+                            <p>يمكنك إرفاق ملف مع المعاملة المالية (صورة، مستند PDF، الخ)</p>
+                            <p className="text-xs mt-1">الحد الأقصى للحجم: 10 ميجابايت</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type="file"
+                          id="file-upload"
+                          accept={ACCEPTED_FILE_EXTENSIONS}
+                          className="sr-only"
+                          disabled={isLoading || mutation.isPending}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            onChange(file);
+                          }}
+                          {...fieldProps}
+                        />
+                        <div className="flex flex-col gap-2">
+                          <label
+                            htmlFor="file-upload"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-800/50 cursor-pointer transition-colors"
+                          >
+                            <Paperclip className="h-4 w-4" />
+                            <span>انقر لاختيار ملف</span>
+                          </label>
+                          
+                          {value && (
+                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border border-blue-100 dark:border-blue-900 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <FileIcon className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                                <span className="text-sm">
+                                  {value instanceof File ? value.name : 'ملف مرفق'}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                onClick={() => onChange(null)}
+                                disabled={isLoading || mutation.isPending}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <div className="flex justify-center pt-2">
               <Button 
                 type="submit" 

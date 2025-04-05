@@ -33,6 +33,32 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// إعداد multer لمعالجة تحميل الملفات
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      // إنشاء مجلد التحميلات إذا لم يكن موجودًا
+      const uploadDir = './uploads';
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // إنشاء اسم فريد للملف
+      const uniqueName = `${Date.now()}_${uuidv4()}_${file.originalname.replace(/\s+/g, '_')}`;
+      cb(null, uniqueName);
+    }
+  }),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB
+  },
+  fileFilter: (req, file, cb) => {
+    // التحقق من نوع الملف (اختياري)
+    cb(null, true);
+  }
+});
+
 declare module "express-session" {
   interface SessionData {
     userId: number;
@@ -677,11 +703,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/transactions", authenticate, async (req: Request, res: Response) => {
+  // إضافة middleware لمعالجة الملفات المرفقة للمعاملات
+  app.post("/api/transactions", authenticate, upload.single('file'), async (req: Request, res: Response) => {
     try {
       console.log("Transaction creation request:", req.body);
+      console.log("File attachment:", req.file);
 
       if (!req.body.date || !req.body.amount || !req.body.type || !req.body.description) {
+        // إزالة الملف المؤقت إذا وجد
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
         return res.status(400).json({ message: "جميع الحقول مطلوبة" });
       }
 
@@ -810,7 +842,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // إذا لم تتم معالجة العملية بأي من الطرق السابقة
       if (!result || !result.transaction) {
+        // إذا كان هناك ملف مرفق، نقوم بحذفه
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
         return res.status(400).json({ message: "خطأ في معالجة العملية" });
+      }
+      
+      // إذا كان هناك ملف مرفق، نقوم برفعه وتحديث المعاملة
+      if (req.file) {
+        try {
+          // محاولة تحميل الملف إلى Firebase Storage
+          const storageFolder = `transactions/${result.transaction.id}`;
+          let fileUrl;
+          try {
+            // محاولة استخدام Firebase أولاً
+            fileUrl = await firebaseUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
+            console.log("تم رفع الملف المرفق بنجاح باستخدام Firebase Storage:", fileUrl);
+          } catch (firebaseError) {
+            // إذا فشل، استخدم التخزين المحلي كخطة بديلة
+            console.warn("فشل استخدام Firebase Storage لرفع المرفق، الرجوع إلى التخزين المحلي:", firebaseError.message);
+            fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
+            console.log("تم رفع الملف المرفق بنجاح باستخدام التخزين المحلي:", fileUrl);
+          }
+          
+          // تحديث المعاملة بعنوان URL للملف المرفق
+          await storage.updateTransaction(result.transaction.id, { 
+            fileUrl,
+            fileType: req.file.mimetype
+          });
+          
+          // تحديث كائن النتيجة بمعلومات الملف
+          result.transaction.fileUrl = fileUrl;
+          result.transaction.fileType = req.file.mimetype;
+          
+        } catch (fileError) {
+          console.error("خطأ أثناء معالجة الملف المرفق:", fileError);
+          // نستمر بإرجاع المعاملة حتى لو فشل رفع الملف
+        }
       }
       
       return res.status(201).json(result.transaction);
@@ -979,32 +1048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // إعداد multer لمعالجة تحميل الملفات
-  
-  const upload = multer({
-    storage: multer.diskStorage({
-      destination: (req, file, cb) => {
-        // إنشاء مجلد التحميلات إذا لم يكن موجودًا
-        const uploadDir = './uploads';
-        if (!fs.existsSync(uploadDir)) {
-          fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-      },
-      filename: (req, file, cb) => {
-        // إنشاء اسم فريد للملف
-        const uniqueName = `${Date.now()}_${uuidv4()}_${file.originalname.replace(/\s+/g, '_')}`;
-        cb(null, uniqueName);
-      }
-    }),
-    limits: {
-      fileSize: 20 * 1024 * 1024, // 20MB
-    },
-    fileFilter: (req, file, cb) => {
-      // التحقق من نوع الملف (اختياري)
-      cb(null, true);
-    }
-  });
+  // تم نقل إعداد multer إلى بداية الملف
 
   // مسار تحميل المستندات مع FormData
   app.post("/api/upload-document", authenticate, upload.single('file'), async (req: Request, res: Response) => {
