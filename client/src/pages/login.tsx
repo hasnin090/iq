@@ -107,7 +107,7 @@ export default function Login() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-gray-900 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
       <div className="w-full max-w-md p-6">
         {/* إضافة شعار وعنوان البرنامج قبل بطاقة تسجيل الدخول */}
         <div className="text-center mb-8">
@@ -115,13 +115,13 @@ export default function Login() {
             <img src="/logo.svg" alt="شعار Code-01" className="h-24 w-auto" />
           </div>
           <h1 className="text-4xl font-bold text-primary mb-3 drop-shadow-md">Code-01</h1>
-          <div className="bg-blue-900/10 rounded-lg py-2 px-4 inline-block">
-            <p className="text-blue-900 text-lg font-medium">نظام المحاسبة المتكامل</p>
+          <div className="bg-primary/10 dark:bg-primary/20 rounded-lg py-2 px-6 inline-block shadow-sm">
+            <p className="text-primary dark:text-primary-foreground text-lg font-bold">نظام المحاسبة المتكامل</p>
           </div>
         </div>
         
-        <div className={`bg-white rounded-2xl p-8 shadow-xl border border-gray-100 transition-all ${shakeAnimation ? 'shake' : ''}`}>
-          <h2 className="text-gray-800 text-2xl font-bold text-center mb-6">تسجيل الدخول إلى النظام</h2>
+        <div className={`bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-slate-700 transition-all ${shakeAnimation ? 'shake' : ''}`}>
+          <h2 className="text-gray-800 dark:text-gray-100 text-2xl font-bold text-center mb-6">تسجيل الدخول إلى النظام</h2>
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -133,7 +133,7 @@ export default function Login() {
                     <FormControl>
                       <Input
                         {...field}
-                        className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 focus:border-primary text-gray-800 font-medium outline-none transition-all placeholder:text-gray-500"
+                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 focus:border-primary dark:focus:border-blue-400 text-gray-800 dark:text-gray-100 font-medium outline-none transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         placeholder="اسم المستخدم"
                         disabled={isLoading}
                       />
@@ -152,7 +152,7 @@ export default function Login() {
                       <Input
                         {...field}
                         type="password"
-                        className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 focus:border-primary text-gray-800 font-medium outline-none transition-all placeholder:text-gray-500"
+                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 focus:border-primary dark:focus:border-blue-400 text-gray-800 dark:text-gray-100 font-medium outline-none transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         placeholder="كلمة المرور"
                         disabled={isLoading}
                       />
@@ -183,7 +183,7 @@ export default function Login() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full py-3 mt-3 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+                  className="w-full py-3 mt-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 hover:border-gray-400 dark:hover:border-slate-500 transition-colors"
                   onClick={async () => {
                     try {
                       setIsLoading(true);
