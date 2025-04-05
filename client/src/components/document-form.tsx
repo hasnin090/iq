@@ -210,66 +210,78 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
         setUploadProgress(5);
         console.log("تحديث نسبة التقدم إلى 5% قبل بدء التحميل");
         
-        // تحميل الملف إلى Firebase Storage مع تتبع التقدم
-        const userId = user?.id || 'unknown';
-        const storageFolder = `documents/${userId}`;
-        console.log("جاري تحميل الملف للمجلد:", storageFolder);
+        // إنشاء FormData لرفع الملف عبر REST API
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('name', data.name);
+        formData.append('description', data.description || "");
+        if (data.projectId && data.projectId !== "all") {
+          formData.append('projectId', data.projectId);
+        }
+        formData.append('isManagerDocument', isManagerDocument.toString());
+        
         console.log("معلومات الملف - الاسم:", file.name, "الحجم:", file.size, "النوع:", file.type);
         
-        // مهلة قصيرة لإعطاء الواجهة وقتًا للتحديث قبل بدء التحميل الفعلي
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // محاولة تحميل الملف مع إعادة المحاولة في حالة الفشل
-        let fileUrl = null;
-        let uploadError = null;
-        const maxRetries = 2;
-        
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-          try {
-            console.log(`محاولة تحميل الملف (${attempt + 1}/${maxRetries + 1})...`);
-            fileUrl = await uploadFile(file, storageFolder, updateUploadProgress);
-            console.log("تم الحصول على رابط الملف بنجاح:", fileUrl);
-            break; // الخروج من الحلقة إذا نجح التحميل
-          } catch (error) {
-            console.error(`فشلت محاولة التحميل ${attempt + 1}:`, error);
-            uploadError = error;
-            
-            if (attempt < maxRetries) {
-              // مهلة قبل إعادة المحاولة
-              const delay = 1000 * (attempt + 1); // زيادة المهلة مع كل محاولة
-              console.log(`إعادة المحاولة بعد ${delay} مللي ثانية...`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-              // إعادة تعيين شريط التقدم للمحاولة التالية
-              setUploadProgress(5);
+        // محاكاة تقدم التحميل
+        const simulateProgress = () => {
+          let progress = 5;
+          const interval = setInterval(() => {
+            // زيادة التقدم تدريجياً حتى 90% (سنترك 10% للمعالجة النهائية)
+            if (progress < 90) {
+              progress += Math.floor(Math.random() * 5) + 1;
+              progress = Math.min(progress, 90);
+              setUploadProgress(progress);
+            } else {
+              clearInterval(interval);
             }
-          }
-        }
-        
-        if (!fileUrl) {
-          throw uploadError || new Error("فشل في تحميل الملف بعد عدة محاولات");
-        }
-        
-        // تحديث التقدم إلى 100% للتأكد من اكتمال العملية
-        setUploadProgress(100);
-        console.log("اكتمل تحميل الملف بنجاح، جاري حفظ بيانات المستند...");
-        
-        // مهلة قصيرة للتأكد من أن المستخدم يرى نسبة التقدم 100%
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // بمجرد اكتمال التحميل، حفظ المعلومات في قاعدة البيانات
-        const documentData = {
-          name: data.name,
-          description: data.description || "",
-          projectId: data.projectId && data.projectId !== "all" ? parseInt(data.projectId) : undefined,
-          fileUrl: fileUrl,
-          fileType: file.type,
-          uploadDate: new Date(),
-          uploadedBy: user?.id,
-          isManagerDocument: isManagerDocument // إضافة معلومات عن نوع المستند (إداري أم لا)
+          }, 300);
+          
+          return () => clearInterval(interval);
         };
         
-        console.log("جاري إرسال بيانات المستند إلى الخادم:", documentData);
-        return apiRequest('POST', '/api/documents', documentData);
+        // بدء محاكاة التقدم
+        const stopSimulation = simulateProgress();
+        
+        try {
+          // استخدام Fetch API بدلاً من Firebase Storage مباشرة
+          console.log("بدء رفع الملف إلى الخادم...");
+          
+          const response = await fetch('/api/upload-document', {
+            method: 'POST',
+            body: formData,
+            // لا تضع headers هنا، دع المتصفح يحددها تلقائيًا مع FormData
+          });
+          
+          // إيقاف محاكاة التقدم
+          stopSimulation();
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'فشل في رفع الملف' }));
+            throw new Error(errorData.message || 'فشل في رفع الملف');
+          }
+          
+          // تحديث التقدم إلى 95%
+          setUploadProgress(95);
+          
+          // الحصول على البيانات الناتجة
+          const result = await response.json();
+          console.log("تم رفع الملف بنجاح:", result);
+          
+          // تحديث التقدم إلى 100% للتأكد من اكتمال العملية
+          setUploadProgress(100);
+          console.log("اكتمل رفع المستند بنجاح");
+          
+          // مهلة قصيرة للتأكد من أن المستخدم يرى نسبة التقدم 100%
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // نعيد البيانات التي تم استلامها من الخادم
+          return result;
+        } catch (error) {
+          // إيقاف محاكاة التقدم في حالة حدوث خطأ
+          stopSimulation();
+          console.error("خطأ أثناء رفع الملف:", error);
+          throw error;
+        }
       } catch (error) {
         // إعادة تعيين شريط التقدم في حالة وجود خطأ
         console.error("خطأ أثناء عملية التحميل:", error);

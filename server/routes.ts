@@ -19,6 +19,11 @@ import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { v4 as uuidv4 } from "uuid";
+import { uploadFile } from "./firebase-utils"; // سنقوم بإنشاء هذا الملف لاحقاً
 
 declare module "express-session" {
   interface SessionData {
@@ -963,6 +968,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في استرجاع المستندات:", error);
       return res.status(500).json({ message: "خطأ في استرجاع المستندات" });
+    }
+  });
+
+  // إعداد multer لمعالجة تحميل الملفات
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        // إنشاء مجلد التحميلات إذا لم يكن موجودًا
+        const uploadDir = path.join(__dirname, '../uploads');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        // إنشاء اسم فريد للملف
+        const uniqueName = `${Date.now()}_${uuidv4()}_${file.originalname.replace(/\s+/g, '_')}`;
+        cb(null, uniqueName);
+      }
+    }),
+    limits: {
+      fileSize: 20 * 1024 * 1024, // 20MB
+    },
+    fileFilter: (req, file, cb) => {
+      // التحقق من نوع الملف (اختياري)
+      cb(null, true);
+    }
+  });
+
+  // مسار تحميل المستندات مع FormData
+  app.post("/api/upload-document", authenticate, upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "لم يتم تقديم ملف للتحميل" });
+      }
+
+      const { name, description, projectId, isManagerDocument } = req.body;
+      const file = req.file;
+      const userId = req.session.userId as number;
+      
+      // التحقق من صلاحية المستخدم للمستندات الإدارية
+      const userRole = req.session.role as string;
+      if (isManagerDocument === 'true' && userRole !== "admin" && userRole !== "manager") {
+        // حذف الملف المؤقت
+        fs.unlinkSync(file.path);
+        return res.status(403).json({ 
+          message: "غير مصرح لك بإنشاء مستندات إدارية" 
+        });
+      }
+      
+      // التحقق من صلاحية المستخدم للوصول للمشروع إذا تم تحديده
+      if (projectId && projectId !== "all") {
+        const projectIdNumber = Number(projectId);
+        if (userRole !== "admin" && userRole !== "manager") {
+          const hasAccess = await storage.checkUserProjectAccess(userId, projectIdNumber);
+          if (!hasAccess) {
+            // حذف الملف المؤقت
+            fs.unlinkSync(file.path);
+            return res.status(403).json({ 
+              message: "ليس لديك صلاحية للوصول إلى هذا المشروع" 
+            });
+          }
+        }
+      }
+      
+      // تهيئة البيانات للمستند
+      const documentData = {
+        name: name,
+        description: description || "",
+        projectId: projectId && projectId !== "all" ? Number(projectId) : undefined,
+        fileUrl: file.path, // سيتم تحديثه بعد رفع الملف إلى Firebase
+        fileType: file.mimetype,
+        uploadDate: new Date(),
+        uploadedBy: userId,
+        isManagerDocument: isManagerDocument === 'true'
+      };
+      
+      try {
+        // محاولة تحميل الملف إلى Firebase Storage
+        const storageFolder = `documents/${userId}`;
+        const fileUrl = await uploadFile(file.path, `${storageFolder}/${file.filename}`);
+        
+        // تحديث مسار الملف بعنوان URL من Firebase
+        documentData.fileUrl = fileUrl;
+        
+        // إضافة المستند إلى قاعدة البيانات
+        const document = await storage.createDocument(documentData as any);
+        
+        // حذف الملف المؤقت بعد الرفع الناجح
+        fs.unlinkSync(file.path);
+        
+        // تسجيل نشاط إضافة المستند
+        await storage.createActivityLog({
+          action: "create",
+          entityType: "document",
+          entityId: document.id,
+          details: `إضافة مستند جديد: ${document.name}`,
+          userId: userId
+        });
+        
+        return res.status(201).json(document);
+      } catch (error) {
+        // حذف الملف المؤقت في حالة حدوث خطأ
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+        
+        console.error("خطأ في رفع الملف:", error);
+        return res.status(500).json({ message: "حدث خطأ أثناء معالجة الملف" });
+      }
+    } catch (error) {
+      console.error("خطأ عام في رفع المستند:", error);
+      return res.status(500).json({ message: "خطأ في رفع المستند" });
     }
   });
 

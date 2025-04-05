@@ -150,12 +150,59 @@ export const uploadFile = async (
       // تعريف متغير لتتبع ما إذا كانت عملية التحميل نشطة
       let isActive = true;
       
-      // مؤقت للتحقق من أن التحميل مستمر (watchdog timer)
+      // تتبع حالة التحميل وكشف التوقف
+      let lastBytesTransferred = 0;
+      let stallCount = 0;
+      const maxStallCount = 6; // بعد 30 ثانية من عدم التقدم، نعتبر أن العملية متوقفة
+      
       const watchdogTimer = setInterval(() => {
-        if (isActive) {
-          console.log("عملية التحميل مستمرة...");
-        } else {
+        if (!isActive) {
+          console.log("تم إيقاف المراقبة - العملية غير نشطة");
           clearInterval(watchdogTimer);
+          return;
+        }
+        
+        try {
+          // فحص حالة المهمة الحالية
+          const currentSnapshot = uploadTask.snapshot;
+          const currentBytes = currentSnapshot.bytesTransferred;
+          const totalBytes = currentSnapshot.totalBytes;
+          const progress = Math.round((currentBytes / totalBytes) * 100);
+          
+          console.log(`عملية التحميل مستمرة... ${progress}% (${currentBytes}/${totalBytes} bytes)`);
+          
+          // التحقق من عدم تقدم البايتات المرسلة (الاكتشاف المبكر للتوقف)
+          if (currentBytes === lastBytesTransferred && currentBytes > 0 && currentBytes < totalBytes) {
+            stallCount++;
+            console.warn(`تنبيه: عملية التحميل لم تتقدم منذ ${stallCount * 5} ثوانٍ`);
+            
+            if (stallCount >= maxStallCount) {
+              console.error("تم اكتشاف توقف كامل للتحميل. محاولة إنهاء العملية الحالية...");
+              
+              // إيقاف المراقبة
+              isActive = false;
+              clearInterval(watchdogTimer);
+              
+              // محاولة إلغاء المهمة الحالية
+              try {
+                uploadTask.cancel();
+                console.log("تم إلغاء مهمة التحميل المتوقفة");
+              } catch (cancelError) {
+                console.error("خطأ أثناء إلغاء المهمة:", cancelError);
+              }
+              
+              // رفض الوعد بخطأ مناسب
+              reject(new Error("توقفت عملية التحميل. يرجى المحاولة مرة أخرى لاحقًا."));
+            }
+          } else {
+            // إعادة تعيين العداد إذا استمر التقدم
+            if (currentBytes > lastBytesTransferred) {
+              stallCount = 0;
+              lastBytesTransferred = currentBytes;
+            }
+          }
+        } catch (watchError) {
+          console.error("خطأ في مؤقت المراقبة:", watchError);
         }
       }, 5000);
       
