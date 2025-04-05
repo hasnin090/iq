@@ -85,10 +85,10 @@ export function Sidebar() {
       {/* زر ثابت لفتح القائمة الجانبية */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed top-4 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-8 h-8 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        className={`fixed top-6 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-7 h-7 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
       >
-        <div className="w-4 h-3 flex flex-col justify-between">
+        <div className="w-3.5 h-2.5 flex flex-col justify-between">
           <span className="h-0.5 w-full bg-white rounded-full"></span>
           <span className="h-0.5 w-full bg-white rounded-full"></span>
           <span className="h-0.5 w-full bg-white rounded-full"></span>
@@ -96,10 +96,10 @@ export function Sidebar() {
       </button>
       
       {/* زر ثابت لتبديل الوضع المظلم/الفاتح في الهاتف */}
-      <div className={`fixed top-4 right-14 z-50 md:hidden ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <div className={`fixed top-6 right-16 z-50 md:hidden ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <ThemeToggle 
-          className="bg-[hsl(var(--primary))] rounded-lg w-8 h-8 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none transform hover:scale-105 active:scale-95 touch-target"
-          iconClassName="h-4 w-4 text-white"
+          className="bg-[hsl(var(--primary))] rounded-lg w-7 h-7 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none transform hover:scale-105 active:scale-95 touch-target"
+          iconClassName="h-3.5 w-3.5 text-white"
         />
       </div>
 
@@ -322,17 +322,12 @@ export function Sidebar() {
           </div>
         </div>
         
-        {/* Dark mode toggle button - زر تبديل الوضع المظلم/الفاتح */}
-        <div className="px-5 py-3 mb-1 flex items-center justify-between">
-          <div className="flex items-center space-x-reverse space-x-2">
-            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-gray-700 flex items-center justify-center shadow-sm">
-              <i className="fas fa-palette text-[hsl(var(--primary))] dark:text-white"></i>
-            </div>
-            <span className="text-sm text-[hsl(var(--primary))] dark:text-white font-medium">وضع الألوان</span>
-          </div>
+        {/* زر تبديل الوضع المظلم/الفاتح */}
+        <div className="px-4 py-2 mt-3 mb-2 flex justify-end">
+          <span className="text-xs text-[hsl(var(--primary))] dark:text-white font-medium mr-2">وضع الألوان</span>
           <ThemeToggle 
-            className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm hover:shadow hover:bg-blue-100 dark:bg-gray-700 dark:border-gray-600"
-            iconClassName="h-5 w-5 text-[hsl(var(--primary))] dark:text-white"
+            className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm hover:shadow hover:bg-blue-100 dark:bg-gray-700 dark:border-gray-600"
+            iconClassName="h-3.5 w-3.5 text-[hsl(var(--primary))] dark:text-white"
           />
         </div>
           
