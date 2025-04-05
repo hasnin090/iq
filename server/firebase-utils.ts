@@ -1,5 +1,3 @@
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getStorage } from 'firebase-admin/storage';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -15,48 +13,13 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   }
 }
 
-// دالة مساعدة - تحقق من توفر متغيرات البيئة لـ Firebase
-const hasRequiredFirebaseEnv = (): boolean => {
-  const requiredVars = ['VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_APP_ID'];
-  return requiredVars.every(varName => !!process.env[varName]);
-};
-
-// تهيئة Firebase Admin SDK مع التعامل مع الأخطاء بشكل أفضل
-import { FirebaseApp } from 'firebase/app';
-import { FirebaseStorage } from 'firebase/storage';
-
-let firebaseApp: FirebaseApp | undefined = undefined;
-let firebaseStorage: FirebaseStorage | undefined = undefined;
-
-try {
-  if (hasRequiredFirebaseEnv()) {
-    try {
-      // تهيئة جديدة باستخدام المعلومات المتوفرة
-      firebaseApp = initializeApp({
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: `${process.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`
-      });
-      firebaseStorage = getStorage(firebaseApp);
-      console.log('تم تهيئة Firebase Admin SDK بنجاح');
-    } catch (initError: any) {
-      console.error('فشل في تهيئة Firebase Admin SDK:', initError);
-      throw new Error(`فشل في تهيئة Firebase Admin SDK: ${initError.message}`);
-    }
-  } else {
-    // تهيئة بسيطة للتطوير فقط
-    console.warn('تهيئة Firebase بوضع التطوير - متغيرات البيئة مفقودة');
-    firebaseApp = initializeApp({
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || "dummy-project-dev"
-    });
-  }
-} catch (error) {
-  console.error('خطأ في تهيئة Firebase Admin SDK:', error);
-}
+// تم إلغاء استخدام Firebase واستبداله بنظام الملفات المحلي
+console.log('جاري استخدام التخزين المحلي للملفات في مجلد uploads/');
 
 /**
- * تحميل ملف إلى Firebase Storage أو نظام الملفات المحلي
+ * تحميل ملف إلى نظام الملفات المحلي
  * @param file الملف الذي سيتم تحميله (Buffer أو مسار)
- * @param destination مسار الوجهة في Firebase Storage
+ * @param destination مسار الوجهة في المجلد
  * @param contentType نوع محتوى الملف
  * @param metadata بيانات وصفية إضافية للملف
  * @returns وعد بعنوان URL الملف المحمل
@@ -81,122 +44,50 @@ export const uploadFile = async (
     const randomHash = crypto.randomBytes(4).toString('hex');
     const uniqueFileName = `${path.parse(safeFileName).name}_${timestamp}_${randomHash}${extension}`;
     
-    // نعمل بطريقة بديلة حتى لا نتكل على Firebase Storage
-    let isFirebaseAvailable = false;
     try {
-      if (firebaseStorage) {
-        isFirebaseAvailable = true;
+      // تحضير Buffer إذا كان المدخل ملفاً
+      let fileBuffer: Buffer;
+      if (typeof fileData === 'string') {
+        // التأكد من وجود الملف
+        if (!fs.existsSync(fileData)) {
+          throw new Error(`الملف غير موجود: ${fileData}`);
+        }
+        fileBuffer = fs.readFileSync(fileData);
+      } else {
+        fileBuffer = fileData;
       }
-    } catch (error) {
-      console.log('Firebase Storage غير متاح. سيتم تخزين الملف محلياً فقط');
-    }
-    
-    // تحميل محلي إذا كان Firebase غير متاح
-    if (!isFirebaseAvailable) {
-      try {
-        // تحضير Buffer إذا كان المدخل ملفاً
-        let fileBuffer: Buffer;
-        if (typeof fileData === 'string') {
-          // التأكد من وجود الملف
-          if (!fs.existsSync(fileData)) {
-            throw new Error(`الملف غير موجود: ${fileData}`);
+      
+      // إنشاء مسار محلي للتخزين
+      const uploadDirPath = path.join(UPLOADS_DIR, path.dirname(destination));
+      if (!fs.existsSync(uploadDirPath)) {
+        fs.mkdirSync(uploadDirPath, { recursive: true });
+      }
+      
+      // حفظ الملف محلياً
+      const localPath = path.join(UPLOADS_DIR, uniqueFileName);
+      fs.writeFileSync(localPath, fileBuffer);
+      console.log(`تم تخزين الملف محلياً في: ${localPath}`);
+      
+      // حفظ البيانات الوصفية في ملف متصل إذا كان هناك حاجة
+      if (Object.keys(metadata).length > 0) {
+        const metadataPath = `${localPath}.metadata.json`;
+        const metadataContent = JSON.stringify({
+          contentType: detectedContentType,
+          metadata: {
+            ...metadata,
+            uploadTimestamp: timestamp.toString(),
+            originalFileName: fileName
           }
-          fileBuffer = fs.readFileSync(fileData);
-        } else {
-          fileBuffer = fileData;
-        }
-        
-        // إنشاء مسار محلي للتخزين
-        const uploadDirPath = path.join(UPLOADS_DIR, path.dirname(destination));
-        if (!fs.existsSync(uploadDirPath)) {
-          fs.mkdirSync(uploadDirPath, { recursive: true });
-        }
-        
-        // حفظ الملف محلياً
-        const localPath = path.join(UPLOADS_DIR, uniqueFileName);
-        fs.writeFileSync(localPath, fileBuffer);
-        console.log(`تم تخزين الملف محلياً في: ${localPath}`);
-        
-        // إنشاء URL محلي
-        return `/uploads/${uniqueFileName}`;
-      } catch (localError: any) {
-        console.error('خطأ في حفظ الملف محلياً:', localError);
-        throw new Error(`فشل في حفظ الملف محلياً: ${localError.message}`);
+        }, null, 2);
+        fs.writeFileSync(metadataPath, metadataContent);
       }
+      
+      // إنشاء URL محلي
+      return `/uploads/${uniqueFileName}`;
+    } catch (localError: any) {
+      console.error('خطأ في حفظ الملف محلياً:', localError);
+      throw new Error(`فشل في حفظ الملف محلياً: ${localError.message}`);
     }
-    
-    // تحميل إلى Firebase Storage
-    const bucket = firebaseStorage.bucket();
-    
-    // تحضير البيانات للتحميل
-    let buffer: Buffer;
-    if (typeof fileData === 'string') {
-      // التأكد من وجود الملف
-      if (!fs.existsSync(fileData)) {
-        throw new Error(`الملف غير موجود: ${fileData}`);
-      }
-      buffer = fs.readFileSync(fileData);
-    } else {
-      buffer = fileData;
-    }
-    
-    // مسار الملف في Firebase
-    const storagePath = `${path.dirname(destination)}/${uniqueFileName}`;
-    const file = bucket.file(storagePath);
-    
-    // تجهيز البيانات الوصفية
-    const combinedMetadata = {
-      contentType: detectedContentType,
-      metadata: {
-        ...metadata,
-        uploadTimestamp: timestamp.toString(),
-        originalFileName: fileName
-      }
-    };
-    
-    return new Promise<string>((resolve, reject) => {
-      // إنشاء التدفق
-      const uploadStream = file.createWriteStream({
-        metadata: combinedMetadata,
-        resumable: buffer.length > 5 * 1024 * 1024 // استئناف التحميل للملفات الكبيرة فقط
-      });
-      
-      // معالجة الأخطاء
-      uploadStream.on('error', (error: Error) => {
-        console.error('خطأ في تحميل الملف:', error);
-        reject(new Error(`فشل في تحميل الملف: ${error.message}`));
-      });
-      
-      // بعد الانتهاء
-      uploadStream.on('finish', async () => {
-        try {
-          // جعل الملف متاحًا للعامة
-          await file.makePublic();
-          
-          // إنشاء URL عام
-          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
-          console.log('تم تحميل الملف بنجاح:', publicUrl);
-          resolve(publicUrl);
-        } catch (makePublicError: any) {
-          console.error('خطأ في جعل الملف عاماً:', makePublicError);
-          
-          // محاولة إنشاء رابط مؤقت كخطة بديلة
-          try {
-            const signedUrl = await file.getSignedUrl({
-              action: 'read',
-              expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // صالح لمدة أسبوع
-            });
-            console.log('تم إنشاء رابط مؤقت للملف:', signedUrl[0]);
-            resolve(signedUrl[0]);
-          } catch (signedUrlError) {
-            reject(new Error(`فشل في إنشاء رابط للملف: ${makePublicError.message}`));
-          }
-        }
-      });
-      
-      // إرسال البيانات
-      uploadStream.end(buffer);
-    });
   } catch (error: any) {
     console.error('خطأ في عملية تحميل الملف:', error);
     throw new Error(`فشل في عملية تحميل الملف: ${error.message}`);
@@ -241,7 +132,7 @@ function getContentTypeFromExtension(extension: string): string {
 }
 
 /**
- * حذف ملف من Firebase Storage أو من الملفات المحلية
+ * حذف ملف من الملفات المحلية
  * @param fileUrl عنوان URL للملف المراد حذفه
  * @returns وعد يشير إلى اكتمال عملية الحذف
  */
@@ -252,102 +143,106 @@ export const deleteFile = async (fileUrl: string): Promise<boolean> => {
   }
   
   try {
-    // معالجة المسارات المحلية
+    // التعامل فقط مع الملفات المحلية
     const isLocalPath = fileUrl.startsWith('./uploads/') || 
                         fileUrl.startsWith('/uploads/') || 
                         fileUrl.includes(UPLOADS_DIR);
     
-    if (isLocalPath) {
-      try {
-        // تحديد المسار الكامل للملف
-        let fullPath = fileUrl;
-        
-        // إذا كان المسار نسبيًا، قم بتوسيعه
-        if (fileUrl.startsWith('/uploads/')) {
-          fullPath = path.join(process.cwd(), fileUrl);
-        } else if (fileUrl.startsWith('./uploads/')) {
-          fullPath = path.join(process.cwd(), fileUrl.substring(1));
-        }
-        
-        // التحقق من وجود الملف قبل محاولة حذفه
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-          console.log(`تم حذف الملف المحلي بنجاح: ${fullPath}`);
-          return true;
-        } else {
-          console.warn(`الملف المحلي غير موجود: ${fullPath}`);
-          return false;
-        }
-      } catch (localError: any) {
-        console.error('خطأ في حذف الملف المحلي:', localError);
-        throw new Error(`فشل في حذف الملف المحلي: ${localError.message}`);
-      }
+    if (!isLocalPath) {
+      console.warn(`عنوان URL غير معروف، سوف نعتبره مسارًا محليًا: ${fileUrl}`);
+      // محاولة معالجته كمسار محلي على أي حال
     }
     
-    // التحقق من توفر Firebase Storage
-    let isFirebaseAvailable = false;
     try {
-      if (firebaseStorage) {
-        isFirebaseAvailable = true;
+      // تحديد المسار الكامل للملف
+      let fullPath = fileUrl;
+      
+      // إذا كان المسار نسبيًا، قم بتوسيعه
+      if (fileUrl.startsWith('/uploads/')) {
+        fullPath = path.join(process.cwd(), fileUrl);
+      } else if (fileUrl.startsWith('./uploads/')) {
+        fullPath = path.join(process.cwd(), fileUrl.substring(1));
+      } else if (!fileUrl.includes(UPLOADS_DIR)) {
+        // محاولة إضافة مجلد التحميلات كبادئة
+        const fileName = fileUrl.split('/').pop();
+        if (fileName) {
+          fullPath = path.join(UPLOADS_DIR, fileName);
+        }
       }
-    } catch (error: any) {
-      console.error('Firebase Storage غير متاح للحذف:', error);
-      throw new Error('خدمة Firebase Storage غير متاحة لعملية الحذف');
-    }
-    
-    if (!isFirebaseAvailable) {
-      throw new Error('خدمة Firebase Storage غير متاحة وعنوان الملف ليس مسارًا محليًا');
-    }
-
-    // معالجة روابط Firebase العامة
-    const isFirebaseUrl = fileUrl.includes('storage.googleapis.com') || 
-                          fileUrl.includes('firebasestorage.googleapis.com');
-    
-    if (!isFirebaseUrl) {
-      throw new Error(`عنوان URL غير مدعوم للحذف: ${fileUrl}`);
-    }
-    
-    // الحصول على مرجع الملف من URL
-    const bucket = firebaseStorage.bucket();
-    let filePath = '';
-    
-    if (fileUrl.includes('storage.googleapis.com')) {
-      // التنسيق: https://storage.googleapis.com/BUCKET_NAME/FILE_PATH
-      const urlParts = fileUrl.split('/');
-      if (urlParts.length < 5) {
-        throw new Error(`تنسيق URL غير صالح: ${fileUrl}`);
+      
+      // التحقق من وجود الملف قبل محاولة حذفه
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+        console.log(`تم حذف الملف المحلي بنجاح: ${fullPath}`);
+        
+        // التحقق من وجود ملف البيانات الوصفية وحذفه أيضًا
+        const metadataPath = `${fullPath}.metadata.json`;
+        if (fs.existsSync(metadataPath)) {
+          fs.unlinkSync(metadataPath);
+          console.log(`تم حذف ملف البيانات الوصفية: ${metadataPath}`);
+        }
+        
+        return true;
+      } else {
+        // محاولة البحث عن الملف في مجلد التحميلات مباشرة
+        const uploadsFiles = fs.readdirSync(UPLOADS_DIR);
+        // البحث عن الملف الذي ينتهي بنفس الاسم
+        const fileName = fileUrl.split('/').pop();
+        if (fileName) {
+          const matchingFile = uploadsFiles.find(file => file.endsWith(fileName));
+          if (matchingFile) {
+            const matchingPath = path.join(UPLOADS_DIR, matchingFile);
+            fs.unlinkSync(matchingPath);
+            console.log(`تم حذف الملف المحلي بعد البحث: ${matchingPath}`);
+            
+            // التحقق من وجود ملف البيانات الوصفية وحذفه أيضًا
+            const metadataPath = `${matchingPath}.metadata.json`;
+            if (fs.existsSync(metadataPath)) {
+              fs.unlinkSync(metadataPath);
+              console.log(`تم حذف ملف البيانات الوصفية: ${metadataPath}`);
+            }
+            
+            return true;
+          }
+        }
+        
+        console.warn(`الملف المحلي غير موجود: ${fullPath}`);
+        return false;
       }
-      filePath = urlParts.slice(4).join('/'); // تخطي https:, '', storage.googleapis.com, BUCKET_NAME
-    } else if (fileUrl.includes('firebasestorage.googleapis.com')) {
-      // استخراج المسار من URL الآخر
-      // التنسيق المحتمل: https://firebasestorage.googleapis.com/v0/b/BUCKET_NAME/o/FILE_PATH?token=...
-      const matches = fileUrl.match(/\/o\/([^?]+)/);
-      if (matches && matches[1]) {
-        // فك ترميز المسار (قد يكون مُشفرًا بـ URL encoding)
-        filePath = decodeURIComponent(matches[1]);
-      }
+    } catch (localError: any) {
+      console.error('خطأ في حذف الملف المحلي:', localError);
+      throw new Error(`فشل في حذف الملف المحلي: ${localError.message}`);
     }
-    
-    if (!filePath) {
-      throw new Error(`تعذر استخراج مسار الملف من URL: ${fileUrl}`);
-    }
-    
-    // التحقق من وجود الملف قبل محاولة حذفه
-    const file = bucket.file(filePath);
-    const [exists] = await file.exists();
-    
-    if (!exists) {
-      console.warn(`الملف غير موجود في Firebase Storage: ${filePath}`);
-      return false;
-    }
-    
-    // حذف الملف
-    console.log(`جاري حذف الملف من Firebase Storage: ${filePath}`);
-    await file.delete();
-    console.log(`تم حذف الملف بنجاح: ${filePath}`);
-    return true;
   } catch (error: any) {
     console.error('خطأ في حذف الملف:', error);
     throw new Error(`فشل في حذف الملف: ${error.message}`);
+  }
+};
+
+/**
+ * دالة مساعدة لفحص نوع الملف
+ * @param fileType نوع الملف كسلسلة نصية
+ * @returns نوع الملف بدون التفاصيل
+ */
+export const getFileType = (fileType: string): string => {
+  // استخراج النوع الأساسي من سلسلة نوع الملف
+  // مثال: 'image/jpeg' سترجع 'image'
+  return fileType.split('/')[0] || 'unknown';
+};
+
+/**
+ * دالة مساعدة لتحويل حجم الملف إلى تنسيق مقروء
+ * @param sizeInBytes حجم الملف بالبايت
+ * @returns حجم الملف بتنسيق مقروء (مثل KB, MB)
+ */
+export const getReadableFileSize = (sizeInBytes: number): string => {
+  if (sizeInBytes < 1024) {
+    return `${sizeInBytes} بايت`;
+  } else if (sizeInBytes < 1024 * 1024) {
+    return `${Math.round(sizeInBytes / 1024 * 10) / 10} كيلوبايت`;
+  } else if (sizeInBytes < 1024 * 1024 * 1024) {
+    return `${Math.round(sizeInBytes / (1024 * 1024) * 10) / 10} ميجابايت`;
+  } else {
+    return `${Math.round(sizeInBytes / (1024 * 1024 * 1024) * 10) / 10} جيجابايت`;
   }
 };
