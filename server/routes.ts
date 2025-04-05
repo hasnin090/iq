@@ -23,7 +23,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { uploadFile, deleteFile } from "./firebase-utils.js"; // Firebase Storage utility
+import { uploadFile, deleteFile } from "./firebase-utils"; // Firebase Storage utility
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -1151,6 +1151,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "غير مصرح لك بحذف هذا المستند" });
       }
       
+      // حذف الملف المرتبط أولاً إذا كان موجودًا
+      if (document.fileUrl) {
+        try {
+          // تجهيز المسار للاستخدام مع دالة deleteFile
+          const filePath = document.fileUrl.startsWith('/') ? 
+            path.join(process.cwd(), document.fileUrl) : 
+            document.fileUrl;
+          
+          console.log(`بدء عملية حذف الملف المرتبط بالمستند: ${filePath}`);
+          await deleteFile(filePath);
+        } catch (fileError) {
+          console.error(`خطأ في حذف الملف المرتبط بالمستند: ${fileError}`);
+          // نستمر حتى لو فشل حذف الملف
+        }
+      }
+      
+      // حذف المستند من قاعدة البيانات
       const result = await storage.deleteDocument(id);
       
       if (result) {
@@ -1165,6 +1182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(200).json({ success: result });
     } catch (error) {
+      console.error("خطأ في حذف المستند:", error);
       return res.status(500).json({ message: "خطأ في حذف المستند" });
     }
   });

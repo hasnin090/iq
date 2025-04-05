@@ -143,14 +143,22 @@ export const deleteFile = async (fileUrl: string): Promise<boolean> => {
   }
   
   try {
+    // تنقية مسار الملف
+    // تحويل المسار إلى تنسيق قياسي
+    let sanitizedFileUrl = fileUrl;
+    
     // التعامل فقط مع الملفات المحلية
     const isLocalPath = fileUrl.startsWith('./uploads/') || 
                         fileUrl.startsWith('/uploads/') || 
                         fileUrl.includes(UPLOADS_DIR);
     
     if (!isLocalPath) {
-      console.warn(`عنوان URL غير معروف، سوف نعتبره مسارًا محليًا: ${fileUrl}`);
-      // محاولة معالجته كمسار محلي على أي حال
+      console.log(`محاولة استخلاص اسم الملف من المسار: ${fileUrl}`);
+      // محاولة استخراج اسم الملف واستخدامه فقط
+      const fileName = path.basename(fileUrl);
+      sanitizedFileUrl = path.join(UPLOADS_DIR, fileName);
+      console.log(`تم استخلاص اسم الملف: ${fileName}, المسار الجديد: ${sanitizedFileUrl}`);
+      fileUrl = sanitizedFileUrl;
     }
     
     try {
