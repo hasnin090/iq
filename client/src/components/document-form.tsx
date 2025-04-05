@@ -207,8 +207,8 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
       
       try {
         // تحديث شريط التقدم للإشعار بأن العملية بدأت
-        setUploadProgress(10);
-        console.log("تحديث نسبة التقدم إلى 10% قبل بدء التحميل");
+        setUploadProgress(5);
+        console.log("تحديث نسبة التقدم إلى 5% قبل بدء التحميل");
         
         // تحميل الملف إلى Firebase Storage مع تتبع التقدم
         const userId = user?.id || 'unknown';
@@ -217,15 +217,47 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
         console.log("معلومات الملف - الاسم:", file.name, "الحجم:", file.size, "النوع:", file.type);
         
         // مهلة قصيرة لإعطاء الواجهة وقتًا للتحديث قبل بدء التحميل الفعلي
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
         
-        const fileUrl = await uploadFile(file, storageFolder, updateUploadProgress);
+        // محاولة تحميل الملف مع إعادة المحاولة في حالة الفشل
+        let fileUrl = null;
+        let uploadError = null;
+        const maxRetries = 2;
+        
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`محاولة تحميل الملف (${attempt + 1}/${maxRetries + 1})...`);
+            fileUrl = await uploadFile(file, storageFolder, updateUploadProgress);
+            console.log("تم الحصول على رابط الملف بنجاح:", fileUrl);
+            break; // الخروج من الحلقة إذا نجح التحميل
+          } catch (error) {
+            console.error(`فشلت محاولة التحميل ${attempt + 1}:`, error);
+            uploadError = error;
+            
+            if (attempt < maxRetries) {
+              // مهلة قبل إعادة المحاولة
+              const delay = 1000 * (attempt + 1); // زيادة المهلة مع كل محاولة
+              console.log(`إعادة المحاولة بعد ${delay} مللي ثانية...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+              // إعادة تعيين شريط التقدم للمحاولة التالية
+              setUploadProgress(5);
+            }
+          }
+        }
+        
+        if (!fileUrl) {
+          throw uploadError || new Error("فشل في تحميل الملف بعد عدة محاولات");
+        }
         
         // تحديث التقدم إلى 100% للتأكد من اكتمال العملية
         setUploadProgress(100);
+        console.log("اكتمل تحميل الملف بنجاح، جاري حفظ بيانات المستند...");
+        
+        // مهلة قصيرة للتأكد من أن المستخدم يرى نسبة التقدم 100%
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // بمجرد اكتمال التحميل، حفظ المعلومات في قاعدة البيانات
-        return apiRequest('POST', '/api/documents', {
+        const documentData = {
           name: data.name,
           description: data.description || "",
           projectId: data.projectId && data.projectId !== "all" ? parseInt(data.projectId) : undefined,
@@ -234,9 +266,13 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
           uploadDate: new Date(),
           uploadedBy: user?.id,
           isManagerDocument: isManagerDocument // إضافة معلومات عن نوع المستند (إداري أم لا)
-        });
+        };
+        
+        console.log("جاري إرسال بيانات المستند إلى الخادم:", documentData);
+        return apiRequest('POST', '/api/documents', documentData);
       } catch (error) {
         // إعادة تعيين شريط التقدم في حالة وجود خطأ
+        console.error("خطأ أثناء عملية التحميل:", error);
         setUploadProgress(0);
         throw error;
       }

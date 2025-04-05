@@ -1,57 +1,86 @@
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject, UploadTaskSnapshot } from "firebase/storage";
-import { storage } from "./firebase";
 import { FirebaseStorage } from "firebase/storage";
 import { getStorage } from "firebase/storage";
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp, getApps } from "firebase/app";
 
-// التحقق من وجود مفاتيح Firebase في متغيرات البيئة
+// تخزين مؤقت لتحسين الأداء وتجنب إعادة التهيئة المتكررة
+let cachedStorage: FirebaseStorage | null = null;
+
+/**
+ * التحقق من وجود مفاتيح Firebase في متغيرات البيئة
+ * @returns صحيح إذا كانت جميع المفاتيح المطلوبة موجودة
+ */
 const checkFirebaseKeys = (): boolean => {
-  // لقد أصبحت المفاتيح مدمجة مباشرة في الكود، لذا سنعيد دائماً true
+  const requiredKeys = [
+    'VITE_FIREBASE_API_KEY',
+    'VITE_FIREBASE_PROJECT_ID',
+    'VITE_FIREBASE_APP_ID'
+  ];
+  
+  for (const key of requiredKeys) {
+    if (!import.meta.env[key]) {
+      console.error(`مفتاح Firebase مفقود: ${key}`);
+      return false;
+    }
+  }
+  
   return true;
 };
 
-// التأكد من تهيئة Firebase Storage في حالة كان التخزين غير متاح
+/**
+ * الحصول على كائن Firebase Storage
+ * يعيد نسخة مخزنة مؤقتًا إذا كانت موجودة، وإلا يقوم بتهيئة نسخة جديدة
+ * @returns كائن Firebase Storage
+ */
 const getFirebaseStorage = (): FirebaseStorage => {
-  if (storage) {
-    return storage;
+  // إذا كان لدينا نسخة مخزنة مؤقتًا، أعدها مباشرة
+  if (cachedStorage) {
+    console.log("استخدام نسخة مخزنة مؤقتًا من Firebase Storage");
+    return cachedStorage;
   }
   
-  // إذا لم يكن التخزين متاحًا، نحاول استخدام التخزين من الملف firebase.ts
+  console.log("تهيئة Firebase Storage جديد");
+  
   try {
-    // استيراد التخزين من ملف firebase.ts
-    const { storage: importedStorage } = require('./firebase');
-    if (importedStorage) {
-      console.log("استخدام التخزين الموجود في firebase.ts");
-      return importedStorage;
+    // التحقق من وجود المفاتيح المطلوبة
+    if (!checkFirebaseKeys()) {
+      throw new Error("مفاتيح Firebase غير متوفرة");
     }
     
-    // إذا لم يكن التخزين متاحًا، نقوم بتهيئة تكوين جديد
-    console.log("تهيئة Firebase Storage من جديد");
-    
+    // إنشاء تكوين Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyBLJb_pYS00-9VMPE9nnH5WyTKv18UGlcA",
-      authDomain: "grokapp-5e120.firebaseapp.com",
-      projectId: "grokapp-5e120",
-      storageBucket: "grokapp-5e120.appspot.com",
-      messagingSenderId: "846888480997",
-      appId: "1:846888480997:web:971ec7fa47b901e27b640c",
-      measurementId: "G-GS4CWFRC9Q"
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
     };
     
-    // استخدام getApps للتحقق من وجود تطبيق مهيأ بالفعل
-    const { getApps } = require('firebase/app');
+    console.log("تهيئة Firebase مع:", {
+      projectId: firebaseConfig.projectId,
+      storageBucket: firebaseConfig.storageBucket
+    });
     
-    let app;
-    if (getApps().length === 0) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApps()[0];
+    // تهيئة التطبيق، تحقق أولاً مما إذا كان قد تم تهيئته بالفعل
+    let firebaseApp;
+    try {
+      // محاولة الحصول على التطبيق الحالي إذا كان موجودًا
+      firebaseApp = getApp();
+      console.log("استخدام تطبيق Firebase الحالي");
+    } catch (error) {
+      // إذا لم يكن هناك تطبيق، قم بتهيئة واحد جديد
+      console.log("تهيئة تطبيق Firebase جديد");
+      firebaseApp = initializeApp(firebaseConfig);
     }
     
-    return getStorage(app);
+    // الحصول على كائن التخزين وتخزينه مؤقتًا
+    cachedStorage = getStorage(firebaseApp);
+    console.log("تم تهيئة Firebase Storage بنجاح");
+    
+    return cachedStorage;
   } catch (error) {
-    console.error("Firebase Storage initialization error:", error);
-    throw new Error("فشل في تهيئة Firebase Storage");
+    console.error("خطأ في تهيئة Firebase Storage:", error);
+    throw new Error("فشل في تهيئة خدمة التخزين. يرجى التحقق من المفاتيح ومحاولة التحديث مرة أخرى.");
   }
 };
 
@@ -118,10 +147,25 @@ export const uploadFile = async (
     return new Promise<string>((resolve, reject) => {
       console.log("داخل وعد التحميل (Promise)");
       
+      // تعريف متغير لتتبع ما إذا كانت عملية التحميل نشطة
+      let isActive = true;
+      
+      // مؤقت للتحقق من أن التحميل مستمر (watchdog timer)
+      const watchdogTimer = setInterval(() => {
+        if (isActive) {
+          console.log("عملية التحميل مستمرة...");
+        } else {
+          clearInterval(watchdogTimer);
+        }
+      }, 5000);
+      
       // إضافة مستمع لحدث تغيير الحالة لتتبع التقدم
       uploadTask.on(
         'state_changed',
         (snapshot: UploadTaskSnapshot) => {
+          // تحديث حالة النشاط
+          isActive = true;
+          
           // حساب نسبة التقدم
           const progress = Math.round(
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100
@@ -136,8 +180,9 @@ export const uploadFile = async (
           
           // استدعاء دالة رد الاستدعاء للتقدم إذا تم توفيرها
           if (progressCallback) {
-            // تأكد من أن التقدم لا يقل عن 10% لتجنب ظهوره كأنه 0%
-            const adjustedProgress = Math.max(progress, 10);
+            // تأكد من أن التقدم يبدأ من 10% على الأقل لإظهار أن العملية بدأت
+            // وألا يتجاوز 95% حتى يتم التأكد من اكتمال العملية تمامًا
+            const adjustedProgress = progress < 95 ? Math.max(progress, 10) : progress;
             console.log(`تحديث نسبة التقدم في واجهة المستخدم: ${adjustedProgress}%`);
             progressCallback(adjustedProgress);
           }
@@ -168,18 +213,48 @@ export const uploadFile = async (
         },
         async () => {
           console.log("اكتمل التحميل بنجاح، جاري الحصول على رابط التنزيل...");
+          
+          // إيقاف مؤقت المراقبة
+          isActive = false;
+          clearInterval(watchdogTimer);
+          
           // عند اكتمال التحميل بنجاح
           try {
             // تأكد من تحديث التقدم إلى 100%
             if (progressCallback) {
+              progressCallback(95); // تحديث أولي إلى 95%
+              console.log("تم تحديث نسبة التقدم إلى 95%");
+              
+              // تأخير قصير قبل تحديث إلى 100% للسماح بتحديث واجهة المستخدم
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
               progressCallback(100);
               console.log("تم تحديث نسبة التقدم إلى 100%");
             }
             
-            // الحصول على رابط التنزيل
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            console.log("تم رفع الملف بنجاح، رابط التنزيل:", downloadURL);
-            resolve(downloadURL);
+            // الحصول على رابط التنزيل مع إعادة المحاولة إذا فشلت العملية
+            let downloadURL;
+            let retries = 0;
+            const maxRetries = 3;
+            
+            while (retries < maxRetries) {
+              try {
+                downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                console.log("تم رفع الملف بنجاح، رابط التنزيل:", downloadURL);
+                break;
+              } catch (error) {
+                retries++;
+                console.warn(`محاولة ${retries}/${maxRetries} للحصول على رابط التنزيل فشلت:`, error);
+                if (retries >= maxRetries) throw error;
+                await new Promise(resolve => setTimeout(resolve, 1000)); // انتظار قبل إعادة المحاولة
+              }
+            }
+            
+            if (downloadURL) {
+              resolve(downloadURL);
+            } else {
+              throw new Error("فشل في الحصول على رابط التنزيل بعد عدة محاولات");
+            }
           } catch (error) {
             console.error("خطأ في الحصول على رابط التنزيل:", error);
             reject(new Error("فشل في إكمال عملية التحميل. يرجى المحاولة مرة أخرى."));
