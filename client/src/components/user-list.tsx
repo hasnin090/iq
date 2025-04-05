@@ -451,38 +451,39 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
   
   return (
     <>
-      <div className="bg-secondary-light rounded-xl shadow-card overflow-hidden">
+      {/* جدول للشاشات المتوسطة والكبيرة */}
+      <div className="hidden md:block bg-secondary-light rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-secondary">
             <thead>
               <tr>
-                <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">اسم المستخدم</th>
-                <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الاسم الكامل</th>
-                <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">البريد الإلكتروني</th>
-                <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحية</th>
-                <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحيات</th>
-                <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الإجراءات</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">اسم المستخدم</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الاسم الكامل</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">البريد الإلكتروني</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحية</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحيات</th>
+                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-secondary-light">
               {users.map((user) => (
                 <tr key={user.id}>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light">
+                  <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-sm text-neutral-light">
                     {user.username}
                     {currentUserId === user.id && (
                       <span className="text-xs text-primary-light mr-2">(أنت)</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-neutral-light">
+                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-neutral-light">
                     {user.name}
                   </td>
-                  <td className="px-4 py-3 text-sm text-neutral-light">
+                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-neutral-light">
                     {user.email}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
                     {getRoleBadge(user.role)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-neutral-light">
+                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-neutral-light">
                     {user.role === 'admin' ? (
                       <span className="text-xs">جميع الصلاحيات</span>
                     ) : user.permissions && user.permissions.length > 0 ? (
@@ -497,7 +498,7 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
                       <span className="text-xs">لا توجد صلاحيات</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                  <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-sm">
                     <div className="flex space-x-reverse space-x-2">
                       <button 
                         className="text-primary-light hover:text-primary-dark transition-colors p-1 rounded-full hover:bg-blue-50"
@@ -523,19 +524,98 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
         </div>
       </div>
       
+      {/* بطاقات للشاشات الصغيرة */}
+      <div className="md:hidden grid grid-cols-1 gap-3">
+        {users.map((user) => (
+          <div 
+            key={user.id}
+            className="bg-white dark:bg-gray-800 shadow-sm border dark:border-gray-700 rounded-lg p-3 hover:shadow-md transition-all duration-300"
+          >
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] flex items-center justify-center shadow-sm ml-2.5">
+                  <UserIcon className="h-3.5 w-3.5 text-white" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm flex items-center">
+                    {user.username}
+                    {currentUserId === user.id && (
+                      <span className="text-xs text-primary-light mr-1.5 bg-blue-50 dark:bg-blue-900/40 px-1 py-0.5 rounded-md">(أنت)</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user.name}</div>
+                </div>
+              </div>
+              {getRoleBadge(user.role)}
+            </div>
+            
+            {/* البريد الإلكتروني */}
+            <div className="mb-3 text-xs sm:text-sm bg-gray-50 dark:bg-gray-900/40 p-2 rounded-lg border border-gray-100 dark:border-gray-700 flex items-center">
+              <AtSignIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" />
+              <span className="text-gray-700 dark:text-gray-300">{user.email}</span>
+            </div>
+            
+            {/* الصلاحيات */}
+            <div className="mb-4">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">الصلاحيات:</span>
+              {user.role === 'admin' ? (
+                <div className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md inline-block">
+                  جميع الصلاحيات
+                </div>
+              ) : user.permissions && user.permissions.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {user.permissions.map((permission) => (
+                    <Badge key={permission} variant="outline" className="text-xs">
+                      {getPermissionText(permission)}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20 px-2 py-1 rounded-md inline-block">
+                  لا توجد صلاحيات
+                </div>
+              )}
+            </div>
+            
+            {/* أزرار الإجراءات */}
+            <div className="flex justify-end gap-2 mt-2 border-t dark:border-gray-700 pt-3">
+              <button 
+                className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                onClick={() => handleEditClick(user)}
+              >
+                <UserIcon className="h-3.5 w-3.5 ml-1.5" />
+                تعديل
+              </button>
+              {currentUserId !== user.id && (
+                <button 
+                  className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                  onClick={() => handleDeleteClick(user)}
+                >
+                  <ShieldIcon className="h-3.5 w-3.5 ml-1.5" />
+                  حذف
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-lg text-red-600 dark:text-red-400 flex items-center">
+              <ShieldIcon className="h-5 w-5 ml-2 text-red-500 dark:text-red-400" />
+              تأكيد الحذف
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-300 text-sm mt-1">
               هل أنت متأكد من رغبتك في حذف هذا المستخدم؟ هذا الإجراء لا يمكن التراجع عنه.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel className="text-sm py-1.5 px-3">إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-800 text-sm py-1.5 px-3"
             >
               {deleteMutation.isPending ? (
                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
@@ -547,10 +627,15 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
       </AlertDialog>
       
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>تعديل المستخدم</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg text-blue-700 dark:text-blue-300">
+              <div className="flex items-center">
+                <UserIcon className="h-5 w-5 ml-2 text-blue-600 dark:text-blue-400" />
+                تعديل المستخدم
+              </div>
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-300 text-sm mt-1">
               قم بتعديل بيانات المستخدم ثم اضغط على حفظ لإكمال العملية.
             </DialogDescription>
           </DialogHeader>
