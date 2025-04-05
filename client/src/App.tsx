@@ -85,10 +85,9 @@ function AppRoutes() {
       <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
         {/* شريط ثابت في أعلى الصفحة للنسخة المكتبية */}
         <div className={`hidden md:flex justify-between items-center py-4 px-6 bg-white dark:bg-gray-800 shadow-sm mb-4 ${isScrolled ? 'shadow-md' : ''}`}>
-          <h1 className="text-lg font-semibold text-blue-500 dark:text-blue-300">{getPageTitle()}</h1>
+          <h1 className="text-lg font-semibold text-[hsl(var(--primary))] dark:text-white">{getPageTitle()}</h1>
           <div className="flex items-center gap-3">
-            <ThemeToggle className="bg-blue-50 dark:bg-blue-900/20 rounded-lg w-9 h-9 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none" 
-              iconClassName="text-blue-500 dark:text-blue-300" />
+            <ThemeToggle className="bg-blue-50 dark:bg-gray-700 rounded-lg w-9 h-9 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none" />
             <UserMenu />
           </div>
         </div>
@@ -96,7 +95,7 @@ function AppRoutes() {
         {/* شريط متحرك للأجهزة المحمولة */}
         {isMobile && (
           <div className={`fixed top-0 left-0 right-0 z-20 px-6 py-3 flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
-            <div className="w-10 h-10 rounded-full bg-blue-100/80 dark:bg-blue-800/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))/10] dark:bg-[hsl(var(--primary))/20] flex items-center justify-center">
               <i className={`fas fa-${location === '/' ? 'home' : 
                             location === '/transactions' ? 'money-bill-wave' : 
                             location === '/projects' ? 'project-diagram' : 
@@ -105,9 +104,9 @@ function AppRoutes() {
                             location === '/activities' ? 'history' : 
                             location === '/users' ? 'users' : 
                             location === '/settings' ? 'cog' : 'question'} 
-                            text-blue-500 dark:text-blue-300`}></i>
+                            text-[hsl(var(--primary))] dark:text-white`}></i>
             </div>
-            <h1 className="text-lg font-semibold text-blue-500 dark:text-blue-300">{getPageTitle()}</h1>
+            <h1 className="text-lg font-semibold text-[hsl(var(--primary))] dark:text-white">{getPageTitle()}</h1>
             <UserMenu />
           </div>
         )}
