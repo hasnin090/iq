@@ -23,7 +23,13 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { uploadFile } from "./firebase-utils"; // سنقوم بإنشاء هذا الملف لاحقاً
+import { uploadFile } from "./firebase-utils"; // Firebase Storage utility
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// إنشاء متغير يحل محل __dirname مع ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 declare module "express-session" {
   interface SessionData {
@@ -972,11 +978,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // إعداد multer لمعالجة تحميل الملفات
+  
   const upload = multer({
     storage: multer.diskStorage({
       destination: (req, file, cb) => {
         // إنشاء مجلد التحميلات إذا لم يكن موجودًا
-        const uploadDir = path.join(__dirname, '../uploads');
+        const uploadDir = './uploads';
         if (!fs.existsSync(uploadDir)) {
           fs.mkdirSync(uploadDir, { recursive: true });
         }
