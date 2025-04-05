@@ -144,10 +144,10 @@ export function Sidebar() {
           {/* Header with app logo */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/80] flex items-center justify-center shadow-md">
                 <i className="fas fa-calculator text-xl text-white"></i>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-[hsl(var(--primary))]">نظام المحاسبة</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-l from-[hsl(var(--primary))] to-[hsl(var(--primary))/80]">نظام المحاسبة</h1>
             </div>
             <div className="md:hidden">
               <button 
@@ -164,8 +164,8 @@ export function Sidebar() {
             <div className="mb-6 bg-blue-50 dark:bg-gray-700 p-4 rounded-2xl border border-blue-100 dark:border-gray-600 shadow-md relative overflow-hidden zoom-in">
               <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--primary))/5] to-transparent dark:from-[hsl(var(--primary))/10] dark:to-transparent"></div>
               <div className="flex items-center space-x-4 space-x-reverse relative z-10">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center shadow-md">
-                  <i className="fas fa-user text-lg sm:text-xl text-white"></i>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] flex items-center justify-center shadow-md">
+                  <i className="fas fa-user-tie text-lg sm:text-xl text-white"></i>
                 </div>
                 <div>
                   <div className="text-[hsl(var(--primary))] dark:text-white font-medium text-base sm:text-lg">{user.name}</div>
@@ -193,7 +193,7 @@ export function Sidebar() {
                 } transition-all duration-200 transform`}
               >
                 <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/" ? "bg-white/20 text-white" : "bg-blue-100 dark:bg-gray-600"}`}>
-                  <i className="fas fa-home"></i>
+                  <i className="fas fa-tachometer-alt"></i>
                 </div>
                 <span className="text-sm sm:text-base">لوحة التحكم</span>
               </Link>
@@ -207,7 +207,7 @@ export function Sidebar() {
                 } transition-all duration-200 transform`}
               >
                 <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/transactions" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-money-bill-wave"></i>
+                  <i className="fas fa-coins"></i>
                 </div>
                 <span className="text-sm sm:text-base">الحسابات</span>
               </Link>
@@ -221,7 +221,7 @@ export function Sidebar() {
                 } transition-all duration-200 transform`}
               >
                 <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/projects" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-project-diagram"></i>
+                  <i className="fas fa-tasks"></i>
                 </div>
                 <span className="text-sm sm:text-base">المشاريع</span>
               </Link>
@@ -235,7 +235,7 @@ export function Sidebar() {
                 } transition-all duration-200 transform`}
               >
                 <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/documents" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-file-alt"></i>
+                  <i className="fas fa-folder-open"></i>
                 </div>
                 <span className="text-sm sm:text-base">المستندات</span>
               </Link>
@@ -249,7 +249,7 @@ export function Sidebar() {
                 } transition-all duration-200 transform`}
               >
                 <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/reports" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-chart-bar"></i>
+                  <i className="fas fa-chart-line"></i>
                 </div>
                 <span className="text-sm sm:text-base">التقارير</span>
               </Link>
@@ -272,7 +272,7 @@ export function Sidebar() {
                   } transition-all duration-200 transform`}
                 >
                   <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/activities" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                    <i className="fas fa-history"></i>
+                    <i className="fas fa-clipboard-list"></i>
                   </div>
                   <span className="text-sm sm:text-base">سجل النشاطات</span>
                 </Link>
@@ -286,7 +286,7 @@ export function Sidebar() {
                   } transition-all duration-200 transform`}
                 >
                   <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/users" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                    <i className="fas fa-users"></i>
+                    <i className="fas fa-user-shield"></i>
                   </div>
                   <span className="text-sm sm:text-base">المستخدمين</span>
                 </Link>
@@ -300,7 +300,7 @@ export function Sidebar() {
                   } transition-all duration-200 transform`}
                 >
                   <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/settings" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                    <i className="fas fa-cog"></i>
+                    <i className="fas fa-sliders-h"></i>
                   </div>
                   <span className="text-sm sm:text-base">الإعدادات</span>
                 </Link>
