@@ -39,36 +39,56 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
     // تخزين مرجع للمخططات لاستخدامها في التنظيف
     let chartInstances: Chart[] = [];
     
-    // إنشاء مخطط الملخص المالي
-    if (financialChartRef.current) {
-      const ctx = financialChartRef.current.getContext('2d');
-      if (ctx) {
-        // إنشاء مخطط جديد
-        const financialChart = new Chart(ctx, {
-          type: 'bar',
-          data: createFinancialSummaryData(income, expenses, profit),
-          options: getFinancialSummaryOptions()
-        });
-        chartInstances.push(financialChart);
+    // إنشاء وتحديث المخططات
+    const createOrUpdateCharts = () => {
+      // تدمير المخططات القديمة أولاً إذا وجدت
+      chartInstances.forEach(chart => {
+        chart.destroy();
+      });
+      chartInstances = [];
+      
+      // إنشاء مخطط الملخص المالي
+      if (financialChartRef.current) {
+        const ctx = financialChartRef.current.getContext('2d');
+        if (ctx) {
+          // إنشاء مخطط جديد
+          const financialChart = new Chart(ctx, {
+            type: 'bar',
+            data: createFinancialSummaryData(income, expenses, profit),
+            options: getFinancialSummaryOptions()
+          });
+          chartInstances.push(financialChart);
+        }
       }
-    }
+      
+      // إنشاء مخطط توزيع المصروفات
+      if (expenseChartRef.current) {
+        const ctx = expenseChartRef.current.getContext('2d');
+        if (ctx) {
+          // إنشاء مخطط جديد
+          const expenseChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: createExpenseDistributionData(
+              ['رواتب', 'مشتريات', 'خدمات', 'إيجار', 'أخرى'],
+              [expenses * 0.4, expenses * 0.25, expenses * 0.15, expenses * 0.1, expenses * 0.1]
+            ),
+            options: getExpenseDistributionOptions()
+          });
+          chartInstances.push(expenseChart);
+        }
+      }
+    };
     
-    // إنشاء مخطط توزيع المصروفات
-    if (expenseChartRef.current) {
-      const ctx = expenseChartRef.current.getContext('2d');
-      if (ctx) {
-        // إنشاء مخطط جديد
-        const expenseChart = new Chart(ctx, {
-          type: 'doughnut',
-          data: createExpenseDistributionData(
-            ['رواتب', 'مشتريات', 'خدمات', 'إيجار', 'أخرى'],
-            [expenses * 0.4, expenses * 0.25, expenses * 0.15, expenses * 0.1, expenses * 0.1]
-          ),
-          options: getExpenseDistributionOptions()
-        });
-        chartInstances.push(expenseChart);
-      }
-    }
+    // إنشاء المخططات مباشرة
+    createOrUpdateCharts();
+    
+    // إضافة مستمع لتحديث المخططات عند تغيير وضع السمة (مظلم/فاتح)
+    const themeChangeHandler = () => {
+      createOrUpdateCharts();
+    };
+    
+    // إضافة مستمع للمحتوى الجذري لمراقبة تغييرات السمة
+    document.documentElement.addEventListener('classChange', themeChangeHandler);
     
     // تنظيف عند فك تركيب المكون
     return () => {
@@ -76,6 +96,9 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
       chartInstances.forEach(chart => {
         chart.destroy();
       });
+      
+      // إزالة مستمع التغيير
+      document.documentElement.removeEventListener('classChange', themeChangeHandler);
     };
   }, [income, expenses, profit, displayMode]);
   

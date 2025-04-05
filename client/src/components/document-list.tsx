@@ -338,7 +338,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
       {viewType === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedDocuments.map((document) => (
-            <Card key={document.id} className="bg-secondary-light overflow-hidden hover:shadow-md transition-shadow">
+            <Card key={document.id} className="overflow-hidden hover:shadow-md transition-shadow border-zinc-200 dark:border-zinc-700">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -347,7 +347,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                         {searchQuery ? highlightText(document.name, searchQuery) : document.name}
                       </h3>
                       {(document.isManagerDocument || isManagerSection) && (
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1">
+                        <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 mr-1">
                           <span className="inline-flex items-center">
                             <Lock className="ml-1 h-3 w-3" />
                             إداري
@@ -356,7 +356,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       )}
                     </div>
                     <div className="flex items-center mt-1 gap-2">
-                      <p className="text-sm font-medium text-primary line-clamp-1">
+                      <p className="text-sm font-medium text-primary dark:text-primary/90 line-clamp-1">
                         {getProjectName(document.projectId)}
                       </p>
                       {getFileTypeBadge(document.fileType)}
@@ -371,7 +371,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       <HoverCardTrigger asChild>
                         <div className="cursor-help">{getFileIcon(document.fileType)}</div>
                       </HoverCardTrigger>
-                      <HoverCardContent className="w-80">
+                      <HoverCardContent className="w-80 backdrop-blur-sm bg-white/80 dark:bg-zinc-900/90 dark:border-zinc-800 shadow-lg">
                         <div className="flex justify-between space-y-1.5">
                           <div>
                             <h4 className="text-sm font-semibold">{document.name}</h4>
@@ -400,6 +400,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       variant="outline" 
                       size="sm" 
                       onClick={() => previewFile(document)}
+                      className="border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
                       <Eye className="h-4 w-4 ml-1" />
                       معاينة
@@ -408,6 +409,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                       variant="outline" 
                       size="sm" 
                       onClick={() => downloadFile(document)}
+                      className="border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
                       <Download className="h-4 w-4 ml-1" />
                       تنزيل
@@ -417,7 +419,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 dark:hover:bg-destructive/20"
                       onClick={() => handleDeleteClick(document)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -429,10 +431,10 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
           ))}
         </div>
       ) : (
-        <div className="bg-secondary-light rounded-xl shadow-card overflow-hidden">
+        <div className="rounded-xl shadow-card overflow-hidden border border-zinc-200 dark:border-zinc-700">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-secondary-light border-b">
+              <thead className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
                 <tr>
                   <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground tracking-wider">
                     اسم المستند
@@ -451,9 +453,9 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
                 {sortedDocuments.map((document) => (
-                  <tr key={document.id} className="hover:bg-secondary/50">
+                  <tr key={document.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center">
                         <div className="ml-2 flex-shrink-0">
@@ -465,7 +467,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                               {searchQuery ? highlightText(document.name, searchQuery) : document.name}
                             </p>
                             {(document.isManagerDocument || isManagerSection) && (
-                              <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
+                              <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700">
                                 <span className="inline-flex items-center">
                                   <Lock className="ml-1 h-3 w-3" />
                                   إداري
@@ -484,7 +486,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {getFileTypeBadge(document.fileType)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary dark:text-primary/90">
                       {getProjectName(document.projectId)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
@@ -496,6 +498,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                           variant="ghost"
                           size="sm"
                           onClick={() => previewFile(document)}
+                          className="hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -503,6 +506,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                           variant="ghost"
                           size="sm"
                           onClick={() => downloadFile(document)}
+                          className="hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
                           <Download className="h-4 w-4" />
                         </Button>
@@ -510,7 +514,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-destructive hover:bg-destructive/10"
+                            className="text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
                             onClick={() => handleDeleteClick(document)}
                           >
                             <Trash2 className="h-4 w-4" />
