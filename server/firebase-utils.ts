@@ -22,8 +22,11 @@ const hasRequiredFirebaseEnv = (): boolean => {
 };
 
 // تهيئة Firebase Admin SDK مع التعامل مع الأخطاء بشكل أفضل
-let firebaseApp: any = undefined;
-let firebaseStorage: any = undefined;
+import { FirebaseApp } from 'firebase/app';
+import { FirebaseStorage } from 'firebase/storage';
+
+let firebaseApp: FirebaseApp | undefined = undefined;
+let firebaseStorage: FirebaseStorage | undefined = undefined;
 
 try {
   if (hasRequiredFirebaseEnv()) {
