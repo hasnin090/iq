@@ -29,6 +29,7 @@ import {
   Trash2, Loader2, Info, ArrowUpDown, Clock, Tag, CheckCircle2, XCircle, Lock,
   Search
 } from 'lucide-react';
+import { ImageViewer } from '@/components/image-viewer';
 import { Button } from '@/components/ui/button';
 import { deleteFile, getFileType, getReadableFileSize } from '@/lib/firebase-storage';
 import { getFileTypeLabel, getFileTypeIcon, getFileTypeBadgeClasses } from '@/lib/file-helpers';
@@ -571,11 +572,12 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
             {currentDocument && (
               <>
                 {isImageFile(currentDocument.fileType) ? (
-                  <div className="flex items-center justify-center h-full">
-                    <img 
-                      src={currentDocument.fileUrl} 
-                      alt={currentDocument.name} 
-                      className="max-w-full max-h-full object-contain" 
+                  <div className="h-full flex items-center justify-center">
+                    {/* استخدام مكون عرض الصور الجديد مع وضع showThumbnails لتمكين العرض المصغر */}
+                    <ImageViewer 
+                      imageUrl={currentDocument.fileUrl}
+                      altText={currentDocument.name}
+                      showThumbnails={true}
                     />
                   </div>
                 ) : isPdfFile(currentDocument.fileType) ? (
