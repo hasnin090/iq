@@ -290,7 +290,7 @@ export class PgStorage implements IStorage {
   
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     // تحديد حقول المعاملة التي سيتم إدخالها
-    const { date, amount, type, description, projectId } = transaction;
+    const { date, amount, type, description, projectId, fileUrl, fileType } = transaction;
     const createdBy = transaction.createdBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
     
     // إنشاء معاملة جديدة بالقيم المحددة
@@ -300,7 +300,9 @@ export class PgStorage implements IStorage {
       type,
       description,
       projectId,
-      createdBy
+      createdBy,
+      fileUrl,
+      fileType
     }).returning();
     
     return newTransaction;
@@ -766,7 +768,9 @@ export class PgStorage implements IStorage {
         type: "income",
         description: description || `إيداع مبلغ في المشروع: ${project.name}`,
         projectId,
-        createdBy: userId
+        createdBy: userId,
+        fileUrl: null,
+        fileType: null
       });
 
       // 4. إنشاء معاملة مصروف للمدير (لتسجيل خروج المبلغ من صندوق المدير)
@@ -776,7 +780,9 @@ export class PgStorage implements IStorage {
         type: "expense",
         description: `مصروف تمويل المشروع: ${project.name}`,
         projectId: null, // لا يرتبط بمشروع محدد لأنه معاملة للمدير
-        createdBy: userId
+        createdBy: userId,
+        fileUrl: null,
+        fileType: null
       });
 
       // 5. إنشاء سجل نشاط
@@ -885,7 +891,9 @@ export class PgStorage implements IStorage {
           type: "expense",
           description: description || `صرف مبلغ من المشروع: ${project.name}`,
           projectId,
-          createdBy: userId
+          createdBy: userId,
+          fileUrl: null,
+          fileType: null
         });
     
         // إنشاء سجل نشاط
@@ -1004,7 +1012,9 @@ export class PgStorage implements IStorage {
         type,
         description: description || `${type === "income" ? "إيراد" : "مصروف"} للمدير`,
         projectId: null, // لا يرتبط بمشروع
-        createdBy: userId
+        createdBy: userId,
+        fileUrl: null,
+        fileType: null
       });
 
       // إنشاء سجل نشاط
