@@ -222,7 +222,11 @@ export default function Dashboard() {
             {/* جدول للشاشات الكبيرة */}
             <div className="hidden md:block responsive-table-container">
               <table className="responsive-table">
-                <thead className={`${displayMode === 'admin' ? 'bg-blue-50' : 'bg-green-50'}`}>
+                <thead className={`${
+                  displayMode === 'admin' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20' 
+                    : 'bg-green-50 dark:bg-green-900/20'
+                }`}>
                   <tr>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">التاريخ</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">الوصف</th>
@@ -238,7 +242,11 @@ export default function Dashboard() {
                     filteredTransactions.map((transaction, index) => (
                       <tr 
                         key={transaction.id} 
-                        className={`hover:bg-slate-50 transition-all duration-150 slide-in-right ${displayMode === 'admin' ? 'hover:bg-blue-50' : 'hover:bg-green-50'}`}
+                        className={`hover:bg-slate-50 dark:hover:bg-gray-700 transition-all duration-150 slide-in-right ${
+                          displayMode === 'admin' 
+                            ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20' 
+                            : 'hover:bg-green-50 dark:hover:bg-green-900/20'
+                        }`}
                         style={{animationDelay: `${0.05 * (index + 1)}s`}}
                       >
                         <td className="px-4 py-3 whitespace-nowrap text-sm">
@@ -269,14 +277,16 @@ export default function Dashboard() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm ${
                             transaction.type === 'income' 
-                              ? 'bg-green-100 text-green-600' 
-                              : 'bg-red-100 text-red-600'
+                              ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
+                              : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                           }`}>
                             {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
                           </span>
                         </td>
                         <td className={`px-4 py-3 whitespace-nowrap text-sm ${
-                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                          transaction.type === 'income' 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
                         } font-bold`}>
                           <div className="flex items-center justify-end">
                             {transaction.type === 'income' ? (
@@ -319,17 +329,19 @@ export default function Dashboard() {
                 filteredTransactions.map((transaction, index) => (
                   <div 
                     key={transaction.id} 
-                    className={`bg-white shadow-sm border rounded-xl p-4 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 zoom-in ${
-                      displayMode === 'admin' ? 'border-blue-100' : 'border-green-100'
+                    className={`bg-white dark:bg-gray-800 shadow-sm border rounded-xl p-4 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 zoom-in ${
+                      displayMode === 'admin' 
+                        ? 'border-blue-100 dark:border-blue-900/30' 
+                        : 'border-green-100 dark:border-green-900/30'
                     }`}
                     style={{animationDelay: `${0.1 * (index + 1)}s`}}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-sm">{transaction.description}</h4>
+                      <h4 className="font-medium text-sm dark:text-gray-200">{transaction.description}</h4>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         transaction.type === 'income' 
-                          ? 'bg-green-100 text-green-600' 
-                          : 'bg-red-100 text-red-600'
+                          ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
+                          : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                       } shadow-sm`}>
                         {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
                       </span>
@@ -358,7 +370,9 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div className={`mt-3 text-sm font-bold flex items-center justify-end ${
-                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      transaction.type === 'income' 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
                     }`}>
                       {transaction.type === 'income' ? (
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
