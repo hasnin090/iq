@@ -258,9 +258,36 @@ export default function Documents() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
+                <p className="text-center text-muted-foreground mb-3">
                   لا تملك الصلاحيات الكافية للوصول إلى هذا المحتوى
                 </p>
+              </CardContent>
+            </Card>
+          )}
+          {isManagerOrAdmin && (
+            <Card className="mb-6 border-amber-200 dark:border-amber-700 shadow-md">
+              <CardHeader className="bg-amber-50 dark:bg-amber-950/20">
+                <CardTitle className="flex items-center text-amber-800 dark:text-amber-300">
+                  <Lock className="ml-2 h-5 w-5" />
+                  مستندات المدراء الخاصة
+                </CardTitle>
+                <CardDescription className="text-amber-700 dark:text-amber-400/80">
+                  هذا القسم مخصص للمستندات الإدارية السرية والحساسة
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4 pb-2">
+                <div className="bg-amber-50/50 dark:bg-amber-950/10 p-4 rounded-lg border border-amber-100 dark:border-amber-800/30 mb-4">
+                  <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
+                    المستندات المرفوعة هنا ستكون مرئية فقط للمدراء والمشرفين. استخدم هذا القسم للمستندات الحساسة مثل:
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-amber-700 dark:text-amber-300 list-disc pr-5 text-sm">
+                    <li>عقود العمل</li>
+                    <li>الميزانيات التفصيلية</li>
+                    <li>تقارير الأداء</li>
+                    <li>الخطط الاستراتيجية</li>
+                    <li>المستندات المالية الداخلية</li>
+                  </ul>
+                </div>
               </CardContent>
             </Card>
           )}
