@@ -826,31 +826,6 @@ export default function Documents() {
             </div>
           </div>
           
-          {activeTab === "manager" && (
-            <Card className="border-amber-300 shadow-md">
-              <CardHeader className="bg-amber-50">
-                <CardTitle className="flex items-center text-amber-800">
-                  <Lock className="ml-2 h-5 w-5" />
-                  مستندات المدراء
-                </CardTitle>
-                <CardDescription className="text-amber-700">
-                  هذا القسم مخصص للمستندات الإدارية السرية والحساسة
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">
-                  المستندات المرفوعة هنا ستكون مرئية فقط للمدراء والمشرفين. استخدم هذا القسم للمستندات الحساسة مثل:
-                </p>
-                <ul className="text-sm text-muted-foreground mr-6 mt-2 space-y-1 list-disc">
-                  <li>عقود العمل</li>
-                  <li>الميزانيات التفصيلية</li>
-                  <li>تقارير الأداء</li>
-                  <li>الخطط الاستراتيجية</li>
-                  <li>المستندات المالية الداخلية</li>
-                </ul>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
