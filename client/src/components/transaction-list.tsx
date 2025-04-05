@@ -61,6 +61,8 @@ interface Transaction {
   type: string;
   description: string;
   projectId?: number;
+  fileUrl?: string;
+  fileType?: string;
 }
 
 interface Project {
@@ -702,6 +704,23 @@ export function TransactionList({
                     المشروع: {getProjectName(transaction.projectId)}
                   </p>
                   
+                  {/* عرض المرفق إذا وجد */}
+                  {transaction.fileUrl && (
+                    <div className="mb-3 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                      <span className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1 block">المرفقات:</span>
+                      <button 
+                        onClick={() => window.open(transaction.fileUrl, '_blank')}
+                        className="text-blue-600 dark:text-blue-400 hover:underline focus:outline-none text-xs flex items-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        عرض المرفق
+                      </button>
+                    </div>
+                  )}
+                  
                   {/* المبلغ والأزرار */}
                   <div className="flex justify-between items-center mt-auto">
                     <span className={`text-lg font-bold px-3 py-1.5 rounded-lg border ${
@@ -747,6 +766,7 @@ export function TransactionList({
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">المشروع</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-24">النوع</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المبلغ</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المرفقات</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-40">الإجراءات</th>
                   </tr>
                 </thead>
@@ -823,6 +843,22 @@ export function TransactionList({
                             {formatCurrency(transaction.amount)}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm border-r border-blue-50/50 dark:border-blue-900/10">
+                        {transaction.fileUrl ? (
+                          <button 
+                            onClick={() => window.open(transaction.fileUrl, '_blank')}
+                            className="text-blue-600 hover:underline focus:outline-none flex items-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                              <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                            عرض المرفق
+                          </button>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 text-xs">لا يوجد</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm">
                         <div className="flex gap-2 justify-end">

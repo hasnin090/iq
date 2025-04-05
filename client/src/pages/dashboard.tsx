@@ -13,6 +13,8 @@ interface Transaction {
   type: string;
   description: string;
   projectId?: number;
+  fileUrl?: string;
+  fileType?: string;
 }
 
 interface Project {
@@ -235,6 +237,7 @@ export default function Dashboard() {
                     )}
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">النوع</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">المبلغ</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">المرفقات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[hsl(var(--border))]">
@@ -302,11 +305,27 @@ export default function Dashboard() {
                             {formatCurrency(Math.abs(transaction.amount))}
                           </div>
                         </td>
+                        <td className="px-4 py-3 text-sm">
+                          {transaction.fileUrl ? (
+                            <button 
+                              onClick={() => window.open(transaction.fileUrl, '_blank')}
+                              className="text-[hsl(var(--primary))] hover:underline focus:outline-none flex items-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 text-[hsl(var(--primary))]">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                              </svg>
+                              عرض المرفق
+                            </button>
+                          ) : (
+                            <span className="text-[hsl(var(--muted-foreground))] text-xs">لا يوجد</span>
+                          )}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={displayMode === 'projects' ? 5 : 4} className="px-4 py-8 text-center text-[hsl(var(--muted-foreground))]">
+                      <td colSpan={displayMode === 'projects' ? 6 : 5} className="px-4 py-8 text-center text-[hsl(var(--muted-foreground))]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-[hsl(var(--muted))]">
                           <rect width="18" height="18" x="3" y="3" rx="2" />
                           <path d="M3 9h18" />
@@ -368,6 +387,22 @@ export default function Dashboard() {
                         </svg>
                         التاريخ: {formatDate(transaction.date)}
                       </p>
+                      
+                      {/* عرض المرفق إذا وجد */}
+                      {transaction.fileUrl && (
+                        <div className="flex items-center mt-2 mb-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 text-[hsl(var(--primary))]">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                          <button 
+                            onClick={() => window.open(transaction.fileUrl, '_blank')}
+                            className="text-[hsl(var(--primary))] hover:underline focus:outline-none"
+                          >
+                            عرض المرفق
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div className={`mt-3 text-sm font-bold flex items-center justify-end ${
                       transaction.type === 'income' 
