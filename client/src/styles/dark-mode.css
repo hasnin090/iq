@@ -122,23 +122,51 @@
 
 /* الشارات المختلفة حسب النوع */
 .dark .badge-income {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: rgb(16, 185, 129);
+  background-color: rgba(16, 185, 129, 0.2);
+  color: rgb(74, 222, 128);
 }
 
 .dark .badge-expense {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
+  background-color: rgba(239, 68, 68, 0.2);
+  color: rgb(248, 113, 113);
 }
 
 .dark .badge-transfer {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: rgb(59, 130, 246);
+  background-color: rgba(59, 130, 246, 0.2);
+  color: rgb(96, 165, 250);
 }
 
 .dark .badge-pending {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: rgb(245, 158, 11);
+  background-color: rgba(245, 158, 11, 0.2);
+  color: rgb(251, 191, 36);
+}
+
+/* تنسيقات خاصة بصفحة المعاملات */
+.dark .transaction-amount.income {
+  color: rgb(74, 222, 128) !important;
+}
+
+.dark .transaction-amount.expense {
+  color: rgb(248, 113, 113) !important;
+}
+
+.dark .transaction-amount.transfer {
+  color: rgb(96, 165, 250) !important;
+}
+
+.dark .transaction-filter-button {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(96, 165, 250);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark .transaction-filter-button:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark .transaction-filter-button.active {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: rgb(147, 197, 253);
 }
 
 /* المحتوى المطبوع */
@@ -176,14 +204,262 @@
   color: white;
 }
 
-.dark .login-form input {
+.dark .login-form input,
+.dark input[type="text"],
+.dark input[type="password"],
+.dark input[type="email"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="search"],
+.dark textarea {
   background-color: var(--input-bg);
   border-color: var(--input-border);
   color: var(--text-primary);
+}
+
+.dark input[type="text"]:focus,
+.dark input[type="password"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="number"]:focus,
+.dark input[type="date"]:focus,
+.dark input[type="search"]:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.3);
+  outline: none;
+}
+
+/* تنسيقات القوائم المنسدلة */
+.dark select {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark select:hover {
+  border-color: #5e6b7e;
+}
+
+.dark select:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.3);
+}
+
+.dark select option {
+  background-color: #2d3748;
+  color: #e2e8f0;
+}
+
+/* تنسيقات الأزرار */
+.dark .primary-button {
+  background-color: #4299e1;
+  color: white;
+  border-color: #4299e1;
+}
+
+.dark .primary-button:hover {
+  background-color: #3182ce;
+  border-color: #3182ce;
+}
+
+.dark .secondary-button {
+  background-color: rgba(66, 153, 225, 0.1);
+  color: #4299e1;
+  border-color: rgba(66, 153, 225, 0.3);
+}
+
+.dark .secondary-button:hover {
+  background-color: rgba(66, 153, 225, 0.2);
+  border-color: rgba(66, 153, 225, 0.4);
+}
+
+.dark .danger-button {
+  background-color: rgba(229, 62, 62, 0.1);
+  color: #f56565;
+  border-color: rgba(229, 62, 62, 0.3);
+}
+
+.dark .danger-button:hover {
+  background-color: rgba(229, 62, 62, 0.2);
+  border-color: rgba(229, 62, 62, 0.4);
 }
 
 /* المخططات والرسوم البيانية */
 .dark .chart-container {
   background-color: var(--card-bg);
   border-color: var(--card-border);
+}
+
+/* تنسيق القيم المالية في لوحة التحكم */
+.dark #totalIncome,
+.dark #totalExpenses,
+.dark #totalProfit {
+  color: var(--text-primary) !important;
+}
+
+.dark .financial-value {
+  color: var(--text-primary) !important;
+}
+
+.dark .financial-value.income {
+  color: rgb(74, 222, 128) !important;
+}
+
+.dark .financial-value.expense {
+  color: rgb(248, 113, 113) !important;
+}
+
+.dark .financial-value.profit {
+  color: rgb(96, 165, 250) !important;
+}
+
+/* تنسيقات خاصة بصفحة المستندات */
+.dark .document-card {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+.dark .document-card:hover {
+  background-color: #323c4e;
+  border-color: #5e6b7e;
+}
+
+.dark .document-card-header {
+  border-bottom-color: #4a5568;
+}
+
+.dark .document-info {
+  color: #a0aec0;
+}
+
+.dark .document-card .icon {
+  color: #a0aec0;
+}
+
+.dark .documents-tab {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(96, 165, 250);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark .documents-tab:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark .documents-tab.active {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: rgb(147, 197, 253);
+}
+
+/* تنسيقات الجداول */
+.dark table {
+  border-color: #4a5568;
+}
+
+.dark table th {
+  background-color: #2d3748;
+  color: #e2e8f0;
+  border-color: #4a5568;
+}
+
+.dark table td {
+  border-color: #4a5568;
+}
+
+.dark table tr:nth-child(even) {
+  background-color: rgba(74, 85, 104, 0.05);
+}
+
+.dark table tr:hover {
+  background-color: rgba(74, 85, 104, 0.1);
+}
+
+.dark .table-container {
+  background-color: #1a202c;
+  border-color: #4a5568;
+}
+
+.dark .table-container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #2d3748;
+}
+
+/* تنسيق حقول الإدخال داخل الجداول */
+.dark .table-container input,
+.dark .table-container select {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark .table-container input:focus,
+.dark .table-container select:focus {
+  border-color: #4299e1;
+}
+
+/* تنسيقات الإشعارات والتنبيهات */
+.dark .toast-container {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.dark .toast-success {
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: rgb(16, 185, 129);
+  color: rgb(110, 231, 183);
+}
+
+.dark .toast-error {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgb(239, 68, 68);
+  color: rgb(248, 113, 113);
+}
+
+.dark .toast-warning {
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: rgb(245, 158, 11);
+  color: rgb(251, 191, 36);
+}
+
+.dark .toast-info {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: rgb(59, 130, 246);
+  color: rgb(147, 197, 253);
+}
+
+.dark .alert {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.dark .alert-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: rgb(110, 231, 183);
+}
+
+.dark .alert-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgb(248, 113, 113);
+}
+
+.dark .alert-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: rgb(251, 191, 36);
+}
+
+.dark .alert-info {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: rgb(147, 197, 253);
 }

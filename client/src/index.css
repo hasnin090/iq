@@ -196,6 +196,31 @@
     --border: 215 25% 28%;
     --input: 215 25% 25%;
     --ring: 214 80% 56%;
+    
+    /* لوحة ألوان إضافية للوضع الداكن */
+    --chart-1: 214 70% 60%;
+    --chart-2: 0 70% 65%;
+    --chart-3: 141 60% 50%;
+    --chart-4: 39 90% 55%;
+    --chart-5: 187 80% 58%;
+    
+    --success: 142 60% 50%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 90% 60%;
+    --warning-foreground: 0 0% 100%;
+    
+    --info: 200 70% 60%;
+    --info-foreground: 0 0% 100%;
+    
+    /* متغيرات خاصة بواجهة المستخدم في الوضع الداكن */
+    --card-bg: #1e293b;
+    --card-border: #2d3748;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --input-bg: #1a202c;
+    --input-border: #374151;
+    --highlight: #3b82f6;
   }
   
   * {
