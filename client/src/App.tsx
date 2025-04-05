@@ -87,7 +87,10 @@ function AppRoutes() {
         <div className={`hidden md:flex justify-between items-center py-4 px-6 bg-white dark:bg-gray-800 shadow-sm mb-4 ${isScrolled ? 'shadow-md' : ''}`}>
           <h1 className="text-lg font-semibold text-[hsl(var(--primary))] dark:text-white">{getPageTitle()}</h1>
           <div className="flex items-center gap-3">
-            <ThemeToggle className="bg-blue-50 dark:bg-gray-700 rounded-lg w-9 h-9 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none" />
+            <ThemeToggle 
+              className="bg-blue-50 dark:bg-gray-700 rounded-lg w-9 h-9 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none transform hover:scale-105" 
+              iconClassName="text-[hsl(var(--primary))] dark:text-white h-5 w-5"
+            />
             <UserMenu />
           </div>
         </div>

@@ -37,14 +37,14 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] text-white shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none">
+        <button className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] text-white shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none dark:bg-gradient-to-br dark:from-blue-500 dark:to-blue-700 dark:text-white">
           <i className="fas fa-user-tie text-sm"></i>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 mt-1 md:ml-1" align="end">
+      <DropdownMenuContent className="w-64 mt-1 md:ml-1 dark:bg-gray-800 dark:border-gray-700" align="end">
         <div className="p-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] dark:from-blue-500 dark:to-blue-700 flex items-center justify-center shadow-sm">
               <i className="fas fa-user-tie text-sm text-white"></i>
             </div>
             <div>
