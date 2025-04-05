@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DocumentForm } from '@/components/document-form';
 import { DocumentList } from '@/components/document-list';
 import { queryClient } from '@/lib/queryClient';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from "@/components/ui/badge";
-import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search } from 'lucide-react';
+import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2 } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -25,13 +25,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { addDays, format } from "date-fns";
+import { addDays, format, getYear } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
   Calendar
 } from "@/components/ui/calendar";
 import { getFileType } from "@/lib/firebase-storage";
 import { getFileTypeLabel, getFileTypeIcon, getFileTypeBadgeClasses } from "@/lib/file-helpers";
+import { ImageViewer } from '@/components/image-viewer';
+import { ImageLightbox } from '@/components/image-lightbox';
 
 interface Filter {
   projectId?: number;
@@ -99,9 +101,34 @@ export default function Documents() {
     uploadedBy: number;
     isManagerDocument?: boolean;
   }
+
+  interface Transaction {
+    id: number;
+    date: string;
+    amount: number;
+    type: string;
+    description: string;
+    projectId?: number;
+    createdBy: number;
+    fileUrl?: string;
+    fileType?: string;
+  }
   
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
+  });
+  
+  // الحصول على المعاملات التي تحتوي على مرفقات
+  const { data: transactionsWithAttachments, isLoading: transactionsLoading } = useQuery<Transaction[]>({
+    queryKey: ['/api/transactions/attachments'],
+    queryFn: async () => {
+      const response = await fetch('/api/transactions?withAttachments=true');
+      if (!response.ok) throw new Error('Failed to fetch transactions with attachments');
+      const transactions = await response.json();
+      // فلترة المعاملات التي تحتوي فقط على مرفقات
+      return transactions.filter((transaction: Transaction) => transaction.fileUrl);
+    },
+    enabled: activeTab === "attachments"
   });
   
   const handleFilterChange = (newFilter: Partial<Filter>) => {
@@ -197,6 +224,10 @@ export default function Documents() {
               مستندات المدراء
             </TabsTrigger>
           )}
+          <TabsTrigger value="attachments" className="flex-1">
+            <FileImage className="ml-1 h-4 w-4" />
+            مرفقات المعاملات
+          </TabsTrigger>
         </TabsList>
         
         {activeTab === "manager" && !isManagerOrAdmin && (
@@ -232,6 +263,197 @@ export default function Documents() {
                 </p>
               </CardContent>
             </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="attachments" className="p-0">
+          {/* محتوى مرفقات المعاملات */}
+          <Card className="mb-6">
+            <CardHeader className="bg-primary/5">
+              <CardTitle className="flex items-center">
+                <FileImage className="ml-2 h-5 w-5 text-primary" />
+                مرفقات المعاملات المالية
+              </CardTitle>
+              <CardDescription>
+                عرض الملفات المرفقة بالمعاملات المالية المختلفة حسب المشروع
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          {transactionsLoading ? (
+            <div className="text-center py-20">
+              <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">جاري تحميل مرفقات المعاملات...</p>
+            </div>
+          ) : !transactionsWithAttachments || transactionsWithAttachments.length === 0 ? (
+            <div className="text-center py-20 bg-secondary/10 rounded-lg">
+              <FileImage className="h-16 w-16 mx-auto text-muted-foreground opacity-20" />
+              <p className="text-muted-foreground mt-4">لا توجد معاملات بمرفقات حتى الآن</p>
+              <p className="text-sm text-muted-foreground mt-2">يمكنك إضافة مرفقات للمعاملات من خلال نموذج المعاملات</p>
+            </div>
+          ) : (
+            <div>
+              {/* تجميع المعاملات حسب المشروع والسنة */}
+              {(() => {
+                // تنظيم المعاملات حسب المشروع
+                const attachmentsByProject: Record<string, Transaction[]> = {};
+                const projectYears: Record<string, Set<number>> = {};
+                
+                transactionsWithAttachments.forEach(transaction => {
+                  const projectId = transaction.projectId || 0;
+                  const projectKey = `project-${projectId}`;
+                  const transactionYear = new Date(transaction.date).getFullYear();
+                  
+                  if (!attachmentsByProject[projectKey]) {
+                    attachmentsByProject[projectKey] = [];
+                  }
+                  
+                  if (!projectYears[projectKey]) {
+                    projectYears[projectKey] = new Set<number>();
+                  }
+                  
+                  projectYears[projectKey].add(transactionYear);
+                  attachmentsByProject[projectKey].push(transaction);
+                });
+                
+                // إنشاء بطاقات المشاريع مع تبويبات لسنوات المعاملات
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Object.keys(attachmentsByProject).map(projectKey => {
+                      const projectId = parseInt(projectKey.split('-')[1]);
+                      const projectTransactions = attachmentsByProject[projectKey];
+                      const projectName = projects?.find(p => p.id === projectId)?.name || 'الصندوق العام';
+                      const years = Array.from(projectYears[projectKey]).sort().reverse();
+                      
+                      return (
+                        <Card key={projectKey} className="overflow-hidden border-zinc-200 dark:border-zinc-700 shadow-sm">
+                          <CardHeader className="bg-primary/5 pb-3">
+                            <CardTitle className="text-lg flex items-center">
+                              <i className="fas fa-project-diagram ml-2 text-primary"></i>
+                              {projectName}
+                            </CardTitle>
+                            <CardDescription>
+                              {projectTransactions.length} {projectTransactions.length === 1 ? 'مرفق' : 'مرفقات'}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="p-0">
+                            <Tabs defaultValue={years[0]?.toString()}>
+                              <TabsList className="w-full justify-start p-2 bg-muted/20">
+                                {years.map(year => (
+                                  <TabsTrigger key={year} value={year.toString()} className="text-xs">
+                                    <CalendarIcon2 className="h-3 w-3 ml-1" />
+                                    {year}
+                                  </TabsTrigger>
+                                ))}
+                              </TabsList>
+                              
+                              {years.map(year => (
+                                <TabsContent key={year} value={year.toString()} className="p-4">
+                                  <div className="grid grid-cols-1 gap-3">
+                                    {projectTransactions
+                                      .filter(t => new Date(t.date).getFullYear() === year)
+                                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                      .map(transaction => {
+                                        const isImage = transaction.fileType?.includes('image');
+                                        const isPdf = transaction.fileType?.includes('pdf');
+                                        
+                                        return (
+                                          <div 
+                                            key={transaction.id} 
+                                            className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 hover:shadow-sm transition-shadow"
+                                          >
+                                            <div className="flex justify-between items-start mb-2">
+                                              <div>
+                                                <h4 className="font-medium text-sm flex items-center">
+                                                  {getFileTypeIcon(transaction.fileType || '')}
+                                                  <span className="mr-1">
+                                                    {new Date(transaction.date).toLocaleDateString('ar-SA')}
+                                                  </span>
+                                                  <Badge 
+                                                    variant="outline" 
+                                                    className={`mr-2 ${transaction.type === 'income' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'}`}
+                                                  >
+                                                    {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                                                  </Badge>
+                                                </h4>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                  {transaction.description}
+                                                </p>
+                                                <p className="text-xs font-medium mt-1">
+                                                  <span className={transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}>
+                                                    {transaction.amount.toLocaleString('ar-SA')} ريال
+                                                  </span>
+                                                </p>
+                                              </div>
+                                              
+                                              {isImage && transaction.fileUrl && (
+                                                <div className="h-12 w-12 rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                                                  <img
+                                                    src={transaction.fileUrl}
+                                                    alt="مرفق المعاملة"
+                                                    className="h-full w-full object-cover"
+                                                  />
+                                                </div>
+                                              )}
+                                              
+                                              {!isImage && (
+                                                <div className="h-12 w-12 flex items-center justify-center">
+                                                  {isPdf ? (
+                                                    <File className="h-9 w-9 text-destructive" />
+                                                  ) : (
+                                                    <FileText className="h-9 w-9 text-primary" />
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                            
+                                            <div className="flex justify-end space-x-2 space-x-reverse mt-2">
+                                              {transaction.fileUrl && (
+                                                <>
+                                                  <Button 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    onClick={() => window.open(transaction.fileUrl, '_blank')}
+                                                    className="h-8 text-xs"
+                                                  >
+                                                    <Eye className="h-3 w-3 ml-1" />
+                                                    عرض
+                                                  </Button>
+                                                  <Button 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      const a = document.createElement('a');
+                                                      a.href = transaction.fileUrl!;
+                                                      a.download = `مرفق_معاملة_${transaction.id}`;
+                                                      a.target = '_blank';
+                                                      document.body.appendChild(a);
+                                                      a.click();
+                                                      document.body.removeChild(a);
+                                                    }}
+                                                    className="h-8 text-xs"
+                                                  >
+                                                    <Download className="h-3 w-3 ml-1" />
+                                                    تنزيل
+                                                  </Button>
+                                                </>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                </TabsContent>
+                              ))}
+                            </Tabs>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
           )}
         </TabsContent>
       </Tabs>

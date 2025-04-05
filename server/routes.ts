@@ -663,6 +663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let transactions = await storage.listTransactions();
       const userId = req.session.userId as number;
       const userRole = req.session.role as string;
+      const withAttachments = req.query.withAttachments === 'true';
       
       // المدير يمكنه رؤية جميع المعاملات، المستخدم العادي يرى فقط معاملات المشاريع التي لديه وصول إليها
       if (userRole !== "admin") {
@@ -694,6 +695,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const type = req.query.type as string | undefined;
       if (type) {
         transactions = transactions.filter(t => t.type === type);
+      }
+      
+      // فلترة حسب وجود مرفقات
+      if (withAttachments) {
+        transactions = transactions.filter(t => t.fileUrl && t.fileUrl.trim() !== '');
       }
       
       return res.status(200).json(transactions);
@@ -859,9 +865,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // محاولة استخدام Firebase أولاً
             fileUrl = await firebaseUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
             console.log("تم رفع الملف المرفق بنجاح باستخدام Firebase Storage:", fileUrl);
-          } catch (firebaseError) {
+          } catch (firebaseError: unknown) {
             // إذا فشل، استخدم التخزين المحلي كخطة بديلة
-            console.warn("فشل استخدام Firebase Storage لرفع المرفق، الرجوع إلى التخزين المحلي:", firebaseError.message);
+            console.warn("فشل استخدام Firebase Storage لرفع المرفق، الرجوع إلى التخزين المحلي:", (firebaseError as Error).message);
             fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
             console.log("تم رفع الملف المرفق بنجاح باستخدام التخزين المحلي:", fileUrl);
           }
@@ -1106,9 +1112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // محاولة استخدام Firebase أولاً
           fileUrl = await firebaseUpload(file.path, `${storageFolder}/${file.filename}`);
           console.log("تم رفع الملف بنجاح باستخدام Firebase Storage:", fileUrl);
-        } catch (firebaseError) {
+        } catch (firebaseError: unknown) {
           // إذا فشل، استخدم التخزين المحلي كخطة بديلة
-          console.warn("فشل استخدام Firebase Storage، الرجوع إلى التخزين المحلي:", firebaseError.message);
+          console.warn("فشل استخدام Firebase Storage، الرجوع إلى التخزين المحلي:", (firebaseError as Error).message);
           fileUrl = await localUpload(file.path, `${storageFolder}/${file.filename}`);
           console.log("تم رفع الملف بنجاح باستخدام التخزين المحلي:", fileUrl);
         }
@@ -1215,9 +1221,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             await firebaseDelete(document.fileUrl);
             console.log("تم حذف الملف بنجاح من Firebase Storage");
-          } catch (firebaseError) {
+          } catch (firebaseError: unknown) {
             // إذا فشل، نحاول استخدام التخزين المحلي
-            console.warn("فشل حذف الملف من Firebase Storage، محاولة الحذف من التخزين المحلي:", firebaseError.message);
+            console.warn("فشل حذف الملف من Firebase Storage، محاولة الحذف من التخزين المحلي:", (firebaseError as Error).message);
             await localDelete(document.fileUrl);
             console.log("تم حذف الملف بنجاح من التخزين المحلي");
           }
