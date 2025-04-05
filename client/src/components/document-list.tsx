@@ -27,9 +27,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   FileText, FileImage, File, FileIcon, Download, Eye, 
   Trash2, Loader2, Info, ArrowUpDown, Clock, Tag, CheckCircle2, XCircle, Lock,
-  Search
+  Search, ZoomIn
 } from 'lucide-react';
 import { ImageViewer } from '@/components/image-viewer';
+import { ImageLightbox } from '@/components/image-lightbox';
 import { Button } from '@/components/ui/button';
 import { deleteFile, getFileType, getReadableFileSize } from '@/lib/firebase-storage';
 import { getFileTypeLabel, getFileTypeIcon, getFileTypeBadgeClasses } from '@/lib/file-helpers';
@@ -573,12 +574,141 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
               <>
                 {isImageFile(currentDocument.fileType) ? (
                   <div className="h-full flex items-center justify-center">
-                    {/* استخدام مكون عرض الصور الجديد مع وضع showThumbnails لتمكين العرض المصغر */}
-                    <ImageViewer 
-                      imageUrl={currentDocument.fileUrl}
-                      altText={currentDocument.name}
-                      showThumbnails={true}
-                    />
+                    {/* استخدام مكون ImageLightbox للصور */}
+                    <div className="relative group">
+                      <img 
+                        src={currentDocument.fileUrl} 
+                        alt={currentDocument.name || 'صورة'} 
+                        className="max-w-full max-h-full object-contain cursor-zoom-in border border-secondary rounded-md hover:border-primary transition-colors" 
+                        onClick={() => {
+                          // استخدام مكون ImageLightbox مباشرة هنا
+                          const lightboxDiv = document.createElement('div');
+                          lightboxDiv.id = 'image-lightbox-container';
+                          lightboxDiv.style.position = 'fixed';
+                          lightboxDiv.style.top = '0';
+                          lightboxDiv.style.left = '0';
+                          lightboxDiv.style.width = '100%';
+                          lightboxDiv.style.height = '100%';
+                          lightboxDiv.style.zIndex = '9999';
+                          lightboxDiv.style.background = 'rgba(0,0,0,0.9)';
+                          lightboxDiv.style.display = 'flex';
+                          lightboxDiv.style.alignItems = 'center';
+                          lightboxDiv.style.justifyContent = 'center';
+                          
+                          const imgElement = document.createElement('img');
+                          imgElement.src = currentDocument.fileUrl;
+                          imgElement.alt = currentDocument.name || 'صورة';
+                          imgElement.style.maxWidth = '90%';
+                          imgElement.style.maxHeight = '90%';
+                          imgElement.style.objectFit = 'contain';
+                          imgElement.style.transition = 'transform 0.3s ease';
+                          
+                          // إنشاء شريط أدوات للتكبير والتصغير
+                          const toolbar = document.createElement('div');
+                          toolbar.style.position = 'absolute';
+                          toolbar.style.bottom = '20px';
+                          toolbar.style.left = '50%';
+                          toolbar.style.transform = 'translateX(-50%)';
+                          toolbar.style.display = 'flex';
+                          toolbar.style.gap = '10px';
+                          toolbar.style.background = 'rgba(0, 0, 0, 0.6)';
+                          toolbar.style.padding = '10px';
+                          toolbar.style.borderRadius = '8px';
+                          
+                          // متغير لتتبع مستوى التكبير
+                          let zoomLevel = 1;
+                          
+                          // زر التكبير
+                          const zoomInBtn = document.createElement('button');
+                          zoomInBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21L15 15M10 7V13M7 10H13M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                          zoomInBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                          zoomInBtn.style.border = 'none';
+                          zoomInBtn.style.width = '40px';
+                          zoomInBtn.style.height = '40px';
+                          zoomInBtn.style.borderRadius = '4px';
+                          zoomInBtn.style.cursor = 'pointer';
+                          zoomInBtn.style.display = 'flex';
+                          zoomInBtn.style.alignItems = 'center';
+                          zoomInBtn.style.justifyContent = 'center';
+                          zoomInBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            zoomLevel += 0.2;
+                            if (zoomLevel > 3) zoomLevel = 3;
+                            imgElement.style.transform = `scale(${zoomLevel})`;
+                          };
+                          
+                          // زر التصغير
+                          const zoomOutBtn = document.createElement('button');
+                          zoomOutBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21L15 15M7 10H13M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                          zoomOutBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                          zoomOutBtn.style.border = 'none';
+                          zoomOutBtn.style.width = '40px';
+                          zoomOutBtn.style.height = '40px';
+                          zoomOutBtn.style.borderRadius = '4px';
+                          zoomOutBtn.style.cursor = 'pointer';
+                          zoomOutBtn.style.display = 'flex';
+                          zoomOutBtn.style.alignItems = 'center';
+                          zoomOutBtn.style.justifyContent = 'center';
+                          zoomOutBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            zoomLevel -= 0.2;
+                            if (zoomLevel < 0.5) zoomLevel = 0.5;
+                            imgElement.style.transform = `scale(${zoomLevel})`;
+                          };
+                          
+                          // زر إعادة تعيين الحجم
+                          const resetZoomBtn = document.createElement('button');
+                          resetZoomBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C9.3345 3 6.93964 4.15869 5.29168 6M4 8V6H6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                          resetZoomBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                          resetZoomBtn.style.border = 'none';
+                          resetZoomBtn.style.width = '40px';
+                          resetZoomBtn.style.height = '40px';
+                          resetZoomBtn.style.borderRadius = '4px';
+                          resetZoomBtn.style.cursor = 'pointer';
+                          resetZoomBtn.style.display = 'flex';
+                          resetZoomBtn.style.alignItems = 'center';
+                          resetZoomBtn.style.justifyContent = 'center';
+                          resetZoomBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            zoomLevel = 1;
+                            imgElement.style.transform = 'scale(1)';
+                          };
+                          
+                          // إضافة الأزرار إلى شريط الأدوات
+                          toolbar.appendChild(zoomOutBtn);
+                          toolbar.appendChild(resetZoomBtn);
+                          toolbar.appendChild(zoomInBtn);
+                          
+                          const closeButton = document.createElement('button');
+                          closeButton.textContent = '×';
+                          closeButton.style.position = 'absolute';
+                          closeButton.style.top = '20px';
+                          closeButton.style.right = '20px';
+                          closeButton.style.background = 'transparent';
+                          closeButton.style.border = 'none';
+                          closeButton.style.color = 'white';
+                          closeButton.style.fontSize = '40px';
+                          closeButton.style.cursor = 'pointer';
+                          closeButton.onclick = () => {
+                            document.body.removeChild(lightboxDiv);
+                          };
+                          
+                          document.body.appendChild(lightboxDiv);
+                          lightboxDiv.appendChild(imgElement);
+                          lightboxDiv.appendChild(closeButton);
+                          lightboxDiv.appendChild(toolbar);
+                          
+                          lightboxDiv.onclick = (e) => {
+                            if (e.target === lightboxDiv) {
+                              document.body.removeChild(lightboxDiv);
+                            }
+                          };
+                        }}
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-2 text-sm text-center rounded-b-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        انقر للتكبير
+                      </div>
+                    </div>
                   </div>
                 ) : isPdfFile(currentDocument.fileType) ? (
                   <iframe 

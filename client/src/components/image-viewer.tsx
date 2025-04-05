@@ -11,41 +11,56 @@ interface ImageViewerProps {
   imageUrl: string;
   altText?: string;
   showThumbnails?: boolean;
+  initialState?: 'open' | 'closed';
+  hidePreview?: boolean;
 }
 
-export function ImageViewer({ imageUrl, altText = 'صورة', showThumbnails = false }: ImageViewerProps) {
-  const [open, setOpen] = useState(false);
-
-  // التأكد من أن المسار يبدأ بـ / إذا كان مسارًا محليًا
-  const fullImageUrl = imageUrl.startsWith('http') 
+// تحويل عنوان URL للتأكد من أنه بالصيغة الصحيحة
+export function normalizeImageUrl(imageUrl: string): string {
+  return imageUrl.startsWith('http') 
     ? imageUrl 
     : imageUrl.startsWith('./') 
       ? imageUrl.substring(1) 
       : imageUrl.startsWith('/') 
         ? imageUrl 
         : `/${imageUrl}`;
+}
+
+export function ImageViewer({ 
+  imageUrl, 
+  altText = 'صورة', 
+  showThumbnails = false, 
+  initialState = 'closed', 
+  hidePreview = false 
+}: ImageViewerProps) {
+  const [open, setOpen] = useState(initialState === 'open');
+
+  // التأكد من أن المسار يبدأ بـ / إذا كان مسارًا محليًا
+  const fullImageUrl = normalizeImageUrl(imageUrl);
 
   return (
     <>
-      <div className="relative group">
-        <img 
-          src={fullImageUrl} 
-          alt={altText}
-          className="w-full h-auto object-contain rounded-md cursor-pointer max-h-48 border border-gray-300"
-          onClick={() => setOpen(true)}
-        />
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 rounded-md">
-          <Button 
-            size="sm"
-            variant="secondary"
-            className="mr-2"
+      {!hidePreview && (
+        <div className="relative group">
+          <img 
+            src={fullImageUrl} 
+            alt={altText}
+            className="w-full h-auto object-contain rounded-md cursor-pointer max-h-48 border border-gray-300"
             onClick={() => setOpen(true)}
-          >
-            <Eye className="h-4 w-4 ml-2" />
-            عرض الصورة
-          </Button>
+          />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 rounded-md">
+            <Button 
+              size="sm"
+              variant="secondary"
+              className="mr-2"
+              onClick={() => setOpen(true)}
+            >
+              <Eye className="h-4 w-4 ml-2" />
+              عرض الصورة
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       <Lightbox
         open={open}
