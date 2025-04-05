@@ -23,7 +23,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { uploadFile, deleteFile } from "./firebase-utils"; // Firebase Storage utility
+import { uploadFile, deleteFile } from "./firebase-utils-new"; // Firebase Storage utility
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -1154,13 +1154,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // حذف الملف المرتبط أولاً إذا كان موجودًا
       if (document.fileUrl) {
         try {
-          // تجهيز المسار للاستخدام مع دالة deleteFile
-          const filePath = document.fileUrl.startsWith('/') ? 
-            path.join(process.cwd(), document.fileUrl) : 
-            document.fileUrl;
-          
-          console.log(`بدء عملية حذف الملف المرتبط بالمستند: ${filePath}`);
-          await deleteFile(filePath);
+          console.log(`بدء عملية حذف الملف المرتبط بالمستند من Firebase Storage: ${document.fileUrl}`);
+          // يمكن لدالة deleteFile التعامل مباشرة مع عنوان URL كامل من Firebase
+          await deleteFile(document.fileUrl);
         } catch (fileError) {
           console.error(`خطأ في حذف الملف المرتبط بالمستند: ${fileError}`);
           // نستمر حتى لو فشل حذف الملف
