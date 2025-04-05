@@ -23,7 +23,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import { uploadFile } from "./firebase-utils"; // Firebase Storage utility
+import { uploadFile, deleteFile } from "./firebase-utils.js"; // Firebase Storage utility
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
