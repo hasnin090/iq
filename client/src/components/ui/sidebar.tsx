@@ -171,11 +171,21 @@ export function Sidebar() {
                   module.toggleTheme();
                 });
               }}
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-gray-600 transition-colors"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-700 dark:to-gray-800 hover:from-blue-100 hover:to-blue-200 dark:hover:from-gray-600 dark:hover:to-gray-700 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95 transition-all duration-300 relative overflow-hidden group"
               aria-label="تبديل الوضع المظلم/الفاتح"
             >
-              <i className="fas fa-moon text-blue-600 dark:text-gray-300 hidden dark:inline-block"></i>
-              <i className="fas fa-sun text-amber-500 dark:hidden"></i>
+              {/* الأيقونة الرئيسية */}
+              <i className="fas fa-moon text-blue-600 dark:text-blue-300 hidden dark:inline-block z-10 text-lg"></i>
+              <i className="fas fa-sun text-amber-500 dark:hidden z-10 text-lg"></i>
+              
+              {/* تأثير الوهج خلف الأيقونة */}
+              <div className="absolute inset-0 bg-blue-200/30 dark:bg-blue-900/30 rounded-full transform scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+              
+              {/* تأثير الدوران عند النقر */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-400/10 to-amber-400/10 dark:from-blue-400/5 dark:to-blue-600/5 opacity-0 group-hover:opacity-100 animate-spin-slow"></div>
+              
+              {/* وميض خفيف في الوضع الداكن */}
+              <div className="absolute inset-0 rounded-full hidden dark:block bg-gradient-to-r from-blue-400/0 via-blue-400/10 to-blue-400/0 opacity-0 group-hover:opacity-100 animate-shimmer"></div>
             </button>
           </div>
           
