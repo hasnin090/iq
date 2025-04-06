@@ -72,10 +72,7 @@ export function ThemeToggle({ className, iconClassName }: ThemeToggleProps) {
       aria-label={theme === "light" ? "تفعيل الوضع المظلم" : "تفعيل الوضع الفاتح"}
       disabled={isTransitioning}
     >
-      {/* تأثير الموجة الدائرية عند النقر */}
-      <span className="absolute inset-0 w-full h-full">
-        <span className={`absolute inset-0 transform scale-0 rounded-full ${theme === 'light' ? 'bg-blue-200/30' : 'bg-indigo-300/30'} transition-transform duration-500 ease-out ${isTransitioning ? 'scale-[4]' : 'scale-0'}`}></span>
-      </span>
+{/* تم حذف تأثير الموجة الدائرية كما طلب المستخدم */}
       
       {/* الأيقونة مع تأثير دوران عند التغيير */}
       <span className={`inline-flex items-center justify-center transition-transform duration-300 ${isTransitioning ? 'rotate-180' : 'rotate-0'}`}>
