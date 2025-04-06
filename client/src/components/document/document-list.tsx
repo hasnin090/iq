@@ -183,64 +183,101 @@ export function DocumentList({
       />
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+        <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6 pt-2 pb-4">
           {sortedDocuments.map((document) => (
-            <DocumentCard 
-              key={document.id}
-              document={document}
-              projects={projects}
-              searchQuery={searchQuery}
-              onDelete={handleDeleteClick}
-              onPreview={handlePreviewClick}
-              onDownload={downloadFile}
-              isManagerSection={isManagerSection}
-            />
+            <div key={document.id} className="transform transition-all duration-200 hover:scale-[1.01]">
+              <DocumentCard 
+                document={document}
+                projects={projects}
+                searchQuery={searchQuery}
+                onDelete={handleDeleteClick}
+                onPreview={handlePreviewClick}
+                onDownload={downloadFile}
+                isManagerSection={isManagerSection}
+              />
+            </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4 py-2">
           {sortedDocuments.map((document) => (
             <div 
               key={document.id} 
-              className={`rounded-lg border p-3 flex flex-col sm:flex-row justify-between items-center transition-colors ${
+              className={`rounded-lg border p-4 flex flex-col sm:flex-row justify-between items-center transition-all duration-200 hover:shadow-md ${
                 isManagerSection 
-                  ? "border-amber-200/40 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20" 
-                  : "bg-card dark:bg-card/80"
+                  ? "border-amber-200/40 dark:border-amber-800/40 bg-gradient-to-r from-amber-50/50 to-white dark:from-amber-950/30 dark:to-transparent" 
+                  : "bg-gradient-to-r from-blue-50/30 to-white dark:from-blue-950/10 dark:to-transparent hover:border-blue-200/30 dark:hover:border-blue-800/30"
               }`}
             >
-              <div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+              <div className="flex items-center w-full sm:w-auto mb-3 sm:mb-0">
                 <div className="flex items-center space-x-3 space-x-reverse">
-                  <FileTypeIcon 
-                    fileType={document.fileType} 
-                    className={`h-6 w-6 mx-2 ${isManagerSection ? "text-amber-600 dark:text-amber-500" : ""}`}
-                  />
+                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                    isManagerSection 
+                      ? "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 shadow-sm" 
+                      : "bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 shadow-sm"
+                  }`}>
+                    <FileTypeIcon 
+                      fileType={document.fileType} 
+                      className={`h-5 w-5 ${
+                        isManagerSection 
+                          ? "text-amber-600 dark:text-amber-500" 
+                          : "text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))]"
+                      }`}
+                    />
+                  </div>
                   <div className="overflow-hidden">
-                    <h3 className="font-medium text-sm md:text-base truncate max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">
+                    <h3 className="font-semibold text-sm md:text-base truncate max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">
                       {document.name}
                     </h3>
-                    <div className="flex items-center mt-1">
-                      <span className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">
+                    <div className="flex flex-wrap items-center mt-1.5 gap-2">
+                      <span className="inline-flex items-center text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">
+                        <span className={`inline-block w-2 h-2 rounded-full ml-1.5 ${
+                          document.projectId ? 'bg-green-400 dark:bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+                        }`}></span>
                         {projects.find(p => p.id === document.projectId)?.name || 'بدون مشروع'}
                       </span>
-                      <span className="text-xs text-muted-foreground mx-2">•</span>
-                      <span className="text-xs text-muted-foreground" dir="ltr">
+                      <span className="text-xs text-muted-foreground flex items-center" dir="ltr">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
                         {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-2 space-x-reverse">
-                <FileTypeBadge fileType={document.fileType} className="ml-2" />
-                <div className="flex space-x-1 space-x-reverse">
-                  <Button variant="outline" size="sm" onClick={() => handlePreviewClick(document)}>
-                    <Eye className="h-4 w-4 ml-1" /> <span className="hidden sm:inline">معاينة</span>
+              <div className="flex items-center gap-3 self-end sm:self-center">
+                <FileTypeBadge 
+                  fileType={document.fileType} 
+                  className="py-1 px-2.5 text-xs font-medium" 
+                />
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handlePreviewClick(document)}
+                    className="rounded-full h-9 w-9 sm:h-9 sm:w-auto px-2 sm:px-3 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                  >
+                    <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400 sm:ml-1" /> 
+                    <span className="hidden sm:inline ml-1 text-blue-600 dark:text-blue-400">معاينة</span>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadFile(document)}>
-                    <Download className="h-4 w-4 ml-1" /> <span className="hidden sm:inline">تنزيل</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => downloadFile(document)}
+                    className="rounded-full h-9 w-9 sm:h-9 sm:w-auto px-2 sm:px-3 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/30"
+                  >
+                    <Download className="h-4 w-4 text-green-600 dark:text-green-400 sm:ml-1" /> 
+                    <span className="hidden sm:inline ml-1 text-green-600 dark:text-green-400">تنزيل</span>
                   </Button>
-                  <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteClick(document)}>
-                    <Trash2 className="h-4 w-4 ml-1" /> <span className="hidden sm:inline">حذف</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-full h-9 w-9 sm:h-9 sm:w-auto px-2 sm:px-3 border-red-200 dark:border-red-800/60 hover:bg-red-50 dark:hover:bg-red-900/30" 
+                    onClick={() => handleDeleteClick(document)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400 sm:ml-1" /> 
+                    <span className="hidden sm:inline ml-1 text-red-600 dark:text-red-400">حذف</span>
                   </Button>
                 </div>
               </div>
