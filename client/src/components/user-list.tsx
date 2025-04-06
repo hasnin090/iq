@@ -579,13 +579,16 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
             
             {/* أزرار الإجراءات */}
             <div className="flex justify-end gap-2 mt-2 border-t dark:border-gray-700 pt-3">
-              <button 
-                className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
-                onClick={() => handleEditClick(user)}
-              >
-                <UserIcon className="h-3.5 w-3.5 ml-1.5" />
-                تعديل
-              </button>
+              {/* زر التعديل تم إخفاؤه من نافذة المدير (admin) والإبقاء عليه للآخرين */}
+              {user.role !== 'admin' && (
+                <button 
+                  className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                  onClick={() => handleEditClick(user)}
+                >
+                  <UserIcon className="h-3.5 w-3.5 ml-1.5" />
+                  تعديل
+                </button>
+              )}
               {currentUserId !== user.id && (
                 <button 
                   className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
