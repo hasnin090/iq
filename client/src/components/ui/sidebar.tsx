@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { AppHeader } from "@/components/ui/app-header";
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,6 +75,9 @@ export function Sidebar() {
       <div className="page-decoration"></div>
       <div className="page-decoration-2"></div>
 
+      {/* شريط علوي ثابت */}
+      <AppHeader onOpenSidebar={() => setIsOpen(true)} />
+
       {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها في الهواتف */}
       {isOpen && isMobile && (
         <div
@@ -81,27 +85,6 @@ export function Sidebar() {
           onClick={() => setIsOpen(false)}
         ></div>
       )}
-
-      {/* زر ثابت لفتح القائمة الجانبية */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed top-6 right-4 z-50 bg-[hsl(var(--primary))] rounded-lg w-7 h-7 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none md:hidden transform hover:scale-105 active:scale-95 touch-target ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
-        aria-label={isOpen ? "إغلاق القائمة" : "فتح القائمة"}
-      >
-        <div className="w-3.5 h-2.5 flex flex-col justify-between">
-          <span className="h-0.5 w-full bg-white rounded-full"></span>
-          <span className="h-0.5 w-full bg-white rounded-full"></span>
-          <span className="h-0.5 w-full bg-white rounded-full"></span>
-        </div>
-      </button>
-      
-      {/* زر ثابت لتبديل الوضع المظلم/الفاتح في الهاتف */}
-      <div className={`fixed top-6 right-16 z-50 md:hidden ${isOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-        <ThemeToggle 
-          className="bg-[hsl(var(--primary))] rounded-lg w-7 h-7 flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none transform hover:scale-105 active:scale-95 touch-target"
-          iconClassName="h-3.5 w-3.5 text-white"
-        />
-      </div>
 
       {/* شريط تنقل متحرك محسن للهاتف */}
       {isMobile && !isOpen && (

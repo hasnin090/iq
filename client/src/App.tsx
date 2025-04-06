@@ -17,7 +17,6 @@ import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";
 import { Sidebar } from "@/components/ui/sidebar";
 import { UserMenu } from "@/components/ui/user-menu";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useEffect, useState } from "react";
 
 function AppRoutes() {
@@ -99,36 +98,7 @@ function AppRoutes() {
     <div className="flex">
       <Sidebar />
       <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
-        {/* شريط ثابت في أعلى الصفحة للنسخة المكتبية */}
-        <div className={`hidden md:flex justify-between items-center py-4 px-6 bg-white dark:bg-gray-800 shadow-md mb-4 fixed top-0 left-0 right-0 z-40 md:ml-0 md:mr-72 transition-all duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] dark:text-white">{getPageTitle()}</h1>
-          <div className="flex items-center gap-3">
-            <ThemeToggle 
-              className="bg-blue-50 dark:bg-gray-700 rounded-lg w-9 h-9 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none transform hover:scale-105" 
-              iconClassName="text-[hsl(var(--primary))] dark:text-white h-5 w-5"
-            />
-            <UserMenu />
-          </div>
-        </div>
-        
-        {/* شريط متحرك للأجهزة المحمولة */}
-        {isMobile && (
-          <div className={`fixed top-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between bg-white dark:bg-gray-800 shadow-md transition-all duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(var(--primary))/15] to-[hsl(var(--primary))/5] dark:from-[hsl(var(--primary))/25] dark:to-[hsl(var(--primary))/10] flex items-center justify-center shadow-sm">
-              <i className={`fas fa-${location === '/' ? 'home' : 
-                            location === '/transactions' ? 'money-bill-wave' : 
-                            location === '/projects' ? 'project-diagram' : 
-                            location === '/documents' ? 'file-alt' : 
-                            location === '/reports' ? 'chart-bar' : 
-                            location === '/activities' ? 'history' : 
-                            location === '/users' ? 'users' : 
-                            location === '/settings' ? 'cog' : 'question'} 
-                            text-[hsl(var(--primary))] dark:text-white`}></i>
-            </div>
-            <h1 className="text-base xs:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] dark:text-white truncate max-w-[60%]">{getPageTitle()}</h1>
-            <UserMenu />
-          </div>
-        )}
+        {/* تم إزالة الأشرطة القديمة واستبدالها بشريط علوي مركزي في مكون Sidebar */}
         
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
         <div className={`${isMobile ? 'h-20' : 'h-20'}`}></div>
