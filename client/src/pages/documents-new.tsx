@@ -310,168 +310,172 @@ export default function Documents() {
           </div>
         </div>
         
-        {/* شريط الأدوات - الصف الأول في سطح المكتب */}
-        <div className="md:col-span-12 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {/* فورم الرفع */}
-          {user?.role !== 'viewer' && (
-            <div className="md:col-span-1 lg:col-span-1">
-              <Card className="h-full shadow-sm">
-                <CardHeader className="p-3 sm:p-4 bg-[hsl(var(--primary))]/5 border-b border-[hsl(var(--primary))]/10">
-                  <CardTitle className="text-sm lg:text-base flex items-center gap-2">
-                    <i className="fas fa-file-upload"></i>
-                    <span className="truncate">إضافة مستند</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-4">
-                  <DocumentForm 
-                    projects={projects || []} 
-                    onSubmit={handleDocumentUpdated} 
-                    isLoading={projectsLoading}
-                    isManagerDocument={activeTab === "manager"}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          )}
-          
-          {/* أدوات التصفية */}
-          <div className="md:col-span-3 lg:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* تصفية حسب المشروع */}
-            <div className="md:col-span-1">
-              <Card className="h-full bg-[hsl(var(--muted))]/30">
-                <CardHeader className="p-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <i className="fas fa-project-diagram text-primary/70"></i>
-                    <span>حسب المشروع</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <Select 
-                    value={filter.projectId?.toString() || "all"} 
-                    onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
-                  >
-                    <SelectTrigger id="projectFilter" className="w-full">
-                      <SelectValue placeholder="كل المشاريع" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">كل المشاريع</SelectItem>
-                      {projects?.map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-            </div>
+        {/* شريط الأدوات - العرض الكامل (من الجهاز اللوحي فما فوق) */}
+        <div className="md:col-span-12">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* فورم الرفع (محدد بعرض ثابت) */}
+            {user?.role !== 'viewer' && (
+              <div className="md:w-[280px] lg:w-[320px] xl:w-[360px]">
+                <Card className="h-full shadow-sm">
+                  <CardHeader className="p-3 bg-[hsl(var(--primary))]/5 border-b border-[hsl(var(--primary))]/10">
+                    <CardTitle className="text-sm lg:text-base flex items-center gap-2">
+                      <i className="fas fa-file-upload"></i>
+                      <span className="truncate">إضافة مستند</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3">
+                    <DocumentForm 
+                      projects={projects || []} 
+                      onSubmit={handleDocumentUpdated} 
+                      isLoading={projectsLoading}
+                      isManagerDocument={activeTab === "manager"}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
             
-            {/* تصفية حسب نوع الملف */}
-            <div className="md:col-span-1">
-              <Card className="h-full bg-[hsl(var(--muted))]/30">
-                <CardHeader className="p-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <i className="fas fa-file-alt text-primary/70"></i>
-                    <span>نوع الملف</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <Select 
-                    value={filter.fileType || "all"} 
-                    onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
-                  >
-                    <SelectTrigger id="fileTypeFilter" className="w-full">
-                      <SelectValue placeholder="كل أنواع الملفات" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">كل أنواع الملفات</SelectItem>
-                      <SelectItem value="image">صور</SelectItem>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="document">مستندات</SelectItem>
-                      <SelectItem value="spreadsheet">جداول بيانات</SelectItem>
-                      <SelectItem value="presentation">عروض تقديمية</SelectItem>
-                      <SelectItem value="other">أخرى</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* تصفية حسب التاريخ */}
-            <div className="md:col-span-2">
-              <Card className="h-full bg-[hsl(var(--muted))]/30">
-                <CardHeader className="p-3">
-                  <CardTitle className="text-sm flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <i className="fas fa-calendar-alt text-primary/70"></i>
-                      <span>حسب التاريخ</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFilter({})}
-                      className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-                    >
-                      <i className="fas fa-redo-alt ml-1"></i>
-                      إعادة ضبط
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
+            {/* أدوات التصفية - قسم متوازن */}
+            <div className="flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 h-full">
+                {/* تصفية حسب المشروع */}
+                <div className="sm:col-span-1">
+                  <Card className="h-full bg-[hsl(var(--muted))]/30">
+                    <CardHeader className="p-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <i className="fas fa-project-diagram text-primary/70"></i>
+                        <span>حسب المشروع</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0">
+                      <Select 
+                        value={filter.projectId?.toString() || "all"} 
+                        onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
+                      >
+                        <SelectTrigger id="projectFilter" className="w-full">
+                          <SelectValue placeholder="كل المشاريع" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">كل المشاريع</SelectItem>
+                          {projects?.map((project) => (
+                            <SelectItem key={project.id} value={project.id.toString()}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* تصفية حسب نوع الملف */}
+                <div className="sm:col-span-1">
+                  <Card className="h-full bg-[hsl(var(--muted))]/30">
+                    <CardHeader className="p-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <i className="fas fa-file-alt text-primary/70"></i>
+                        <span>نوع الملف</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0">
+                      <Select 
+                        value={filter.fileType || "all"} 
+                        onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
+                      >
+                        <SelectTrigger id="fileTypeFilter" className="w-full">
+                          <SelectValue placeholder="كل أنواع الملفات" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">كل أنواع الملفات</SelectItem>
+                          <SelectItem value="image">صور</SelectItem>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="document">مستندات</SelectItem>
+                          <SelectItem value="spreadsheet">جداول بيانات</SelectItem>
+                          <SelectItem value="presentation">عروض تقديمية</SelectItem>
+                          <SelectItem value="other">أخرى</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* تصفية حسب التاريخ */}
+                <div className="lg:col-span-1 sm:col-span-2">
+                  <Card className="h-full bg-[hsl(var(--muted))]/30">
+                    <CardHeader className="p-3">
+                      <CardTitle className="text-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <i className="fas fa-calendar-alt text-primary/70"></i>
+                          <span>حسب التاريخ</span>
+                        </div>
                         <Button
-                          variant="outline"
-                          className={`w-full justify-between text-xs ${filter.dateRange?.from ? 'text-foreground' : 'text-muted-foreground'}`}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFilter({})}
+                          className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
                         >
-                          {filter.dateRange?.from ? format(filter.dateRange.from, 'yyyy/MM/dd', { locale: ar }) : 'من'}
-                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                          <i className="fas fa-redo-alt ml-1"></i>
+                          إعادة ضبط
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={filter.dateRange?.from || undefined}
-                          onSelect={(date) => handleFilterChange({ 
-                            dateRange: { 
-                              from: date || null, 
-                              to: filter.dateRange?.to || null 
-                            } 
-                          })}
-                          initialFocus
-                          locale={ar}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={`w-full justify-between text-xs ${filter.dateRange?.to ? 'text-foreground' : 'text-muted-foreground'}`}
-                        >
-                          {filter.dateRange?.to ? format(filter.dateRange.to, 'yyyy/MM/dd', { locale: ar }) : 'إلى'}
-                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={filter.dateRange?.to || undefined}
-                          onSelect={(date) => handleFilterChange({ 
-                            dateRange: { 
-                              from: filter.dateRange?.from || null, 
-                              to: date || null 
-                            } 
-                          })}
-                          initialFocus
-                          locale={ar}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </CardContent>
-              </Card>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={`w-full justify-between text-xs ${filter.dateRange?.from ? 'text-foreground' : 'text-muted-foreground'}`}
+                            >
+                              {filter.dateRange?.from ? format(filter.dateRange.from, 'yyyy/MM/dd', { locale: ar }) : 'من'}
+                              <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={filter.dateRange?.from || undefined}
+                              onSelect={(date) => handleFilterChange({ 
+                                dateRange: { 
+                                  from: date || null, 
+                                  to: filter.dateRange?.to || null 
+                                } 
+                              })}
+                              initialFocus
+                              locale={ar}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={`w-full justify-between text-xs ${filter.dateRange?.to ? 'text-foreground' : 'text-muted-foreground'}`}
+                            >
+                              {filter.dateRange?.to ? format(filter.dateRange.to, 'yyyy/MM/dd', { locale: ar }) : 'إلى'}
+                              <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={filter.dateRange?.to || undefined}
+                              onSelect={(date) => handleFilterChange({ 
+                                dateRange: { 
+                                  from: filter.dateRange?.from || null, 
+                                  to: date || null 
+                                } 
+                              })}
+                              initialFocus
+                              locale={ar}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </div>
           </div>
         </div>
