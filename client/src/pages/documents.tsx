@@ -192,7 +192,7 @@ export default function Documents() {
   };
   
   return (
-    <div className="w-full py-2 px-1 xs:px-2 sm:py-3 md:py-4 sm:px-2 max-w-full pb-mobile-nav-large">
+    <div className="w-full py-1 px-0 xs:px-1 sm:py-2 md:py-3 sm:px-1 max-w-full pb-mobile-nav-large flex flex-col">
       <div className="mb-4 sm:mb-6 md:mb-8">
         <h2 className="heading-responsive font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
         <p className="text-responsive text-[hsl(var(--muted-foreground))] mt-1 sm:mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
@@ -261,17 +261,17 @@ export default function Documents() {
         )}
         
         <TabsContent value="all" className="p-0">
-          {/* العامة المستندات محتوى - تصميم متجاوب */}
-          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+          {/* العامة المستندات محتوى - تصميم متجاوب تم تخصيصه للعرض العمودي في الشاشات الصغيرة */}
+          <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 lg:gap-4">
             {/* شريط جانبي للشاشات الكبيرة */}
-            <div className="hidden lg:block w-72 xl:w-80 shrink-0">
+            <div className="hidden lg:block w-64 xl:w-72 shrink-0">
               <DocumentSidebar
                 documents={documents || []}
                 projects={projects || []}
                 filter={filter}
                 onFilterChange={handleFilterChange}
                 onUploadClick={() => setShowUploadDialog(true)}
-                className="sticky top-20"
+                className="sticky top-16"
               />
             </div>
             
