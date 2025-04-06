@@ -135,14 +135,14 @@ export function DocumentSidebar({
           <div>
             <Label htmlFor="sideProjectFilter" className="text-xs mb-1.5 block">تصفية حسب المشروع</Label>
             <Select
-              value={filter.projectId?.toString() || ''}
-              onValueChange={(value) => onFilterChange({ projectId: value ? parseInt(value) : undefined })}
+              value={filter.projectId?.toString() || 'all'}
+              onValueChange={(value) => onFilterChange({ projectId: value === 'all' ? undefined : value ? parseInt(value) : undefined })}
             >
               <SelectTrigger id="sideProjectFilter" className="h-9 text-xs">
                 <SelectValue placeholder="كل المشاريع" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">كل المشاريع</SelectItem>
+                <SelectItem value="all">كل المشاريع</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
@@ -156,14 +156,14 @@ export function DocumentSidebar({
           <div>
             <Label htmlFor="sideTypeFilter" className="text-xs mb-1.5 block">تصفية حسب نوع الملف</Label>
             <Select
-              value={filter.fileType || ''}
-              onValueChange={(value) => onFilterChange({ fileType: value || undefined })}
+              value={filter.fileType || 'all'}
+              onValueChange={(value) => onFilterChange({ fileType: value === 'all' ? undefined : value })}
             >
               <SelectTrigger id="sideTypeFilter" className="h-9 text-xs">
                 <SelectValue placeholder="كل الأنواع" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">كل الأنواع</SelectItem>
+                <SelectItem value="all">كل الأنواع</SelectItem>
                 <SelectItem value="image">صور</SelectItem>
                 <SelectItem value="pdf">PDF</SelectItem>
                 <SelectItem value="document">مستندات</SelectItem>
