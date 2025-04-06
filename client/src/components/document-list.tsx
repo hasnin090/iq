@@ -336,7 +336,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
       </div>
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {sortedDocuments.map((document) => (
             <Card key={document.id} className="overflow-hidden hover:shadow-md transition-shadow border-zinc-200 dark:border-zinc-700">
               <CardContent className="p-6">

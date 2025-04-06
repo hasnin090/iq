@@ -505,8 +505,172 @@ export default function Documents() {
         </div>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-        <div className="md:col-span-2 space-y-6 sm:space-y-8">
+      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
+        {/* جانب الفورم والفلتر (يظهر في البداية على الموبايل وعلى اليمين في سطح المكتب) */}
+        <div className="md:order-2 md:w-1/3 lg:w-1/4 space-y-6 sm:space-y-8">
+        
+        {/* Document Form */}
+        {user?.role !== 'viewer' && (
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
+            <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
+              <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
+              <span>رفع مستند جديد</span>
+              {activeTab === "manager" && (
+                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
+                  <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                  <span className="text-[10px] xs:text-xs">إداري</span>
+                </Badge>
+              )}
+            </h3>
+            <DocumentForm 
+              projects={projects || []} 
+              onSubmit={handleDocumentUpdated} 
+              isLoading={projectsLoading}
+              isManagerDocument={activeTab === "manager"}
+            />
+          </div>
+        )}
+          
+        {/* Filter */}
+        <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-right">
+            <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center space-x-1 xs:space-x-2 space-x-reverse">
+              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
+              <span>تصفية المستندات</span>
+            </h3>
+
+            <div className="space-y-4">
+              {/* تصفية حسب المشروع */}
+              <div>
+                <Label htmlFor="projectFilter" className="text-sm font-medium text-foreground block mb-1.5">المشروع</Label>
+                <Select 
+                  value={filter.projectId?.toString() || "all"} 
+                  onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
+                >
+                  <SelectTrigger id="projectFilter" className="w-full">
+                    <SelectValue placeholder="كل المشاريع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل المشاريع</SelectItem>
+                    {projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* تصفية حسب نوع الملف */}
+              <div>
+                <Label htmlFor="fileTypeFilter" className="text-sm font-medium text-foreground block mb-1.5">نوع الملف</Label>
+                <Select 
+                  value={filter.fileType || "all"} 
+                  onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
+                >
+                  <SelectTrigger id="fileTypeFilter" className="w-full">
+                    <SelectValue placeholder="كل أنواع الملفات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل أنواع الملفات</SelectItem>
+                    <SelectItem value="image">صور</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="document">مستندات Word</SelectItem>
+                    <SelectItem value="spreadsheet">جداول Excel</SelectItem>
+                    <SelectItem value="presentation">عروض تقديمية</SelectItem>
+                    <SelectItem value="other">أخرى</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* تصفية حسب التاريخ */}
+              <div className="pb-2">
+                <Label className="text-sm font-medium text-foreground block mb-1.5">تاريخ الرفع</Label>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-between text-[hsl(var(--foreground))]/80 font-normal text-xs pl-3 pr-2 ${filter.dateRange?.from ? 'text-[hsl(var(--foreground))]' : 'text-muted-foreground'}`}
+                      >
+                        {filter.dateRange?.from ? format(filter.dateRange.from, 'yyyy/MM/dd', { locale: ar }) : 'من تاريخ'}
+                        <CalendarIcon className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={filter.dateRange?.from || undefined}
+                        onSelect={(date) => handleFilterChange({ 
+                          dateRange: { 
+                            from: date, 
+                            to: filter.dateRange?.to || null 
+                          } 
+                        })}
+                        initialFocus
+                        locale={ar}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-between text-[hsl(var(--foreground))]/80 font-normal text-xs pl-3 pr-2 ${filter.dateRange?.to ? 'text-[hsl(var(--foreground))]' : 'text-muted-foreground'}`}
+                      >
+                        {filter.dateRange?.to ? format(filter.dateRange.to, 'yyyy/MM/dd', { locale: ar }) : 'إلى تاريخ'}
+                        <CalendarIcon className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={filter.dateRange?.to || undefined}
+                        onSelect={(date) => handleFilterChange({ 
+                          dateRange: { 
+                            from: filter.dateRange?.from || null, 
+                            to: date 
+                          } 
+                        })}
+                        initialFocus
+                        locale={ar}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              {/* البحث النصي */}
+              <div>
+                <Label htmlFor="searchFilter" className="text-sm font-medium text-foreground block mb-1.5">بحث</Label>
+                <div className="relative">
+                  <Input
+                    id="searchFilter"
+                    value={filter.searchQuery || ''}
+                    onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
+                    placeholder="ابحث في المستندات..."
+                    className="pl-8 pr-3"
+                  />
+                  <Search className="h-4 w-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </div>
+              
+              {/* أزرار التحكم */}
+              <div className="pt-2 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFilter({})}
+                  className="text-xs h-8"
+                >
+                  إعادة ضبط الفلاتر
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* جانب المستندات (يظهر ثانيًا على الموبايل وعلى اليسار في سطح المكتب) */}
+        <div className="md:order-1 md:flex-1 space-y-6 sm:space-y-8">
           {/* Mobile Document View */}
           <div className="block md:hidden space-y-4 sm:space-y-6 fade-in">
             <div className="flex justify-between items-center">
