@@ -206,7 +206,7 @@ export default function Documents() {
   };
   
   return (
-    <div className="py-3 px-2 sm:py-4 md:py-6 sm:px-4">
+    <div className="container py-3 px-2 xs:px-3 sm:py-4 md:py-6 sm:px-4 mx-auto">
       <div className="mb-4 sm:mb-6 md:mb-8">
         <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
         <p className="text-xs sm:text-sm md:text-base text-[hsl(var(--muted-foreground))] mt-1 sm:mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
@@ -345,7 +345,7 @@ export default function Documents() {
                 
                 // إنشاء بطاقات المشاريع مع تبويبات لسنوات المعاملات
                 return (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
                     {Object.keys(attachmentsByProject).map(projectKey => {
                       const projectId = parseInt(projectKey.split('-')[1]);
                       const projectTransactions = attachmentsByProject[projectKey];
@@ -890,7 +890,7 @@ export default function Documents() {
               {/* فلتر بحسب التاريخ */}
               <div className="space-y-1 sm:space-y-2">
                 <Label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">حسب التاريخ</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button

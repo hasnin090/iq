@@ -336,37 +336,37 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
       </div>
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 gap-3 xs:gap-4 sm:gap-6">
           {sortedDocuments.map((document) => (
             <Card key={document.id} className="overflow-hidden hover:shadow-md transition-shadow border-zinc-200 dark:border-zinc-700">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
+              <CardContent className="p-3 xs:p-4 sm:p-5 md:p-6">
+                <div className="flex flex-col xs:flex-row justify-between xs:items-start mb-3 xs:mb-4">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <h3 className="text-lg font-medium text-foreground line-clamp-1">
+                    <div className="flex flex-wrap items-center gap-1 xs:gap-2 space-x-reverse">
+                      <h3 className="text-sm xs:text-base sm:text-lg font-medium text-foreground line-clamp-1">
                         {searchQuery ? highlightText(document.name, searchQuery) : document.name}
                       </h3>
                       {(document.isManagerDocument || isManagerSection) && (
-                        <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 mr-1">
+                        <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 mr-0 xs:mr-1">
                           <span className="inline-flex items-center">
-                            <Lock className="ml-1 h-3 w-3" />
-                            إداري
+                            <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                            <span className="text-[10px] xs:text-xs">إداري</span>
                           </span>
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center mt-1 gap-2">
-                      <p className="text-sm font-medium text-primary dark:text-primary/90 line-clamp-1">
+                    <div className="flex flex-wrap items-center mt-1 gap-1 xs:gap-2">
+                      <p className="text-xs xs:text-sm font-medium text-primary dark:text-primary/90 line-clamp-1">
                         {getProjectName(document.projectId)}
                       </p>
                       {getFileTypeBadge(document.fileType)}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                      <Clock className="h-3 w-3 inline ml-1" />
+                    <p className="text-[10px] xs:text-xs text-muted-foreground mt-1 flex items-center">
+                      <Clock className="h-2.5 w-2.5 xs:h-3 xs:w-3 inline ml-0.5 xs:ml-1" />
                       {formatDate(document.uploadDate)}
                     </p>
                   </div>
-                  <div className="mr-4">
+                  <div className="mt-2 xs:mt-0 xs:mr-2 sm:mr-4">
                     <HoverCard>
                       <HoverCardTrigger asChild>
                         <div className="cursor-help">{getFileIcon(document.fileType)}</div>
@@ -394,35 +394,35 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
                   </p>
                 )}
                 
-                <div className="flex justify-between mt-4">
-                  <div className="flex space-x-2 space-x-reverse">
+                <div className="flex justify-between mt-3 xs:mt-4">
+                  <div className="flex space-x-1 xs:space-x-2 space-x-reverse">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => previewFile(document)}
-                      className="border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      className="h-7 xs:h-8 text-[10px] xs:text-xs px-1.5 xs:px-2 sm:px-3 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
-                      <Eye className="h-4 w-4 ml-1" />
-                      معاينة
+                      <Eye className="h-3 w-3 xs:h-4 xs:w-4 ml-0.5 xs:ml-1" />
+                      <span className="xs:inline hidden">معاينة</span>
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => downloadFile(document)}
-                      className="border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      className="h-7 xs:h-8 text-[10px] xs:text-xs px-1.5 xs:px-2 sm:px-3 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
-                      <Download className="h-4 w-4 ml-1" />
-                      تنزيل
+                      <Download className="h-3 w-3 xs:h-4 xs:w-4 ml-0.5 xs:ml-1" />
+                      <span className="xs:inline hidden">تنزيل</span>
                     </Button>
                   </div>
                   {user?.role === 'admin' && (
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10 dark:hover:bg-destructive/20"
+                      className="h-7 xs:h-8 px-1.5 text-destructive hover:text-destructive/90 hover:bg-destructive/10 dark:hover:bg-destructive/20"
                       onClick={() => handleDeleteClick(document)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 xs:h-4 xs:w-4" />
                     </Button>
                   )}
                 </div>
