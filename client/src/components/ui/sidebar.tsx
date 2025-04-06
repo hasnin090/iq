@@ -414,13 +414,7 @@ export function Sidebar() {
           </div>
         </div>
         
-        {/* زر تبديل الوضع المظلم/الفاتح */}
-        <div className="absolute top-5 left-5">
-          <ThemeToggle 
-            className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm hover:shadow hover:bg-blue-100 dark:bg-gray-700 dark:border-gray-600"
-            iconClassName="h-3.5 w-3.5 text-[hsl(var(--primary))] dark:text-white"
-          />
-        </div>
+        {/* تم حذف زر تبديل الوضع المظلم/الفاتح بناء على طلب المستخدم */}
           
         {/* Footer with app version - تذييل مع إصدار التطبيق */}
         <div className="p-4 text-center text-xs text-gray-500 border-t border-blue-100 dark:border-gray-700 dark:text-gray-400">

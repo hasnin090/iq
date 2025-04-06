@@ -66,22 +66,7 @@ export function ThemeToggle({ className, iconClassName }: ThemeToggleProps) {
     : "text-indigo-300 dark:text-indigo-200";
 
   return (
-    <button
-      onClick={toggleTheme}
-      className={`relative overflow-hidden rounded-full touch-target transition-all duration-300 transform hover:scale-105 active:scale-95 ${buttonClasses} ${className}`}
-      aria-label={theme === "light" ? "تفعيل الوضع المظلم" : "تفعيل الوضع الفاتح"}
-      disabled={isTransitioning}
-    >
-{/* تم حذف تأثير الموجة الدائرية كما طلب المستخدم */}
-      
-      {/* الأيقونة مع تأثير دوران عند التغيير */}
-      <span className={`inline-flex items-center justify-center transition-transform duration-300 ${isTransitioning ? 'rotate-180' : 'rotate-0'}`}>
-        {theme === "light" ? (
-          <Moon className={`${iconClassName} ${iconClasses}`} />
-        ) : (
-          <Sun className={`${iconClassName} ${iconClasses}`} />
-        )}
-      </span>
-    </button>
+    // تم حذف الزر بالكامل كما طلب المستخدم
+    <div className="hidden"></div>
   );
 }
