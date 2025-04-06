@@ -453,53 +453,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* حقل المبلغ */}
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center">
-                      المبلغ (د.ع)
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-800">
-                            <p>أدخل قيمة المبلغ المالي بالدينار</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        placeholder="أدخل المبلغ"
-                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
-                        disabled={isLoading || mutation.isPending}
-                      />
-                    </FormControl>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {commonAmounts.map((amount, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                          onClick={() => form.setValue('amount', amount.value)}
-                          disabled={isLoading || mutation.isPending}
-                        >
-                          {amount.label}
-                        </button>
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 
               أظهر حقل المشروع في الحالات التالية:
               1. للمستخدم العادي الذي له أكثر من مشروع
@@ -512,7 +466,19 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                   name="projectId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المشروع</FormLabel>
+                      <FormLabel className="flex items-center">
+                        المشروع
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-800">
+                              <p>اختر المشروع المرتبط بالعملية المالية</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
                         value={field.value} 
@@ -575,6 +541,52 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                   )}
                 />
               )}
+              
+              {/* حقل المبلغ */}
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      المبلغ (د.ع)
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border-blue-200 dark:border-blue-800">
+                            <p>أدخل قيمة المبلغ المالي بالدينار</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="أدخل المبلغ"
+                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
+                        disabled={isLoading || mutation.isPending}
+                      />
+                    </FormControl>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {commonAmounts.map((amount, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                          onClick={() => form.setValue('amount', amount.value)}
+                          disabled={isLoading || mutation.isPending}
+                        >
+                          {amount.label}
+                        </button>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             
             <div className="col-span-1 md:col-span-3">
