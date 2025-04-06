@@ -415,8 +415,7 @@ export function Sidebar() {
         </div>
         
         {/* زر تبديل الوضع المظلم/الفاتح */}
-        <div className="px-4 py-2 mt-3 mb-2 flex justify-end">
-          <span className="text-xs text-[hsl(var(--primary))] dark:text-white font-medium mr-2">وضع الألوان</span>
+        <div className="absolute top-5 left-5">
           <ThemeToggle 
             className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm hover:shadow hover:bg-blue-100 dark:bg-gray-700 dark:border-gray-600"
             iconClassName="h-3.5 w-3.5 text-[hsl(var(--primary))] dark:text-white"
