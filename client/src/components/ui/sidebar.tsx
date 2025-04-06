@@ -103,61 +103,115 @@ export function Sidebar() {
         />
       </div>
 
-      {/* شريط تنقل متحرك للهاتف */}
+      {/* شريط تنقل متحرك محسن للهاتف */}
       {isMobile && !isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-xl border-t border-blue-100 dark:border-gray-700 py-2 px-2 flex justify-around items-center z-40 md:hidden">
-          <Link href="/" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800/90 backdrop-blur-md shadow-xl border-t border-blue-100/80 dark:border-gray-700/80 py-2 px-2 flex justify-around items-center z-40 md:hidden">
+          <Link href="/" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-xl relative ${
             location === "/" 
-              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              ? "text-[hsl(var(--primary))] dark:text-blue-300" 
               : "text-gray-600 dark:text-gray-400"
             }`}>
-            <i className="fas fa-home text-lg mb-1"></i>
-            <span>الرئيسية</span>
+            {/* مؤشر القائمة النشطة */}
+            {location === "/" && (
+              <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
+            )}
+            
+            {/* أيقونة مع دائرة خلفية عند التنشيط */}
+            <span className={`flex items-center justify-center w-9 h-9 rounded-full mb-0.5 transition-all duration-300 ${
+              location === "/" 
+                ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 shadow-sm" 
+                : "text-gray-600 dark:text-gray-400"
+            }`}>
+              <i className="fas fa-home text-lg"></i>
+            </span>
+            <span className="transition-all duration-300">الرئيسية</span>
           </Link>
-          <Link href="/transactions" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+          
+          <Link href="/transactions" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-xl relative ${
             location === "/transactions" 
-              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              ? "text-[hsl(var(--primary))] dark:text-blue-300" 
               : "text-gray-600 dark:text-gray-400"
             }`}>
-            <i className="fas fa-money-bill-wave text-lg mb-1"></i>
-            <span>الحسابات</span>
+            {location === "/transactions" && (
+              <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
+            )}
+            <span className={`flex items-center justify-center w-9 h-9 rounded-full mb-0.5 transition-all duration-300 ${
+              location === "/transactions" 
+                ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 shadow-sm" 
+                : "text-gray-600 dark:text-gray-400"
+            }`}>
+              <i className="fas fa-money-bill-wave text-lg"></i>
+            </span>
+            <span className="transition-all duration-300">الحسابات</span>
           </Link>
-          <Link href="/projects" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+          
+          <Link href="/projects" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-xl relative ${
             location === "/projects" 
-              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              ? "text-[hsl(var(--primary))] dark:text-blue-300" 
               : "text-gray-600 dark:text-gray-400"
             }`}>
-            <i className="fas fa-tasks text-lg mb-1"></i>
-            <span>المشاريع</span>
+            {location === "/projects" && (
+              <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
+            )}
+            <span className={`flex items-center justify-center w-9 h-9 rounded-full mb-0.5 transition-all duration-300 ${
+              location === "/projects" 
+                ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 shadow-sm" 
+                : "text-gray-600 dark:text-gray-400"
+            }`}>
+              <i className="fas fa-tasks text-lg"></i>
+            </span>
+            <span className="transition-all duration-300">المشاريع</span>
           </Link>
-          <Link href="/documents" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+          
+          <Link href="/documents" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-xl relative ${
             location === "/documents" 
-              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              ? "text-[hsl(var(--primary))] dark:text-blue-300" 
               : "text-gray-600 dark:text-gray-400"
             }`}>
-            <i className="fas fa-folder-open text-lg mb-1"></i>
-            <span>المستندات</span>
+            {location === "/documents" && (
+              <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
+            )}
+            <span className={`flex items-center justify-center w-9 h-9 rounded-full mb-0.5 transition-all duration-300 ${
+              location === "/documents" 
+                ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 shadow-sm" 
+                : "text-gray-600 dark:text-gray-400"
+            }`}>
+              <i className="fas fa-folder-open text-lg"></i>
+            </span>
+            <span className="transition-all duration-300">المستندات</span>
           </Link>
+          
           {user?.role === "admin" && (
-            <Link href="/settings" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+            <Link href="/settings" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-xl relative ${
               location === "/settings" 
-                ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+                ? "text-[hsl(var(--primary))] dark:text-blue-300" 
                 : "text-gray-600 dark:text-gray-400"
               }`}>
-              <i className="fas fa-cog text-lg mb-1"></i>
-              <span>الإدارة</span>
+              {location === "/settings" && (
+                <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400"></span>
+              )}
+              <span className={`flex items-center justify-center w-9 h-9 rounded-full mb-0.5 transition-all duration-300 ${
+                location === "/settings" 
+                  ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 shadow-sm" 
+                  : "text-gray-600 dark:text-gray-400"
+              }`}>
+                <i className="fas fa-cog text-lg"></i>
+              </span>
+              <span className="transition-all duration-300">الإدارة</span>
             </Link>
           )}
         </div>
       )}
 
       <aside
-        className={`fixed top-0 right-0 h-full w-[85%] sm:w-80 md:w-72 bg-white dark:bg-gray-800 border-l border-blue-100 dark:border-gray-700 transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto shadow-2xl ${
+        className={`fixed top-0 right-0 h-full w-[85%] sm:w-80 md:w-72 bg-white dark:bg-gray-900 border-l border-blue-100 dark:border-gray-700/70 transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto shadow-2xl ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } md:translate-x-0 md:z-40 flex flex-col`}
         style={{
-          borderTopLeftRadius: isMobile ? '16px' : '0',
-          borderBottomLeftRadius: isMobile ? '16px' : '0',
+          borderTopLeftRadius: isMobile ? '20px' : '0',
+          borderBottomLeftRadius: isMobile ? '20px' : '0',
+          backgroundImage: 'dark:linear-gradient(to bottom, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95))',
+          boxShadow: '0 0 20px rgba(0, 0, 0, 0.2), -5px 0 15px rgba(0, 0, 0, 0.1)'
         }}
       >
         <div className="p-5 md:p-6 flex-grow">

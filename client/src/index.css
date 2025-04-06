@@ -178,58 +178,64 @@
   }
 
   .dark {
-    --background: 215 25% 15%;
+    --background: 215 25% 12%; /* جعل الخلفية أغمق قليلاً */
     --foreground: 210 40% 98%;
     
-    --card: 215 25% 20%;
+    --card: 215 25% 17%; /* جعل خلفية البطاقات أغمق قليلاً */
     --card-foreground: 210 40% 98%;
     
-    --popover: 215 25% 20%;
+    --popover: 215 25% 17%;
     --popover-foreground: 210 40% 98%;
     
-    --primary: 214 80% 56%;
+    --primary: 214 80% 58%; /* زيادة سطوع اللون الأساسي */
     --primary-foreground: 0 0% 100%;
     
     --secondary: 215 25% 25%;
     --secondary-foreground: 210 40% 98%;
     
-    --muted: 215 25% 35%;
-    --muted-foreground: 210 20% 80%;
+    --muted: 215 25% 30%;
+    --muted-foreground: 210 20% 85%; /* تحسين وضوح النصوص الخافتة */
     
     --accent: 214 85% 60%;
     --accent-foreground: 0 0% 100%;
     
-    --destructive: 0 84% 60%;
+    --destructive: 0 84% 65%; /* زيادة سطوع اللون التحذيري */
     --destructive-foreground: 0 0% 100%;
     
-    --border: 215 25% 28%;
-    --input: 215 25% 25%;
-    --ring: 214 80% 56%;
+    --border: 215 25% 25%;
+    --input: 215 25% 20%;
+    --ring: 214 80% 60%;
     
-    /* لوحة ألوان إضافية للوضع الداكن */
-    --chart-1: 214 70% 60%;
-    --chart-2: 0 70% 65%;
-    --chart-3: 141 60% 50%;
-    --chart-4: 39 90% 55%;
-    --chart-5: 187 80% 58%;
+    /* لوحة ألوان إضافية للوضع الداكن - ألوان أكثر دفئا */
+    --chart-1: 214 70% 65%;
+    --chart-2: 0 70% 68%;
+    --chart-3: 141 60% 55%;
+    --chart-4: 39 90% 60%;
+    --chart-5: 187 80% 62%;
     
-    --success: 142 60% 50%;
+    --success: 142 60% 55%;
     --success-foreground: 0 0% 100%;
     
-    --warning: 38 90% 60%;
+    --warning: 38 90% 65%;
     --warning-foreground: 0 0% 100%;
     
-    --info: 200 70% 60%;
+    --info: 200 70% 65%;
     --info-foreground: 0 0% 100%;
     
-    /* متغيرات خاصة بواجهة المستخدم في الوضع الداكن */
-    --card-bg: #1e293b;
-    --card-border: #2d3748;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --input-bg: #1a202c;
-    --input-border: #374151;
+    /* متغيرات خاصة بواجهة المستخدم في الوضع الداكن - تحسينات */
+    --card-bg: #0f172a; /* خلفية أغمق للبطاقات */
+    --card-border: #1e293b;
+    --text-primary: #f8fafc; /* تحسين وضوح النص الرئيسي */
+    --text-secondary: #e2e8f0; /* تحسين وضوح النص الثانوي */
+    --input-bg: #0f172a;
+    --input-border: #334155;
     --highlight: #3b82f6;
+    
+    /* تحسينات إضافية للوضع الداكن */
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.15);
+    --overlay-bg: rgba(15, 23, 42, 0.8);
+    --sidebar-bg: rgba(15, 23, 42, 0.95);
   }
   
   * {
