@@ -336,7 +336,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
       </div>
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 gap-3 xs:gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
           {sortedDocuments.map((document) => (
             <Card key={document.id} className="overflow-hidden hover:shadow-md transition-shadow border-zinc-200 dark:border-zinc-700">
               <CardContent className="p-3 xs:p-4 sm:p-5 md:p-6">
@@ -433,22 +433,22 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
       ) : (
         <div className="rounded-xl shadow-card overflow-hidden border border-zinc-200 dark:border-zinc-700">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-right">
               <thead className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground tracking-wider">
+                  <th className="px-2 xs:px-3 sm:px-4 md:px-6 py-2 xs:py-3 text-[10px] xs:text-xs font-medium text-muted-foreground tracking-wider">
                     اسم المستند
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground tracking-wider">
+                  <th className="px-2 xs:px-3 sm:px-4 md:px-6 py-2 xs:py-3 text-[10px] xs:text-xs font-medium text-muted-foreground tracking-wider hidden sm:table-cell">
                     النوع
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground tracking-wider">
+                  <th className="px-2 xs:px-3 sm:px-4 md:px-6 py-2 xs:py-3 text-[10px] xs:text-xs font-medium text-muted-foreground tracking-wider hidden md:table-cell">
                     المشروع
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground tracking-wider">
+                  <th className="px-2 xs:px-3 sm:px-4 md:px-6 py-2 xs:py-3 text-[10px] xs:text-xs font-medium text-muted-foreground tracking-wider hidden sm:table-cell">
                     تاريخ الرفع
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground tracking-wider">
+                  <th className="px-2 xs:px-3 sm:px-4 md:px-6 py-2 xs:py-3 text-[10px] xs:text-xs font-medium text-muted-foreground tracking-wider">
                     الإجراءات
                   </th>
                 </tr>
@@ -456,68 +456,75 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
               <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
                 {sortedDocuments.map((document) => (
                   <tr key={document.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-2 xs:px-3 sm:px-4 md:px-6 py-3 xs:py-4 text-[11px] xs:text-xs sm:text-sm">
                       <div className="flex items-center">
-                        <div className="ml-2 flex-shrink-0">
+                        <div className="ml-1 xs:ml-2 flex-shrink-0">
                           {getFileIcon(document.fileType)}
                         </div>
-                        <div className="mr-2">
-                          <div className="flex items-center space-x-2 space-x-reverse">
-                            <p className="font-medium">
+                        <div className="mr-1 xs:mr-2 max-w-[120px] xs:max-w-[160px] sm:max-w-[200px] md:max-w-none">
+                          <div className="flex flex-wrap items-center gap-1 space-x-1 xs:space-x-2 space-x-reverse">
+                            <p className="font-medium line-clamp-1">
                               {searchQuery ? highlightText(document.name, searchQuery) : document.name}
                             </p>
                             {(document.isManagerDocument || isManagerSection) && (
-                              <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700">
+                              <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 text-[9px] xs:text-[10px] sm:text-xs">
                                 <span className="inline-flex items-center">
-                                  <Lock className="ml-1 h-3 w-3" />
-                                  إداري
+                                  <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                                  <span className="hidden xs:inline">إداري</span>
                                 </span>
                               </Badge>
                             )}
                           </div>
+                          
+                          {/* المشروع والتاريخ - يظهران فقط على الشاشات الصغيرة */}
+                          <div className="flex flex-col mt-1 sm:hidden">
+                            <span className="text-primary text-[10px] xs:text-xs line-clamp-1">{getProjectName(document.projectId)}</span>
+                            <span className="text-muted-foreground text-[9px] xs:text-[10px]">{formatDate(document.uploadDate)}</span>
+                          </div>
+                          
                           {document.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-1">
+                            <p className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground line-clamp-1">
                               {searchQuery ? highlightText(document.description, searchQuery) : document.description}
                             </p>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-2 xs:px-3 sm:px-4 md:px-6 py-3 xs:py-4 text-[11px] xs:text-xs sm:text-sm hidden sm:table-cell">
                       {getFileTypeBadge(document.fileType)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary dark:text-primary/90">
-                      {getProjectName(document.projectId)}
+                    <td className="px-2 xs:px-3 sm:px-4 md:px-6 py-3 xs:py-4 text-[11px] xs:text-xs sm:text-sm font-medium text-primary dark:text-primary/90 hidden md:table-cell">
+                      <span className="line-clamp-1">{getProjectName(document.projectId)}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    <td className="px-2 xs:px-3 sm:px-4 md:px-6 py-3 xs:py-4 text-[11px] xs:text-xs sm:text-sm text-muted-foreground hidden sm:table-cell">
                       {formatDate(document.uploadDate)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                      <div className="flex justify-end space-x-2 space-x-reverse">
+                    <td className="px-2 xs:px-3 sm:px-4 md:px-6 py-3 xs:py-4 text-[11px] xs:text-xs sm:text-sm text-right min-w-[90px] xs:min-w-[100px]">
+                      <div className="flex justify-end space-x-1 xs:space-x-2 space-x-reverse">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => previewFile(document)}
-                          className="hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          className="h-6 xs:h-7 sm:h-8 w-6 xs:w-7 sm:w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3 xs:h-4 xs:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => downloadFile(document)}
-                          className="hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          className="h-6 xs:h-7 sm:h-8 w-6 xs:w-7 sm:w-8 p-0 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-3 w-3 xs:h-4 xs:w-4" />
                         </Button>
                         {user?.role === 'admin' && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
+                            className="h-6 xs:h-7 sm:h-8 w-6 xs:w-7 sm:w-8 p-0 text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
                             onClick={() => handleDeleteClick(document)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 xs:h-4 xs:w-4" />
                           </Button>
                         )}
                       </div>
