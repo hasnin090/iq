@@ -127,26 +127,26 @@ export default function Transactions() {
                 defaultValue={defaultTab}
                 onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}
               >
-                <SelectTrigger className="w-full md:w-56 h-10 rounded-lg border border-slate-200 bg-white shadow-sm">
+                <SelectTrigger className="w-full md:w-56 h-10 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] shadow-sm">
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
-                      {activeTab === 'all' && <Filter className="h-4 w-4 text-slate-500" />}
-                      {activeTab === 'admin' && <ArrowUp className="h-4 w-4 text-blue-500" />}
-                      {activeTab === 'projects' && <ArrowDown className="h-4 w-4 text-green-500" />}
+                      {activeTab === 'all' && <Filter className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />}
+                      {activeTab === 'admin' && <ArrowUp className="h-4 w-4 text-blue-500 dark:text-blue-400" />}
+                      {activeTab === 'projects' && <ArrowDown className="h-4 w-4 text-green-500 dark:text-green-400" />}
                       <SelectValue placeholder="اختر نوع العمليات" className="text-sm font-medium" />
                     </div>
                   </div>
                 </SelectTrigger>
-                <SelectContent className="bg-white border border-slate-200 shadow-md rounded-lg">
+                <SelectContent className="bg-[hsl(var(--background))] border border-[hsl(var(--border))] shadow-md rounded-lg">
                   {/* إظهار خيار "الكل" للمدير فقط */}
                   {user?.role === 'admin' && (
                     <SelectItem 
                       value="all" 
-                      className="hover:bg-slate-50 transition-colors py-2.5"
+                      className="hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors py-2.5"
                     >
                       <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-slate-500 ml-2" />
-                        <span className="font-medium">جميع العمليات المالية</span>
+                        <Filter className="h-4 w-4 text-[hsl(var(--muted-foreground))] ml-2" />
+                        <span className="font-medium text-[hsl(var(--foreground))]">جميع العمليات المالية</span>
                       </div>
                     </SelectItem>
                   )}
@@ -155,11 +155,11 @@ export default function Transactions() {
                   {user?.role === 'admin' && (
                     <SelectItem 
                       value="admin" 
-                      className="hover:bg-blue-50 transition-colors py-2.5"
+                      className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors py-2.5"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowUp className="h-4 w-4 text-blue-500 ml-2" />
-                        <span className="font-medium text-blue-700">عمليات الصندوق الرئيسي</span>
+                        <ArrowUp className="h-4 w-4 text-blue-500 dark:text-blue-400 ml-2" />
+                        <span className="font-medium text-blue-700 dark:text-blue-400">عمليات الصندوق الرئيسي</span>
                       </div>
                     </SelectItem>
                   )}
@@ -167,11 +167,11 @@ export default function Transactions() {
                   {/* خيار "المشاريع" مرئي للجميع */}
                   <SelectItem 
                     value="projects" 
-                    className="hover:bg-green-50 transition-colors py-2.5"
+                    className="hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors py-2.5"
                   >
                     <div className="flex items-center gap-2">
-                      <ArrowDown className="h-4 w-4 text-green-500 ml-2" />
-                      <span className="font-medium text-green-700">عمليات المشاريع</span>
+                      <ArrowDown className="h-4 w-4 text-green-500 dark:text-green-400 ml-2" />
+                      <span className="font-medium text-green-700 dark:text-green-400">عمليات المشاريع</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
