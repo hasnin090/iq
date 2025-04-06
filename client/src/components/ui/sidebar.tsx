@@ -132,9 +132,9 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed top-0 right-0 h-full w-[85%] sm:w-80 md:w-72 bg-white dark:bg-gray-800 border-l border-blue-100 dark:border-gray-700 transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl ${
+        className={`fixed top-0 right-0 h-full w-[85%] sm:w-80 md:w-72 bg-white dark:bg-gray-800 border-l border-blue-100 dark:border-gray-700 transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto shadow-2xl ${
           isOpen ? "translate-x-0" : "translate-x-full"
-        } md:translate-x-0 flex flex-col`}
+        } md:translate-x-0 md:z-40 flex flex-col`}
         style={{
           borderTopLeftRadius: isMobile ? '16px' : '0',
           borderBottomLeftRadius: isMobile ? '16px' : '0',

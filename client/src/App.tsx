@@ -113,7 +113,7 @@ function AppRoutes() {
         
         {/* شريط متحرك للأجهزة المحمولة */}
         {isMobile && (
-          <div className={`fixed top-0 left-0 right-0 z-20 px-6 py-3 flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
+          <div className={`fixed top-0 left-0 right-0 z-40 px-6 py-3 flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
             <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))/10] dark:bg-[hsl(var(--primary))/20] flex items-center justify-center">
               <i className={`fas fa-${location === '/' ? 'home' : 
                             location === '/transactions' ? 'money-bill-wave' : 
