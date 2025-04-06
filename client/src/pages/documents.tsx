@@ -134,7 +134,7 @@ export default function Documents() {
     let activeDocuments = activeTab === "manager" ? (managerDocuments || []) : (documents || []);
     
     // فلترة حسب نوع الملف
-    if (filter.fileType) {
+    if (filter.fileType && filter.fileType !== 'all') {
       activeDocuments = activeDocuments.filter(doc => {
         const type = getMainFileType(doc.fileType);
         return type === filter.fileType;
@@ -310,8 +310,8 @@ export default function Documents() {
                       <div>
                         <Label htmlFor="mobileProjectFilter" className="text-xs mb-1.5 block">المشروع</Label>
                         <Select
-                          value={filter.projectId?.toString() || ''}
-                          onValueChange={(value) => handleFilterChange({ projectId: value ? parseInt(value) : undefined })}
+                          value={filter.projectId?.toString() || 'all'}
+                          onValueChange={(value) => handleFilterChange({ projectId: value === 'all' ? undefined : value ? parseInt(value) : undefined })}
                         >
                           <SelectTrigger id="mobileProjectFilter" className="w-full h-9 text-xs">
                             <SelectValue placeholder="كل المشاريع" />
@@ -330,8 +330,8 @@ export default function Documents() {
                       <div>
                         <Label htmlFor="mobileTypeFilter" className="text-xs mb-1.5 block">نوع الملف</Label>
                         <Select
-                          value={filter.fileType || ''}
-                          onValueChange={(value) => handleFilterChange({ fileType: value || undefined })}
+                          value={filter.fileType || 'all'}
+                          onValueChange={(value) => handleFilterChange({ fileType: value === 'all' ? undefined : value })}
                         >
                           <SelectTrigger id="mobileTypeFilter" className="w-full h-9 text-xs">
                             <SelectValue placeholder="كل الأنواع" />
@@ -440,8 +440,8 @@ export default function Documents() {
                   <div className="w-full xs:w-auto">
                     <Label htmlFor="projectFilter" className="text-xs xs:text-sm mb-1 block">المشروع</Label>
                     <Select
-                      value={filter.projectId?.toString() || ''}
-                      onValueChange={(value) => handleFilterChange({ projectId: value ? parseInt(value) : undefined })}
+                      value={filter.projectId?.toString() || 'all'}
+                      onValueChange={(value) => handleFilterChange({ projectId: value === 'all' ? undefined : value ? parseInt(value) : undefined })}
                     >
                       <SelectTrigger id="projectFilter" className="w-full xs:w-[140px] h-8 text-xs sm:text-sm">
                         <SelectValue placeholder="كل المشاريع" />
@@ -460,8 +460,8 @@ export default function Documents() {
                   <div className="w-full xs:w-auto">
                     <Label htmlFor="typeFilter" className="text-xs xs:text-sm mb-1 block">نوع الملف</Label>
                     <Select
-                      value={filter.fileType || ''}
-                      onValueChange={(value) => handleFilterChange({ fileType: value || undefined })}
+                      value={filter.fileType || 'all'}
+                      onValueChange={(value) => handleFilterChange({ fileType: value === 'all' ? undefined : value })}
                     >
                       <SelectTrigger id="typeFilter" className="w-full xs:w-[140px] h-8 text-xs sm:text-sm">
                         <SelectValue placeholder="كل الأنواع" />
