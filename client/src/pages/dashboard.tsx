@@ -114,9 +114,9 @@ export default function Dashboard() {
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="space-y-8 py-4 fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-center pb-4 gap-4 border-b border-[hsl(var(--border))]">
-        <h2 className="text-xl sm:text-2xl font-bold text-[hsl(var(--primary))] slide-in-right">لوحة التحكم</h2>
+    <div className="space-y-6 sm:space-y-8 p-responsive fade-in max-w-[1800px] mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-center pb-4 gap-3 sm:gap-4 border-b border-[hsl(var(--border))]">
+        <h2 className="heading-responsive font-bold text-[hsl(var(--primary))] slide-in-right">لوحة التحكم</h2>
         
         <div className="flex items-center gap-4">
           {/* زر التبديل بين العروض - يظهر فقط للمديرين */}

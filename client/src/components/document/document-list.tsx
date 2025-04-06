@@ -4,7 +4,10 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Document as DocumentType, Project } from '@/types';
-import { Search } from 'lucide-react';
+import { Search, Eye, Download, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import { ar } from 'date-fns/locale';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -22,6 +25,8 @@ import { DocumentListToolbar } from './document-list-toolbar';
 import { EmptyState } from '@/components/common/empty-state';
 import { LoadingState } from '@/components/common/loading-state';
 import { getMainFileType } from '@/utils/file-utils';
+import { FileTypeIcon } from '@/components/common/file-type-icon';
+import { FileTypeBadge } from '@/components/common/file-type-badge';
 
 interface DocumentListProps {
   documents: DocumentType[];
@@ -178,7 +183,7 @@ export function DocumentList({
       />
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
           {sortedDocuments.map((document) => (
             <DocumentCard 
               key={document.id}
@@ -193,26 +198,51 @@ export function DocumentList({
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {sortedDocuments.map((document) => (
             <div 
               key={document.id} 
-              className={`rounded-lg border p-3 flex justify-between items-center transition-colors ${
+              className={`rounded-lg border p-3 flex flex-col sm:flex-row justify-between items-center transition-colors ${
                 isManagerSection 
                   ? "border-amber-200/40 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20" 
                   : "bg-card dark:bg-card/80"
               }`}
             >
-              <div className="flex items-center space-x-3 space-x-reverse">
-                <DocumentCard 
-                  document={document}
-                  projects={projects}
-                  searchQuery={searchQuery}
-                  onDelete={handleDeleteClick}
-                  onPreview={handlePreviewClick}
-                  onDownload={downloadFile}
-                  isManagerSection={isManagerSection}
-                />
+              <div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+                <div className="flex items-center space-x-3 space-x-reverse">
+                  <FileTypeIcon 
+                    fileType={document.fileType} 
+                    className={`h-6 w-6 mx-2 ${isManagerSection ? "text-amber-600 dark:text-amber-500" : ""}`}
+                  />
+                  <div className="overflow-hidden">
+                    <h3 className="font-medium text-sm md:text-base truncate max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">
+                      {document.name}
+                    </h3>
+                    <div className="flex items-center mt-1">
+                      <span className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">
+                        {projects.find(p => p.id === document.projectId)?.name || 'بدون مشروع'}
+                      </span>
+                      <span className="text-xs text-muted-foreground mx-2">•</span>
+                      <span className="text-xs text-muted-foreground" dir="ltr">
+                        {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <FileTypeBadge fileType={document.fileType} className="ml-2" />
+                <div className="flex space-x-1 space-x-reverse">
+                  <Button variant="outline" size="sm" onClick={() => handlePreviewClick(document)}>
+                    <Eye className="h-4 w-4 ml-1" /> <span className="hidden sm:inline">معاينة</span>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => downloadFile(document)}>
+                    <Download className="h-4 w-4 ml-1" /> <span className="hidden sm:inline">تنزيل</span>
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteClick(document)}>
+                    <Trash2 className="h-4 w-4 ml-1" /> <span className="hidden sm:inline">حذف</span>
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

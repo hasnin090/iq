@@ -192,10 +192,10 @@ export default function Documents() {
   };
   
   return (
-    <div className="container py-3 px-2 xs:px-3 sm:py-4 md:py-6 sm:px-4 mx-auto">
+    <div className="container py-3 px-2 xs:px-3 sm:py-4 md:py-6 sm:px-4 max-w-[1800px] mx-auto">
       <div className="mb-4 sm:mb-6 md:mb-8">
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
-        <p className="text-xs sm:text-sm md:text-base text-[hsl(var(--muted-foreground))] mt-1 sm:mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
+        <h2 className="heading-responsive font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
+        <p className="text-responsive text-[hsl(var(--muted-foreground))] mt-1 sm:mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
       </div>
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full mb-6 sm:mb-8">

@@ -26,10 +26,26 @@ function AppRoutes() {
   const [isMobile, setIsMobile] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   
-  // تحديد حجم الشاشة
+  // تحديد حجم الشاشة وتغييرات الواجهة
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      
+      // إضافة متغيرات CSS للاستجابة عبر كامل التطبيق
+      document.documentElement.style.setProperty('--screen-width', `${width}px`);
+      document.documentElement.style.setProperty('--is-mobile', width < 768 ? '1' : '0');
+      document.documentElement.style.setProperty('--is-tablet', width >= 768 && width < 1024 ? '1' : '0');
+      document.documentElement.style.setProperty('--is-desktop', width >= 1024 ? '1' : '0');
+      
+      // تعيين حجم الخط الأساسي استناداً إلى عرض الشاشة
+      if (width < 400) {
+        document.documentElement.style.fontSize = '14px';
+      } else if (width < 768) {
+        document.documentElement.style.fontSize = '15px';
+      } else {
+        document.documentElement.style.fontSize = '16px';
+      }
     };
     
     handleResize();
@@ -118,7 +134,7 @@ function AppRoutes() {
         <div className={`${isMobile ? 'h-20' : ''}`}></div>
         
         {/* المحتوى الرئيسي */}
-        <div className="main-content-container fade-in">
+        <div className="main-content-container fade-in px-4 sm:px-6 md:px-8 py-4 max-w-[1600px] mx-auto">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/transactions" component={Transactions} />

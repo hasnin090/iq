@@ -69,27 +69,27 @@ export function DocumentCard({
       isManagerSection && "border-amber-200/40 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20"
     )}>
       <CardHeader className={cn(
-        "p-3 pb-0 flex justify-between items-start gap-2",
+        "p-2 xs:p-3 pb-0 flex justify-between items-start gap-1 xs:gap-2",
         isManagerSection && "bg-amber-50/60 dark:bg-amber-950/30"
       )}>
-        <div className="space-y-1.5 overflow-hidden flex-1">
-          <div className="flex items-start gap-2">
+        <div className="space-y-1 overflow-hidden flex-1">
+          <div className="flex items-start gap-1 xs:gap-2">
             <FileTypeIcon 
               fileType={document.fileType} 
               className={cn(
-                "h-5 w-5 mt-0.5 flex-shrink-0",
+                "h-4 w-4 xs:h-5 xs:w-5 mt-0.5 flex-shrink-0",
                 isManagerSection && "text-amber-600 dark:text-amber-500"
               )}
             />
-            <div className="space-y-1 overflow-hidden w-full">
+            <div className="space-y-0.5 xs:space-y-1 overflow-hidden w-full">
               <h3 className={cn(
-                "font-medium text-sm line-clamp-1 break-all",
+                "font-medium text-xs xs:text-sm line-clamp-1 break-all",
                 isManagerSection && "text-amber-800 dark:text-amber-400"
               )}>
                 {highlightText(document.name)}
               </h3>
-              <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-                <span className="truncate max-w-[150px]">
+              <div className="flex flex-wrap gap-1 text-[10px] xs:text-xs text-muted-foreground">
+                <span className="truncate max-w-[100px] xs:max-w-[150px] sm:max-w-[200px]">
                   {project ? highlightText(project.name) : 'بدون مشروع'}
                 </span>
               </div>
@@ -99,25 +99,25 @@ export function DocumentCard({
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mt-1 -ml-1 mb-1">
-              <MoreVertical className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-6 w-6 xs:h-8 xs:w-8 flex-shrink-0 -mt-1 -ml-1 mb-1">
+              <MoreVertical className="h-3 w-3 xs:h-4 xs:w-4" />
               <span className="sr-only">فتح القائمة</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onPreview(document)} className="flex items-center">
-              <Eye className="ml-2 h-4 w-4" />
+            <DropdownMenuItem onClick={() => onPreview(document)} className="flex items-center text-xs xs:text-sm">
+              <Eye className="ml-1 xs:ml-2 h-3 w-3 xs:h-4 xs:w-4" />
               <span>معاينة</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDownload(document)} className="flex items-center">
-              <Download className="ml-2 h-4 w-4" />
+            <DropdownMenuItem onClick={() => onDownload(document)} className="flex items-center text-xs xs:text-sm">
+              <Download className="ml-1 xs:ml-2 h-3 w-3 xs:h-4 xs:w-4" />
               <span>تنزيل</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive flex items-center"
+              className="text-destructive focus:text-destructive flex items-center text-xs xs:text-sm"
               onClick={() => onDelete(document)}
             >
-              <Trash2 className="ml-2 h-4 w-4" />
+              <Trash2 className="ml-1 xs:ml-2 h-3 w-3 xs:h-4 xs:w-4" />
               <span>حذف</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -125,7 +125,7 @@ export function DocumentCard({
       </CardHeader>
       
       <CardContent 
-        className="p-3 pt-0 cursor-pointer" 
+        className="p-2 xs:p-3 pt-0 cursor-pointer" 
         onClick={() => onPreview(document)}
       >
         <div className={cn(
@@ -143,15 +143,15 @@ export function DocumentCard({
               }}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center py-4">
+            <div className="flex flex-col items-center justify-center py-3 xs:py-4">
               <FileIcon className={cn(
-                "h-10 w-10 mb-2",
+                "h-8 w-8 xs:h-10 xs:w-10 mb-1 xs:mb-2",
                 isManagerSection 
                   ? "text-amber-600/70 dark:text-amber-500/70" 
                   : "text-muted-foreground"
               )} />
               <span className={cn(
-                "text-xs",
+                "text-[10px] xs:text-xs",
                 isManagerSection 
                   ? "text-amber-700/70 dark:text-amber-400/70" 
                   : "text-muted-foreground"
@@ -163,13 +163,13 @@ export function DocumentCard({
         </div>
       </CardContent>
       
-      <CardFooter className="p-3 pt-1 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground flex-shrink-0" dir="ltr">
+      <CardFooter className="p-2 xs:p-3 pt-1 flex items-center justify-between">
+        <span className="text-[10px] xs:text-xs text-muted-foreground flex-shrink-0" dir="ltr">
           {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
         </span>
         <FileTypeBadge 
           fileType={document.fileType} 
-          className="text-[10px] py-0.5 px-1.5 mr-0"
+          className="text-[9px] xs:text-[10px] py-0.5 px-1 xs:px-1.5 mr-0"
         />
       </CardFooter>
     </Card>
