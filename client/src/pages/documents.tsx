@@ -577,7 +577,7 @@ export default function Documents() {
                 
                 {!projectsLoading && projects && (
                   <Badge variant="outline" className="bg-[hsl(var(--primary))] bg-opacity-5 px-3 py-1 h-auto text-[hsl(var(--primary))] border-[hsl(var(--primary))] border-opacity-30">
-                    {projects.filter(p => documents?.some((doc: Document) => doc.projectId === p.id)).length} مشروع
+                    {projects?.filter(p => documents?.some((doc: Document) => doc.projectId === p.id)).length ?? 0} مشروع
                   </Badge>
                 )}
               </div>
@@ -600,7 +600,7 @@ export default function Documents() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-6">
-                  {projects.map((project: Project) => {
+                  {projects?.map((project: Project) => {
                     // فلترة المستندات المتعلقة بالمشروع الحالي
                     const projectDocuments = documents?.filter(doc => doc.projectId === project.id) || [];
                     
@@ -672,33 +672,33 @@ export default function Documents() {
                         </div>
                         
                         <div className="p-4 sm:p-5">
-                          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                             {filteredProjectDocuments.map((doc: Document) => (
                               <div
                                 key={doc.id}
-                                className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] hover:border-opacity-30 p-3 transition-all h-full"
+                                className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] hover:border-opacity-30 p-3 sm:p-4 transition-all h-full"
                               >
-                                <div className="flex justify-between items-start mb-2">
+                                <div className="flex justify-between items-start mb-2 sm:mb-3">
                                   <div className="flex items-center">
-                                    <FileTypeIcon fileType={doc.fileType} className="h-7 w-7 text-[hsl(var(--primary))]" />
+                                    <FileTypeIcon fileType={doc.fileType} className="h-6 w-6 sm:h-7 sm:w-7 text-[hsl(var(--primary))]" />
                                   </div>
                                   
                                   <FileTypeBadge fileType={doc.fileType} />
                                 </div>
                                 
-                                <h4 className="font-medium text-sm line-clamp-2 mb-1.5">{doc.name}</h4>
+                                <h4 className="font-medium text-xs sm:text-sm lg:text-base line-clamp-1 xs:line-clamp-2 mb-1 sm:mb-2">{doc.name}</h4>
                                 
                                 {doc.description && (
-                                  <p className="text-xs text-[hsl(var(--muted-foreground))] line-clamp-2 mb-auto">{doc.description}</p>
+                                  <p className="text-[10px] xs:text-xs sm:text-xs text-[hsl(var(--muted-foreground))] line-clamp-1 xs:line-clamp-2 mb-auto">{doc.description}</p>
                                 )}
                                 
-                                <div className="mt-2 pt-2 flex justify-between items-center text-xs text-[hsl(var(--muted-foreground))] border-t border-[hsl(var(--border))] border-opacity-50">
-                                  <span className="flex items-center">
-                                    <Clock className="ml-1 h-3 w-3" />
-                                    {new Date(doc.uploadDate).toLocaleDateString('ar-SA')}
+                                <div className="mt-2 pt-2 flex flex-wrap xs:flex-nowrap justify-between items-center gap-y-2 text-[10px] xs:text-xs text-[hsl(var(--muted-foreground))] border-t border-[hsl(var(--border))] border-opacity-50">
+                                  <span className="flex items-center text-[10px] xs:text-xs w-full xs:w-auto">
+                                    <Clock className="ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                                    <span className="truncate">{new Date(doc.uploadDate).toLocaleDateString('ar-SA')}</span>
                                   </span>
                                   
-                                  <div className="flex space-x-1 space-x-reverse">
+                                  <div className="flex space-x-1 space-x-reverse ml-auto">
                                     <Button 
                                       variant="ghost" 
                                       size="sm" 
@@ -747,7 +747,7 @@ export default function Documents() {
                         مستندات عامة
                       </h3>
                       <Badge variant="outline" className="bg-white text-[hsl(var(--muted-foreground))] border-[hsl(var(--muted-foreground))] border-opacity-30 px-2.5 py-0.5">
-                        {documents.filter(doc => !doc.projectId).length} مستند
+                        {documents?.filter(doc => !doc.projectId).length ?? 0} مستند
                       </Badge>
                     </div>
                     <p className="text-xs sm:text-sm mt-2 text-[hsl(var(--muted-foreground))] opacity-80">
@@ -756,35 +756,35 @@ export default function Documents() {
                   </div>
                   
                   <div className="p-4 sm:p-5">
-                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                       {documents
-                        .filter(doc => !doc.projectId)
+                        ?.filter(doc => !doc.projectId)
                         .map((doc: Document) => (
                           <div
                             key={doc.id}
-                            className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))] hover:border-opacity-30 p-3 transition-all h-full"
+                            className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))] hover:border-opacity-30 p-3 sm:p-4 transition-all h-full"
                           >
-                            <div className="flex justify-between items-start mb-2">
+                            <div className="flex justify-between items-start mb-2 sm:mb-3">
                               <div className="flex items-center">
-                                <FileTypeIcon fileType={doc.fileType} className="h-7 w-7 text-[hsl(var(--muted-foreground))]" />
+                                <FileTypeIcon fileType={doc.fileType} className="h-6 w-6 sm:h-7 sm:w-7 text-[hsl(var(--muted-foreground))]" />
                               </div>
                               
                               <FileTypeBadge fileType={doc.fileType} />
                             </div>
                             
-                            <h4 className="font-medium text-sm line-clamp-2 mb-1.5">{doc.name}</h4>
+                            <h4 className="font-medium text-xs sm:text-sm lg:text-base line-clamp-1 xs:line-clamp-2 mb-1 sm:mb-2">{doc.name}</h4>
                             
                             {doc.description && (
-                              <p className="text-xs text-[hsl(var(--muted-foreground))] line-clamp-2 mb-auto">{doc.description}</p>
+                              <p className="text-[10px] xs:text-xs sm:text-xs text-[hsl(var(--muted-foreground))] line-clamp-1 xs:line-clamp-2 mb-auto">{doc.description}</p>
                             )}
                             
-                            <div className="mt-2 pt-2 flex justify-between items-center text-xs text-[hsl(var(--muted-foreground))] border-t border-[hsl(var(--border))] border-opacity-50">
-                              <span className="flex items-center">
-                                <Clock className="ml-1 h-3 w-3" />
-                                {new Date(doc.uploadDate).toLocaleDateString('ar-SA')}
+                            <div className="mt-2 pt-2 flex flex-wrap xs:flex-nowrap justify-between items-center gap-y-2 text-[10px] xs:text-xs text-[hsl(var(--muted-foreground))] border-t border-[hsl(var(--border))] border-opacity-50">
+                              <span className="flex items-center text-[10px] xs:text-xs w-full xs:w-auto">
+                                <Clock className="ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                                <span className="truncate">{new Date(doc.uploadDate).toLocaleDateString('ar-SA')}</span>
                               </span>
                               
-                              <div className="flex space-x-1 space-x-reverse">
+                              <div className="flex space-x-1 space-x-reverse ml-auto">
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
@@ -1058,7 +1058,7 @@ export default function Documents() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                   {transactionsWithAttachments?.map((transaction: Transaction) => {
                     const projectName = projects?.find(p => p.id === transaction.projectId)?.name || 'بدون مشروع';
                     return (
