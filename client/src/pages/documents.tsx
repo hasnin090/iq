@@ -586,20 +586,20 @@ export default function Documents() {
                       return (
                         <div
                           key={doc.id}
-                          className={`p-4 rounded-lg border shadow-sm hover:shadow transition-shadow ${doc.isManagerDocument ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}
+                          className={`p-3 xs:p-4 rounded-lg border shadow-sm hover:shadow transition-shadow ${doc.isManagerDocument ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}
                         >
-                          <div className="flex justify-between items-start mb-3">
-                            <h4 className="font-medium text-base">
+                          <div className="flex justify-between items-start mb-2 xs:mb-3">
+                            <h4 className="font-medium text-sm xs:text-base break-words w-[75%]">
                               {doc.name}
                               {doc.isManagerDocument && (
-                                <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-300">
-                                  <Lock className="h-3 w-3 mr-1" />
-                                  <span className="text-xs">إداري</span>
+                                <Badge className="ml-1 xs:ml-2 mt-1 inline-flex bg-amber-100 text-amber-800 border-amber-300">
+                                  <Lock className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
+                                  <span className="text-[10px] xs:text-xs">إداري</span>
                                 </Badge>
                               )}
                             </h4>
                             
-                            <Badge className={getFileTypeBadgeClasses(doc.fileType)}>
+                            <Badge className={`scale-90 xs:scale-100 origin-right ${getFileTypeBadgeClasses(doc.fileType)}`}>
                               {getFileTypeIconName(doc.fileType)}
                               <span className="mr-1">{getFileTypeLabel(doc.fileType)}</span>
                             </Badge>
@@ -609,18 +609,25 @@ export default function Documents() {
                             <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{doc.description}</p>
                           )}
                           
-                          <div className="flex items-center text-xs text-muted-foreground space-x-3 space-x-reverse mb-3">
+                          <div className="flex flex-wrap items-center text-[10px] xs:text-xs text-muted-foreground gap-x-2 xs:gap-x-3 gap-y-1 mb-3">
                             <span className="flex items-center">
-                              <i className="fas fa-folder-open ml-1"></i>
+                              <i className="fas fa-folder-open ml-0.5 xs:ml-1"></i>
                               {projectName}
                             </span>
                             <span className="flex items-center">
-                              <i className="fas fa-calendar-alt ml-1"></i>
+                              <i className="fas fa-calendar-alt ml-0.5 xs:ml-1"></i>
                               {new Date(doc.uploadDate).toLocaleDateString('ar-SA')}
                             </span>
+                            {doc.fileSize && (
+                              <span className="flex items-center">
+                                <i className="fas fa-file-alt ml-0.5 xs:ml-1"></i>
+                                {Math.round(doc.fileSize / 1024)} كيلوبايت
+                              </span>
+                            )}
                           </div>
                           
-                          <div className="flex justify-end space-x-2 space-x-reverse">
+                          {/* أزرار التفاعل - للشاشات المتوسطة والكبيرة */}
+                          <div className="hidden xs:flex justify-end space-x-2 space-x-reverse">
                             <Button 
                               size="sm" 
                               variant="outline" 
@@ -650,6 +657,65 @@ export default function Documents() {
                               size="sm" 
                               variant="destructive" 
                               className="text-xs"
+                              onClick={async () => {
+                                if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
+                                  try {
+                                    // أولاً محاولة حذف الملف من Firebase Storage
+                                    try {
+                                      const { deleteFile } = await import('@/lib/firebase-storage');
+                                      if (doc.fileUrl) {
+                                        await deleteFile(doc.fileUrl);
+                                      }
+                                    } catch (error) {
+                                      console.error("فشل في حذف الملف من التخزين:", error);
+                                    }
+                                    
+                                    // ثم حذف السجل من قاعدة البيانات
+                                    await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
+                                    handleDocumentUpdated();
+                                  } catch (error) {
+                                    alert('حدث خطأ أثناء حذف المستند. يرجى المحاولة مرة أخرى.');
+                                    console.error(error);
+                                  }
+                                }
+                              }}
+                            >
+                              <i className="fas fa-trash-alt ml-1"></i>
+                              حذف
+                            </Button>
+                          </div>
+                          
+                          {/* أزرار التفاعل - للشاشات الصغيرة جدًا بتنسيق عمودي */}
+                          <div className="xs:hidden grid grid-cols-3 gap-2 mt-3">
+                            <Button 
+                              size="sm" 
+                              variant="default" 
+                              className="w-full text-xs"
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                            >
+                              <Eye className="ml-1 h-3 w-3" />
+                              عرض
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="secondary" 
+                              className="w-full text-xs"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = doc.fileUrl;
+                                link.download = doc.name;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                            >
+                              <Download className="ml-1 h-3 w-3" />
+                              تحميل
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              className="w-full text-xs"
                               onClick={async () => {
                                 if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
                                   try {
