@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { DocumentForm } from '@/components/document-form';
-import { DocumentList } from '@/components/document/document-list';
+import { DocumentList, DocumentSidebar } from '@/components/document';
 import { queryClient } from '@/lib/queryClient';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from "@/components/ui/badge";
-import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2, Plus, Upload } from 'lucide-react';
+import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2, Plus, Upload, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Card, 
@@ -260,14 +260,163 @@ export default function Documents() {
         )}
         
         <TabsContent value="all" className="p-0">
-          {/* العامة المستندات محتوى */}
-          <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
-            {/* قسم الفلتر والفورم */}
-            <div className="space-y-6 sm:space-y-8">
+          {/* العامة المستندات محتوى - تصميم متجاوب */}
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+            {/* شريط جانبي للشاشات الكبيرة */}
+            <div className="hidden lg:block w-72 xl:w-80 shrink-0">
+              <DocumentSidebar
+                documents={documents || []}
+                projects={projects || []}
+                filter={filter}
+                onFilterChange={handleFilterChange}
+                onUploadClick={() => setShowUploadDialog(true)}
+                className="sticky top-20"
+              />
+            </div>
+            
+            {/* شريط بحث بسيط للجوال */}
+            <div className="block lg:hidden mb-4">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="بحث عن مستند..."
+                    value={filter.searchQuery || ''}
+                    onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
+                    className="pl-2 pr-8 h-9 text-xs sm:text-sm"
+                  />
+                </div>
+                
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="h-9 px-2 sm:px-3 flex items-center gap-1"
+                    >
+                      <Filter className="h-3.5 w-3.5" />
+                      <span className="text-xs hidden xs:inline">فلترة</span>
+                      {(filter.projectId || filter.fileType || filter.dateRange?.from) && (
+                        <Badge variant="secondary" className="ml-1 h-5 rounded-full px-1.5 text-[10px]">
+                          {(filter.projectId ? 1 : 0) + (filter.fileType ? 1 : 0) + (filter.dateRange?.from ? 1 : 0)}
+                        </Badge>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-72 p-4" align="end">
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-sm">خيارات الفلترة</h3>
+                      
+                      <div>
+                        <Label htmlFor="mobileProjectFilter" className="text-xs mb-1.5 block">المشروع</Label>
+                        <Select
+                          value={filter.projectId?.toString() || ''}
+                          onValueChange={(value) => handleFilterChange({ projectId: value ? parseInt(value) : undefined })}
+                        >
+                          <SelectTrigger id="mobileProjectFilter" className="w-full h-9 text-xs">
+                            <SelectValue placeholder="كل المشاريع" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">كل المشاريع</SelectItem>
+                            {!projectsLoading && projects?.map((project: Project) => (
+                              <SelectItem key={project.id} value={project.id.toString()}>
+                                {project.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="mobileTypeFilter" className="text-xs mb-1.5 block">نوع الملف</Label>
+                        <Select
+                          value={filter.fileType || ''}
+                          onValueChange={(value) => handleFilterChange({ fileType: value || undefined })}
+                        >
+                          <SelectTrigger id="mobileTypeFilter" className="w-full h-9 text-xs">
+                            <SelectValue placeholder="كل الأنواع" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">كل الأنواع</SelectItem>
+                            <SelectItem value="image">صور</SelectItem>
+                            <SelectItem value="pdf">PDF</SelectItem>
+                            <SelectItem value="document">مستندات</SelectItem>
+                            <SelectItem value="spreadsheet">جداول بيانات</SelectItem>
+                            <SelectItem value="presentation">عروض تقديمية</SelectItem>
+                            <SelectItem value="other">أخرى</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs mb-1.5 block">تاريخ الرفع</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full justify-start text-right h-9 text-xs font-normal"
+                            >
+                              <CalendarIcon className="ml-2 h-3.5 w-3.5" />
+                              {filter.dateRange?.from ? (
+                                filter.dateRange.to ? (
+                                  <>
+                                    من {format(filter.dateRange.from, "P", { locale: ar })}
+                                    <br />
+                                    إلى {format(filter.dateRange.to, "P", { locale: ar })}
+                                  </>
+                                ) : (
+                                  format(filter.dateRange.from, "P", { locale: ar })
+                                )
+                              ) : (
+                                "اختر التاريخ..."
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              locale={ar}
+                              mode="range"
+                              initialFocus
+                              selected={{ 
+                                from: filter.dateRange?.from || undefined, 
+                                to: filter.dateRange?.to || undefined
+                              }}
+                              onSelect={(range) => handleFilterChange({ 
+                                dateRange: { 
+                                  from: range?.from, 
+                                  to: range?.to 
+                                } 
+                              })}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      {/* زر مسح الفلتر */}
+                      {(filter.projectId || filter.fileType || filter.dateRange?.from) && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setFilter({})}
+                          className="w-full mt-2 text-xs h-9"
+                        >
+                          <X className="ml-1.5 h-3.5 w-3.5" />
+                          مسح الفلتر
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            {/* القسم الرئيسي */}
+            <div className="flex-1 space-y-6">
 
               
-              {/* قسم الفلترة */}
-              <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
+              {/* قسم الفلترة - للشاشات المتوسطة فقط، سيختفي على الشاشات الكبيرة والصغيرة */}
+              <div className="hidden md:block lg:hidden bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
                 <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
                   <Filter className="h-4 w-4 xs:h-5 xs:w-5 text-[hsl(var(--primary))]" />
                   <span>فلترة المستندات</span>

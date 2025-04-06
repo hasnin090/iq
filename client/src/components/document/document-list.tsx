@@ -183,7 +183,7 @@ export function DocumentList({
       />
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6 pt-2 pb-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 xs:gap-4 sm:gap-5 lg:gap-6 pt-2 pb-4">
           {sortedDocuments.map((document) => (
             <div key={document.id} className="transform transition-all duration-200 hover:scale-[1.01]">
               <DocumentCard 
