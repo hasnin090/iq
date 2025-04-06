@@ -162,7 +162,21 @@ export function Sidebar() {
                 <p className="text-xs text-blue-500/80 dark:text-blue-400/80 mt-0.5 hidden sm:inline-block">الإصدار 1.0.2</p>
               </div>
             </div>
-            {/* تم حذف زر إغلاق القائمة المتنقلة بناءً على طلب المستخدم */}
+            
+            {/* زر تبديل الوضع المظلم/الفاتح */}
+            <button 
+              onClick={() => {
+                // استخدام وظيفة تبديل السمة من ملف المساعدات
+                import('../../lib/theme-utils').then(module => {
+                  module.toggleTheme();
+                });
+              }}
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-gray-600 transition-colors"
+              aria-label="تبديل الوضع المظلم/الفاتح"
+            >
+              <i className="fas fa-moon text-blue-600 dark:text-gray-300 hidden dark:inline-block"></i>
+              <i className="fas fa-sun text-amber-500 dark:hidden"></i>
+            </button>
           </div>
           
           {/* User profile card */}
