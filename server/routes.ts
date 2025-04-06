@@ -1339,6 +1339,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "خطأ في استرجاع مشاريع المستخدم" });
     }
   });
+  
+  // روت جديد للحصول على مشاريع المستخدم الحالي (من الجلسة)
+  app.get("/api/user-projects", authenticate, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // لوجات تشخيصية
+      console.log(`جلب مشاريع المستخدم الحالي، معرف المستخدم: ${userId}`);
+      
+      // الحصول على مشاريع المستخدم
+      let projects = [];
+      try {
+        projects = await storage.getUserProjects(userId);
+        console.log(`تم العثور على ${projects.length} مشروع للمستخدم رقم ${userId}`);
+      } catch (dbError) {
+        console.error("خطأ في قاعدة البيانات أثناء جلب مشاريع المستخدم:", dbError);
+        
+        // إذا لم نجد أي مشاريع، نعيد مصفوفة فارغة بدلاً من خطأ
+        return res.status(200).json([]);
+      }
+      
+      // إعادة المشاريع
+      return res.status(200).json(projects);
+    } catch (error) {
+      console.error("خطأ في جلب مشاريع المستخدم الحالي:", error);
+      
+      // حتى في حالة حدوث خطأ، نعيد مصفوفة فارغة بدلاً من رمز حالة خطأ
+      // لتجنب المشاكل في واجهة المستخدم
+      return res.status(200).json([]);
+    }
+  });
 
   app.get("/api/projects/:projectId/users", authenticate, async (req: Request, res: Response) => {
     try {

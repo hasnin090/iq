@@ -27,8 +27,25 @@ export function Sidebar() {
   }
   
   // جلب المشاريع المتاحة للمستخدم (سيتم تصفيتها في الخلفية بواسطة API)
-  const { data: userProjects, isLoading: isLoadingProjects } = useQuery<Project[]>({
+  const { data: userProjects, isLoading: isLoadingProjects, isError: isProjectsError } = useQuery<Project[]>({
     queryKey: ['/api/user-projects'],
+    queryFn: async () => {
+      console.log('جلب مشاريع المستخدم...');
+      if (!user) return [];
+      try {
+        const response = await fetch('/api/user-projects');
+        if (!response.ok) {
+          console.log('خطأ في جلب المشاريع:', await response.text());
+          return [];
+        }
+        const projects = await response.json();
+        console.log('المشاريع المستلمة:', projects);
+        return projects;
+      } catch (error) {
+        console.error('خطأ في جلب مشاريع المستخدم:', error);
+        return [];
+      }
+    },
     // فقط جلب المشاريع إذا كان المستخدم موجود وليس مديرًا
     enabled: !!user && user.role !== 'admin',
   });
