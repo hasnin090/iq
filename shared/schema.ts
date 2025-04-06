@@ -132,7 +132,7 @@ export const insertUserSchema = createInsertSchema(users)
   .omit({ id: true })
   .extend({
     password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
-    email: z.string().email("البريد الإلكتروني غير صالح").optional(),
+    email: z.string().email("البريد الإلكتروني غير صالح").optional().or(z.literal("")),
     projectId: z.number().optional(), // إضافة حقل projectId كخاصية إضافية لا تتطابق مع الجدول
     permissions: z.array(z.string()).optional(), // صلاحيات المستخدم
   });
