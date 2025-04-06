@@ -293,7 +293,7 @@ export default function Documents() {
                         <SelectValue placeholder="كل المشاريع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">كل المشاريع</SelectItem>
+                        <SelectItem value="all">كل المشاريع</SelectItem>
                         {!projectsLoading && projects?.map((project: Project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
@@ -313,7 +313,7 @@ export default function Documents() {
                         <SelectValue placeholder="كل الأنواع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">كل الأنواع</SelectItem>
+                        <SelectItem value="all">كل الأنواع</SelectItem>
                         <SelectItem value="image">صور</SelectItem>
                         <SelectItem value="pdf">PDF</SelectItem>
                         <SelectItem value="word">Word</SelectItem>
@@ -529,7 +529,7 @@ export default function Documents() {
                         <SelectValue placeholder="كل المشاريع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">كل المشاريع</SelectItem>
+                        <SelectItem value="all">كل المشاريع</SelectItem>
                         {!projectsLoading && projects?.map((project: Project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
