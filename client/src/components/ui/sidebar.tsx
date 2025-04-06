@@ -87,9 +87,9 @@ export function Sidebar() {
     }
   }, [location, isMobile]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await apiRequest("POST", "/api/auth/logout", {});
+      // نتخطى الاتصال بالـ API ونستخدم وظيفة logout من سياق المصادقة مباشرة
       logout();
       queryClient.clear();
       toast({
