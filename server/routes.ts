@@ -802,59 +802,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (type === "income") {
           // عندما يكون النوع "income" - إيراد
           if (projectId) {
-            // إذا تم تحديد مشروع مع نوع إيراد، فالمدير يريد إضافة إيراد مباشرة للمشروع
-            // نستخدم وظيفة خاصة لإضافة رصيد للمشروع من المدير دون خصم من صندوق المدير
+            // إذا تم تحديد مشروع مع نوع إيراد، يجب أن يعتبر كمصروف من صندوق المدير
             try {
-              // إضافة رصيد مباشرة إلى صندوق المشروع
-              // نحصل على صندوق المشروع أو ننشئه إذا لم يكن موجوداً
-              let projectFund = await storage.getFundByProject(projectId);
-              if (!projectFund) {
-                const project = await storage.getProject(projectId);
-                if (!project) {
-                  return res.status(400).json({ message: "المشروع غير موجود" });
-                }
-                
-                projectFund = await storage.createFund({
-                  name: `صندوق المشروع: ${project.name}`,
-                  balance: 0,
-                  type: "project",
-                  ownerId: null,
-                  projectId
-                });
-              }
+              // نستخدم وظيفة processDeposit لمعالجة إيداع في المشروع
+              // هذه الوظيفة تقوم بخصم المبلغ من صندوق المدير وتسجيله كمصروف
+              // ثم تضيف المبلغ إلى صندوق المشروع وتسجله كإيراد
+              result = await storage.processDeposit(userId, projectId, amount, description);
               
-              // تحديث رصيد المشروع
-              const originalBalance = projectFund.balance;
-              const [updatedProjectFund] = await db.update(funds)
-                .set({ 
-                  balance: originalBalance + amount,
-                  updatedAt: new Date()
-                })
-                .where(eq(funds.id, projectFund.id))
-                .returning();
-              
-              // إنشاء معاملة إيراد للمشروع
-              const transaction = await storage.createTransaction({
-                date: new Date(),
-                amount,
-                type: "income",
-                description: description || `إضافة رصيد للمشروع من قبل المدير`,
-                projectId,
-                createdBy: userId
-              });
-              
-              // إنشاء سجل نشاط
+              // نقوم بإضافة سجل نشاط إضافي لتوضيح أن هذه العملية تمت من قبل المدير
               await storage.createActivityLog({
                 action: "create",
                 entityType: "transaction",
-                entityId: transaction.id,
-                details: `إضافة رصيد مباشرة للمشروع ${projectId} بقيمة ${amount} من قبل المدير`,
+                entityId: result.transaction.id,
+                details: `إضافة إيراد للمشروع ${projectId} بقيمة ${amount} من قبل المدير (مصروف من صندوق المدير)`,
                 userId
               });
-              
-              result = { transaction, projectFund: updatedProjectFund };
             } catch (error) {
-              console.error("خطأ في إضافة رصيد للمشروع:", error);
+              console.error("خطأ في إضافة إيراد للمشروع:", error);
               throw error;
             }
           } else {
