@@ -329,7 +329,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/users", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
+      console.log("بدء إنشاء مستخدم جديد");
       const userData = insertUserSchema.parse(req.body);
+      console.log("بيانات المستخدم بعد التحقق من المخطط:", userData);
+      
       // Hash password
       userData.password = await bcrypt.hash(userData.password, 10);
       
@@ -337,41 +340,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = userData.projectId;
       delete userData.projectId; // إزالة الحقل غير المستخدم في إنشاء المستخدم
       
-      const user = await storage.createUser(userData);
-      
-      // إذا تم تحديد مشروع، يتم تخصيصه للمستخدم
-      if (projectId) {
-        try {
-          await storage.assignUserToProject({
-            userId: user.id,
-            projectId: projectId,
-            assignedBy: req.session.userId as number
-          });
-          
-          await storage.createActivityLog({
-            action: "update",
-            entityType: "user_project",
-            entityId: user.id,
-            details: `تخصيص المستخدم ${user.name} للمشروع رقم ${projectId}`,
-            userId: req.session.userId as number
-          });
-        } catch (err) {
-          console.error("خطأ في تخصيص المشروع للمستخدم:", err);
-          // استمر بدون توقف عند حدوث خطأ في تخصيص المشروع
-        }
+      // تأكد من أن مصفوفة الصلاحيات معرّفة
+      if (!userData.permissions) {
+        userData.permissions = [];
       }
       
-      await storage.createActivityLog({
-        action: "create",
-        entityType: "user",
-        entityId: user.id,
-        details: `إضافة مستخدم جديد: ${user.name}`,
-        userId: req.session.userId as number
+      console.log("بيانات المستخدم قبل الإدخال في قاعدة البيانات:", {
+        ...userData,
+        password: "***مخفية***"
       });
       
-      const { password, ...safeUser } = user;
-      return res.status(201).json(safeUser);
+      try {
+        const user = await storage.createUser(userData);
+        console.log("تم إنشاء المستخدم بنجاح:", { id: user.id, username: user.username });
+        
+        // إذا تم تحديد مشروع، يتم تخصيصه للمستخدم
+        if (projectId) {
+          try {
+            await storage.assignUserToProject({
+              userId: user.id,
+              projectId: projectId,
+              assignedBy: req.session.userId as number
+            });
+            
+            await storage.createActivityLog({
+              action: "update",
+              entityType: "user_project",
+              entityId: user.id,
+              details: `تخصيص المستخدم ${user.name} للمشروع رقم ${projectId}`,
+              userId: req.session.userId as number
+            });
+          } catch (err) {
+            console.error("خطأ في تخصيص المشروع للمستخدم:", err);
+            // استمر بدون توقف عند حدوث خطأ في تخصيص المشروع
+          }
+        }
+        
+        await storage.createActivityLog({
+          action: "create",
+          entityType: "user",
+          entityId: user.id,
+          details: `إضافة مستخدم جديد: ${user.name}`,
+          userId: req.session.userId as number
+        });
+        
+        const { password, ...safeUser } = user;
+        return res.status(201).json(safeUser);
+      } catch (dbError) {
+        console.error("خطأ في قاعدة البيانات عند إنشاء المستخدم:", dbError);
+        throw dbError;
+      }
     } catch (error) {
+      console.error("خطأ كامل عند إنشاء المستخدم:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
@@ -383,6 +403,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userData = req.body;
+      
+      // التحقق مما إذا كان المستخدم المراد تعديله هو المدير الرئيسي (معرف = 1)
+      if (id === 1) {
+        // اسمح فقط بتغيير اسم المستخدم أو كلمة المرور، ولكن ليس الدور أو الصلاحيات
+        if (userData.role) {
+          return res.status(400).json({ message: "لا يمكن تغيير صلاحيات المدير الرئيسي للنظام" });
+        }
+        // إذا كان هناك محاولة لتعديل الصلاحيات، امنعها
+        if (userData.permissions) {
+          return res.status(400).json({ message: "لا يمكن تغيير صلاحيات المدير الرئيسي للنظام" });
+        }
+        
+        console.log("محاولة تحديث بيانات المدير الرئيسي - السماح فقط بتغيير الاسم وكلمة المرور");
+      }
       
       // استخراج معرف المشروع قبل تحديث المستخدم إذا كان موجودًا
       const projectId = userData.projectId;
