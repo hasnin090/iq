@@ -505,9 +505,9 @@ export default function Documents() {
         </div>
       )}
       
-      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
-        {/* جانب الفورم والفلتر (يظهر في البداية على الموبايل وعلى اليمين في سطح المكتب) */}
-        <div className="md:order-2 md:w-1/3 lg:w-1/4 space-y-6 sm:space-y-8">
+      <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+        {/* قسم الفورم والفلتر (دائماً يظهر في الأعلى) */}
+        <div className="space-y-6 sm:space-y-8">
         
         {/* Document Form */}
         {user?.role !== 'viewer' && (
@@ -669,8 +669,8 @@ export default function Documents() {
           </div>
         </div>
         
-        {/* جانب المستندات (يظهر ثانيًا على الموبايل وعلى اليسار في سطح المكتب) */}
-        <div className="md:order-1 md:flex-1 space-y-6 sm:space-y-8">
+        {/* قسم عرض المستندات */}
+        <div className="space-y-6 sm:space-y-8">
           {/* Mobile Document View */}
           <div className="block md:hidden space-y-4 sm:space-y-6 fade-in">
             <div className="flex justify-between items-center">
