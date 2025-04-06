@@ -205,6 +205,10 @@ export default function Documents() {
               <FileText className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="truncate">المستندات العامة</span>
             </TabsTrigger>
+            <TabsTrigger value="projects" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
+              <File className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="truncate">حسب المشروع</span>
+            </TabsTrigger>
             {isManagerOrAdmin && (
               <TabsTrigger value="manager" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
                 <Lock className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -536,6 +540,228 @@ export default function Documents() {
                   searchQuery={filter.searchQuery}
                 />
               </div>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="projects" className="p-0">
+          {/* مستندات المشاريع */}
+          <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+            {/* عنوان القسم */}
+            <div className="bg-[hsl(var(--primary))] text-white p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm mb-2 slide-in-right">
+              <h3 className="text-base xs:text-lg sm:text-xl font-bold mb-1 sm:mb-2 flex items-center">
+                <File className="ml-2 h-5 w-5" />
+                مستندات المشاريع
+              </h3>
+              <p className="text-xs sm:text-sm opacity-90">
+                عرض وتنظيم المستندات حسب المشروع للوصول السريع والمنظم
+              </p>
+            </div>
+            
+            {/* عرض المشاريع والمستندات */}
+            <div className="space-y-6">
+              {projectsLoading ? (
+                <div className="text-center py-16 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                  <div className="spinner w-12 h-12 mx-auto"></div>
+                  <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل المشاريع...</p>
+                </div>
+              ) : projects?.length === 0 ? (
+                <div className="text-center py-16 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                  <div className="text-6xl mb-4 opacity-20">📋</div>
+                  <p className="text-lg font-medium mb-1">لا توجد مشاريع</p>
+                  <p className="text-[hsl(var(--muted-foreground))] max-w-md mx-auto">
+                    لا يوجد حالياً أي مشاريع في النظام. يرجى إضافة مشاريع أولاً ليمكنك تنظيم المستندات.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6">
+                  {projects.map((project: Project) => {
+                    // فلترة المستندات المتعلقة بالمشروع الحالي
+                    const projectDocuments = documents?.filter(doc => doc.projectId === project.id) || [];
+                    
+                    // فحص ما إذا كان هناك مستندات لهذا المشروع بعد تطبيق الفلاتر
+                    let filteredProjectDocuments = [...projectDocuments];
+                    
+                    // تطبيق فلتر نوع الملف
+                    if (filter.fileType) {
+                      filteredProjectDocuments = filteredProjectDocuments.filter(doc => {
+                        const type = getMainFileType(doc.fileType);
+                        return type === filter.fileType;
+                      });
+                    }
+                    
+                    // تطبيق فلتر النص
+                    if (filter.searchQuery) {
+                      const query = filter.searchQuery.toLowerCase();
+                      filteredProjectDocuments = filteredProjectDocuments.filter(doc => 
+                        doc.name.toLowerCase().includes(query) || 
+                        (doc.description && doc.description.toLowerCase().includes(query))
+                      );
+                    }
+                    
+                    // تطبيق فلتر التاريخ
+                    if (filter.dateRange?.from || filter.dateRange?.to) {
+                      filteredProjectDocuments = filteredProjectDocuments.filter(doc => {
+                        const uploadDate = new Date(doc.uploadDate);
+                        
+                        // التحقق من تاريخ البداية
+                        if (filter.dateRange?.from) {
+                          const fromDate = new Date(filter.dateRange.from);
+                          fromDate.setHours(0, 0, 0, 0);
+                          if (uploadDate < fromDate) return false;
+                        }
+                        
+                        // التحقق من تاريخ النهاية
+                        if (filter.dateRange?.to) {
+                          const toDate = new Date(filter.dateRange.to);
+                          toDate.setHours(23, 59, 59, 999);
+                          if (uploadDate > toDate) return false;
+                        }
+                        
+                        return true;
+                      });
+                    }
+                    
+                    // عدم عرض المشاريع التي ليس لها مستندات بعد تطبيق الفلاتر
+                    if (filteredProjectDocuments.length === 0) return null;
+                    
+                    return (
+                      <div key={project.id} className="bg-card rounded-xl border border-border overflow-hidden">
+                        <div className="bg-primary/10 p-3 sm:p-4 border-b border-border">
+                          <div className="flex justify-between items-center">
+                            <h3 className="text-base sm:text-lg font-bold text-primary flex items-center">
+                              <i className="fas fa-folder-open ml-2"></i>
+                              {project.name}
+                            </h3>
+                            <Badge className="bg-primary">{filteredProjectDocuments.length} مستند</Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="p-3 sm:p-4">
+                          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                            {filteredProjectDocuments.map((doc: Document) => (
+                              <Card key={doc.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                                <CardHeader className="p-3 pb-0">
+                                  <div className="flex items-start gap-2">
+                                    <FileTypeIcon 
+                                      fileType={doc.fileType} 
+                                      className="h-5 w-5 mt-0.5"
+                                    />
+                                    <div className="space-y-1 overflow-hidden">
+                                      <h4 className="font-medium text-sm line-clamp-1">
+                                        {doc.name}
+                                      </h4>
+                                      <p className="text-xs text-muted-foreground">
+                                        {format(new Date(doc.uploadDate), 'dd MMM yyyy', { locale: ar })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                                
+                                <CardContent className="p-3 pt-2 flex justify-end gap-1.5">
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-7 w-7"
+                                    onClick={() => window.open(doc.fileUrl, '_blank')}
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-7 w-7"
+                                    onClick={() => {
+                                      const link = document.createElement('a');
+                                      link.href = doc.fileUrl;
+                                      link.download = doc.name;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                    }}
+                                  >
+                                    <Download className="h-3.5 w-3.5" />
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }).filter(Boolean)}
+                </div>
+              )}
+              
+              {/* مستندات بدون مشروع */}
+              {!projectsLoading && documents?.filter(doc => !doc.projectId).length > 0 && (
+                <div className="bg-card rounded-xl border border-border overflow-hidden">
+                  <div className="bg-muted/30 p-3 sm:p-4 border-b border-border">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-base sm:text-lg font-bold text-muted-foreground flex items-center">
+                        <i className="fas fa-folder ml-2"></i>
+                        مستندات عامة
+                      </h3>
+                      <Badge variant="outline">
+                        {documents.filter(doc => !doc.projectId).length} مستند
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 sm:p-4">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                      {documents
+                        .filter(doc => !doc.projectId)
+                        .map((doc: Document) => (
+                          <Card key={doc.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                            <CardHeader className="p-3 pb-0">
+                              <div className="flex items-start gap-2">
+                                <FileTypeIcon 
+                                  fileType={doc.fileType} 
+                                  className="h-5 w-5 mt-0.5"
+                                />
+                                <div className="space-y-1 overflow-hidden">
+                                  <h4 className="font-medium text-sm line-clamp-1">
+                                    {doc.name}
+                                  </h4>
+                                  <p className="text-xs text-muted-foreground">
+                                    {format(new Date(doc.uploadDate), 'dd MMM yyyy', { locale: ar })}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            
+                            <CardContent className="p-3 pt-2 flex justify-end gap-1.5">
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-7 w-7"
+                                onClick={() => window.open(doc.fileUrl, '_blank')}
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="h-7 w-7"
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = doc.fileUrl;
+                                  link.download = doc.name;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
