@@ -37,7 +37,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
       {/* تم إزالة بطاقة صندوق المدير بناءً على طلب المستخدم */}
       
       {/* بطاقات الإحصائيات */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
         <div className={`rounded-xl shadow-md p-5 overflow-hidden relative ${
           isShowingAdmin 
             ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30 border border-green-200 dark:border-green-800' 

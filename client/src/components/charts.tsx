@@ -107,7 +107,7 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
   const isShowingAdmin = isAdmin ? displayMode === 'admin' : false;
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 mt-4 sm:mt-5 md:mt-6">
       <div className={`rounded-xl shadow-card p-6 ${
         isShowingAdmin 
           ? 'bg-blue-50/50 border border-blue-100' 
