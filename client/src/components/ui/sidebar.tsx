@@ -15,12 +15,36 @@ export function Sidebar() {
   const { toast } = useToast();
   const [isMobile, setIsMobile] = useState(false);
   
+  // تعريف واجهة المشروع
+  interface Project {
+    id: number;
+    name: string;
+    description: string;
+    startDate: string;
+    status: string;
+    progress?: number;
+    createdBy?: number;
+  }
+  
   // جلب المشاريع المتاحة للمستخدم (سيتم تصفيتها في الخلفية بواسطة API)
-  const { data: userProjects, isLoading: isLoadingProjects } = useQuery({
+  const { data: userProjects, isLoading: isLoadingProjects } = useQuery<Project[]>({
     queryKey: ['/api/user-projects'],
     // فقط جلب المشاريع إذا كان المستخدم موجود وليس مديرًا
     enabled: !!user && user.role !== 'admin',
   });
+  
+  // اختيار المشروع النشط - نستخدم المشروع الأول كافتراضي أو نسمح للمستخدم باختيار مشروع معين
+  const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
+  
+  // تعيين المشروع النشط عندما يتم تحميل المشاريع
+  useEffect(() => {
+    if (userProjects && Array.isArray(userProjects) && userProjects.length > 0 && !activeProjectId) {
+      setActiveProjectId(userProjects[0].id);
+    }
+  }, [userProjects, activeProjectId]);
+  
+  // الحصول على معلومات المشروع النشط
+  const activeProject = Array.isArray(userProjects) ? userProjects.find((p: Project) => p.id === activeProjectId) : undefined;
 
   // حالة القائمة الجانبية - مفتوحة افتراضيًا في الشاشات الكبيرة فقط
   useEffect(() => {
@@ -137,6 +161,8 @@ export function Sidebar() {
           {user && (
             <div className="mb-6 bg-blue-50 dark:bg-gray-700 p-4 rounded-2xl border border-blue-100 dark:border-gray-600 shadow-md relative overflow-hidden zoom-in">
               <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--primary))/5] to-transparent dark:from-[hsl(var(--primary))/10] dark:to-transparent"></div>
+              
+              {/* معلومات المستخدم */}
               <div className="flex items-center space-x-4 space-x-reverse relative z-10">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/70] flex items-center justify-center shadow-md">
                   <i className="fas fa-user-circle text-lg sm:text-xl text-white"></i>
@@ -149,6 +175,21 @@ export function Sidebar() {
                   </div>
                 </div>
               </div>
+
+              {/* معلومات المشروع النشط - عرضها فقط للمستخدمين العاديين ومديري المشاريع */}
+              {user.role !== 'admin' && activeProject && (
+                <div className="mt-3 pt-3 border-t border-blue-100 dark:border-gray-600 relative z-10">
+                  <div className="flex items-center">
+                    <div className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+                      <i className="fas fa-folder-open text-sm text-green-600 dark:text-green-400"></i>
+                    </div>
+                    <div className="mr-2">
+                      <div className="text-sm font-medium text-green-700 dark:text-green-400">المشروع النشط</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">{activeProject.name}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
@@ -242,19 +283,43 @@ export function Sidebar() {
                     <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
                     <span className="mr-2 text-sm text-[hsl(var(--muted-foreground))]">جاري التحميل...</span>
                   </div>
-                ) : userProjects && userProjects.length > 0 ? (
+                ) : Array.isArray(userProjects) && userProjects.length > 0 ? (
                   <div className="space-y-2">
-                    {userProjects.map((project: any) => (
-                      <Link
-                        key={project.id}
-                        href={`/projects/details/${project.id}`}
-                        className="flex items-center space-x-reverse space-x-2 p-2 rounded-lg text-[hsl(var(--primary))] hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-gray-600 flex items-center justify-center">
-                          <i className="fas fa-folder-open text-sm"></i>
-                        </div>
-                        <span className="text-sm truncate">{project.name}</span>
-                      </Link>
+                    {userProjects.map((project: Project) => (
+                      <div key={project.id} className="group relative">
+                        <Link
+                          href={`/projects/details/${project.id}`}
+                          className={`flex items-center justify-between space-x-reverse space-x-2 p-2 rounded-lg ${
+                            activeProjectId === project.id
+                              ? "bg-blue-100 dark:bg-gray-600 text-[hsl(var(--primary))] font-medium"
+                              : "text-[hsl(var(--primary))] hover:bg-blue-50 dark:hover:bg-gray-600"
+                          } transition-colors`}
+                        >
+                          <div className="flex items-center space-x-reverse space-x-2">
+                            <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-gray-600 flex items-center justify-center">
+                              <i className={`fas fa-${activeProjectId === project.id ? 'folder-open' : 'folder'} text-sm`}></i>
+                            </div>
+                            <span className="text-sm truncate">{project.name}</span>
+                          </div>
+                          
+                          {/* زر تعيين كمشروع نشط */}
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setActiveProjectId(project.id);
+                            }}
+                            className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                              activeProjectId === project.id
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-200 dark:bg-gray-700 opacity-0 group-hover:opacity-100"
+                            } transition-opacity`}
+                            title="تعيين كمشروع نشط"
+                          >
+                            <i className="fas fa-check text-[10px]"></i>
+                          </button>
+                        </Link>
+                      </div>
                     ))}
                   </div>
                 ) : (
