@@ -96,16 +96,7 @@ export function DocumentSidebar({
   
   return (
     <div className={cn("space-y-6", className)}>
-      {/* زر إضافة مستند جديد */}
-      <div className="mb-4">
-        <Button 
-          className="w-full rounded-lg h-12 shadow-sm"
-          onClick={onUploadClick}
-        >
-          <UploadCloud className="ml-2 h-5 w-5" />
-          <span>رفع مستند جديد</span>
-        </Button>
-      </div>
+      {/* تم إزالة زر رفع مستند جديد هنا لمنع التكرار */}
       
       {/* بطاقة البحث */}
       <Card className="shadow-sm border-[hsl(var(--border))]">
