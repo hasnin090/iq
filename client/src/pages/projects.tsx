@@ -25,7 +25,7 @@ export default function Projects() {
   };
   
   return (
-    <div className="py-6 px-4 pb-mobile-nav extra-bottom-padding">
+    <div className="py-6 px-4 pb-mobile-nav-large">
       <div className="mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--primary))]">إدارة المشاريع</h2>
         <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة وتتبع مشاريع الشركة وحالتها</p>

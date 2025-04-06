@@ -571,7 +571,7 @@ export default function Reports() {
   const { income, expense, profit, transactions: filteredTransactions } = getFinancialData();
   
   return (
-    <div className="space-y-8 py-6 pb-mobile-nav extra-bottom-padding">
+    <div className="space-y-8 py-6 pb-mobile-nav-large">
       <h2 className="text-2xl font-bold text-primary-light pb-2 border-b border-neutral-dark border-opacity-20">التقارير</h2>
       
       <div className="bg-secondary-light rounded-xl shadow-card p-6">
