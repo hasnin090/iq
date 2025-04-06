@@ -207,14 +207,14 @@ export default function Documents() {
                 value="all" 
                 className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
               >
-                <FileText className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <FileText className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
                 <span>المستندات العامة</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="projects" 
                 className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
               >
-                <File className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <File className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
                 <span>حسب المشروع</span>
               </TabsTrigger>
               {isManagerOrAdmin && (
@@ -222,7 +222,7 @@ export default function Documents() {
                   value="manager" 
                   className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
                 >
-                  <Lock className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                  <Lock className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
                   <span>مستندات المدراء</span>
                 </TabsTrigger>
               )}
@@ -230,7 +230,7 @@ export default function Documents() {
                 value="attachments" 
                 className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
               >
-                <FileImage className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <FileImage className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
                 <span>مرفقات المعاملات</span>
               </TabsTrigger>
             </TabsList>
@@ -586,7 +586,7 @@ export default function Documents() {
                       return (
                         <div
                           key={doc.id}
-                          className={`p-2.5 xs:p-3 sm:p-4 rounded-lg border shadow-sm hover:shadow transition-shadow ${doc.isManagerDocument ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}
+                          className={`p-2 xs:p-2.5 sm:p-4 rounded-md border shadow-sm hover:shadow transition-shadow ${doc.isManagerDocument ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}
                         >
                           <div className="flex justify-between items-start mb-2 xs:mb-3">
                             <h4 className="font-medium text-sm xs:text-base break-words w-[70%] overflow-hidden overflow-wrap-anywhere">
@@ -686,20 +686,20 @@ export default function Documents() {
                           </div>
                           
                           {/* أزرار التفاعل - للشاشات الصغيرة جدًا بتنسيق شبكة */}
-                          <div className="xs:hidden grid grid-cols-3 gap-1.5 xs:gap-2 mt-2.5">
+                          <div className="xs:hidden grid grid-cols-3 gap-1 xs:gap-2 mt-2">
                             <Button 
                               size="sm" 
                               variant="default" 
-                              className="w-full py-1 h-auto text-[10px] leading-tight"
+                              className="w-full px-1 py-0.5 h-auto text-[8px] leading-tight min-h-0"
                               onClick={() => window.open(doc.fileUrl, '_blank')}
                             >
-                              <Eye className="ml-0.5 h-2.5 w-2.5" />
+                              <Eye className="ml-0.5 h-2 w-2" />
                               عرض
                             </Button>
                             <Button 
                               size="sm" 
                               variant="secondary" 
-                              className="w-full py-1 h-auto text-[10px] leading-tight"
+                              className="w-full px-1 py-0.5 h-auto text-[8px] leading-tight min-h-0"
                               onClick={() => {
                                 const link = document.createElement('a');
                                 link.href = doc.fileUrl;
@@ -709,13 +709,13 @@ export default function Documents() {
                                 document.body.removeChild(link);
                               }}
                             >
-                              <Download className="ml-0.5 h-2.5 w-2.5" />
+                              <Download className="ml-0.5 h-2 w-2" />
                               تحميل
                             </Button>
                             <Button 
                               size="sm" 
                               variant="destructive" 
-                              className="w-full py-1 h-auto text-[10px] leading-tight"
+                              className="w-full px-1 py-0.5 h-auto text-[8px] leading-tight min-h-0"
                               onClick={async () => {
                                 if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
                                   try {
@@ -739,7 +739,7 @@ export default function Documents() {
                                 }
                               }}
                             >
-                              <i className="fas fa-trash-alt ml-0.5"></i>
+                              <i className="fas fa-trash-alt ml-0.5 text-[8px]"></i>
                               حذف
                             </Button>
                           </div>
@@ -891,7 +891,7 @@ export default function Documents() {
                             {filteredProjectDocuments.map((doc: Document) => (
                               <div
                                 key={doc.id}
-                                className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] hover:border-opacity-30 p-3 sm:p-4 transition-all h-full"
+                                className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-md border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] hover:border-opacity-30 p-2 xs:p-2.5 sm:p-3 transition-all h-full"
                               >
                                 <div className="flex justify-between items-start mb-2 sm:mb-3">
                                   <div className="flex items-center">
@@ -977,7 +977,7 @@ export default function Documents() {
                         .map((doc: Document) => (
                           <div
                             key={doc.id}
-                            className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))] hover:border-opacity-30 p-3 sm:p-4 transition-all h-full"
+                            className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-md border border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))] hover:border-opacity-30 p-2 xs:p-2.5 sm:p-3 transition-all h-full"
                           >
                             <div className="flex justify-between items-start mb-2 sm:mb-3">
                               <div className="flex items-center">
