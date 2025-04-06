@@ -34,7 +34,7 @@ interface UserFormProps {
 const userSchema = z.object({
   username: z.string().min(3, "اسم المستخدم يجب أن يحتوي على الأقل 3 أحرف"),
   name: z.string().min(3, "الاسم يجب أن يحتوي على الأقل 3 أحرف"),
-  email: z.string().email("البريد الإلكتروني غير صالح").min(1, "البريد الإلكتروني مطلوب"),
+  email: z.string().email("البريد الإلكتروني غير صالح").or(z.literal("")),
   password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
   role: z.enum(["admin", "user", "viewer"], {
     required_error: "الصلاحية مطلوبة",
@@ -236,7 +236,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
                             <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-700">
-                            <p>أدخل بريد إلكتروني صالح (مطلوب)</p>
+                            <p>أدخل بريد إلكتروني صالح (اختياري)</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
