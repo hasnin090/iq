@@ -209,7 +209,8 @@ export function Sidebar() {
             <div className="md:hidden">
               <button 
                 onClick={() => setIsOpen(false)}
-                className="text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))/80] w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center transform transition-transform hover:scale-110 active:scale-95 shadow touch-target"
+                className="sidebar-toggle-button text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))/80] w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center transform transition-transform hover:scale-110 active:scale-95 shadow touch-target"
+                aria-label="إغلاق القائمة"
               >
                 <i className="fas fa-times"></i>
               </button>

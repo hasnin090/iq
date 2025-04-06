@@ -44,11 +44,11 @@ export function AppHeader({ onOpenSidebar }: AppHeaderProps) {
         boxShadow: scrollPosition > 20 ? "0 2px 10px rgba(0, 0, 0, 0.1)" : "none",
       }}
     >
-      {/* زر فتح القائمة الجانبية */}
+      {/* زر فتح القائمة الجانبية - ثابت الموضع */}
       <div className="flex items-center">
         <button
           onClick={onOpenSidebar}
-          className="relative mr-2 w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-300 transform transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow touch-target"
+          className="sidebar-toggle-button relative mr-2 w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-300 transform transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow touch-target"
           aria-label="فتح القائمة"
         >
           <i className="fas fa-stream text-lg"></i>
