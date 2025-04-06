@@ -586,11 +586,11 @@ export default function Documents() {
                       return (
                         <div
                           key={doc.id}
-                          className={`p-3 xs:p-4 rounded-lg border shadow-sm hover:shadow transition-shadow ${doc.isManagerDocument ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}
+                          className={`p-2.5 xs:p-3 sm:p-4 rounded-lg border shadow-sm hover:shadow transition-shadow ${doc.isManagerDocument ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}
                         >
                           <div className="flex justify-between items-start mb-2 xs:mb-3">
-                            <h4 className="font-medium text-sm xs:text-base break-words w-[75%]">
-                              {doc.name}
+                            <h4 className="font-medium text-sm xs:text-base break-words w-[70%] overflow-hidden overflow-wrap-anywhere">
+                              <span className="break-all">{doc.name}</span>
                               {doc.isManagerDocument && (
                                 <Badge className="ml-1 xs:ml-2 mt-1 inline-flex bg-amber-100 text-amber-800 border-amber-300">
                                   <Lock className="h-2.5 w-2.5 xs:h-3 xs:w-3 mr-0.5 xs:mr-1" />
@@ -599,9 +599,9 @@ export default function Documents() {
                               )}
                             </h4>
                             
-                            <Badge className={`scale-90 xs:scale-100 origin-right ${getFileTypeBadgeClasses(doc.fileType)}`}>
+                            <Badge className={`scale-75 xs:scale-90 md:scale-100 origin-right leading-tight px-1.5 xs:px-2 min-w-fit ${getFileTypeBadgeClasses(doc.fileType)}`}>
                               {getFileTypeIconName(doc.fileType)}
-                              <span className="mr-1">{getFileTypeLabel(doc.fileType)}</span>
+                              <span className="inline-block mr-0.5 xs:mr-1 text-[9px] xs:text-[10px] md:text-xs">{getFileTypeLabel(doc.fileType)}</span>
                             </Badge>
                           </div>
                           
@@ -685,21 +685,21 @@ export default function Documents() {
                             </Button>
                           </div>
                           
-                          {/* أزرار التفاعل - للشاشات الصغيرة جدًا بتنسيق عمودي */}
-                          <div className="xs:hidden grid grid-cols-3 gap-2 mt-3">
+                          {/* أزرار التفاعل - للشاشات الصغيرة جدًا بتنسيق شبكة */}
+                          <div className="xs:hidden grid grid-cols-3 gap-1.5 xs:gap-2 mt-2.5">
                             <Button 
                               size="sm" 
                               variant="default" 
-                              className="w-full text-xs"
+                              className="w-full py-1 h-auto text-[10px] leading-tight"
                               onClick={() => window.open(doc.fileUrl, '_blank')}
                             >
-                              <Eye className="ml-1 h-3 w-3" />
+                              <Eye className="ml-0.5 h-2.5 w-2.5" />
                               عرض
                             </Button>
                             <Button 
                               size="sm" 
                               variant="secondary" 
-                              className="w-full text-xs"
+                              className="w-full py-1 h-auto text-[10px] leading-tight"
                               onClick={() => {
                                 const link = document.createElement('a');
                                 link.href = doc.fileUrl;
@@ -709,13 +709,13 @@ export default function Documents() {
                                 document.body.removeChild(link);
                               }}
                             >
-                              <Download className="ml-1 h-3 w-3" />
+                              <Download className="ml-0.5 h-2.5 w-2.5" />
                               تحميل
                             </Button>
                             <Button 
                               size="sm" 
                               variant="destructive" 
-                              className="w-full text-xs"
+                              className="w-full py-1 h-auto text-[10px] leading-tight"
                               onClick={async () => {
                                 if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
                                   try {
@@ -739,7 +739,7 @@ export default function Documents() {
                                 }
                               }}
                             >
-                              <i className="fas fa-trash-alt ml-1"></i>
+                              <i className="fas fa-trash-alt ml-0.5"></i>
                               حذف
                             </Button>
                           </div>
