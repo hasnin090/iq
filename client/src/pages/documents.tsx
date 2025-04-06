@@ -506,306 +506,186 @@ export default function Documents() {
       )}
       
       <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
-        {/* القسم الرئيسي للعرض (الأول في سطح المكتب) */}
-        <div className="md:w-9/12 lg:w-8/12">
-          {/* العنوان والإحصائيات */}
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
-            <div className="flex items-center">
-              <h3 className="text-xl font-bold text-[hsl(var(--primary))]">
-                {activeTab === "manager" ? "مستندات المدراء" : "المستندات"}
-                {activeTab === "manager" && (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2 px-2 py-1">
-                    <Lock className="ml-1 h-3 w-3" />
-                    <span>مقيدة</span>
-                  </Badge>
-                )}
-              </h3>
-            </div>
-            {getActiveDocuments() && (
-              <span className="bg-[hsl(var(--primary))] text-white text-xs rounded-full px-3 py-1">
-                {getActiveDocuments().length} مستند
-              </span>
-            )}
-          </div>
-          
-          {/* خيارات العرض والنتائج */}
-          <div className="space-y-6">
-            {/* عرض الموبايل */}
-            <div className="block md:hidden space-y-4 sm:space-y-6 fade-in">
-              {isActiveTabLoading() ? (
-                <div className="text-center py-10 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
-                  <div className="animate-spin h-10 w-10 mx-auto border-t-2 border-b-2 border-primary rounded-full"></div>
-                  <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل المستندات...</p>
-                </div>
-              ) : getActiveDocuments()?.length === 0 ? (
-                <div className="text-center py-12 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
-                  <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-20" />
-                  <p className="text-[hsl(var(--foreground))] font-medium mt-4">لا توجد مستندات</p>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">قم برفع مستند جديد للبدء</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {getActiveDocuments()?.map((doc: Document) => {
-                    const projectName = projects?.find((p: Project) => p.id === doc.projectId)?.name || 'عام';
-                    return (
-                      <div 
-                        key={doc.id} 
-                        className={`bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl p-5 hover:shadow-md transition-all duration-300 ${doc.isManagerDocument ? 'border-amber-300 bg-amber-50/30' : ''}`}
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="font-semibold text-[hsl(var(--foreground))]">
-                            {doc.name}
-                            {doc.isManagerDocument && (
-                              <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1.5 px-1.5 py-0.5">
-                                <Lock className="ml-0.5 h-2 w-2" />
-                                <span className="text-[10px]">إداري</span>
-                              </Badge>
-                            )}
-                          </h4>
-                          
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${getFileTypeBadgeClasses(doc.fileType)}`}>
-                            {getFileTypeLabel(doc.fileType)}
-                          </span>
-                        </div>
-                        
-                        {doc.description && (
-                          <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3 line-clamp-2">
-                            {doc.description}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center text-[10px] xs:text-xs text-[hsl(var(--muted-foreground))] mb-4">
-                          <div className="flex items-center ml-3">
-                            <i className="fas fa-folder-open ml-1 text-primary"></i>
-                            {projectName}
-                          </div>
-                          <div className="flex items-center">
-                            <i className="fas fa-calendar-alt ml-1 text-primary"></i>
-                            {formatDate(doc.uploadDate)}
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => previewFile(doc)}
-                            className="text-[10px] xs:text-xs h-7 px-2"
-                          >
-                            <Eye className="h-3 w-3 ml-1" />
-                            معاينة
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => downloadFile(doc.fileUrl)}
-                            className="text-[10px] xs:text-xs h-7 px-2"
-                          >
-                            <Download className="h-3 w-3 ml-1" />
-                            تنزيل
-                          </Button>
-                          {user?.role === 'admin' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-[10px] xs:text-xs h-7 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive/90 border-destructive/30"
-                              onClick={() => handleDeleteClick(doc)}
-                            >
-                              <Trash2 className="h-3 w-3 ml-1" />
-                              حذف
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+        {/* جانب الفورم والفلتر (يظهر في البداية على الموبايل وعلى اليمين في سطح المكتب) */}
+        <div className="md:order-2 md:w-1/3 lg:w-1/4 space-y-6 sm:space-y-8">
+        
+        {/* Document Form */}
+        {user?.role !== 'viewer' && (
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
+            <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
+              <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
+              <span>رفع مستند جديد</span>
+              {activeTab === "manager" && (
+                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
+                  <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                  <span className="text-[10px] xs:text-xs">إداري</span>
+                </Badge>
               )}
-            </div>
-            
-            {/* عرض سطح المكتب */}
-            <div className="hidden md:block fade-in">
-              <DocumentList 
-                documents={getActiveDocuments()} 
-                projects={projects || []} 
-                isLoading={isActiveTabLoading() || projectsLoading}
-                onDocumentUpdated={handleDocumentUpdated}
-                isManagerSection={activeTab === "manager"}
-                searchQuery={filter.searchQuery}
-              />
+            </h3>
+            <DocumentForm 
+              projects={projects || []} 
+              onSubmit={handleDocumentUpdated} 
+              isLoading={projectsLoading}
+              isManagerDocument={activeTab === "manager"}
+            />
+          </div>
+        )}
+          
+        {/* Filter */}
+        <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-right">
+            <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center space-x-1 xs:space-x-2 space-x-reverse">
+              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
+              <span>تصفية المستندات</span>
+            </h3>
+
+            <div className="space-y-4">
+              {/* تصفية حسب المشروع */}
+              <div>
+                <Label htmlFor="projectFilter" className="text-sm font-medium text-foreground block mb-1.5">المشروع</Label>
+                <Select 
+                  value={filter.projectId?.toString() || "all"} 
+                  onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
+                >
+                  <SelectTrigger id="projectFilter" className="w-full">
+                    <SelectValue placeholder="كل المشاريع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل المشاريع</SelectItem>
+                    {projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* تصفية حسب نوع الملف */}
+              <div>
+                <Label htmlFor="fileTypeFilter" className="text-sm font-medium text-foreground block mb-1.5">نوع الملف</Label>
+                <Select 
+                  value={filter.fileType || "all"} 
+                  onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
+                >
+                  <SelectTrigger id="fileTypeFilter" className="w-full">
+                    <SelectValue placeholder="كل أنواع الملفات" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل أنواع الملفات</SelectItem>
+                    <SelectItem value="image">صور</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="document">مستندات Word</SelectItem>
+                    <SelectItem value="spreadsheet">جداول Excel</SelectItem>
+                    <SelectItem value="presentation">عروض تقديمية</SelectItem>
+                    <SelectItem value="other">أخرى</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* تصفية حسب التاريخ */}
+              <div className="pb-2">
+                <Label className="text-sm font-medium text-foreground block mb-1.5">تاريخ الرفع</Label>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-between text-[hsl(var(--foreground))]/80 font-normal text-xs pl-3 pr-2 ${filter.dateRange?.from ? 'text-[hsl(var(--foreground))]' : 'text-muted-foreground'}`}
+                      >
+                        {filter.dateRange?.from ? format(filter.dateRange.from, 'yyyy/MM/dd', { locale: ar }) : 'من تاريخ'}
+                        <CalendarIcon className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={filter.dateRange?.from || undefined}
+                        onSelect={(date) => handleFilterChange({ 
+                          dateRange: { 
+                            from: date, 
+                            to: filter.dateRange?.to || null 
+                          } 
+                        })}
+                        initialFocus
+                        locale={ar}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-between text-[hsl(var(--foreground))]/80 font-normal text-xs pl-3 pr-2 ${filter.dateRange?.to ? 'text-[hsl(var(--foreground))]' : 'text-muted-foreground'}`}
+                      >
+                        {filter.dateRange?.to ? format(filter.dateRange.to, 'yyyy/MM/dd', { locale: ar }) : 'إلى تاريخ'}
+                        <CalendarIcon className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={filter.dateRange?.to || undefined}
+                        onSelect={(date) => handleFilterChange({ 
+                          dateRange: { 
+                            from: filter.dateRange?.from || null, 
+                            to: date 
+                          } 
+                        })}
+                        initialFocus
+                        locale={ar}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              {/* البحث النصي */}
+              <div>
+                <Label htmlFor="searchFilter" className="text-sm font-medium text-foreground block mb-1.5">بحث</Label>
+                <div className="relative">
+                  <Input
+                    id="searchFilter"
+                    value={filter.searchQuery || ''}
+                    onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
+                    placeholder="ابحث في المستندات..."
+                    className="pl-8 pr-3"
+                  />
+                  <Search className="h-4 w-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </div>
+              
+              {/* أزرار التحكم */}
+              <div className="pt-2 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFilter({})}
+                  className="text-xs h-8"
+                >
+                  إعادة ضبط الفلاتر
+                </Button>
+              </div>
             </div>
           </div>
         </div>
         
-        {/* الجانب الأيمن (أدوات التحكم) */}
-        <div className="md:w-3/12 lg:w-4/12 space-y-6">
-          {/* نموذج إضافة المستندات */}
-          {user?.role !== 'viewer' && (
-            <Card className="shadow-sm">
-              <CardHeader className="p-4 sm:p-5 bg-[hsl(var(--primary))]/5 border-b border-[hsl(var(--primary))]/10">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                  <i className="fas fa-file-upload"></i>
-                  <span>إضافة مستند جديد</span>
-                  {activeTab === "manager" && (
-                    <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 px-1.5">
-                      <Lock className="ml-0.5 h-2.5 w-2.5" />
-                      <span className="text-[10px]">إداري</span>
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-5">
-                <DocumentForm 
-                  projects={projects || []} 
-                  onSubmit={handleDocumentUpdated} 
-                  isLoading={projectsLoading}
-                  isManagerDocument={activeTab === "manager"}
-                />
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* مربع الفلترة والبحث المدمج */}
-          <Card className="shadow-sm">
-            <CardHeader className="p-4 sm:p-5 bg-[hsl(var(--primary))]/5 border-b border-[hsl(var(--primary))]/10">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <i className="fas fa-filter"></i>
-                <span>بحث وتصفية</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-5">
-              <div className="space-y-4">
-                {/* البحث النصي */}
-                <div>
-                  <Label htmlFor="searchFilter" className="text-sm font-medium block mb-1.5">البحث</Label>
-                  <div className="relative">
-                    <Input
-                      id="searchFilter"
-                      value={filter.searchQuery || ''}
-                      onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
-                      placeholder="ابحث في المستندات..."
-                      className="pl-3 pr-9"
-                    />
-                    <Search className="h-4 w-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-                
-                {/* تصفية حسب المشروع */}
-                <div>
-                  <Label htmlFor="projectFilter" className="text-sm font-medium block mb-1.5">المشروع</Label>
-                  <Select 
-                    value={filter.projectId?.toString() || "all"} 
-                    onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
-                  >
-                    <SelectTrigger id="projectFilter" className="w-full">
-                      <SelectValue placeholder="كل المشاريع" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">كل المشاريع</SelectItem>
-                      {projects?.map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* تصفية حسب نوع الملف */}
-                <div>
-                  <Label htmlFor="fileTypeFilter" className="text-sm font-medium block mb-1.5">نوع الملف</Label>
-                  <Select 
-                    value={filter.fileType || "all"} 
-                    onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
-                  >
-                    <SelectTrigger id="fileTypeFilter" className="w-full">
-                      <SelectValue placeholder="كل أنواع الملفات" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">كل أنواع الملفات</SelectItem>
-                      <SelectItem value="image">صور</SelectItem>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="document">مستندات</SelectItem>
-                      <SelectItem value="spreadsheet">جداول بيانات</SelectItem>
-                      <SelectItem value="presentation">عروض تقديمية</SelectItem>
-                      <SelectItem value="other">أخرى</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* تصفية حسب التاريخ */}
-                <div>
-                  <Label className="text-sm font-medium block mb-1.5">فترة التاريخ</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={`w-full justify-between text-xs ${filter.dateRange?.from ? 'text-foreground' : 'text-muted-foreground'}`}
-                        >
-                          {filter.dateRange?.from ? format(filter.dateRange.from, 'yyyy/MM/dd', { locale: ar }) : 'من'}
-                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={filter.dateRange?.from || undefined}
-                          onSelect={(date) => handleFilterChange({ 
-                            dateRange: { 
-                              from: date, 
-                              to: filter.dateRange?.to || null 
-                            } 
-                          })}
-                          initialFocus
-                          locale={ar}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={`w-full justify-between text-xs ${filter.dateRange?.to ? 'text-foreground' : 'text-muted-foreground'}`}
-                        >
-                          {filter.dateRange?.to ? format(filter.dateRange.to, 'yyyy/MM/dd', { locale: ar }) : 'إلى'}
-                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={filter.dateRange?.to || undefined}
-                          onSelect={(date) => handleFilterChange({ 
-                            dateRange: { 
-                              from: filter.dateRange?.from || null, 
-                              to: date 
-                            } 
-                          })}
-                          initialFocus
-                          locale={ar}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-                
-                {/* زر إعادة ضبط الفلاتر */}
-                <div className="pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setFilter({})}
-                    className="w-full text-xs"
-                  >
-                    <i className="fas fa-redo-alt ml-1"></i>
-                    إعادة ضبط
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* جانب المستندات (يظهر ثانيًا على الموبايل وعلى اليسار في سطح المكتب) */}
+        <div className="md:order-1 md:flex-1 space-y-6 sm:space-y-8">
+          {/* Mobile Document View */}
+          <div className="block md:hidden space-y-4 sm:space-y-6 fade-in">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg sm:text-xl font-bold text-[hsl(var(--primary))]">
+                {activeTab === "manager" ? "مستندات المدراء" : "المستندات"}
+                {activeTab === "manager" && (
+                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1.5 sm:mr-2">
+                    <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                    <span className="text-[10px] xs:text-xs">مقيد</span>
+                  </Badge>
+                )}
+              </h3>
+              {getActiveDocuments() && (
+                <span className="bg-[hsl(var(--primary))] text-white text-[10px] xs:text-xs rounded-full px-2 xs:px-3 py-0.5 xs:py-1">
+                  {getActiveDocuments().length} مستند
                 </span>
               )}
             </div>

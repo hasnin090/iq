@@ -105,8 +105,6 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   
-  const [documentType, setDocumentType] = useState<'project' | 'general'>('general');
-  
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentSchema),
     defaultValues: {
@@ -325,39 +323,6 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
-          {/* نوع المستند */}
-          <div className="mb-4">
-            <FormLabel className="block mb-2">نوع المستند</FormLabel>
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant={documentType === 'general' ? 'default' : 'outline'}
-                onClick={() => {
-                  setDocumentType('general');
-                  form.setValue("projectId", "all");
-                }}
-                className="flex-1"
-                disabled={isLoading || mutation.isPending}
-              >
-                <i className="fas fa-file-alt ml-2"></i>
-                مستند عام
-              </Button>
-              <Button
-                type="button"
-                variant={documentType === 'project' ? 'default' : 'outline'}
-                onClick={() => {
-                  setDocumentType('project');
-                  // اختياريًا: يمكن تعيين قيمة افتراضية للمشروع هنا إذا لزم الأمر
-                }}
-                className="flex-1"
-                disabled={isLoading || mutation.isPending}
-              >
-                <i className="fas fa-project-diagram ml-2"></i>
-                مستند مشروع
-              </Button>
-            </div>
-          </div>
-        
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -378,37 +343,35 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
               )}
             />
             
-            {/* إظهار حقل المشروع فقط إذا كان نوع المستند 'project' */}
-            {documentType === 'project' && (
-              <FormField
-                control={form.control}
-                name="projectId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>المشروع</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value} 
-                      disabled={isLoading || mutation.isPending}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full px-4 py-2 h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light">
-                          <SelectValue placeholder="اختر المشروع" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id.toString()}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="projectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>المشروع</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value} 
+                    disabled={isLoading || mutation.isPending}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full px-4 py-2 h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light">
+                        <SelectValue placeholder="اختر المشروع" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="all">عام</SelectItem>
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id.toString()}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
           
           <FormField
