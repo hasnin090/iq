@@ -113,26 +113,28 @@ export default function Transactions() {
         </div>
       )}
       
-      {/* تبويبات العمليات المالية - الآن تأخذ عرض الصفحة بالكامل */}
+      {/* تبويبات العمليات المالية - تم تحسين التنسيق */}
       <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
         <Tabs defaultValue={defaultTab} onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}>
-          <div className="flex justify-between items-center mb-5">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
             <h3 className="text-xl font-bold text-[hsl(var(--primary))] flex items-center space-x-2 space-x-reverse">
               <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
               <span>العمليات المالية</span>
             </h3>
-            <div className="mr-auto">
+            <div className="w-full md:w-auto">
               {/* استخدام قائمة منسدلة لاختيار نوع العمليات المالية */}
               <Select 
                 defaultValue={defaultTab}
                 onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}
               >
-                <SelectTrigger className="w-56 h-10 rounded-lg border border-slate-200 bg-white shadow-sm">
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    {activeTab === 'all' && <Filter className="h-4 w-4 text-slate-500 ml-2" />}
-                    {activeTab === 'admin' && <ArrowUp className="h-4 w-4 text-blue-500 ml-2" />}
-                    {activeTab === 'projects' && <ArrowDown className="h-4 w-4 text-green-500 ml-2" />}
-                    <SelectValue placeholder="اختر نوع العمليات" className="text-sm font-medium" />
+                <SelectTrigger className="w-full md:w-56 h-10 rounded-lg border border-slate-200 bg-white shadow-sm">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      {activeTab === 'all' && <Filter className="h-4 w-4 text-slate-500" />}
+                      {activeTab === 'admin' && <ArrowUp className="h-4 w-4 text-blue-500" />}
+                      {activeTab === 'projects' && <ArrowDown className="h-4 w-4 text-green-500" />}
+                      <SelectValue placeholder="اختر نوع العمليات" className="text-sm font-medium" />
+                    </div>
                   </div>
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-slate-200 shadow-md rounded-lg">
@@ -143,7 +145,7 @@ export default function Transactions() {
                       className="hover:bg-slate-50 transition-colors py-2.5"
                     >
                       <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 ml-2 text-slate-500" />
+                        <Filter className="h-4 w-4 text-slate-500 ml-2" />
                         <span className="font-medium">جميع العمليات المالية</span>
                       </div>
                     </SelectItem>
@@ -156,7 +158,7 @@ export default function Transactions() {
                       className="hover:bg-blue-50 transition-colors py-2.5"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowUp className="h-4 w-4 ml-2 text-blue-500" />
+                        <ArrowUp className="h-4 w-4 text-blue-500 ml-2" />
                         <span className="font-medium text-blue-700">عمليات الصندوق الرئيسي</span>
                       </div>
                     </SelectItem>
@@ -168,7 +170,7 @@ export default function Transactions() {
                     className="hover:bg-green-50 transition-colors py-2.5"
                   >
                     <div className="flex items-center gap-2">
-                      <ArrowDown className="h-4 w-4 ml-2 text-green-500" />
+                      <ArrowDown className="h-4 w-4 text-green-500 ml-2" />
                       <span className="font-medium text-green-700">عمليات المشاريع</span>
                     </div>
                   </SelectItem>
@@ -177,15 +179,15 @@ export default function Transactions() {
             </div>
           </div>
           
-          {/* Filters and Controls */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 mb-2">
-            <h3 className="text-lg font-bold text-[hsl(var(--primary))] flex items-center space-x-2 space-x-reverse">
+          {/* Filters and Controls - تم تحسين التنسيق */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-100 dark:border-slate-700">
+            <h3 className="text-lg font-bold text-[hsl(var(--primary))] flex items-center gap-2">
               <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
               <span>تصفية المعاملات</span>
             </h3>
-            <div className="flex gap-3">
+            <div className="flex gap-2 mt-2 md:mt-0 w-full md:w-auto">
               <button 
-                className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center space-x-2 space-x-reverse ${
+                className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center justify-center gap-2 ${
                   currentView === 'cards' 
                     ? 'bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))]' 
                     : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border))] hover:border-[hsl(var(--primary))]'
@@ -196,7 +198,7 @@ export default function Transactions() {
                 <span>بطاقات</span>
               </button>
               <button 
-                className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center space-x-2 space-x-reverse ${
+                className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center justify-center gap-2 ${
                   currentView === 'table' 
                     ? 'bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))]' 
                     : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border))] hover:border-[hsl(var(--primary))]'
@@ -209,37 +211,45 @@ export default function Transactions() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-            {/* إظهار تصفية المشاريع فقط في تبويب "الكل" أو "المشاريع" */}
-            {activeTab !== 'admin' && (
-              <div>
-                <label className="block text-sm font-medium mb-2" htmlFor="filterProject">تصفية حسب المشروع</label>
+          <div className="p-4 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-sm mt-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* إظهار تصفية المشاريع فقط في تبويب "الكل" أو "المشاريع" */}
+              {activeTab !== 'admin' && (
+                <div className="p-2">
+                  <label className="block text-sm font-medium mb-2 text-[hsl(var(--foreground))]" htmlFor="filterProject">
+                    <i className="fas fa-project-diagram ml-1.5 text-blue-500 dark:text-blue-400"></i>
+                    تصفية حسب المشروع
+                  </label>
+                  <select 
+                    id="filterProject" 
+                    className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none shadow-sm"
+                    onChange={(e) => handleFilterChange({ projectId: e.target.value ? parseInt(e.target.value) : undefined })}
+                    value={filter.projectId || ''}
+                  >
+                    <option value="">كل المشاريع</option>
+                    {projects?.map((project: Project) => (
+                      <option key={project.id} value={project.id}>{project.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              <div className="p-2">
+                <label className="block text-sm font-medium mb-2 text-[hsl(var(--foreground))]" htmlFor="filterType">
+                  <i className="fas fa-tag ml-1.5 text-green-500 dark:text-green-400"></i>
+                  تصفية حسب نوع العملية
+                </label>
                 <select 
-                  id="filterProject" 
-                  className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none"
-                  onChange={(e) => handleFilterChange({ projectId: e.target.value ? parseInt(e.target.value) : undefined })}
-                  value={filter.projectId || ''}
+                  id="filterType" 
+                  className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none shadow-sm"
+                  onChange={(e) => handleFilterChange({ type: e.target.value || undefined })}
+                  value={filter.type || ''}
                 >
-                  <option value="">كل المشاريع</option>
-                  {projects?.map((project: Project) => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
-                  ))}
+                  <option value="">كل العمليات</option>
+                  <option value="income">إيرادات</option>
+                  <option value="expense">مصروفات</option>
                 </select>
               </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium mb-2" htmlFor="filterType">تصفية حسب نوع العملية</label>
-              <select 
-                id="filterType" 
-                className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none"
-                onChange={(e) => handleFilterChange({ type: e.target.value || undefined })}
-                value={filter.type || ''}
-              >
-                <option value="">كل العمليات</option>
-                <option value="income">إيرادات</option>
-                <option value="expense">مصروفات</option>
-              </select>
             </div>
           </div>
           
