@@ -50,9 +50,9 @@ export default function Users() {
   return (
     <div className="py-4 sm:py-6 px-3 sm:px-4 pb-mobile-nav-large">
       <div className="mb-6 sm:mb-8">
-        <div className="bg-gradient-to-l from-blue-600 to-blue-700 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg shadow-lg mb-6">
+        <div className="bg-gradient-to-l from-[hsl(var(--primary))] to-[hsl(var(--primary))/90] text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg shadow-md sm:shadow-lg mb-6 dark:from-[hsl(var(--primary))/90] dark:to-[hsl(var(--primary))/70]">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">إدارة المستخدمين</h2>
-          <p className="text-blue-100 mt-1 sm:mt-2 text-sm sm:text-base">إدارة حسابات المستخدمين والصلاحيات</p>
+          <p className="text-white/80 mt-1 sm:mt-2 text-sm sm:text-base">إدارة حسابات المستخدمين والصلاحيات</p>
         </div>
       </div>
       
@@ -65,9 +65,9 @@ export default function Users() {
         {/* User List - في الأسفل */}
         <div className="w-full mt-4 sm:mt-6">
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] sm:border-2 p-4 sm:p-6 rounded-xl shadow-md sm:shadow-lg fade-in">
-            <h3 className="text-base sm:text-lg md:text-xl font-bold text-[hsl(var(--primary))] mb-4 sm:mb-5 flex items-center space-x-2 space-x-reverse bg-blue-50 dark:bg-blue-900/30 p-2 sm:p-3 rounded-lg">
-              <i className="fas fa-users text-blue-600 dark:text-blue-400 text-lg sm:text-xl"></i>
-              <span className="text-blue-700 dark:text-blue-300">قائمة المستخدمين</span>
+            <h3 className="text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-5 flex items-center space-x-2 space-x-reverse bg-[hsl(var(--primary))/10] dark:bg-[hsl(var(--primary))/20] p-2 sm:p-3 rounded-lg">
+              <i className="fas fa-users text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))/80] text-lg sm:text-xl"></i>
+              <span className="text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))/90]">قائمة المستخدمين</span>
             </h3>
             <UserList 
               users={users || []} 
