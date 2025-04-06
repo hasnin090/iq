@@ -162,16 +162,7 @@ export function Sidebar() {
                 <p className="text-xs text-blue-500/80 dark:text-blue-400/80 mt-0.5 hidden sm:inline-block">الإصدار 1.0.2</p>
               </div>
             </div>
-            <div className="md:hidden">
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="sidebar-toggle-button text-[hsl(var(--primary))] hover:text-white w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center transform transition-all duration-300 hover:scale-110 hover:bg-[hsl(var(--primary))] active:scale-95 shadow-md hover:shadow-lg touch-target relative group overflow-hidden"
-                aria-label="إغلاق القائمة"
-              >
-                <i className="fas fa-times text-lg relative z-10"></i>
-                <span className="absolute inset-0 rounded-full bg-blue-200/30 dark:bg-blue-400/20 transform scale-0 transition-transform duration-500 ease-out group-hover:scale-[1.2]"></span>
-              </button>
-            </div>
+            {/* تم حذف زر إغلاق القائمة المتنقلة بناءً على طلب المستخدم */}
           </div>
           
           {/* User profile card */}
