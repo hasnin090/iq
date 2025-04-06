@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DocumentForm } from '@/components/document-form';
-import { DocumentList } from '@/components/document-list';
+import { DocumentList } from '@/components/document/document-list';
 import { queryClient } from '@/lib/queryClient';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -25,15 +25,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { addDays, format, getYear } from "date-fns";
+import { format, addDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
   Calendar
 } from "@/components/ui/calendar";
-import { getFileType } from "@/lib/firebase-storage";
-import { getFileTypeLabel, getFileTypeIcon, getFileTypeBadgeClasses } from "@/lib/file-helpers";
-import { ImageViewer } from '@/components/image-viewer';
-import { ImageLightbox } from '@/components/image-lightbox';
+import { getMainFileType, getFileTypeIconName, getFileTypeLabel, getFileTypeBadgeClasses } from "@/utils/file-utils";
+import { EmptyState, SectionHeader, LoadingState } from '@/components/common';
+import type { Document, Project } from '@/types';
 
 interface Filter {
   projectId?: number;
@@ -85,22 +84,7 @@ export default function Documents() {
     enabled: isManagerOrAdmin // تفعيل هذا الاستعلام فقط للمديرين
   });
   
-  interface Project {
-    id: number;
-    name: string;
-  }
-  
-  interface Document {
-    id: number;
-    name: string;
-    description?: string;
-    fileUrl: string;
-    fileType: string;
-    uploadDate: string;
-    projectId?: number;
-    uploadedBy: number;
-    isManagerDocument?: boolean;
-  }
+  // استخدام الأنواع من ملف الأنواع المشتركة
 
   interface Transaction {
     id: number;
@@ -150,7 +134,7 @@ export default function Documents() {
     // فلترة حسب نوع الملف
     if (filter.fileType) {
       activeDocuments = activeDocuments.filter(doc => {
-        const type = getFileType(doc.fileType);
+        const type = getMainFileType(doc.fileType);
         return type === filter.fileType;
       });
     }
@@ -674,7 +658,7 @@ export default function Documents() {
                                             <div className="flex justify-between items-start mb-1.5 sm:mb-2">
                                               <div className="overflow-hidden">
                                                 <h4 className="font-medium text-xs sm:text-sm flex flex-wrap items-center">
-                                                  {getFileTypeIcon(transaction.fileType || '')}
+                                                  {getFileTypeIconName(transaction.fileType || '')}
                                                   <span className="mr-1">
                                                     {new Date(transaction.date).toLocaleDateString('ar-SA')}
                                                   </span>
@@ -1003,7 +987,7 @@ export default function Documents() {
                           )}
                         </h4>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${getFileTypeBadgeClasses(doc.fileType)}`}>
-                          {getFileTypeIcon(doc.fileType)}
+                          {getFileTypeIconName(doc.fileType)}
                           <span className="mr-1">{getFileTypeLabel(doc.fileType)}</span>
                         </span>
                       </div>
