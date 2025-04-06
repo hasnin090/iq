@@ -104,18 +104,20 @@ function AppRoutes() {
         <div className={`${isMobile ? 'h-20' : 'h-20'}`}></div>
         
         {/* المحتوى الرئيسي */}
-        <div className="main-content-container fade-in px-4 sm:px-6 md:px-8 py-4 max-w-[1800px] mx-auto pb-mobile-nav">
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/transactions" component={Transactions} />
-            <Route path="/projects" component={Projects} />
-            <Route path="/users" component={Users} />
-            <Route path="/documents" component={Documents} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/activities" component={Activities} />
-            <Route path="/settings" component={Settings} />
-            <Route component={NotFound} />
-          </Switch>
+        <div className="main-content-container fade-in px-3 sm:px-4 md:px-5 lg:px-6 py-3 max-w-[1400px] mx-auto pb-mobile-nav w-full">
+          <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/transactions" component={Transactions} />
+              <Route path="/projects" component={Projects} />
+              <Route path="/users" component={Users} />
+              <Route path="/documents" component={Documents} />
+              <Route path="/reports" component={Reports} />
+              <Route path="/activities" component={Activities} />
+              <Route path="/settings" component={Settings} />
+              <Route component={NotFound} />
+            </Switch>
+          </div>
         </div>
         
         {/* لم نعد بحاجة إلى مساحة إضافية هنا بسبب استخدام pb-mobile-nav */}
