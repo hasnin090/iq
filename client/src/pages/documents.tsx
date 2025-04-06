@@ -277,7 +277,7 @@ export default function Documents() {
                         <SelectValue placeholder="كل المشاريع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">كل المشاريع</SelectItem>
+                        <SelectItem value="">كل المشاريع</SelectItem>
                         {!projectsLoading && projects?.map((project: Project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
@@ -297,12 +297,12 @@ export default function Documents() {
                         <SelectValue placeholder="كل الأنواع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">كل الأنواع</SelectItem>
+                        <SelectItem value="">كل الأنواع</SelectItem>
                         <SelectItem value="image">صور</SelectItem>
                         <SelectItem value="pdf">PDF</SelectItem>
-                        <SelectItem value="word">Word</SelectItem>
-                        <SelectItem value="excel">Excel</SelectItem>
-                        <SelectItem value="powerpoint">PowerPoint</SelectItem>
+                        <SelectItem value="document">مستندات</SelectItem>
+                        <SelectItem value="spreadsheet">جداول بيانات</SelectItem>
+                        <SelectItem value="presentation">عروض تقديمية</SelectItem>
                         <SelectItem value="other">أخرى</SelectItem>
                       </SelectContent>
                     </Select>
@@ -356,24 +356,26 @@ export default function Documents() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleFilterChange({ dateRange: undefined })}
-                            className="text-xs"
+                            className="text-xs sm:text-sm"
                           >
-                            إلغاء التاريخ
+                            إعادة ضبط
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="default"
                             size="sm"
-                            onClick={() => 
+                            onClick={() => {
+                              const today = new Date();
+                              const nextWeek = addDays(today, 7);
                               handleFilterChange({
                                 dateRange: {
-                                  from: new Date(),
-                                  to: addDays(new Date(), 30)
-                                }
-                              })
-                            }
-                            className="text-xs"
+                                  from: today,
+                                  to: nextWeek,
+                                },
+                              });
+                            }}
+                            className="text-xs sm:text-sm"
                           >
-                            الشهر القادم
+                            آخر أسبوع
                           </Button>
                         </div>
                       </PopoverContent>
@@ -382,34 +384,154 @@ export default function Documents() {
                 </div>
               </div>
             </div>
-            
-            {/* عرض المستندات */}
+
+            {/* قسم العرض */}
             <div className="space-y-6 sm:space-y-8">
-              {/* عرض المستندات للجوال */}
-              <div className="md:hidden fade-in">
-                <h3 className="text-lg xs:text-xl font-bold text-[hsl(var(--primary))] mb-3 xs:mb-4 flex items-center">
-                  <FileText className="ml-2 h-4 w-4 xs:h-5 xs:w-5" />
-                  المستندات العامة
-                </h3>
-                <DocumentList
-                  documents={getActiveDocuments()}
-                  projects={projects || []}
-                  isLoading={isActiveTabLoading() || projectsLoading}
-                  onDocumentUpdated={handleDocumentUpdated}
-                />
+              {/* عرض المستندات - نسخة الجوال */}
+              <div className="block md:hidden">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-[hsl(var(--primary))]">المستندات العامة</h3>
+                  {getActiveDocuments() && (
+                    <Badge className="bg-[hsl(var(--primary))] px-2 py-0.5 text-white">
+                      {getActiveDocuments().length} مستند
+                    </Badge>
+                  )}
+                </div>
+                
+                {isActiveTabLoading() ? (
+                  <div className="text-center py-10 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                    <div className="spinner w-10 h-10 mx-auto"></div>
+                    <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل المستندات...</p>
+                  </div>
+                ) : getActiveDocuments()?.length === 0 ? (
+                  <div className="text-center py-12 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                    <div className="text-5xl mb-4 opacity-20">📁</div>
+                    <p className="text-[hsl(var(--foreground))] font-medium">لا توجد مستندات</p>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">قم برفع مستند جديد للبدء</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {getActiveDocuments()?.map((doc: Document) => {
+                      const projectName = projects?.find((p: Project) => p.id === doc.projectId)?.name || 'عام';
+                      return (
+                        <div
+                          key={doc.id}
+                          className={`p-4 rounded-lg border shadow-sm hover:shadow transition-shadow ${doc.isManagerDocument ? 'bg-amber-50 border-amber-200' : 'bg-card border-border'}`}
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <h4 className="font-medium text-base">
+                              {doc.name}
+                              {doc.isManagerDocument && (
+                                <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-300">
+                                  <Lock className="h-3 w-3 mr-1" />
+                                  <span className="text-xs">إداري</span>
+                                </Badge>
+                              )}
+                            </h4>
+                            
+                            <Badge className={getFileTypeBadgeClasses(doc.fileType)}>
+                              {getFileTypeIconName(doc.fileType)}
+                              <span className="mr-1">{getFileTypeLabel(doc.fileType)}</span>
+                            </Badge>
+                          </div>
+                          
+                          {doc.description && (
+                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{doc.description}</p>
+                          )}
+                          
+                          <div className="flex items-center text-xs text-muted-foreground space-x-3 space-x-reverse mb-3">
+                            <span className="flex items-center">
+                              <i className="fas fa-folder-open ml-1"></i>
+                              {projectName}
+                            </span>
+                            <span className="flex items-center">
+                              <i className="fas fa-calendar-alt ml-1"></i>
+                              {new Date(doc.uploadDate).toLocaleDateString('ar-SA')}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-end space-x-2 space-x-reverse">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-xs"
+                              onClick={() => window.open(doc.fileUrl, '_blank')}
+                            >
+                              <Eye className="ml-1 h-3 w-3" />
+                              عرض
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-xs"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = doc.fileUrl;
+                                link.download = doc.name;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                            >
+                              <Download className="ml-1 h-3 w-3" />
+                              تحميل
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              className="text-xs"
+                              onClick={async () => {
+                                if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
+                                  try {
+                                    // أولاً محاولة حذف الملف من Firebase Storage
+                                    try {
+                                      const { deleteFile } = await import('@/lib/firebase-storage');
+                                      if (doc.fileUrl) {
+                                        await deleteFile(doc.fileUrl);
+                                      }
+                                    } catch (error) {
+                                      console.error("فشل في حذف الملف من التخزين:", error);
+                                    }
+                                    
+                                    // ثم حذف السجل من قاعدة البيانات
+                                    await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
+                                    handleDocumentUpdated();
+                                  } catch (error) {
+                                    alert('حدث خطأ أثناء حذف المستند. يرجى المحاولة مرة أخرى.');
+                                    console.error(error);
+                                  }
+                                }
+                              }}
+                            >
+                              <i className="fas fa-trash-alt ml-1"></i>
+                              حذف
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               
-              {/* عرض المستندات للديسكتوب */}
-              <div className="hidden md:block fade-in">
-                <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-6 flex items-center">
-                  <FileText className="ml-2 h-5 w-5" />
-                  المستندات العامة 
-                </h3>
-                <DocumentList
-                  documents={getActiveDocuments()}
-                  projects={projects || []}
+              {/* عرض المستندات - نسخة سطح المكتب */}
+              <div className="hidden md:block">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-[hsl(var(--primary))]">المستندات العامة</h3>
+                  {getActiveDocuments() && (
+                    <Badge className="bg-[hsl(var(--primary))] px-2 py-0.5 text-white">
+                      {getActiveDocuments().length} مستند
+                    </Badge>
+                  )}
+                </div>
+                
+                <DocumentList 
+                  documents={getActiveDocuments()} 
+                  projects={projects || []} 
                   isLoading={isActiveTabLoading() || projectsLoading}
                   onDocumentUpdated={handleDocumentUpdated}
+                  isManagerSection={false}
+                  searchQuery={filter.searchQuery}
                 />
               </div>
             </div>
@@ -417,141 +539,199 @@ export default function Documents() {
         </TabsContent>
         
         <TabsContent value="manager" className="p-0">
-          {/* المدراء مستندات محتوى */}
-          {!isManagerOrAdmin && (
-            <Card className="border-destructive shadow-md">
-              <CardHeader className="bg-destructive/10">
-                <CardTitle className="flex items-center text-destructive">
-                  <ShieldAlert className="ml-2 h-5 w-5" />
-                  منطقة مقيدة
-                </CardTitle>
-                <CardDescription>
-                  هذا القسم مخصص للمدراء والمشرفين فقط
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground mb-3">
-                  لا تملك الصلاحيات الكافية للوصول إلى هذا المحتوى
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {/* مستندات المدراء */}
           {isManagerOrAdmin && (
             <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
-              <Card className="mb-4 border-amber-200 dark:border-amber-700 shadow-md">
-                <CardHeader className="bg-amber-50 dark:bg-amber-950/20">
-                  <CardTitle className="flex items-center text-amber-800 dark:text-amber-300">
-                    <Lock className="ml-2 h-5 w-5" />
-                    مستندات المدراء الخاصة
-                  </CardTitle>
-                  <CardDescription className="text-amber-700 dark:text-amber-400/80">
-                    هذا القسم مخصص للمستندات الإدارية السرية والحساسة
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4 pb-2">
-                  <div className="bg-amber-50/50 dark:bg-amber-950/10 p-4 rounded-lg border border-amber-100 dark:border-amber-800/30 mb-4">
-                    <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-                      المستندات المرفوعة هنا ستكون مرئية فقط للمدراء والمشرفين. استخدم هذا القسم للمستندات الحساسة مثل:
-                    </p>
-                    <ul className="mt-2 space-y-1.5 text-amber-700 dark:text-amber-300 list-disc pr-5 text-sm">
-                      <li>عقود العمل</li>
-                      <li>الميزانيات التفصيلية</li>
-                      <li>تقارير الأداء</li>
-                      <li>الخطط الاستراتيجية</li>
-                      <li>المستندات المالية الداخلية</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* نموذج رفع مستندات المدراء */}
-              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
-                <h3 className="text-base xs:text-lg sm:text-xl font-bold text-amber-800 dark:text-amber-300 mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
-                  <i className="fas fa-file-upload text-amber-700 dark:text-amber-400"></i>
-                  <span>رفع مستند إداري جديد</span>
-                  <Badge variant="secondary" className="mr-2 text-[0.65rem] bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800/30">
-                    للمدراء فقط
-                  </Badge>
-                </h3>
-                <DocumentForm 
-                  projects={projects || []} 
-                  onSubmit={handleDocumentUpdated} 
-                  isLoading={projectsLoading}
-                  isManagerDocument={true}
-                />
-              </div>
-              
-              {/* قسم الفلترة */}
-              <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
-                <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
-                  <Filter className="h-4 w-4 xs:h-5 xs:w-5 text-[hsl(var(--primary))]" />
-                  <span>فلترة المستندات الإدارية</span>
-                </h3>
-                
-                <div className="flex flex-wrap gap-2 xs:gap-3 sm:gap-4 items-end">
-                  <div className="flex-1 min-w-[140px]">
-                    <Label htmlFor="managerSearchQuery" className="text-xs xs:text-sm mb-1 block">بحث عن مستند</Label>
-                    <div className="relative">
-                      <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                      <Input
-                        id="managerSearchQuery"
-                        placeholder="اسم المستند أو الوصف..."
-                        value={filter.searchQuery || ''}
-                        onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
-                        className="pl-2 pr-8 h-8 text-xs sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="w-full xs:w-auto">
-                    <Label htmlFor="managerProjectFilter" className="text-xs xs:text-sm mb-1 block">المشروع</Label>
-                    <Select
-                      value={filter.projectId?.toString() || ''}
-                      onValueChange={(value) => handleFilterChange({ projectId: value ? parseInt(value) : undefined })}
-                    >
-                      <SelectTrigger id="managerProjectFilter" className="w-full xs:w-[140px] h-8 text-xs sm:text-sm">
-                        <SelectValue placeholder="كل المشاريع" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">كل المشاريع</SelectItem>
-                        {!projectsLoading && projects?.map((project: Project) => (
-                          <SelectItem key={project.id} value={project.id.toString()}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              
-              {/* عرض المستندات */}
+              {/* قسم الفلتر والفورم */}
               <div className="space-y-6 sm:space-y-8">
-                {/* عرض المستندات للجوال */}
-                <div className="md:hidden fade-in">
-                  <h3 className="text-lg xs:text-xl font-bold text-amber-800 dark:text-amber-300 mb-3 xs:mb-4 flex items-center">
-                    <Lock className="ml-2 h-4 w-4 xs:h-5 xs:w-5" />
-                    المستندات الإدارية
+                {/* نموذج رفع مستند إداري */}
+                <div className="bg-amber-50 border border-amber-200 p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-left">
+                  <h3 className="text-base xs:text-lg sm:text-xl font-bold text-amber-800 mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
+                    <i className="fas fa-file-upload text-amber-600"></i>
+                    <span>رفع مستند إداري جديد</span>
+                    <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
+                      <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                      <span className="text-[10px] xs:text-xs">مقيّد</span>
+                    </Badge>
                   </h3>
-                  <DocumentList
-                    documents={getActiveDocuments()}
-                    projects={projects || []}
-                    isLoading={isActiveTabLoading() || projectsLoading}
-                    onDocumentUpdated={handleDocumentUpdated}
+                  <div className="mb-4 bg-amber-100 border-r-4 border-amber-500 p-3 rounded-tr rounded-br text-xs sm:text-sm text-amber-800">
+                    <AlertCircle className="inline-flex ml-1.5 h-4 w-4" />
+                    المستندات الإدارية مرئية فقط للمدراء والمسؤولين. استخدم هذا القسم لتخزين المستندات السرية والحساسة.
+                  </div>
+                  <DocumentForm 
+                    projects={projects || []} 
+                    onSubmit={handleDocumentUpdated} 
+                    isLoading={projectsLoading}
+                    isManagerDocument={true}
                   />
                 </div>
                 
-                {/* عرض المستندات للديسكتوب */}
-                <div className="hidden md:block fade-in">
-                  <h3 className="text-xl font-bold text-amber-800 dark:text-amber-300 mb-6 flex items-center">
-                    <Lock className="ml-2 h-5 w-5" />
-                    المستندات الإدارية
+                {/* قسم الفلترة */}
+                <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-right">
+                  <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
+                    <Filter className="h-4 w-4 xs:h-5 xs:w-5 text-[hsl(var(--primary))]" />
+                    <span>فلترة المستندات الإدارية</span>
                   </h3>
-                  <DocumentList
-                    documents={getActiveDocuments()}
-                    projects={projects || []}
+                  
+                  <div className="flex flex-wrap gap-2 xs:gap-3 sm:gap-4 items-end">
+                    <div className="flex-1 min-w-[140px]">
+                      <Label htmlFor="searchQuery" className="text-xs xs:text-sm mb-1 block">بحث عن مستند</Label>
+                      <div className="relative">
+                        <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                        <Input
+                          id="searchQuery"
+                          placeholder="اسم المستند أو الوصف..."
+                          value={filter.searchQuery || ''}
+                          onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
+                          className="pl-2 pr-8 h-8 text-xs sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="w-full xs:w-auto">
+                      <Label htmlFor="projectFilter" className="text-xs xs:text-sm mb-1 block">المشروع</Label>
+                      <Select
+                        value={filter.projectId?.toString() || ''}
+                        onValueChange={(value) => handleFilterChange({ projectId: value ? parseInt(value) : undefined })}
+                      >
+                        <SelectTrigger id="projectFilter" className="w-full xs:w-[140px] h-8 text-xs sm:text-sm">
+                          <SelectValue placeholder="كل المشاريع" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">كل المشاريع</SelectItem>
+                          {!projectsLoading && projects?.map((project: Project) => (
+                            <SelectItem key={project.id} value={project.id.toString()}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="w-full xs:w-auto">
+                      <Label htmlFor="typeFilter" className="text-xs xs:text-sm mb-1 block">نوع الملف</Label>
+                      <Select
+                        value={filter.fileType || ''}
+                        onValueChange={(value) => handleFilterChange({ fileType: value || undefined })}
+                      >
+                        <SelectTrigger id="typeFilter" className="w-full xs:w-[140px] h-8 text-xs sm:text-sm">
+                          <SelectValue placeholder="كل الأنواع" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">كل الأنواع</SelectItem>
+                          <SelectItem value="image">صور</SelectItem>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="document">مستندات</SelectItem>
+                          <SelectItem value="spreadsheet">جداول بيانات</SelectItem>
+                          <SelectItem value="presentation">عروض تقديمية</SelectItem>
+                          <SelectItem value="other">أخرى</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="w-full xs:w-auto mb-0 sm:mb-0">
+                      <Label className="text-xs xs:text-sm mb-1 block">تاريخ الرفع</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full xs:w-[200px] justify-start text-right h-8 text-xs sm:text-sm font-normal"
+                          >
+                            <CalendarIcon className="ml-2 h-3.5 w-3.5" />
+                            {filter.dateRange?.from ? (
+                              filter.dateRange.to ? (
+                                <>
+                                  من {format(filter.dateRange.from, "PPP", { locale: ar })}
+                                  <br />
+                                  إلى {format(filter.dateRange.to, "PPP", { locale: ar })}
+                                </>
+                              ) : (
+                                format(filter.dateRange.from, "PPP", { locale: ar })
+                              )
+                            ) : (
+                              "اختر التاريخ..."
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            selected={{
+                              from: filter.dateRange?.from || undefined,
+                              to: filter.dateRange?.to || undefined,
+                            }}
+                            onSelect={(range) =>
+                              handleFilterChange({
+                                dateRange: {
+                                  from: range?.from,
+                                  to: range?.to,
+                                },
+                              })
+                            }
+                            locale={ar}
+                            className="p-2"
+                          />
+                          <div className="flex border-t border-border p-2 justify-between">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleFilterChange({ dateRange: undefined })}
+                              className="text-xs sm:text-sm"
+                            >
+                              إعادة ضبط
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => {
+                                const today = new Date();
+                                const nextWeek = addDays(today, 7);
+                                handleFilterChange({
+                                  dateRange: {
+                                    from: today,
+                                    to: nextWeek,
+                                  },
+                                });
+                              }}
+                              className="text-xs sm:text-sm"
+                            >
+                              آخر أسبوع
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* قسم العرض */}
+              <div className="space-y-6 sm:space-y-8">
+                {/* عرض المستندات */}
+                <div className="block">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-amber-700 flex items-center space-x-2 space-x-reverse">
+                      <Lock className="ml-1.5 h-4 w-4" />
+                      <span>مستندات المدراء</span>
+                      <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2">
+                        منطقة مقيدة
+                      </Badge>
+                    </h3>
+                    {managerDocuments && (
+                      <Badge className="bg-amber-600 px-2 py-0.5 text-white">
+                        {managerDocuments.length} مستند
+                      </Badge>
+                    )}
+                  </div>
+
+                  <DocumentList 
+                    documents={getActiveDocuments()} 
+                    projects={projects || []} 
                     isLoading={isActiveTabLoading() || projectsLoading}
                     onDocumentUpdated={handleDocumentUpdated}
+                    isManagerSection={true}
+                    searchQuery={filter.searchQuery}
                   />
                 </div>
               </div>
@@ -560,681 +740,107 @@ export default function Documents() {
         </TabsContent>
         
         <TabsContent value="attachments" className="p-0">
-          {/* محتوى مرفقات المعاملات */}
-          <Card className="mb-6">
-            <CardHeader className="bg-primary/5">
-              <CardTitle className="flex items-center">
-                <FileImage className="ml-2 h-5 w-5 text-primary" />
+          {/* مرفقات المعاملات */}
+          <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+            {/* عنوان القسم */}
+            <div className="bg-[hsl(var(--primary))] text-white p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm mb-2 slide-in-right">
+              <h3 className="text-base xs:text-lg sm:text-xl font-bold mb-1 sm:mb-2 flex items-center">
+                <FileImage className="ml-2 h-5 w-5" />
                 مرفقات المعاملات المالية
-              </CardTitle>
-              <CardDescription>
-                عرض الملفات المرفقة بالمعاملات المالية المختلفة حسب المشروع
-              </CardDescription>
-            </CardHeader>
-          </Card>
-          
-          {transactionsLoading ? (
-            <div className="text-center py-20">
-              <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">جاري تحميل مرفقات المعاملات...</p>
-            </div>
-          ) : !transactionsWithAttachments || transactionsWithAttachments.length === 0 ? (
-            <div className="text-center py-20 bg-secondary/10 rounded-lg">
-              <FileImage className="h-16 w-16 mx-auto text-muted-foreground opacity-20" />
-              <p className="text-muted-foreground mt-4">لا توجد معاملات بمرفقات حتى الآن</p>
-              <p className="text-sm text-muted-foreground mt-2">يمكنك إضافة مرفقات للمعاملات من خلال نموذج المعاملات</p>
-            </div>
-          ) : (
-            <div>
-              {/* تجميع المعاملات حسب المشروع والسنة */}
-              {(() => {
-                // تنظيم المعاملات حسب المشروع
-                const attachmentsByProject: Record<string, Transaction[]> = {};
-                const projectYears: Record<string, Set<number>> = {};
-                
-                transactionsWithAttachments.forEach(transaction => {
-                  const projectId = transaction.projectId || 0;
-                  const projectKey = `project-${projectId}`;
-                  const transactionYear = new Date(transaction.date).getFullYear();
-                  
-                  if (!attachmentsByProject[projectKey]) {
-                    attachmentsByProject[projectKey] = [];
-                  }
-                  
-                  if (!projectYears[projectKey]) {
-                    projectYears[projectKey] = new Set<number>();
-                  }
-                  
-                  projectYears[projectKey].add(transactionYear);
-                  attachmentsByProject[projectKey].push(transaction);
-                });
-                
-                // إنشاء بطاقات المشاريع مع تبويبات لسنوات المعاملات
-                return (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
-                    {Object.keys(attachmentsByProject).map(projectKey => {
-                      const projectId = parseInt(projectKey.split('-')[1]);
-                      const projectTransactions = attachmentsByProject[projectKey];
-                      const projectName = projects?.find(p => p.id === projectId)?.name || 'الصندوق العام';
-                      const years = Array.from(projectYears[projectKey]).sort().reverse();
-                      
-                      return (
-                        <Card key={projectKey} className="overflow-hidden border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-shadow">
-                          <CardHeader className="bg-primary/5 p-2 sm:p-3 md:p-4 pb-1.5 sm:pb-2 md:pb-3">
-                            <CardTitle className="text-sm sm:text-base md:text-lg flex items-center">
-                              <i className="fas fa-project-diagram ml-1 sm:ml-1.5 md:ml-2 text-primary"></i>
-                              <span className="truncate">{projectName}</span>
-                            </CardTitle>
-                            <CardDescription className="text-xs md:text-sm">
-                              {projectTransactions.length} {projectTransactions.length === 1 ? 'مرفق' : 'مرفقات'}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="p-0">
-                            <Tabs defaultValue={years[0]?.toString()}>
-                              <TabsList className="w-full justify-start p-1.5 sm:p-2 bg-muted/20 overflow-x-auto flex-nowrap no-scrollbar">
-                                {years.map(year => (
-                                  <TabsTrigger key={year} value={year.toString()} className="text-xs whitespace-nowrap flex-shrink-0">
-                                    <CalendarIcon2 className="h-3 w-3 ml-0.5 sm:ml-1" />
-                                    {year}
-                                  </TabsTrigger>
-                                ))}
-                              </TabsList>
-                              
-                              {years.map(year => (
-                                <TabsContent key={year} value={year.toString()} className="p-4">
-                                  <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                                    {projectTransactions
-                                      .filter(t => new Date(t.date).getFullYear() === year)
-                                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                                      .map(transaction => {
-                                        const isImage = transaction.fileType?.includes('image');
-                                        const isPdf = transaction.fileType?.includes('pdf');
-                                        
-                                        return (
-                                          <div 
-                                            key={transaction.id} 
-                                            className="border border-zinc-200 dark:border-zinc-700 rounded-lg p-2 xs:p-2.5 sm:p-3 hover:shadow-sm transition-shadow"
-                                          >
-                                            <div className="flex justify-between items-start mb-1.5 sm:mb-2">
-                                              <div className="overflow-hidden">
-                                                <h4 className="font-medium text-xs sm:text-sm flex flex-wrap items-center">
-                                                  {getFileTypeIconName(transaction.fileType || '')}
-                                                  <span className="mr-1">
-                                                    {new Date(transaction.date).toLocaleDateString('ar-SA')}
-                                                  </span>
-                                                  <Badge 
-                                                    variant="outline" 
-                                                    className={`mr-1 xs:mr-2 truncate text-[10px] xs:text-xs ${transaction.type === 'income' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'}`}
-                                                  >
-                                                    {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
-                                                  </Badge>
-                                                </h4>
-                                                <p className="text-[10px] xs:text-xs text-muted-foreground mt-0.5 xs:mt-1 line-clamp-2">
-                                                  {transaction.description}
-                                                </p>
-                                                <p className="text-[10px] xs:text-xs font-medium mt-0.5 xs:mt-1">
-                                                  <span className={transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}>
-                                                    {transaction.amount.toLocaleString('ar-SA')} ريال
-                                                  </span>
-                                                </p>
-                                              </div>
-                                              
-                                              {isImage && transaction.fileUrl && (
-                                                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700 shrink-0 mr-1 xs:mr-0">
-                                                  <img
-                                                    src={transaction.fileUrl}
-                                                    alt="مرفق المعاملة"
-                                                    className="h-full w-full object-cover"
-                                                  />
-                                                </div>
-                                              )}
-                                              
-                                              {!isImage && (
-                                                <div className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center shrink-0 mr-1 xs:mr-0">
-                                                  {isPdf ? (
-                                                    <File className="h-7 w-7 sm:h-9 sm:w-9 text-destructive" />
-                                                  ) : (
-                                                    <FileText className="h-7 w-7 sm:h-9 sm:w-9 text-primary" />
-                                                  )}
-                                                </div>
-                                              )}
-                                            </div>
-                                            
-                                            <div className="flex justify-end space-x-1 sm:space-x-2 space-x-reverse mt-1.5 sm:mt-2">
-                                              {transaction.fileUrl && (
-                                                <>
-                                                  <Button 
-                                                    variant="outline" 
-                                                    size="sm"
-                                                    onClick={() => window.open(transaction.fileUrl, '_blank')}
-                                                    className="h-6 xs:h-7 sm:h-8 text-[10px] xs:text-xs px-1.5 xs:px-2 sm:px-3"
-                                                  >
-                                                    <Eye className="h-2.5 w-2.5 xs:h-3 xs:w-3 ml-0.5 sm:ml-1" />
-                                                    <span className="sm:inline hidden">عرض</span>
-                                                  </Button>
-                                                  <Button 
-                                                    variant="outline" 
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      const a = document.createElement('a');
-                                                      a.href = transaction.fileUrl!;
-                                                      a.download = `مرفق_معاملة_${transaction.id}`;
-                                                      a.target = '_blank';
-                                                      document.body.appendChild(a);
-                                                      a.click();
-                                                      document.body.removeChild(a);
-                                                    }}
-                                                    className="h-6 xs:h-7 sm:h-8 text-[10px] xs:text-xs px-1.5 xs:px-2 sm:px-3"
-                                                  >
-                                                    <Download className="h-2.5 w-2.5 xs:h-3 xs:w-3 ml-0.5 sm:ml-1" />
-                                                    <span className="sm:inline hidden">تنزيل</span>
-                                                  </Button>
-                                                </>
-                                              )}
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                  </div>
-                                </TabsContent>
-                              ))}
-                            </Tabs>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-      
-      {/* شريط نتائج الفلترة */}
-      {(filter.searchQuery || filter.projectId || filter.fileType || filter.dateRange?.from || filter.dateRange?.to) && (
-        <div className="bg-[hsl(var(--primary))]/5 border border-[hsl(var(--primary))]/10 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
-          <div className="flex items-center">
-            <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-[hsl(var(--primary))] ml-1 sm:ml-2" />
-            <span className="font-medium text-xs sm:text-sm">نتائج البحث: </span>
-            <span className="mr-1 sm:mr-2 text-xs sm:text-sm">{getActiveDocuments()?.length || 0} مستند</span>
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setFilter({})}
-            className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] text-xs sm:text-sm h-8 px-2 sm:px-3"
-          >
-            إعادة ضبط الفلاتر
-          </Button>
-        </div>
-      )}
-      
-      <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
-        {/* قسم الفورم والفلتر (دائماً يظهر في الأعلى) */}
-        <div className="space-y-6 sm:space-y-8">
-        
-        {/* Document Form */}
-        {user?.role !== 'viewer' && (
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
-            <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
-              <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
-              <span>رفع مستند جديد</span>
-              {activeTab === "manager" && (
-                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
-                  <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
-                  <span className="text-[10px] xs:text-xs">إداري</span>
-                </Badge>
-              )}
-            </h3>
-            <DocumentForm 
-              projects={projects || []} 
-              onSubmit={handleDocumentUpdated} 
-              isLoading={projectsLoading}
-              isManagerDocument={activeTab === "manager"}
-            />
-          </div>
-        )}
-          
-        {/* Filter */}
-        <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-right">
-            <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center space-x-1 xs:space-x-2 space-x-reverse">
-              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
-              <span>تصفية المستندات</span>
-            </h3>
-
-            <div className="space-y-4">
-              {/* تصفية حسب المشروع */}
-              <div>
-                <Label htmlFor="projectFilter" className="text-sm font-medium text-foreground block mb-1.5">المشروع</Label>
-                <Select 
-                  value={filter.projectId?.toString() || "all"} 
-                  onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
-                >
-                  <SelectTrigger id="projectFilter" className="w-full">
-                    <SelectValue placeholder="كل المشاريع" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">كل المشاريع</SelectItem>
-                    {projects?.map((project) => (
-                      <SelectItem key={project.id} value={project.id.toString()}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* تصفية حسب نوع الملف */}
-              <div>
-                <Label htmlFor="fileTypeFilter" className="text-sm font-medium text-foreground block mb-1.5">نوع الملف</Label>
-                <Select 
-                  value={filter.fileType || "all"} 
-                  onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
-                >
-                  <SelectTrigger id="fileTypeFilter" className="w-full">
-                    <SelectValue placeholder="كل أنواع الملفات" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">كل أنواع الملفات</SelectItem>
-                    <SelectItem value="image">صور</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="document">مستندات Word</SelectItem>
-                    <SelectItem value="spreadsheet">جداول Excel</SelectItem>
-                    <SelectItem value="presentation">عروض تقديمية</SelectItem>
-                    <SelectItem value="other">أخرى</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* تصفية حسب التاريخ */}
-              <div className="pb-2">
-                <Label className="text-sm font-medium text-foreground block mb-1.5">تاريخ الرفع</Label>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`w-full justify-between text-[hsl(var(--foreground))]/80 font-normal text-xs pl-3 pr-2 ${filter.dateRange?.from ? 'text-[hsl(var(--foreground))]' : 'text-muted-foreground'}`}
-                      >
-                        {filter.dateRange?.from ? format(filter.dateRange.from, 'yyyy/MM/dd', { locale: ar }) : 'من تاريخ'}
-                        <CalendarIcon className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={filter.dateRange?.from || undefined}
-                        onSelect={(date) => handleFilterChange({ 
-                          dateRange: { 
-                            from: date, 
-                            to: filter.dateRange?.to || null 
-                          } 
-                        })}
-                        initialFocus
-                        locale={ar}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`w-full justify-between text-[hsl(var(--foreground))]/80 font-normal text-xs pl-3 pr-2 ${filter.dateRange?.to ? 'text-[hsl(var(--foreground))]' : 'text-muted-foreground'}`}
-                      >
-                        {filter.dateRange?.to ? format(filter.dateRange.to, 'yyyy/MM/dd', { locale: ar }) : 'إلى تاريخ'}
-                        <CalendarIcon className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={filter.dateRange?.to || undefined}
-                        onSelect={(date) => handleFilterChange({ 
-                          dateRange: { 
-                            from: filter.dateRange?.from || null, 
-                            to: date 
-                          } 
-                        })}
-                        initialFocus
-                        locale={ar}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              
-              {/* البحث النصي */}
-              <div>
-                <Label htmlFor="searchFilter" className="text-sm font-medium text-foreground block mb-1.5">بحث</Label>
-                <div className="relative">
-                  <Input
-                    id="searchFilter"
-                    value={filter.searchQuery || ''}
-                    onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
-                    placeholder="ابحث في المستندات..."
-                    className="pl-8 pr-3"
-                  />
-                  <Search className="h-4 w-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                </div>
-              </div>
-              
-              {/* أزرار التحكم */}
-              <div className="pt-2 flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFilter({})}
-                  className="text-xs h-8"
-                >
-                  إعادة ضبط الفلاتر
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* قسم عرض المستندات */}
-        <div className="space-y-6 sm:space-y-8">
-          {/* Mobile Document View */}
-          <div className="block md:hidden space-y-4 sm:space-y-6 fade-in">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg sm:text-xl font-bold text-[hsl(var(--primary))]">
-                {activeTab === "manager" ? "مستندات المدراء" : "المستندات"}
-                {activeTab === "manager" && (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1.5 sm:mr-2">
-                    <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
-                    <span className="text-[10px] xs:text-xs">مقيد</span>
-                  </Badge>
-                )}
               </h3>
-              {getActiveDocuments() && (
-                <span className="bg-[hsl(var(--primary))] text-white text-[10px] xs:text-xs rounded-full px-2 xs:px-3 py-0.5 xs:py-1">
-                  {getActiveDocuments().length} مستند
-                </span>
-              )}
+              <p className="text-xs sm:text-sm opacity-90">
+                عرض جميع المرفقات والمستندات الداعمة للمعاملات المالية في النظام
+              </p>
             </div>
             
-            {isActiveTabLoading() ? (
-              <div className="text-center py-10 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
-                <div className="spinner w-10 h-10 mx-auto"></div>
-                <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل المستندات...</p>
-              </div>
-            ) : getActiveDocuments()?.length === 0 ? (
-              <div className="text-center py-12 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
-                <div className="text-5xl mb-4 opacity-20">📁</div>
-                <p className="text-[hsl(var(--foreground))] font-medium">لا توجد مستندات</p>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">قم برفع مستند جديد للبدء</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {getActiveDocuments()?.map((doc: Document) => {
-                  const projectName = projects?.find((p: Project) => p.id === doc.projectId)?.name || 'عام';
-                  return (
-                    <div 
-                      key={doc.id} 
-                      className={`bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl p-5 hover:shadow-md transition-all duration-300 ${doc.isManagerDocument ? 'border-amber-300 bg-amber-50/30' : ''}`}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <h4 className="font-semibold text-[hsl(var(--foreground))]">
-                          {doc.name}
-                          {doc.isManagerDocument && (
-                            <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2">
-                              <Lock className="ml-1 h-3 w-3" />
-                              مستند إداري
+            {/* قائمة المرفقات */}
+            <div className="space-y-5">
+              {transactionsLoading ? (
+                <div className="text-center py-16 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                  <div className="spinner w-12 h-12 mx-auto"></div>
+                  <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل مرفقات المعاملات...</p>
+                </div>
+              ) : transactionsWithAttachments?.length === 0 ? (
+                <div className="text-center py-16 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                  <div className="text-6xl mb-4 opacity-20">🔍</div>
+                  <p className="text-lg font-medium mb-1">لا توجد مرفقات للمعاملات</p>
+                  <p className="text-[hsl(var(--muted-foreground))] max-w-md mx-auto">
+                    لا يوجد حالياً أي معاملات مالية تحتوي على مرفقات في النظام. يمكنك إضافة مرفقات عند إنشاء معاملات جديدة.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                  {transactionsWithAttachments?.map((transaction: Transaction) => {
+                    const projectName = projects?.find(p => p.id === transaction.projectId)?.name || 'بدون مشروع';
+                    return (
+                      <Card key={transaction.id} className="overflow-hidden border border-border">
+                        <CardHeader className="p-4 bg-[hsl(var(--muted))]">
+                          <div className="flex justify-between items-center">
+                            <Badge className={transaction.type === 'deposit' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-orange-100 text-orange-800 border-orange-300'}>
+                              {transaction.type === 'deposit' ? 'إيداع' : 'سحب'}
                             </Badge>
-                          )}
-                        </h4>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${getFileTypeBadgeClasses(doc.fileType)}`}>
-                          {getFileTypeIconName(doc.fileType)}
-                          <span className="mr-1">{getFileTypeLabel(doc.fileType)}</span>
-                        </span>
-                      </div>
-                      {doc.description && (
-                        <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3">{doc.description}</p>
-                      )}
-                      <div className="flex items-center space-x-4 space-x-reverse text-xs text-[hsl(var(--muted-foreground))]">
-                        <p className="flex items-center space-x-1 space-x-reverse">
-                          <i className="fas fa-folder-open"></i>
-                          <span className="font-medium text-primary">{projectName}</span>
-                        </p>
-                        <p className="flex items-center space-x-1 space-x-reverse">
-                          <i className="fas fa-calendar-alt"></i>
-                          <span>{new Date(doc.uploadDate).toLocaleDateString('ar-SA')}</span>
-                        </p>
-                      </div>
-                      <div className="mt-4 flex justify-end space-x-2 space-x-reverse">
-                        <button 
-                          className="text-xs py-2 px-3 rounded-lg bg-[hsl(var(--primary))] text-white font-medium hover:opacity-90 transition-opacity"
-                          onClick={() => window.open(doc.fileUrl, '_blank')}
-                        >
-                          <i className="fas fa-eye ml-1"></i>
-                          عرض
-                        </button>
-                        <button 
-                          className="text-xs py-2 px-3 rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] font-medium hover:opacity-90 transition-opacity"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = doc.fileUrl;
-                            link.download = doc.name;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }}
-                        >
-                          <i className="fas fa-download ml-1"></i>
-                          تنزيل
-                        </button>
-                        <button 
-                          className="text-xs py-2 px-3 rounded-lg bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors"
-                          onClick={async () => {
-                            if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
-                              try {
-                                // أولاً محاولة حذف الملف من Firebase Storage
-                                try {
-                                  const { deleteFile } = await import('@/lib/firebase-storage');
-                                  if (doc.fileUrl) {
-                                    await deleteFile(doc.fileUrl);
-                                  }
-                                } catch (error) {
-                                  console.error("فشل في حذف الملف من التخزين:", error);
-                                  // نستمر في الحذف من قاعدة البيانات حتى لو فشل حذف الملف
-                                }
-                                
-                                // ثم حذف السجل من قاعدة البيانات
-                                await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
-                                handleDocumentUpdated();
-                              } catch (error) {
-                                alert('حدث خطأ أثناء حذف المستند. يرجى المحاولة مرة أخرى.');
-                                console.error(error);
-                              }
-                            }
-                          }}
-                        >
-                          <i className="fas fa-trash-alt ml-1"></i>
-                          حذف
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          
-          {/* Desktop Document List */}
-          <div className="hidden md:block fade-in">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[hsl(var(--primary))]">
-                {activeTab === "manager" ? "مستندات المدراء" : "المستندات"}
-                {activeTab === "manager" && (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2 px-2 py-1">
-                    <Lock className="ml-1 h-3 w-3" />
-                    منطقة مقيدة
-                  </Badge>
-                )}
-              </h3>
-              {getActiveDocuments() && (
-                <span className="bg-[hsl(var(--primary))] text-white text-xs rounded-full px-3 py-1">
-                  {getActiveDocuments().length} مستند
-                </span>
+                            <Badge className={getFileTypeBadgeClasses(transaction.fileType)}>
+                              {getFileTypeIconName(transaction.fileType)}
+                              <span className="mr-1">{getFileTypeLabel(transaction.fileType)}</span>
+                            </Badge>
+                          </div>
+                          <CardTitle className="text-base mt-2 mb-0">
+                            {new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(transaction.amount)}
+                          </CardTitle>
+                          <CardDescription className="text-xs line-clamp-1">
+                            {transaction.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-3 space-x-reverse text-xs text-muted-foreground mb-3">
+                            <span className="flex items-center">
+                              <i className="fas fa-folder-open ml-1"></i>
+                              {projectName}
+                            </span>
+                            <span className="flex items-center">
+                              <i className="fas fa-calendar-alt ml-1"></i>
+                              {new Date(transaction.date).toLocaleDateString('ar-SA')}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between mt-3">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-xs"
+                              onClick={() => window.open(transaction.fileUrl, '_blank')}
+                            >
+                              <Eye className="ml-1 h-3 w-3" />
+                              عرض المرفق
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="text-xs"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = transaction.fileUrl || '';
+                                link.download = `مرفق_معاملة_${transaction.id}`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                            >
+                              <Download className="ml-1 h-3 w-3" />
+                              تحميل
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               )}
             </div>
-            <DocumentList 
-              documents={getActiveDocuments()} 
-              projects={projects || []} 
-              isLoading={isActiveTabLoading() || projectsLoading}
-              onDocumentUpdated={handleDocumentUpdated}
-              isManagerSection={activeTab === "manager"}
-              searchQuery={filter.searchQuery}
-            />
           </div>
-        
-          
-          {/* Filter */}
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-right">
-            <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center space-x-1 xs:space-x-2 space-x-reverse">
-              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
-              <span>تصفية المستندات</span>
-            </h3>
-            <div className="space-y-3 sm:space-y-4">
-              {/* حقل البحث */}
-              <div>
-                <Label htmlFor="searchQuery" className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">البحث</Label>
-                <div className="relative">
-                  <Search className="absolute right-2.5 top-[9px] h-3.5 w-3.5 sm:right-3 sm:top-2.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                  <Input
-                    id="searchQuery"
-                    placeholder="ابحث في المستندات..."
-                    className="pr-8 xs:pr-9 sm:pr-10 w-full h-8 xs:h-9 sm:h-10 text-xs sm:text-sm"
-                    value={filter.searchQuery || ''}
-                    onChange={(e) => handleFilterChange({ searchQuery: e.target.value || undefined })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="filterProject" className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">حسب المشروع</Label>
-                <Select 
-                  onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
-                  value={filter.projectId?.toString() || "all"}
-                >
-                  <SelectTrigger id="filterProject" className="w-full h-8 xs:h-9 sm:h-10 text-xs sm:text-sm">
-                    <SelectValue placeholder="كل المشاريع" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-xs sm:text-sm">كل المشاريع</SelectItem>
-                    {!projectsLoading && projects?.map((project: Project) => (
-                      <SelectItem key={project.id} value={project.id.toString()} className="text-xs sm:text-sm">
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* فلتر نوع الملف */}
-              <div>
-                <Label htmlFor="filterFileType" className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">حسب نوع الملف</Label>
-                <Select 
-                  onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
-                  value={filter.fileType || "all"}
-                >
-                  <SelectTrigger id="filterFileType" className="w-full h-8 xs:h-9 sm:h-10 text-xs sm:text-sm">
-                    <SelectValue placeholder="كل أنواع الملفات" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-xs sm:text-sm">كل أنواع الملفات</SelectItem>
-                    <SelectItem value="pdf" className="text-xs sm:text-sm">PDF</SelectItem>
-                    <SelectItem value="image" className="text-xs sm:text-sm">صور</SelectItem>
-                    <SelectItem value="document" className="text-xs sm:text-sm">مستندات</SelectItem>
-                    <SelectItem value="other" className="text-xs sm:text-sm">أخرى</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* فلتر بحسب التاريخ */}
-              <div className="space-y-1 sm:space-y-2">
-                <Label className="block text-xs sm:text-sm font-medium mb-1 sm:mb-2">حسب التاريخ</Label>
-                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className="w-full h-8 xs:h-9 sm:h-10 justify-start text-right text-xs sm:text-sm"
-                      >
-                        <CalendarIcon className="ml-1 xs:ml-1.5 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
-                        {filter.dateRange?.from ? (
-                          format(filter.dateRange.from, "yyyy/MM/dd", { locale: ar })
-                        ) : (
-                          <span className="truncate">تاريخ البداية</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={filter.dateRange?.from || undefined}
-                        onSelect={(date) => {
-                          handleFilterChange({
-                            dateRange: {
-                              from: date || undefined,
-                              to: filter.dateRange?.to || undefined
-                            }
-                          });
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className="w-full h-8 xs:h-9 sm:h-10 justify-start text-right text-xs sm:text-sm"
-                      >
-                        <CalendarIcon className="ml-1 xs:ml-1.5 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
-                        {filter.dateRange?.to ? (
-                          format(filter.dateRange.to, "yyyy/MM/dd", { locale: ar })
-                        ) : (
-                          <span className="truncate">تاريخ النهاية</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={filter.dateRange?.to || undefined}
-                        onSelect={(date) => {
-                          handleFilterChange({
-                            dateRange: {
-                              from: filter.dateRange?.from || undefined,
-                              to: date || undefined
-                            }
-                          });
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              
-              {/* زر إعادة ضبط الفلاتر */}
-              <Button 
-                variant="secondary" 
-                className="w-full mt-4"
-                onClick={() => setFilter({})}
-              >
-                <Filter className="ml-2 h-4 w-4" />
-                إعادة ضبط الفلاتر
-              </Button>
-            </div>
-          </div>
-          
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
