@@ -199,36 +199,51 @@ export default function Documents() {
       </div>
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 justify-between items-start sm:items-center mb-3 sm:mb-4">
-          <TabsList className="w-full xs:w-auto grow max-w-md mx-auto sm:mx-0 overflow-hidden rounded-md h-auto">
-            <TabsTrigger value="all" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
-              <FileText className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="truncate">المستندات العامة</span>
-            </TabsTrigger>
-            <TabsTrigger value="projects" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
-              <File className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="truncate">حسب المشروع</span>
-            </TabsTrigger>
-            {isManagerOrAdmin && (
-              <TabsTrigger value="manager" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
-                <Lock className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="truncate">مستندات المدراء</span>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-stretch mb-4 sm:mb-5">
+          {/* محسّن TabsList - مع محاذاة أفضل وتفاعلية أعلى لمختلف أحجام الشاشة */}
+          <div className="flex-grow">
+            <TabsList className="w-full overflow-auto scrollbar-hide rounded-lg shadow-sm border border-[hsl(var(--border))]">
+              <TabsTrigger 
+                value="all" 
+                className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
+              >
+                <FileText className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <span>المستندات العامة</span>
               </TabsTrigger>
-            )}
-            <TabsTrigger value="attachments" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
-              <FileImage className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="truncate">مرفقات المعاملات</span>
-            </TabsTrigger>
-          </TabsList>
+              <TabsTrigger 
+                value="projects" 
+                className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
+              >
+                <File className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <span>حسب المشروع</span>
+              </TabsTrigger>
+              {isManagerOrAdmin && (
+                <TabsTrigger 
+                  value="manager" 
+                  className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
+                >
+                  <Lock className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                  <span>مستندات المدراء</span>
+                </TabsTrigger>
+              )}
+              <TabsTrigger 
+                value="attachments" 
+                className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
+              >
+                <FileImage className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                <span>مرفقات المعاملات</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
           {user?.role !== 'viewer' && (
             <Button 
               variant="default" 
               size="sm" 
-              className="h-10 md:h-11 w-full xs:w-auto text-xs sm:text-sm rounded-md"
+              className="h-11 md:h-12 w-full sm:w-auto text-xs sm:text-sm rounded-lg shadow-sm"
               onClick={() => setShowUploadDialog(true)}
             >
-              <Upload className="ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Upload className="ml-1.5 h-4 w-4 sm:h-4.5 sm:w-4.5" />
               <span>رفع مستند جديد</span>
             </Button>
           )}
@@ -545,17 +560,27 @@ export default function Documents() {
         </TabsContent>
         
         <TabsContent value="projects" className="p-0">
-          {/* مستندات المشاريع */}
-          <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
-            {/* عنوان القسم */}
-            <div className="bg-[hsl(var(--primary))] text-white p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm mb-2 slide-in-right">
-              <h3 className="text-base xs:text-lg sm:text-xl font-bold mb-1 sm:mb-2 flex items-center">
-                <File className="ml-2 h-5 w-5" />
-                مستندات المشاريع
-              </h3>
-              <p className="text-xs sm:text-sm opacity-90">
-                عرض وتنظيم المستندات حسب المشروع للوصول السريع والمنظم
-              </p>
+          {/* مستندات المشاريع - تصميم محسّن */}
+          <div className="flex flex-col gap-5 sm:gap-7 lg:gap-8">
+            {/* شريط أدوات المشاريع */}
+            <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm p-4 sm:p-5">
+              <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
+                <div className="flex items-center">
+                  <div className="bg-[hsl(var(--primary))] bg-opacity-15 rounded-full p-2 ml-3">
+                    <File className="h-5 w-5 text-[hsl(var(--primary))]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-[hsl(var(--foreground))]">مستندات المشاريع</h3>
+                    <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))]">تصفح المستندات حسب تصنيف المشاريع</p>
+                  </div>
+                </div>
+                
+                {!projectsLoading && projects && (
+                  <Badge variant="outline" className="bg-[hsl(var(--primary))] bg-opacity-5 px-3 py-1 h-auto text-[hsl(var(--primary))] border-[hsl(var(--primary))] border-opacity-30">
+                    {projects.filter(p => documents?.some((doc: Document) => doc.projectId === p.id)).length} مشروع
+                  </Badge>
+                )}
+              </div>
             </div>
             
             {/* عرض المشاريع والمستندات */}
@@ -626,64 +651,83 @@ export default function Documents() {
                     if (filteredProjectDocuments.length === 0) return null;
                     
                     return (
-                      <div key={project.id} className="bg-card rounded-xl border border-border overflow-hidden">
-                        <div className="bg-primary/10 p-3 sm:p-4 border-b border-border">
-                          <div className="flex justify-between items-center">
-                            <h3 className="text-base sm:text-lg font-bold text-primary flex items-center">
-                              <i className="fas fa-folder-open ml-2"></i>
+                      <div key={project.id} className="bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))] overflow-hidden shadow-sm hover:shadow-md transition-all">
+                        <div className="bg-[hsl(var(--primary))] bg-opacity-10 p-4 sm:p-5 border-b border-[hsl(var(--border))]">
+                          <div className="flex justify-between items-center flex-wrap gap-2">
+                            <h3 className="text-base sm:text-lg font-bold text-[hsl(var(--primary))] flex items-center">
+                              <File className="ml-2 h-5 w-5" />
                               {project.name}
                             </h3>
-                            <Badge className="bg-primary">{filteredProjectDocuments.length} مستند</Badge>
+                            
+                            <Badge variant="outline" className="bg-white text-[hsl(var(--primary))] border-[hsl(var(--primary))] border-opacity-30 px-2.5 py-0.5">
+                              {filteredProjectDocuments.length} مستند
+                            </Badge>
                           </div>
+                          
+                          {project.description && (
+                            <p className="text-xs sm:text-sm mt-2 text-[hsl(var(--muted-foreground))] line-clamp-2">
+                              {project.description}
+                            </p>
+                          )}
                         </div>
                         
-                        <div className="p-3 sm:p-4">
+                        <div className="p-4 sm:p-5">
                           <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                             {filteredProjectDocuments.map((doc: Document) => (
-                              <Card key={doc.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                                <CardHeader className="p-3 pb-0">
-                                  <div className="flex items-start gap-2">
-                                    <FileTypeIcon 
-                                      fileType={doc.fileType} 
-                                      className="h-5 w-5 mt-0.5"
-                                    />
-                                    <div className="space-y-1 overflow-hidden">
-                                      <h4 className="font-medium text-sm line-clamp-1">
-                                        {doc.name}
-                                      </h4>
-                                      <p className="text-xs text-muted-foreground">
-                                        {format(new Date(doc.uploadDate), 'dd MMM yyyy', { locale: ar })}
-                                      </p>
-                                    </div>
+                              <div
+                                key={doc.id}
+                                className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))] hover:border-opacity-30 p-3 transition-all h-full"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex items-center">
+                                    <FileTypeIcon fileType={doc.fileType} className="h-7 w-7 text-[hsl(var(--primary))]" />
                                   </div>
-                                </CardHeader>
+                                  
+                                  <FileTypeBadge fileType={doc.fileType} />
+                                </div>
                                 
-                                <CardContent className="p-3 pt-2 flex justify-end gap-1.5">
-                                  <Button 
-                                    size="icon" 
-                                    variant="ghost" 
-                                    className="h-7 w-7"
-                                    onClick={() => window.open(doc.fileUrl, '_blank')}
-                                  >
-                                    <Eye className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button 
-                                    size="icon" 
-                                    variant="ghost" 
-                                    className="h-7 w-7"
-                                    onClick={() => {
-                                      const link = document.createElement('a');
-                                      link.href = doc.fileUrl;
-                                      link.download = doc.name;
-                                      document.body.appendChild(link);
-                                      link.click();
-                                      document.body.removeChild(link);
-                                    }}
-                                  >
-                                    <Download className="h-3.5 w-3.5" />
-                                  </Button>
-                                </CardContent>
-                              </Card>
+                                <h4 className="font-medium text-sm line-clamp-2 mb-1.5">{doc.name}</h4>
+                                
+                                {doc.description && (
+                                  <p className="text-xs text-[hsl(var(--muted-foreground))] line-clamp-2 mb-auto">{doc.description}</p>
+                                )}
+                                
+                                <div className="mt-2 pt-2 flex justify-between items-center text-xs text-[hsl(var(--muted-foreground))] border-t border-[hsl(var(--border))] border-opacity-50">
+                                  <span className="flex items-center">
+                                    <Clock className="ml-1 h-3 w-3" />
+                                    {new Date(doc.uploadDate).toLocaleDateString('ar-SA')}
+                                  </span>
+                                  
+                                  <div className="flex space-x-1 space-x-reverse">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-6 w-6 p-0 rounded-full hover:bg-[hsl(var(--primary))] hover:bg-opacity-10 hover:text-[hsl(var(--primary))]"
+                                      onClick={() => window.open(doc.fileUrl, '_blank')}
+                                      title="عرض المستند"
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                    </Button>
+                                    
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-6 w-6 p-0 rounded-full hover:bg-[hsl(var(--primary))] hover:bg-opacity-10 hover:text-[hsl(var(--primary))]"
+                                      onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = doc.fileUrl;
+                                        link.download = doc.name;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                      }}
+                                      title="تنزيل المستند"
+                                    >
+                                      <Download className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -693,70 +737,83 @@ export default function Documents() {
                 </div>
               )}
               
-              {/* مستندات بدون مشروع */}
+              {/* مستندات بدون مشروع - محسّن */}
               {!projectsLoading && documents?.filter(doc => !doc.projectId).length > 0 && (
-                <div className="bg-card rounded-xl border border-border overflow-hidden">
-                  <div className="bg-muted/30 p-3 sm:p-4 border-b border-border">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-base sm:text-lg font-bold text-muted-foreground flex items-center">
-                        <i className="fas fa-folder ml-2"></i>
+                <div className="bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))] overflow-hidden shadow-sm hover:shadow-md transition-all mt-4">
+                  <div className="bg-[hsl(var(--muted))] bg-opacity-30 p-4 sm:p-5 border-b border-[hsl(var(--border))]">
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      <h3 className="text-base sm:text-lg font-bold text-[hsl(var(--muted-foreground))] flex items-center">
+                        <File className="ml-2 h-5 w-5" />
                         مستندات عامة
                       </h3>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="bg-white text-[hsl(var(--muted-foreground))] border-[hsl(var(--muted-foreground))] border-opacity-30 px-2.5 py-0.5">
                         {documents.filter(doc => !doc.projectId).length} مستند
                       </Badge>
                     </div>
+                    <p className="text-xs sm:text-sm mt-2 text-[hsl(var(--muted-foreground))] opacity-80">
+                      مستندات غير مرتبطة بمشروع معين
+                    </p>
                   </div>
                   
-                  <div className="p-3 sm:p-4">
+                  <div className="p-4 sm:p-5">
                     <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                       {documents
                         .filter(doc => !doc.projectId)
                         .map((doc: Document) => (
-                          <Card key={doc.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                            <CardHeader className="p-3 pb-0">
-                              <div className="flex items-start gap-2">
-                                <FileTypeIcon 
-                                  fileType={doc.fileType} 
-                                  className="h-5 w-5 mt-0.5"
-                                />
-                                <div className="space-y-1 overflow-hidden">
-                                  <h4 className="font-medium text-sm line-clamp-1">
-                                    {doc.name}
-                                  </h4>
-                                  <p className="text-xs text-muted-foreground">
-                                    {format(new Date(doc.uploadDate), 'dd MMM yyyy', { locale: ar })}
-                                  </p>
-                                </div>
+                          <div
+                            key={doc.id}
+                            className="flex flex-col bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:bg-opacity-10 rounded-lg border border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))] hover:border-opacity-30 p-3 transition-all h-full"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center">
+                                <FileTypeIcon fileType={doc.fileType} className="h-7 w-7 text-[hsl(var(--muted-foreground))]" />
                               </div>
-                            </CardHeader>
+                              
+                              <FileTypeBadge fileType={doc.fileType} />
+                            </div>
                             
-                            <CardContent className="p-3 pt-2 flex justify-end gap-1.5">
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-7 w-7"
-                                onClick={() => window.open(doc.fileUrl, '_blank')}
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-7 w-7"
-                                onClick={() => {
-                                  const link = document.createElement('a');
-                                  link.href = doc.fileUrl;
-                                  link.download = doc.name;
-                                  document.body.appendChild(link);
-                                  link.click();
-                                  document.body.removeChild(link);
-                                }}
-                              >
-                                <Download className="h-3.5 w-3.5" />
-                              </Button>
-                            </CardContent>
-                          </Card>
+                            <h4 className="font-medium text-sm line-clamp-2 mb-1.5">{doc.name}</h4>
+                            
+                            {doc.description && (
+                              <p className="text-xs text-[hsl(var(--muted-foreground))] line-clamp-2 mb-auto">{doc.description}</p>
+                            )}
+                            
+                            <div className="mt-2 pt-2 flex justify-between items-center text-xs text-[hsl(var(--muted-foreground))] border-t border-[hsl(var(--border))] border-opacity-50">
+                              <span className="flex items-center">
+                                <Clock className="ml-1 h-3 w-3" />
+                                {new Date(doc.uploadDate).toLocaleDateString('ar-SA')}
+                              </span>
+                              
+                              <div className="flex space-x-1 space-x-reverse">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 w-6 p-0 rounded-full hover:bg-[hsl(var(--muted-foreground))] hover:bg-opacity-10"
+                                  onClick={() => window.open(doc.fileUrl, '_blank')}
+                                  title="عرض المستند"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 w-6 p-0 rounded-full hover:bg-[hsl(var(--muted-foreground))] hover:bg-opacity-10"
+                                  onClick={() => {
+                                    const link = document.createElement('a');
+                                    link.href = doc.fileUrl;
+                                    link.download = doc.name;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                  }}
+                                  title="تنزيل المستند"
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                     </div>
                   </div>
