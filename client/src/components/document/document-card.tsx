@@ -69,10 +69,10 @@ export function DocumentCard({
       isManagerSection && "border-amber-200/40 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20"
     )}>
       <CardHeader className={cn(
-        "p-3 pb-0 flex justify-between items-start",
+        "p-3 pb-0 flex justify-between items-start gap-2",
         isManagerSection && "bg-amber-50/60 dark:bg-amber-950/30"
       )}>
-        <div className="space-y-1.5 overflow-hidden">
+        <div className="space-y-1.5 overflow-hidden flex-1">
           <div className="flex items-start gap-2">
             <FileTypeIcon 
               fileType={document.fileType} 
@@ -81,7 +81,7 @@ export function DocumentCard({
                 isManagerSection && "text-amber-600 dark:text-amber-500"
               )}
             />
-            <div className="space-y-1 overflow-hidden">
+            <div className="space-y-1 overflow-hidden w-full">
               <h3 className={cn(
                 "font-medium text-sm line-clamp-1 break-all",
                 isManagerSection && "text-amber-800 dark:text-amber-400"
@@ -99,22 +99,22 @@ export function DocumentCard({
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mt-1 -ml-1 mb-1">
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">فتح القائمة</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onPreview(document)}>
+            <DropdownMenuItem onClick={() => onPreview(document)} className="flex items-center">
               <Eye className="ml-2 h-4 w-4" />
               <span>معاينة</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDownload(document)}>
+            <DropdownMenuItem onClick={() => onDownload(document)} className="flex items-center">
               <Download className="ml-2 h-4 w-4" />
               <span>تنزيل</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
+              className="text-destructive focus:text-destructive flex items-center"
               onClick={() => onDelete(document)}
             >
               <Trash2 className="ml-2 h-4 w-4" />
@@ -163,13 +163,13 @@ export function DocumentCard({
         </div>
       </CardContent>
       
-      <CardFooter className="p-3 pt-0 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground" dir="ltr">
+      <CardFooter className="p-3 pt-1 flex items-center justify-between">
+        <span className="text-xs text-muted-foreground flex-shrink-0" dir="ltr">
           {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
         </span>
         <FileTypeBadge 
           fileType={document.fileType} 
-          className="text-[10px] py-0.5 px-1.5"
+          className="text-[10px] py-0.5 px-1.5 mr-0"
         />
       </CardFooter>
     </Card>

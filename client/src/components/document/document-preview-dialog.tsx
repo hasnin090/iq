@@ -99,16 +99,16 @@ export function DocumentPreviewDialog({
           )}
         </div>
         
-        <DialogFooter className="sm:justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={handleOpenExternal}>
-              <ExternalLink className="h-4 w-4 ml-2" />
-              فتح في تبويب جديد
+        <DialogFooter className="sm:justify-between gap-2 flex-wrap pt-2">
+          <div className="flex items-center">
+            <Button variant="secondary" size="sm" onClick={handleOpenExternal} className="h-9">
+              <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+              <span className="text-sm">فتح في تبويب جديد</span>
             </Button>
           </div>
-          <Button onClick={handleDownload}>
-            <Download className="h-4 w-4 ml-2" />
-            تنزيل
+          <Button onClick={handleDownload} className="h-9">
+            <Download className="h-3.5 w-3.5 ml-1.5" />
+            <span className="text-sm">تنزيل</span>
           </Button>
         </DialogFooter>
       </DialogContent>

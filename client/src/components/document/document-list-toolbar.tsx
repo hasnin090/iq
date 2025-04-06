@@ -27,33 +27,33 @@ export function DocumentListToolbar({
   className
 }: DocumentListToolbarProps) {
   return (
-    <div className={cn("flex justify-between items-center mb-4 p-2 rounded-lg bg-muted/40", className)}>
-      <div className="flex items-center gap-2">
+    <div className={cn("flex flex-wrap justify-between items-center mb-4 p-2 rounded-lg bg-muted/40 dark:bg-muted/20", className)}>
+      <div className="flex items-center gap-1 xs:gap-2">
         <Button
           variant={sortBy === 'date' ? 'default' : 'ghost'}
           size="sm"
-          className="h-8"
+          className="h-8 px-2 xs:px-3"
           onClick={() => onSortChange('date')}
         >
-          <CalendarIcon className="h-4 w-4 ml-1" />
+          <CalendarIcon className="h-3.5 w-3.5 ml-1" />
           <span className="text-xs">التاريخ</span>
         </Button>
         <Button
           variant={sortBy === 'name' ? 'default' : 'ghost'}
           size="sm"
-          className="h-8"
+          className="h-8 px-2 xs:px-3"
           onClick={() => onSortChange('name')}
         >
-          <TextIcon className="h-4 w-4 ml-1" />
+          <TextIcon className="h-3.5 w-3.5 ml-1" />
           <span className="text-xs">الاسم</span>
         </Button>
         <Button
           variant={sortBy === 'type' ? 'default' : 'ghost'}
           size="sm"
-          className="h-8"
+          className="h-8 px-2 xs:px-3"
           onClick={() => onSortChange('type')}
         >
-          <FileIcon className="h-4 w-4 ml-1" />
+          <FileIcon className="h-3.5 w-3.5 ml-1" />
           <span className="text-xs">النوع</span>
         </Button>
         <Button
@@ -64,31 +64,37 @@ export function DocumentListToolbar({
           title={sortOrder === 'asc' ? 'ترتيب تصاعدي' : 'ترتيب تنازلي'}
         >
           {sortOrder === 'asc' ? (
-            <ChevronUp className="h-4 w-4" />
+            <ChevronUp className="h-3.5 w-3.5" />
           ) : (
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className="h-3.5 w-3.5" />
           )}
         </Button>
       </div>
       
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 xs:gap-1 border border-border dark:border-border/40 rounded-md">
         <Button
           variant={viewType === 'grid' ? 'secondary' : 'ghost'}
           size="icon"
-          className="h-8 w-8"
+          className={cn(
+            "h-7 w-7 rounded-r-none", 
+            viewType === 'grid' && "dark:bg-secondary/80"
+          )}
           onClick={() => onViewTypeChange('grid')}
           title="عرض شبكي"
         >
-          <Grid2X2 className="h-4 w-4" />
+          <Grid2X2 className="h-3.5 w-3.5" />
         </Button>
         <Button
           variant={viewType === 'list' ? 'secondary' : 'ghost'}
           size="icon"
-          className="h-8 w-8"
+          className={cn(
+            "h-7 w-7 rounded-l-none",
+            viewType === 'list' && "dark:bg-secondary/80"
+          )}
           onClick={() => onViewTypeChange('list')}
           title="عرض قائمة"
         >
-          <List className="h-4 w-4" />
+          <List className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

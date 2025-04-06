@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from "@/components/ui/badge";
-import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2 } from 'lucide-react';
+import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2, Plus, Upload } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Card, 
   CardContent, 
@@ -48,6 +49,7 @@ interface Filter {
 export default function Documents() {
   const [filter, setFilter] = useState<Filter>({});
   const [activeTab, setActiveTab] = useState("all"); // "all" or "manager"
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const { user } = useAuth();
   const isManagerOrAdmin = user?.role === 'admin' || user?.role === 'manager';
 
@@ -197,22 +199,36 @@ export default function Documents() {
       </div>
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full mb-6 sm:mb-8">
-        <TabsList className="w-full max-w-md mb-3 sm:mb-4 mx-auto overflow-x-auto no-scrollbar">
-          <TabsTrigger value="all" className="flex-1 text-xs sm:text-sm">
-            <FileText className="ml-0.5 sm:ml-1 h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="truncate">المستندات العامة</span>
-          </TabsTrigger>
-          {isManagerOrAdmin && (
-            <TabsTrigger value="manager" className="flex-1 text-xs sm:text-sm">
-              <Lock className="ml-0.5 sm:ml-1 h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="truncate">مستندات المدراء</span>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 justify-between items-start sm:items-center mb-3 sm:mb-4">
+          <TabsList className="w-full xs:w-auto grow max-w-md mx-auto sm:mx-0 overflow-hidden rounded-md h-auto">
+            <TabsTrigger value="all" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
+              <FileText className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="truncate">المستندات العامة</span>
             </TabsTrigger>
+            {isManagerOrAdmin && (
+              <TabsTrigger value="manager" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
+                <Lock className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="truncate">مستندات المدراء</span>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="attachments" className="flex-1 text-xs sm:text-sm h-10 md:h-11 px-3">
+              <FileImage className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="truncate">مرفقات المعاملات</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          {user?.role !== 'viewer' && (
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="h-10 md:h-11 w-full xs:w-auto text-xs sm:text-sm rounded-md"
+              onClick={() => setShowUploadDialog(true)}
+            >
+              <Upload className="ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>رفع مستند جديد</span>
+            </Button>
           )}
-          <TabsTrigger value="attachments" className="flex-1 text-xs sm:text-sm">
-            <FileImage className="ml-0.5 sm:ml-1 h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="truncate">مرفقات المعاملات</span>
-          </TabsTrigger>
-        </TabsList>
+        </div>
         
         {activeTab === "manager" && !isManagerOrAdmin && (
           <Alert variant="destructive" className="mb-4">
@@ -229,21 +245,7 @@ export default function Documents() {
           <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
             {/* قسم الفلتر والفورم */}
             <div className="space-y-6 sm:space-y-8">
-              {/* نموذج رفع مستند جديد */}
-              {user?.role !== 'viewer' && (
-                <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
-                  <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
-                    <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
-                    <span>رفع مستند جديد</span>
-                  </h3>
-                  <DocumentForm 
-                    projects={projects || []} 
-                    onSubmit={handleDocumentUpdated} 
-                    isLoading={projectsLoading}
-                    isManagerDocument={false}
-                  />
-                </div>
-              )}
+
               
               {/* قسم الفلترة */}
               <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
@@ -544,11 +546,11 @@ export default function Documents() {
             <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
               {/* قسم الفلتر والفورم */}
               <div className="space-y-6 sm:space-y-8">
-                {/* نموذج رفع مستند إداري */}
+                {/* معلومات مستندات المدراء */}
                 <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-left">
                   <h3 className="text-base xs:text-lg sm:text-xl font-bold text-amber-800 dark:text-amber-400 mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
-                    <i className="fas fa-file-upload text-amber-600 dark:text-amber-500"></i>
-                    <span>رفع مستند إداري جديد</span>
+                    <Lock className="h-4 w-4 xs:h-5 xs:w-5 text-amber-600 dark:text-amber-500" />
+                    <span>مستندات إدارية</span>
                     <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/60 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
                       <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
                       <span className="text-[10px] xs:text-xs">مقيّد</span>
@@ -558,12 +560,16 @@ export default function Documents() {
                     <AlertCircle className="inline-flex ml-1.5 h-4 w-4" />
                     المستندات الإدارية مرئية فقط للمدراء والمسؤولين. استخدم هذا القسم لتخزين المستندات السرية والحساسة.
                   </div>
-                  <DocumentForm 
-                    projects={projects || []} 
-                    onSubmit={handleDocumentUpdated} 
-                    isLoading={projectsLoading}
-                    isManagerDocument={true}
-                  />
+                  <div className="flex justify-center mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/60 dark:hover:bg-amber-800/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700/60"
+                      onClick={() => setShowUploadDialog(true)}
+                    >
+                      <Upload className="ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span>رفع مستند إداري جديد</span>
+                    </Button>
+                  </div>
                 </div>
                 
                 {/* قسم الفلترة */}
@@ -841,6 +847,32 @@ export default function Documents() {
           </div>
         </TabsContent>
       </Tabs>
+      {/* نافذة منبثقة لرفع مستند جديد */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-xl mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl text-[hsl(var(--primary))] font-bold flex items-center">
+              <Upload className="ml-2 h-5 w-5" />
+              <span>رفع مستند جديد</span>
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
+              قم بإضافة ملف جديد لأرشيف المستندات
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-2">
+            <DocumentForm 
+              projects={projects || []} 
+              onSubmit={() => {
+                handleDocumentUpdated();
+                setShowUploadDialog(false);
+              }} 
+              isLoading={projectsLoading}
+              isManagerDocument={activeTab === "manager"}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
