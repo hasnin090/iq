@@ -236,14 +236,15 @@ export default function Documents() {
             </TabsList>
           </div>
           
+          {/* زر رفع مستند - معدل ليكون بشكل منتظم مع العناصر الأخرى */}
           {user?.role !== 'viewer' && (
             <Button 
               variant="default" 
               size="sm" 
-              className="h-11 md:h-12 w-full sm:w-auto text-xs sm:text-sm rounded-lg shadow-sm"
+              className="h-11 md:h-12 w-full sm:w-[160px] text-xs sm:text-sm rounded-lg shadow-sm flex items-center justify-center"
               onClick={() => setShowUploadDialog(true)}
             >
-              <Upload className="ml-1.5 h-4 w-4 sm:h-4.5 sm:w-4.5" />
+              <Upload className="ml-1.5 h-4 w-4" />
               <span>رفع مستند جديد</span>
             </Button>
           )}
