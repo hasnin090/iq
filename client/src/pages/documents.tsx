@@ -824,30 +824,7 @@ export default function Documents() {
               searchQuery={filter.searchQuery}
             />
           </div>
-        </div>
         
-        <div className="space-y-8">
-          {/* Document Form */}
-          {user?.role !== 'viewer' && (
-            <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm fade-in">
-              <h3 className="text-base xs:text-lg sm:text-xl font-bold text-[hsl(var(--primary))] mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
-                <i className="fas fa-file-upload text-[hsl(var(--primary))]"></i>
-                <span>رفع مستند جديد</span>
-                {activeTab === "manager" && (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
-                    <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
-                    <span className="text-[10px] xs:text-xs">إداري</span>
-                  </Badge>
-                )}
-              </h3>
-              <DocumentForm 
-                projects={projects || []} 
-                onSubmit={handleDocumentUpdated} 
-                isLoading={projectsLoading}
-                isManagerDocument={activeTab === "manager"}
-              />
-            </div>
-          )}
           
           {/* Filter */}
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-right">
