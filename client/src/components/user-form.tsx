@@ -34,6 +34,7 @@ interface UserFormProps {
 const userSchema = z.object({
   username: z.string().min(3, "اسم المستخدم يجب أن يحتوي على الأقل 3 أحرف"),
   name: z.string().min(3, "الاسم يجب أن يحتوي على الأقل 3 أحرف"),
+  email: z.string().email("البريد الإلكتروني غير صالح").min(1, "البريد الإلكتروني مطلوب"),
   password: z.string().min(6, "كلمة المرور يجب أن تحتوي على الأقل 6 أحرف"),
   role: z.enum(["admin", "user", "viewer"], {
     required_error: "الصلاحية مطلوبة",
@@ -77,6 +78,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
     defaultValues: {
       username: "",
       name: "",
+      email: "",
       password: "",
       role: "user",
       permissions: [],
@@ -96,6 +98,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
       form.reset({
         username: "",
         name: "",
+        email: "",
         password: "",
         role: "user",
         permissions: [],
@@ -220,6 +223,40 @@ export function UserForm({ onSubmit }: UserFormProps) {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center text-base font-medium dark:text-gray-100">
+                      البريد الإلكتروني
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-3.5 w-3.5 mr-1 text-blue-400 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-100 border-blue-200 dark:border-blue-700">
+                            <p>أدخل بريد إلكتروني صالح (مطلوب)</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          placeholder="أدخل البريد الإلكتروني"
+                          className="w-full rounded-lg bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-800 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 pr-10"
+                          disabled={mutation.isPending}
+                        />
+                        <AtSignIcon className="absolute top-2.5 right-3 h-5 w-5 text-slate-400" />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
               <FormField
                 control={form.control}
                 name="password"
