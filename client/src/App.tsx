@@ -8,7 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import Transactions from "@/pages/transactions";
 import Projects from "@/pages/projects";
 import Users from "@/pages/users";
-import Documents from "@/pages/documents";
+import Documents from "@/pages/documents-new";
 import Reports from "@/pages/reports";
 import Activities from "@/pages/activities";
 import Settings from "@/pages/settings";
