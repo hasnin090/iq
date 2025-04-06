@@ -539,10 +539,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Projects routes
   app.get("/api/projects", authenticate, async (req: Request, res: Response) => {
     try {
-      const projects = await storage.listProjects();
+      // اقتراب مختلف بناءً على دور المستخدم
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      // المدير يمكنه رؤية جميع المشاريع
+      if (userRole === "admin") {
+        const projects = await storage.listProjects();
+        return res.status(200).json(projects);
+      } else {
+        // المستخدم العادي يرى فقط المشاريع المخصصة له
+        const projects = await storage.getUserProjects(userId);
+        return res.status(200).json(projects);
+      }
+    } catch (error) {
+      console.error("خطأ في استرجاع المشاريع:", error);
+      return res.status(500).json({ message: "خطأ في استرجاع المشاريع" });
+    }
+  });
+  
+  // إضافة نقطة نهاية جديدة للحصول على المشاريع المخصصة للمستخدم
+  app.get("/api/user-projects", authenticate, async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId as number;
+      const projects = await storage.getUserProjects(userId);
       return res.status(200).json(projects);
     } catch (error) {
-      return res.status(500).json({ message: "خطأ في استرجاع المشاريع" });
+      console.error("خطأ في استرجاع مشاريع المستخدم:", error);
+      return res.status(500).json({ message: "خطأ في استرجاع مشاريع المستخدم" });
     }
   });
 

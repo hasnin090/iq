@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AppHeader } from "@/components/ui/app-header";
+import { useQuery } from "@tanstack/react-query";
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,13 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const [isMobile, setIsMobile] = useState(false);
+  
+  // جلب المشاريع المتاحة للمستخدم (سيتم تصفيتها في الخلفية بواسطة API)
+  const { data: userProjects, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['/api/user-projects'],
+    // فقط جلب المشاريع إذا كان المستخدم موجود وليس مديرًا
+    enabled: !!user && user.role !== 'admin',
+  });
 
   // حالة القائمة الجانبية - مفتوحة افتراضيًا في الشاشات الكبيرة فقط
   useEffect(() => {
@@ -221,6 +229,42 @@ export function Sidebar() {
               </Link>
             </nav>
           </div>
+          
+          {/* المشاريع المتاحة للمستخدم العادي - User Projects Section */}
+          {user && user.role !== "admin" && (
+            <div className="mt-4 border border-blue-100 dark:border-gray-600 rounded-2xl overflow-hidden shadow-sm bg-blue-50/30 dark:bg-gray-700 slide-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="py-2.5 px-4 bg-gradient-to-l from-green-500/20 to-green-500/5 dark:from-green-500/30 dark:to-green-500/10 border-b border-blue-100 dark:border-gray-600">
+                <h3 className="text-[hsl(var(--primary))] dark:text-white font-semibold text-sm sm:text-base">مشاريعي</h3>
+              </div>
+              <div className="p-2.5">
+                {isLoadingProjects ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                    <span className="mr-2 text-sm text-[hsl(var(--muted-foreground))]">جاري التحميل...</span>
+                  </div>
+                ) : userProjects && userProjects.length > 0 ? (
+                  <div className="space-y-2">
+                    {userProjects.map((project: any) => (
+                      <Link
+                        key={project.id}
+                        href={`/projects/details/${project.id}`}
+                        className="flex items-center space-x-reverse space-x-2 p-2 rounded-lg text-[hsl(var(--primary))] hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-gray-600 flex items-center justify-center">
+                          <i className="fas fa-folder-open text-sm"></i>
+                        </div>
+                        <span className="text-sm truncate">{project.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-4 px-3 text-center">
+                    <p className="text-[hsl(var(--muted-foreground))] text-sm">لا توجد مشاريع متاحة</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Administration section - قسم الإدارة */}
           {user?.role === "admin" && (
