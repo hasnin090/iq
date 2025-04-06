@@ -100,7 +100,7 @@ function AppRoutes() {
       <Sidebar />
       <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
         {/* شريط ثابت في أعلى الصفحة للنسخة المكتبية */}
-        <div className={`hidden md:flex justify-between items-center py-4 px-6 bg-white dark:bg-gray-800 shadow-sm mb-4 ${isScrolled ? 'shadow-md' : ''}`}>
+        <div className={`hidden md:flex justify-between items-center py-4 px-6 bg-white dark:bg-gray-800 shadow-md mb-4 fixed top-0 left-0 right-0 z-40 md:ml-0 md:mr-72 transition-all duration-300 ${isScrolled ? 'shadow-lg' : ''}`}>
           <h1 className="text-lg font-semibold text-[hsl(var(--primary))] dark:text-white">{getPageTitle()}</h1>
           <div className="flex items-center gap-3">
             <ThemeToggle 
@@ -131,10 +131,10 @@ function AppRoutes() {
         )}
         
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
-        <div className={`${isMobile ? 'h-20' : ''}`}></div>
+        <div className={`${isMobile ? 'h-20' : 'h-20'}`}></div>
         
         {/* المحتوى الرئيسي */}
-        <div className="main-content-container fade-in px-4 sm:px-6 md:px-8 py-4 max-w-[1600px] mx-auto">
+        <div className="main-content-container fade-in px-4 sm:px-6 md:px-8 py-4 max-w-[1800px] mx-auto">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/transactions" component={Transactions} />

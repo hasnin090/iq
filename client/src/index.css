@@ -400,7 +400,7 @@
   
   /* حاوية المحتوى الرئيسية المتجاوبة */
   .main-content-container {
-    @apply px-3 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8;
+    @apply px-3 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 w-full mx-auto md:mr-0;
   }
   
   /* تحسين عرض البطاقات في الشاشات الصغيرة */
