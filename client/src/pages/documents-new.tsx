@@ -234,194 +234,118 @@ export default function Documents() {
         </TabsList>
       </Tabs>
 
-      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
-        {/* القسم الرئيسي للعرض (الأول في سطح المكتب) */}
-        <div className="md:w-9/12 lg:w-8/12">
-          {/* العنوان والإحصائيات */}
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
-            <div className="flex items-center">
-              <h3 className="text-xl font-bold text-[hsl(var(--primary))]">
-                {activeTab === "manager" ? "مستندات المدراء" : "المستندات"}
-                {activeTab === "manager" && (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2 px-2 py-1">
-                    <Lock className="ml-1 h-3 w-3" />
-                    <span>مقيدة</span>
-                  </Badge>
-                )}
-              </h3>
+      <div className="md:grid md:grid-cols-12 gap-4 sm:gap-6">
+        {/* صف الأدوات العلوي - لعرض سطح المكتب فقط */}
+        <div className="hidden md:block md:col-span-12 mb-2">
+          <div className="grid grid-cols-5 gap-4">
+            {/* بطاقة الإحصائيات */}
+            <div className="col-span-3">
+              <Card className="flex items-center h-full bg-[hsl(var(--primary))]/5">
+                <CardContent className="p-4 w-full">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <i className="fas fa-file-alt text-[hsl(var(--primary))] ml-3 text-xl"></i>
+                      <div>
+                        <h3 className="text-lg font-bold text-[hsl(var(--primary))]">
+                          {activeTab === "manager" ? "مستندات المدراء" : "المستندات"}
+                          {activeTab === "manager" && (
+                            <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2 px-2 py-0.5">
+                              <Lock className="ml-1 h-3 w-3" />
+                              <span className="text-[10px]">مقيد</span>
+                            </Badge>
+                          )}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          إدارة وتنظيم جميع ملفات ومستندات المشاريع
+                        </p>
+                      </div>
+                    </div>
+                    {getActiveDocuments() && (
+                      <span className="bg-[hsl(var(--primary))] text-white text-xs rounded-full px-3 py-1">
+                        {getActiveDocuments().length} مستند
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+            
+            {/* بطاقة البحث */}
+            <div className="col-span-2">
+              <Card className="h-full bg-[hsl(var(--primary))]/5">
+                <CardContent className="p-4 flex items-center">
+                  <div className="relative w-full">
+                    <Input
+                      id="quickSearch"
+                      value={filter.searchQuery || ''}
+                      onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
+                      placeholder="ابحث في المستندات..."
+                      className="pl-3 pr-9 border-primary/30 focus:border-primary/70"
+                    />
+                    <Search className="h-4 w-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-primary/70" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* عنوان الصفحة للموبايل */}
+        <div className="md:hidden mb-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg sm:text-xl font-bold text-[hsl(var(--primary))]">
+              {activeTab === "manager" ? "مستندات المدراء" : "المستندات"}
+              {activeTab === "manager" && (
+                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1.5 sm:mr-2">
+                  <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
+                  <span className="text-[10px] xs:text-xs">مقيد</span>
+                </Badge>
+              )}
+            </h3>
             {getActiveDocuments() && (
-              <span className="bg-[hsl(var(--primary))] text-white text-xs rounded-full px-3 py-1">
+              <span className="bg-[hsl(var(--primary))] text-white text-[10px] xs:text-xs rounded-full px-2 xs:px-3 py-0.5 xs:py-1">
                 {getActiveDocuments().length} مستند
               </span>
             )}
           </div>
-          
-          {/* خيارات العرض والنتائج */}
-          <div className="space-y-6">
-            {/* عرض الموبايل */}
-            <div className="block md:hidden space-y-4 sm:space-y-6 fade-in">
-              {isActiveTabLoading() ? (
-                <div className="text-center py-10 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
-                  <div className="animate-spin h-10 w-10 mx-auto border-t-2 border-b-2 border-primary rounded-full"></div>
-                  <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل المستندات...</p>
-                </div>
-              ) : getActiveDocuments()?.length === 0 ? (
-                <div className="text-center py-12 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
-                  <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-20" />
-                  <p className="text-[hsl(var(--foreground))] font-medium mt-4">لا توجد مستندات</p>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">قم برفع مستند جديد للبدء</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {getActiveDocuments()?.map((doc: Document) => {
-                    const projectName = projects?.find((p: Project) => p.id === doc.projectId)?.name || 'عام';
-                    return (
-                      <div 
-                        key={doc.id} 
-                        className={`bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl p-5 hover:shadow-md transition-all duration-300 ${doc.isManagerDocument ? 'border-amber-300 bg-amber-50/30' : ''}`}
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="font-semibold text-[hsl(var(--foreground))]">
-                            {doc.name}
-                            {doc.isManagerDocument && (
-                              <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1.5 px-1.5 py-0.5">
-                                <Lock className="ml-0.5 h-2 w-2" />
-                                <span className="text-[10px]">إداري</span>
-                              </Badge>
-                            )}
-                          </h4>
-                          
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${getFileTypeBadgeClasses(doc.fileType)}`}>
-                            {getFileTypeLabel(doc.fileType)}
-                          </span>
-                        </div>
-                        
-                        {doc.description && (
-                          <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3 line-clamp-2">
-                            {doc.description}
-                          </p>
-                        )}
-                        
-                        <div className="flex items-center text-[10px] xs:text-xs text-[hsl(var(--muted-foreground))] mb-4">
-                          <div className="flex items-center ml-3">
-                            <i className="fas fa-folder-open ml-1 text-primary"></i>
-                            {projectName}
-                          </div>
-                          <div className="flex items-center">
-                            <i className="fas fa-calendar-alt ml-1 text-primary"></i>
-                            {formatDate(doc.uploadDate)}
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => previewFile(doc)}
-                            className="text-[10px] xs:text-xs h-7 px-2"
-                          >
-                            <Eye className="h-3 w-3 ml-1" />
-                            معاينة
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => downloadFile(doc.fileUrl)}
-                            className="text-[10px] xs:text-xs h-7 px-2"
-                          >
-                            <Download className="h-3 w-3 ml-1" />
-                            تنزيل
-                          </Button>
-                          {user?.role === 'admin' && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-[10px] xs:text-xs h-7 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive/90 border-destructive/30"
-                              onClick={() => handleDeleteClick(doc)}
-                            >
-                              <Trash2 className="h-3 w-3 ml-1" />
-                              حذف
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            
-            {/* عرض سطح المكتب */}
-            <div className="hidden md:block fade-in">
-              <DocumentList 
-                documents={getActiveDocuments()} 
-                projects={projects || []} 
-                isLoading={isActiveTabLoading() || projectsLoading}
-                onDocumentUpdated={handleDocumentUpdated}
-                isManagerSection={activeTab === "manager"}
-                searchQuery={filter.searchQuery}
-              />
-            </div>
-          </div>
         </div>
         
-        {/* الجانب الأيمن (أدوات التحكم) */}
-        <div className="md:w-3/12 lg:w-4/12 space-y-6">
-          {/* نموذج إضافة المستندات */}
+        {/* شريط الأدوات - الصف الأول في سطح المكتب */}
+        <div className="md:col-span-12 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {/* فورم الرفع */}
           {user?.role !== 'viewer' && (
-            <Card className="shadow-sm">
-              <CardHeader className="p-4 sm:p-5 bg-[hsl(var(--primary))]/5 border-b border-[hsl(var(--primary))]/10">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                  <i className="fas fa-file-upload"></i>
-                  <span>إضافة مستند جديد</span>
-                  {activeTab === "manager" && (
-                    <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 px-1.5">
-                      <Lock className="ml-0.5 h-2.5 w-2.5" />
-                      <span className="text-[10px]">إداري</span>
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-5">
-                <DocumentForm 
-                  projects={projects || []} 
-                  onSubmit={handleDocumentUpdated} 
-                  isLoading={projectsLoading}
-                  isManagerDocument={activeTab === "manager"}
-                />
-              </CardContent>
-            </Card>
+            <div className="md:col-span-1 lg:col-span-1">
+              <Card className="h-full shadow-sm">
+                <CardHeader className="p-3 sm:p-4 bg-[hsl(var(--primary))]/5 border-b border-[hsl(var(--primary))]/10">
+                  <CardTitle className="text-sm lg:text-base flex items-center gap-2">
+                    <i className="fas fa-file-upload"></i>
+                    <span className="truncate">إضافة مستند</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-4">
+                  <DocumentForm 
+                    projects={projects || []} 
+                    onSubmit={handleDocumentUpdated} 
+                    isLoading={projectsLoading}
+                    isManagerDocument={activeTab === "manager"}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           )}
           
-          {/* مربع الفلترة والبحث المدمج */}
-          <Card className="shadow-sm">
-            <CardHeader className="p-4 sm:p-5 bg-[hsl(var(--primary))]/5 border-b border-[hsl(var(--primary))]/10">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <i className="fas fa-filter"></i>
-                <span>بحث وتصفية</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-5">
-              <div className="space-y-4">
-                {/* البحث النصي */}
-                <div>
-                  <Label htmlFor="searchFilter" className="text-sm font-medium block mb-1.5">البحث</Label>
-                  <div className="relative">
-                    <Input
-                      id="searchFilter"
-                      value={filter.searchQuery || ''}
-                      onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
-                      placeholder="ابحث في المستندات..."
-                      className="pl-3 pr-9"
-                    />
-                    <Search className="h-4 w-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </div>
-                
-                {/* تصفية حسب المشروع */}
-                <div>
-                  <Label htmlFor="projectFilter" className="text-sm font-medium block mb-1.5">المشروع</Label>
+          {/* أدوات التصفية */}
+          <div className="md:col-span-3 lg:col-span-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* تصفية حسب المشروع */}
+            <div className="md:col-span-1">
+              <Card className="h-full bg-[hsl(var(--muted))]/30">
+                <CardHeader className="p-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <i className="fas fa-project-diagram text-primary/70"></i>
+                    <span>حسب المشروع</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-0">
                   <Select 
                     value={filter.projectId?.toString() || "all"} 
                     onValueChange={(value) => handleFilterChange({ projectId: value === "all" ? undefined : parseInt(value) })}
@@ -438,11 +362,20 @@ export default function Documents() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                
-                {/* تصفية حسب نوع الملف */}
-                <div>
-                  <Label htmlFor="fileTypeFilter" className="text-sm font-medium block mb-1.5">نوع الملف</Label>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* تصفية حسب نوع الملف */}
+            <div className="md:col-span-1">
+              <Card className="h-full bg-[hsl(var(--muted))]/30">
+                <CardHeader className="p-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <i className="fas fa-file-alt text-primary/70"></i>
+                    <span>نوع الملف</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-0">
                   <Select 
                     value={filter.fileType || "all"} 
                     onValueChange={(value) => handleFilterChange({ fileType: value === "all" ? undefined : value })}
@@ -460,11 +393,31 @@ export default function Documents() {
                       <SelectItem value="other">أخرى</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                
-                {/* تصفية حسب التاريخ */}
-                <div>
-                  <Label className="text-sm font-medium block mb-1.5">فترة التاريخ</Label>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* تصفية حسب التاريخ */}
+            <div className="md:col-span-2">
+              <Card className="h-full bg-[hsl(var(--muted))]/30">
+                <CardHeader className="p-3">
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <i className="fas fa-calendar-alt text-primary/70"></i>
+                      <span>حسب التاريخ</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFilter({})}
+                      className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      <i className="fas fa-redo-alt ml-1"></i>
+                      إعادة ضبط
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 pt-0">
                   <div className="grid grid-cols-2 gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
@@ -517,23 +470,118 @@ export default function Documents() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                </div>
-                
-                {/* زر إعادة ضبط الفلاتر */}
-                <div className="pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setFilter({})}
-                    className="w-full text-xs"
-                  >
-                    <i className="fas fa-redo-alt ml-1"></i>
-                    إعادة ضبط
-                  </Button>
-                </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+          
+        {/* قسم عرض المستندات */}
+        <div className="md:col-span-12 mt-2">
+          {/* عرض الموبايل */}
+          <div className="block md:hidden space-y-4 sm:space-y-6 fade-in">
+            {isActiveTabLoading() ? (
+              <div className="text-center py-10 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                <div className="animate-spin h-10 w-10 mx-auto border-t-2 border-b-2 border-primary rounded-full"></div>
+                <p className="mt-4 text-[hsl(var(--muted-foreground))]">جاري تحميل المستندات...</p>
               </div>
-            </CardContent>
-          </Card>
+            ) : getActiveDocuments()?.length === 0 ? (
+              <div className="text-center py-12 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm">
+                <FileText className="h-16 w-16 mx-auto text-muted-foreground opacity-20" />
+                <p className="text-[hsl(var(--foreground))] font-medium mt-4">لا توجد مستندات</p>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">قم برفع مستند جديد للبدء</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {getActiveDocuments()?.map((doc: Document) => {
+                  const projectName = projects?.find((p: Project) => p.id === doc.projectId)?.name || 'عام';
+                  return (
+                    <div 
+                      key={doc.id} 
+                      className={`bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl p-5 hover:shadow-md transition-all duration-300 ${doc.isManagerDocument ? 'border-amber-300 bg-amber-50/30' : ''}`}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-semibold text-[hsl(var(--foreground))]">
+                          {doc.name}
+                          {doc.isManagerDocument && (
+                            <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1.5 px-1.5 py-0.5">
+                              <Lock className="ml-0.5 h-2 w-2" />
+                              <span className="text-[10px]">إداري</span>
+                            </Badge>
+                          )}
+                        </h4>
+                        
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] ${getFileTypeBadgeClasses(doc.fileType)}`}>
+                          {getFileTypeLabel(doc.fileType)}
+                        </span>
+                      </div>
+                      
+                      {doc.description && (
+                        <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3 line-clamp-2">
+                          {doc.description}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center text-[10px] xs:text-xs text-[hsl(var(--muted-foreground))] mb-4">
+                        <div className="flex items-center ml-3">
+                          <i className="fas fa-folder-open ml-1 text-primary"></i>
+                          {projectName}
+                        </div>
+                        <div className="flex items-center">
+                          <i className="fas fa-calendar-alt ml-1 text-primary"></i>
+                          {formatDate(doc.uploadDate)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => previewFile(doc)}
+                          className="text-[10px] xs:text-xs h-7 px-2"
+                        >
+                          <Eye className="h-3 w-3 ml-1" />
+                          معاينة
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => downloadFile(doc.fileUrl)}
+                          className="text-[10px] xs:text-xs h-7 px-2"
+                        >
+                          <Download className="h-3 w-3 ml-1" />
+                          تنزيل
+                        </Button>
+                        {user?.role === 'admin' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-[10px] xs:text-xs h-7 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive/90 border-destructive/30"
+                            onClick={() => handleDeleteClick(doc)}
+                          >
+                            <Trash2 className="h-3 w-3 ml-1" />
+                            حذف
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+            
+          {/* عرض سطح المكتب */}
+          <div className="hidden md:block fade-in">
+            <DocumentList 
+              documents={getActiveDocuments()} 
+              projects={projects || []} 
+              isLoading={isActiveTabLoading() || projectsLoading}
+              onDocumentUpdated={handleDocumentUpdated}
+              isManagerSection={activeTab === "manager"}
+              searchQuery={filter.searchQuery}
+            />
+          </div>
         </div>
       </div>
     </div>
