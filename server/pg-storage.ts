@@ -761,7 +761,7 @@ export class PgStorage implements IStorage {
         }
       }
 
-      // 3. إنشاء معاملة إيراد للمشروع
+      // 3. إنشاء معاملة إيداع في المشروع
       const projectTransaction = await this.createTransaction({
         date: new Date(),
         amount,

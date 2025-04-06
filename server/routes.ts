@@ -814,11 +814,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 action: "create",
                 entityType: "transaction",
                 entityId: result.transaction.id,
-                details: `إضافة إيراد للمشروع ${projectId} بقيمة ${amount} من قبل المدير (مصروف من صندوق المدير)`,
+                details: `إيداع في المشروع ${projectId} بقيمة ${amount} من قبل المدير (مصروف من صندوق المدير)`,
                 userId
               });
             } catch (error) {
-              console.error("خطأ في إضافة إيراد للمشروع:", error);
+              console.error("خطأ في إيداع مبلغ في المشروع:", error);
               throw error;
             }
           } else {
