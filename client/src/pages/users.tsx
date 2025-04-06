@@ -52,7 +52,7 @@ export default function Users() {
       <div className="mb-6 sm:mb-8">
         <div className="bg-gradient-to-l from-[hsl(var(--primary))] to-[hsl(var(--primary))/90] text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg shadow-md sm:shadow-lg mb-6 dark:from-[hsl(var(--primary))/90] dark:to-[hsl(var(--primary))/70]">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">إدارة المستخدمين</h2>
-          <p className="text-white/80 mt-1 sm:mt-2 text-sm sm:text-base">إدارة حسابات المستخدمين والصلاحيات</p>
+          <p className="text-gray-100 mt-1 sm:mt-2 text-sm sm:text-base font-medium">إدارة حسابات المستخدمين والصلاحيات</p>
         </div>
       </div>
       
