@@ -277,7 +277,7 @@ export default function Documents() {
                         <SelectValue placeholder="كل المشاريع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">كل المشاريع</SelectItem>
+                        <SelectItem value="all">كل المشاريع</SelectItem>
                         {!projectsLoading && projects?.map((project: Project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
@@ -297,7 +297,7 @@ export default function Documents() {
                         <SelectValue placeholder="كل الأنواع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">كل الأنواع</SelectItem>
+                        <SelectItem value="all">كل الأنواع</SelectItem>
                         <SelectItem value="image">صور</SelectItem>
                         <SelectItem value="pdf">PDF</SelectItem>
                         <SelectItem value="document">مستندات</SelectItem>
@@ -591,14 +591,14 @@ export default function Documents() {
                     <div className="w-full xs:w-auto">
                       <Label htmlFor="projectFilter" className="text-xs xs:text-sm mb-1 block">المشروع</Label>
                       <Select
-                        value={filter.projectId?.toString() || ''}
-                        onValueChange={(value) => handleFilterChange({ projectId: value ? parseInt(value) : undefined })}
+                        value={filter.projectId?.toString() || 'all'}
+                        onValueChange={(value) => handleFilterChange({ projectId: value !== 'all' ? parseInt(value) : undefined })}
                       >
                         <SelectTrigger id="projectFilter" className="w-full xs:w-[140px] h-8 text-xs sm:text-sm">
                           <SelectValue placeholder="كل المشاريع" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">كل المشاريع</SelectItem>
+                          <SelectItem value="all">كل المشاريع</SelectItem>
                           {!projectsLoading && projects?.map((project: Project) => (
                             <SelectItem key={project.id} value={project.id.toString()}>
                               {project.name}
@@ -611,14 +611,14 @@ export default function Documents() {
                     <div className="w-full xs:w-auto">
                       <Label htmlFor="typeFilter" className="text-xs xs:text-sm mb-1 block">نوع الملف</Label>
                       <Select
-                        value={filter.fileType || ''}
-                        onValueChange={(value) => handleFilterChange({ fileType: value || undefined })}
+                        value={filter.fileType || 'all'}
+                        onValueChange={(value) => handleFilterChange({ fileType: value === 'all' ? undefined : value })}
                       >
                         <SelectTrigger id="typeFilter" className="w-full xs:w-[140px] h-8 text-xs sm:text-sm">
                           <SelectValue placeholder="كل الأنواع" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">كل الأنواع</SelectItem>
+                          <SelectItem value="all">كل الأنواع</SelectItem>
                           <SelectItem value="image">صور</SelectItem>
                           <SelectItem value="pdf">PDF</SelectItem>
                           <SelectItem value="document">مستندات</SelectItem>
@@ -779,9 +779,9 @@ export default function Documents() {
                             <Badge className={transaction.type === 'deposit' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-orange-100 text-orange-800 border-orange-300'}>
                               {transaction.type === 'deposit' ? 'إيداع' : 'سحب'}
                             </Badge>
-                            <Badge className={getFileTypeBadgeClasses(transaction.fileType)}>
-                              {getFileTypeIconName(transaction.fileType)}
-                              <span className="mr-1">{getFileTypeLabel(transaction.fileType)}</span>
+                            <Badge className={getFileTypeBadgeClasses(transaction.fileType || '')}>
+                              {getFileTypeIconName(transaction.fileType || '')}
+                              <span className="mr-1">{getFileTypeLabel(transaction.fileType || '')}</span>
                             </Badge>
                           </div>
                           <CardTitle className="text-base mt-2 mb-0">
