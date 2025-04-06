@@ -201,18 +201,24 @@ export function Sidebar() {
           {/* Header with app logo */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/80] flex items-center justify-center shadow-md">
-                <i className="fas fa-shield-alt text-xl text-white"></i>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))/80] flex items-center justify-center shadow-lg relative group overflow-hidden">
+                <i className="fas fa-shield-alt text-xl text-white z-10 transform transition-transform duration-300 group-hover:scale-110"></i>
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/0 via-blue-600/40 to-blue-600/0 opacity-0 group-hover:opacity-100 animate-shimmer"></div>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-l from-[hsl(var(--primary))] to-[hsl(var(--primary))/80]">نظام المحاسبة</h1>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-l from-[hsl(var(--primary))] to-[hsl(var(--primary))/70]">نظام المحاسبة</h1>
+                <p className="text-xs text-blue-500/80 dark:text-blue-400/80 mt-0.5 hidden sm:inline-block">الإصدار 1.0.2</p>
+              </div>
             </div>
             <div className="md:hidden">
               <button 
                 onClick={() => setIsOpen(false)}
-                className="sidebar-toggle-button text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))/80] w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center transform transition-transform hover:scale-110 active:scale-95 shadow touch-target"
+                className="sidebar-toggle-button text-[hsl(var(--primary))] hover:text-white w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center transform transition-all duration-300 hover:scale-110 hover:bg-[hsl(var(--primary))] active:scale-95 shadow-md hover:shadow-lg touch-target"
                 aria-label="إغلاق القائمة"
               >
-                <i className="fas fa-times"></i>
+                <i className="fas fa-times text-lg"></i>
+                <span className="absolute inset-0 rounded-full bg-blue-200/30 dark:bg-blue-400/20 transform scale-0 transition-transform duration-500 ease-out hover:scale-[1.2] group-hover:scale-[1.2]"></span>
               </button>
             </div>
           </div>
