@@ -51,7 +51,7 @@ export function AppHeader({ onOpenSidebar }: AppHeaderProps) {
           className="relative mr-2 w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-300 transform transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow touch-target"
           aria-label="فتح القائمة"
         >
-          <i className="fas fa-bars text-lg"></i>
+          <i className="fas fa-stream text-lg"></i>
           
           {/* طبقة تأثير الموجة عند النقر */}
           <span className="absolute inset-0 rounded-full bg-blue-200/30 dark:bg-blue-400/20 transform scale-0 transition-transform duration-500 ease-out hover:scale-[1.2] group-hover:scale-[1.2]"></span>
@@ -61,7 +61,7 @@ export function AppHeader({ onOpenSidebar }: AppHeaderProps) {
       {/* التاريخ ومعلومات المستخدم للشاشات المتوسطة والكبيرة فقط */}
       <div className="hidden md:flex flex-col items-center">
         <div className="text-base font-semibold text-blue-600 dark:text-blue-300">
-          <i className="far fa-calendar-alt ml-1.5"></i>
+          <i className="fas fa-calendar-day ml-1.5"></i>
           <span>{currentDate}</span>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function AppHeader({ onOpenSidebar }: AppHeaderProps) {
               </div>
             </div>
             <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-full flex items-center justify-center text-white shadow-sm">
-              <i className="fas fa-user-tie text-sm"></i>
+              <i className="fas fa-user-circle text-sm"></i>
             </div>
           </div>
         )}
