@@ -90,7 +90,7 @@ export default function Transactions() {
   }, [transactions, activeTab]);
 
   return (
-    <div className="py-6 px-4">
+    <div className="py-6 px-4 pb-mobile-nav extra-bottom-padding">
       <div className="mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--primary))]">إدارة الحسابات</h2>
         <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة المعاملات المالية للإيرادات والمصروفات</p>

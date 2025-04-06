@@ -17,17 +17,17 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('financial');
-  const [projectId, setProjectId] = useState<string>('');
+  const [projectId, setProjectId] = useState<string>('all');
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const financialChartRef = useRef<HTMLCanvasElement>(null);
   const projectsChartRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ['/api/projects'],
   });
   
-  const { data: transactions = [] } = useQuery({
+  const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ['/api/transactions'],
   });
   
@@ -571,7 +571,7 @@ export default function Reports() {
   const { income, expense, profit, transactions: filteredTransactions } = getFinancialData();
   
   return (
-    <div className="space-y-8 py-6">
+    <div className="space-y-8 py-6 pb-mobile-nav extra-bottom-padding">
       <h2 className="text-2xl font-bold text-primary-light pb-2 border-b border-neutral-dark border-opacity-20">التقارير</h2>
       
       <div className="bg-secondary-light rounded-xl shadow-card p-6">

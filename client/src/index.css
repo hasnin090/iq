@@ -509,7 +509,7 @@
   
   /* إضافة مسافة أسفل المحتوى لتجنب تغطية شريط التنقل السفلي للمحتوى */
   .pb-mobile-nav {
-    @apply pb-20 md:pb-0;
+    @apply pb-32 sm:pb-28 md:pb-24 lg:pb-20 xl:pb-16;
   }
   
   /* تأثيرات حركية للبطاقات */
@@ -864,5 +864,11 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
     gap: clamp(0.5rem, 2vw, 1.5rem);
+  }
+  
+  /* فئة تطبق هوامش أكبر لأسفل الصفحة لمنع تداخل القوائم مع المحتوى */
+  .extra-bottom-padding {
+    padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)) !important;
+    margin-bottom: 2rem !important;
   }
 }

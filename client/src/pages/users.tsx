@@ -22,7 +22,7 @@ export default function Users() {
   // Check if user is admin
   if (user?.role !== 'admin') {
     return (
-      <div className="py-6 px-4">
+      <div className="py-6 px-4 pb-mobile-nav extra-bottom-padding">
         <div className="mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--primary))]">إدارة المستخدمين</h2>
           <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة حسابات المستخدمين والصلاحيات</p>
@@ -48,7 +48,7 @@ export default function Users() {
   };
   
   return (
-    <div className="py-4 sm:py-6 px-3 sm:px-4">
+    <div className="py-4 sm:py-6 px-3 sm:px-4 pb-mobile-nav extra-bottom-padding">
       <div className="mb-6 sm:mb-8">
         <div className="bg-gradient-to-l from-blue-600 to-blue-700 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-lg shadow-lg mb-6">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">إدارة المستخدمين</h2>
