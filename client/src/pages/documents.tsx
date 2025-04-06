@@ -32,7 +32,7 @@ import {
   Calendar
 } from "@/components/ui/calendar";
 import { getMainFileType, getFileTypeIconName, getFileTypeLabel, getFileTypeBadgeClasses } from "@/utils/file-utils";
-import { EmptyState, SectionHeader, LoadingState } from '@/components/common';
+import { EmptyState, SectionHeader, LoadingState, FileTypeIcon, FileTypeBadge } from '@/components/common';
 import type { Document, Project } from '@/types';
 
 interface Filter {
