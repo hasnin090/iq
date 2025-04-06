@@ -440,21 +440,22 @@
     @apply fixed bottom-4 left-4 right-4 z-50 flex justify-center items-center py-3 rounded-xl bg-[hsl(var(--primary))] text-white font-bold shadow-lg md:hidden;
   }
   
-  /* شريط التنقل المتجاوب للهاتف */
+  /* تم إزالة شريط التنقل المتجاوب للهاتف بناءً على طلب المستخدم */
+  /* تم الاحتفاظ بفئات CSS في حال الحاجة لها مستقبلاً ولكن مع إزالة display */
   .mobile-navbar {
-    @apply fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-2 px-4 flex justify-around items-center z-40 md:hidden;
+    @apply hidden;
   }
   
   .mobile-nav-item {
-    @apply flex flex-col items-center justify-center text-xs text-gray-600 dark:text-gray-400;
+    @apply hidden;
   }
   
   .mobile-nav-item.active {
-    @apply text-[hsl(var(--primary))] dark:text-white;
+    @apply hidden;
   }
   
   .mobile-nav-icon {
-    @apply text-lg mb-1;
+    @apply hidden;
   }
   
   /* تحسين شكل الإدخالات للهاتف */
@@ -507,14 +508,14 @@
     @apply space-y-3 sm:space-y-4 md:space-y-6;
   }
   
-  /* إضافة مسافة أسفل المحتوى لتجنب تغطية شريط التنقل السفلي للمحتوى */
+  /* إضافة مسافة أسفل المحتوى - تم تقليل الهوامش بعد إزالة شريط التنقل السفلي */
   .pb-mobile-nav {
-    @apply pb-40 sm:pb-36 md:pb-28 lg:pb-24 xl:pb-20;
+    @apply pb-16 sm:pb-16 md:pb-16 lg:pb-16 xl:pb-16;
   }
   
   /* مساحة إضافية للصفحات التي تحتاج هامش أكبر مثل صفحة المستندات والتقارير */
   .pb-mobile-nav-large {
-    @apply pb-52 sm:pb-44 md:pb-36 lg:pb-28 xl:pb-24;
+    @apply pb-20 sm:pb-20 md:pb-20 lg:pb-20 xl:pb-20;
   }
   
   /* تأثيرات حركية للبطاقات */
