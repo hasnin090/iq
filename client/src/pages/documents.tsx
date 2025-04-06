@@ -192,7 +192,7 @@ export default function Documents() {
   };
   
   return (
-    <div className="w-full py-3 px-2 xs:px-3 sm:py-4 md:py-6 sm:px-4 max-w-[1800px] mx-auto">
+    <div className="w-full py-3 px-2 xs:px-3 sm:py-4 md:py-6 sm:px-4 max-w-[1800px] mx-auto pb-mobile-nav">
       <div className="mb-4 sm:mb-6 md:mb-8">
         <h2 className="heading-responsive font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
         <p className="text-responsive text-[hsl(var(--muted-foreground))] mt-1 sm:mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>

@@ -105,26 +105,46 @@ export function Sidebar() {
 
       {/* شريط تنقل متحرك للهاتف */}
       {isMobile && !isOpen && (
-        <div className="mobile-navbar">
-          <Link href="/" className={`mobile-nav-item ${location === "/" ? "active" : ""}`}>
-            <i className="fas fa-home mobile-nav-icon"></i>
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-xl border-t border-blue-100 dark:border-gray-700 py-2 px-2 flex justify-around items-center z-40 md:hidden">
+          <Link href="/" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+            location === "/" 
+              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              : "text-gray-600 dark:text-gray-400"
+            }`}>
+            <i className="fas fa-home text-lg mb-1"></i>
             <span>الرئيسية</span>
           </Link>
-          <Link href="/transactions" className={`mobile-nav-item ${location === "/transactions" ? "active" : ""}`}>
-            <i className="fas fa-money-bill-wave mobile-nav-icon"></i>
+          <Link href="/transactions" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+            location === "/transactions" 
+              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              : "text-gray-600 dark:text-gray-400"
+            }`}>
+            <i className="fas fa-money-bill-wave text-lg mb-1"></i>
             <span>الحسابات</span>
           </Link>
-          <Link href="/projects" className={`mobile-nav-item ${location === "/projects" ? "active" : ""}`}>
-            <i className="fas fa-project-diagram mobile-nav-icon"></i>
+          <Link href="/projects" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+            location === "/projects" 
+              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              : "text-gray-600 dark:text-gray-400"
+            }`}>
+            <i className="fas fa-tasks text-lg mb-1"></i>
             <span>المشاريع</span>
           </Link>
-          <Link href="/documents" className={`mobile-nav-item ${location === "/documents" ? "active" : ""}`}>
-            <i className="fas fa-file-alt mobile-nav-icon"></i>
+          <Link href="/documents" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+            location === "/documents" 
+              ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+              : "text-gray-600 dark:text-gray-400"
+            }`}>
+            <i className="fas fa-folder-open text-lg mb-1"></i>
             <span>المستندات</span>
           </Link>
           {user?.role === "admin" && (
-            <Link href="/settings" className={`mobile-nav-item ${location === "/settings" ? "active" : ""}`}>
-              <i className="fas fa-cog mobile-nav-icon"></i>
+            <Link href="/settings" className={`flex flex-col items-center justify-center text-xs font-medium p-2 rounded-lg ${
+              location === "/settings" 
+                ? "text-[hsl(var(--primary))] dark:text-white bg-blue-50 dark:bg-gray-700" 
+                : "text-gray-600 dark:text-gray-400"
+              }`}>
+              <i className="fas fa-cog text-lg mb-1"></i>
               <span>الإدارة</span>
             </Link>
           )}
