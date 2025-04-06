@@ -155,13 +155,13 @@ export function DocumentList({
   return (
     <>
       {searchQuery && (
-        <div className="bg-primary-light/20 rounded-xl p-3 mb-4 flex items-center">
-          <Search className="h-5 w-5 text-primary ml-2" />
+        <div className="bg-primary/10 dark:bg-primary/20 rounded-xl p-3 mb-4 flex items-center">
+          <Search className="h-5 w-5 text-primary dark:text-primary/90 ml-2" />
           <div>
-            <p className="text-primary font-medium">
+            <p className="text-primary dark:text-primary-foreground font-medium">
               نتائج البحث عن "{searchQuery}"
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground dark:text-primary-foreground/70">
               تم العثور على {documents.length} {documents.length === 1 ? 'مستند' : 'مستندات'}
             </p>
           </div>
@@ -197,7 +197,11 @@ export function DocumentList({
           {sortedDocuments.map((document) => (
             <div 
               key={document.id} 
-              className="bg-card rounded-lg border p-3 flex justify-between items-center"
+              className={`rounded-lg border p-3 flex justify-between items-center transition-colors ${
+                isManagerSection 
+                  ? "border-amber-200/40 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20" 
+                  : "bg-card dark:bg-card/80"
+              }`}
             >
               <div className="flex items-center space-x-3 space-x-reverse">
                 <DocumentCard 

@@ -65,18 +65,18 @@ export function DocumentPreviewDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 overflow-hidden bg-muted rounded-md my-2 min-h-[300px] flex items-center justify-center relative">
+        <div className="flex-1 overflow-hidden bg-muted dark:bg-muted/50 rounded-md my-2 min-h-[300px] flex items-center justify-center relative">
           {isImage ? (
             <div className="relative w-full h-full flex items-center justify-center">
               <img 
                 src={document.fileUrl} 
                 alt={document.name}
-                className="max-w-full max-h-[60vh] object-contain"
+                className="max-w-full max-h-[60vh] object-contain dark:drop-shadow-md"
               />
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="absolute top-2 right-2 h-8 w-8 bg-background/80 backdrop-blur-sm"
+                className="absolute top-2 right-2 h-8 w-8 bg-background/80 dark:bg-background/40 backdrop-blur-sm"
                 onClick={handleOpenExternal}
               >
                 <Maximize2 className="h-4 w-4" />
@@ -85,14 +85,14 @@ export function DocumentPreviewDialog({
           ) : isPdf ? (
             <iframe 
               src={`${document.fileUrl}#toolbar=0`} 
-              className="w-full h-full min-h-[400px]" 
+              className="w-full h-full min-h-[400px] border-none dark:opacity-90" 
               title={document.name}
             />
           ) : (
             <div className="flex flex-col items-center justify-center p-6 text-center">
-              <FileTypeIcon fileType={document.fileType} className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-2">لا يمكن معاينة هذا النوع من الملفات</p>
-              <p className="text-sm text-muted-foreground">
+              <FileTypeIcon fileType={document.fileType} className="h-16 w-16 text-muted-foreground dark:text-muted-foreground/80 mb-4" />
+              <p className="text-muted-foreground dark:text-muted-foreground/90 mb-2">لا يمكن معاينة هذا النوع من الملفات</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground/70">
                 يمكنك تنزيل الملف لعرضه على جهازك
               </p>
             </div>

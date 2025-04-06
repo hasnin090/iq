@@ -545,16 +545,16 @@ export default function Documents() {
               {/* قسم الفلتر والفورم */}
               <div className="space-y-6 sm:space-y-8">
                 {/* نموذج رفع مستند إداري */}
-                <div className="bg-amber-50 border border-amber-200 p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-left">
-                  <h3 className="text-base xs:text-lg sm:text-xl font-bold text-amber-800 mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
-                    <i className="fas fa-file-upload text-amber-600"></i>
+                <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-4 xs:p-5 sm:p-6 rounded-xl shadow-sm slide-in-left">
+                  <h3 className="text-base xs:text-lg sm:text-xl font-bold text-amber-800 dark:text-amber-400 mb-3 sm:mb-5 flex items-center flex-wrap space-x-1 xs:space-x-2 space-x-reverse">
+                    <i className="fas fa-file-upload text-amber-600 dark:text-amber-500"></i>
                     <span>رفع مستند إداري جديد</span>
-                    <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
+                    <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/60 mr-1 xs:mr-1.5 sm:mr-2 mt-0.5 xs:mt-0">
                       <Lock className="ml-0.5 xs:ml-1 h-2.5 w-2.5 xs:h-3 xs:w-3" />
                       <span className="text-[10px] xs:text-xs">مقيّد</span>
                     </Badge>
                   </h3>
-                  <div className="mb-4 bg-amber-100 border-r-4 border-amber-500 p-3 rounded-tr rounded-br text-xs sm:text-sm text-amber-800">
+                  <div className="mb-4 bg-amber-100 dark:bg-amber-900/60 border-r-4 border-amber-500 dark:border-amber-600 p-3 rounded-tr rounded-br text-xs sm:text-sm text-amber-800 dark:text-amber-300">
                     <AlertCircle className="inline-flex ml-1.5 h-4 w-4" />
                     المستندات الإدارية مرئية فقط للمدراء والمسؤولين. استخدم هذا القسم لتخزين المستندات السرية والحساسة.
                   </div>
@@ -711,15 +711,15 @@ export default function Documents() {
                 {/* عرض المستندات */}
                 <div className="block">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-amber-700 flex items-center space-x-2 space-x-reverse">
+                    <h3 className="text-lg font-bold text-amber-700 dark:text-amber-500 flex items-center space-x-2 space-x-reverse">
                       <Lock className="ml-1.5 h-4 w-4" />
                       <span>مستندات المدراء</span>
-                      <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 mr-2">
+                      <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700/60 mr-2">
                         منطقة مقيدة
                       </Badge>
                     </h3>
                     {managerDocuments && (
-                      <Badge className="bg-amber-600 px-2 py-0.5 text-white">
+                      <Badge className="bg-amber-600 dark:bg-amber-700 px-2 py-0.5 text-white">
                         {managerDocuments.length} مستند
                       </Badge>
                     )}

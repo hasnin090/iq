@@ -58,7 +58,7 @@ export function DocumentCard({
     
     return parts.map((part, i) => 
       regex.test(part) ? 
-        <mark key={i} className="bg-yellow-200 text-black px-1 rounded">{part}</mark> : 
+        <mark key={i} className="bg-yellow-200 dark:bg-yellow-800 text-black dark:text-white px-1 rounded">{part}</mark> : 
         part
     );
   };
@@ -66,17 +66,26 @@ export function DocumentCard({
   return (
     <Card className={cn(
       "overflow-hidden border transition-all hover:shadow-md",
-      isManagerSection && "border-primary/20 bg-primary/5"
+      isManagerSection && "border-amber-200/40 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20"
     )}>
-      <CardHeader className="p-3 pb-0 flex justify-between items-start">
+      <CardHeader className={cn(
+        "p-3 pb-0 flex justify-between items-start",
+        isManagerSection && "bg-amber-50/60 dark:bg-amber-950/30"
+      )}>
         <div className="space-y-1.5 overflow-hidden">
           <div className="flex items-start gap-2">
             <FileTypeIcon 
               fileType={document.fileType} 
-              className="h-5 w-5 mt-0.5 flex-shrink-0" 
+              className={cn(
+                "h-5 w-5 mt-0.5 flex-shrink-0",
+                isManagerSection && "text-amber-600 dark:text-amber-500"
+              )}
             />
             <div className="space-y-1 overflow-hidden">
-              <h3 className="font-medium text-sm line-clamp-1 break-all">
+              <h3 className={cn(
+                "font-medium text-sm line-clamp-1 break-all",
+                isManagerSection && "text-amber-800 dark:text-amber-400"
+              )}>
                 {highlightText(document.name)}
               </h3>
               <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
@@ -119,7 +128,10 @@ export function DocumentCard({
         className="p-3 pt-0 cursor-pointer" 
         onClick={() => onPreview(document)}
       >
-        <div className="mt-2 aspect-video bg-muted rounded-md overflow-hidden flex items-center justify-center relative">
+        <div className={cn(
+          "mt-2 aspect-video rounded-md overflow-hidden flex items-center justify-center relative",
+          isManagerSection ? "bg-amber-50 dark:bg-amber-950/30" : "bg-muted"
+        )}>
           {isImage ? (
             <img 
               src={document.fileUrl} 
@@ -127,13 +139,23 @@ export function DocumentCard({
               className="w-full h-full object-cover"
               loading="lazy"
               onError={(e) => {
-                e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNlZWVlZWUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5DYW5ub3QgbG9hZCBpbWFnZTwvdGV4dD48L3N2Zz4=';
+                e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNlZWVlZWUiIGNsYXNzPSJkYXJrOmZpbGwtZ3JheS04MDAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNzc3IiBjbGFzcz0iZGFyazpmaWxsLWdyYXktMzAwIj5DYW5ub3QgbG9hZCBpbWFnZTwvdGV4dD48L3N2Zz4=';
               }}
             />
           ) : (
             <div className="flex flex-col items-center justify-center py-4">
-              <FileIcon className="h-10 w-10 text-muted-foreground mb-2" />
-              <span className="text-xs text-muted-foreground">
+              <FileIcon className={cn(
+                "h-10 w-10 mb-2",
+                isManagerSection 
+                  ? "text-amber-600/70 dark:text-amber-500/70" 
+                  : "text-muted-foreground"
+              )} />
+              <span className={cn(
+                "text-xs",
+                isManagerSection 
+                  ? "text-amber-700/70 dark:text-amber-400/70" 
+                  : "text-muted-foreground"
+              )}>
                 {document.fileType.split('/').pop()?.toUpperCase()}
               </span>
             </div>
