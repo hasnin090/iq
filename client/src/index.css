@@ -11,6 +11,14 @@
   --font-tajawal: 'Tajawal', sans-serif;
 }
 
+/* تحسينات الأيقونات والقوائم في الوضع الفاتح */
+:root {
+  /* تحسين تباين أيقونات القائمة في الوضع الفاتح */
+  --menu-icon-light-color: hsl(216, 78%, 42%); /* زيادة غمقان لون الأيقونات */
+  --menu-hover-light-bg: hsl(214, 100%, 97%); /* خلفية التحويم بلون فاتح ذو تشبع أعلى */
+  --menu-border-light-color: hsl(214, 80%, 90%); /* حدود أعمق لتحسين التباين */
+}
+
 /* أنماط خاصة بالطباعة */
 @media print {
   /* إخفاء العناصر غير المطلوبة عند الطباعة */
@@ -251,6 +259,18 @@
     direction: rtl;
   }
   
+  /* تحسين العناوين للوضع الفاتح */
+  html:not(.dark) h1, 
+  html:not(.dark) h2, 
+  html:not(.dark) h3, 
+  html:not(.dark) h4, 
+  html:not(.dark) h5, 
+  html:not(.dark) h6 {
+    color: hsl(215, 70%, 25%) !important; /* تعميق لون العناوين للوضوح */
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7) !important; /* إضافة ظل نص خفيف */
+    letter-spacing: -0.01em !important; /* ضبط المسافة بين الحروف */
+  }
+  
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
@@ -302,6 +322,18 @@
   .card {
     @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[hsl(var(--border))] p-4 md:p-6 transition-all duration-300 hover:shadow-md transform hover:-translate-y-1;
   }
+  
+  /* تحسين مظهر البطاقات في الوضع الفاتح */
+  html:not(.dark) .card {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(248, 250, 255, 0.9)) !important; /* خلفية متدرجة للبطاقات */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.06) !important; /* ظلال متعددة للبطاقات */
+    border: 1px solid rgba(202, 220, 242, 0.8) !important; /* حدود باللون الأزرق الفاتح */
+  }
+  
+  html:not(.dark) .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.08) !important; /* ظلال أقوى عند التحويم */
+    border: 1px solid rgba(185, 210, 240, 0.9) !important; /* حدود أغمق عند التحويم */
+  }
 
   /* تحسين بطاقات العرض للهاتف */
   .mobile-card {
@@ -343,9 +375,31 @@
     @apply text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-700/50;
   }
   
+  /* تحسين رؤوس الجداول في الوضع الفاتح */
+  html:not(.dark) .table-header th,
+  html:not(.dark) table thead th,
+  html:not(.dark) th {
+    background-color: rgba(232, 240, 255, 0.8) !important; /* خلفية زرقاء فاتحة للرؤوس */
+    color: var(--menu-icon-light-color) !important; /* نص أغمق للرؤوس */
+    font-weight: 600 !important; /* خط أكثر سمكا */
+    border-bottom: 2px solid var(--menu-border-light-color) !important; /* حدود أكثر وضوحا */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important; /* ظلال خفيفة */
+  }
+  
   /* تحسين عرض النصوص في خلايا الجداول */
   .table-cell {
     @apply py-2.5 px-4 text-sm text-gray-800 dark:text-gray-200;
+  }
+  
+  /* تحسين خلايا الجداول في الوضع الفاتح */
+  html:not(.dark) .table-cell,
+  html:not(.dark) td {
+    border-bottom: 1px solid rgba(219, 234, 254, 0.5) !important; /* حدود فاتحة للخلايا */
+  }
+  
+  /* تناوب ألوان صفوف الجدول في الوضع الفاتح */
+  html:not(.dark) tr:nth-child(even) {
+    background-color: rgba(248, 250, 255, 0.7) !important; /* خلفية فاتحة للصفوف الزوجية */
   }
   
   /* الحاويات المتجاوبة للبطاقات */
@@ -522,6 +576,51 @@
   @keyframes zoomIn {
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
+  }
+  
+  /* تحسينات للقوائم والأيقونات في الوضع الفاتح */
+  /* تحديثات على الأزرار والأيقونات */
+  html:not(.dark) .sidebar-toggle-button {
+    background-color: hsl(214, 100%, 97%) !important; /* خلفية فاتحة بلون أزرق خفيف */
+    color: var(--menu-icon-light-color) !important; /* لون الأيقونة أكثر غمقة للتباين */
+    border: 1px solid var(--menu-border-light-color) !important; /* إضافة حدود أكثر وضوحاً */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important; /* ظلال خفيفة لتحسين البروز */
+  }
+  
+  /* تحسين تباين الأيقونات في الوضع الفاتح */
+  html:not(.dark) .fas,
+  html:not(.dark) i.fas,
+  html:not(.dark) i.far {
+    color: var(--menu-icon-light-color) !important; /* تطبيق لون أكثر غمقة على جميع الأيقونات */
+    font-weight: 600 !important; /* جعل الأيقونات أكثر سمكًا */
+  }
+  
+  /* تحسين عناصر القائمة في الوضع الفاتح */
+  html:not(.dark) a:not(.bg-\[hsl\(var\(--primary\)\)\]) {
+    border: 1px solid transparent !important; /* إضافة حدود شفافة أولاً */
+  }
+  
+  html:not(.dark) a:hover:not(.bg-\[hsl\(var\(--primary\)\)\]) {
+    background-color: var(--menu-hover-light-bg) !important; /* خلفية بلون مخصص عند التحويم */
+    border: 1px solid var(--menu-border-light-color) !important; /* حدود أكثر وضوحاً عند التحويم */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important; /* إضافة ظلال عند التحويم */
+    transform: translateY(-1px) !important; /* إضافة تأثير ارتفاع خفيف عند التحويم */
+  }
+  
+  /* تحسين عناصر القائمة الجانبية في الوضع الفاتح */
+  html:not(.dark) aside nav a:not(.bg-\[hsl\(var\(--primary\)\)\]) {
+    background-color: rgba(240, 249, 255, 0.7) !important; /* خلفية فاتحة لعناصر القائمة */
+  }
+  
+  html:not(.dark) aside nav a:not(.bg-\[hsl\(var\(--primary\)\)\]) .w-8,
+  html:not(.dark) aside nav a:not(.bg-\[hsl\(var\(--primary\)\)\]) .w-9 {
+    background-color: rgba(219, 234, 254, 0.8) !important; /* خلفية أيقونة أغمق قليلاً */
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.05) !important; /* ظلال خفيفة للأيقونات */
+  }
+  
+  html:not(.dark) aside nav a:hover:not(.bg-\[hsl\(var\(--primary\)\)\]) {
+    background-color: rgba(224, 242, 254, 0.9) !important; /* خلفية أغمق عند التحويم */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08) !important; /* ظلال أقوى عند التحويم */
   }
   
   /* إصلاح مشكلة زر القائمة الجانبية */
@@ -715,6 +814,23 @@
     top: 14px !important;
     right: 16px !important;
     z-index: 50 !important;
+  }
+
+  /* تحسين أزرار وأيقونات القوائم في الوضع الفاتح */
+  html:not(.dark) .action-button {
+    background-color: rgba(250, 252, 255, 0.9) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(202, 220, 242, 0.8) !important;
+  }
+
+  html:not(.dark) .action-button:hover {
+    background-color: rgba(240, 249, 255, 0.95) !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  html:not(.dark) .action-button-primary {
+    border-color: transparent !important;
   }
   
   .desktop-only {
