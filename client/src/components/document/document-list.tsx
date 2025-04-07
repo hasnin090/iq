@@ -183,9 +183,9 @@ export function DocumentList({
       />
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 xs:gap-4 sm:gap-5 lg:gap-6 pt-2 pb-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 xs:gap-4 sm:gap-5 lg:gap-6 pt-2 pb-4 w-full overflow-x-visible">
           {sortedDocuments.map((document) => (
-            <div key={document.id} className="transform transition-all duration-200 hover:scale-[1.01]">
+            <div key={document.id} className="transform transition-all duration-200 hover:scale-[1.01] max-w-full">
               <DocumentCard 
                 document={document}
                 projects={projects}
@@ -199,11 +199,11 @@ export function DocumentList({
           ))}
         </div>
       ) : (
-        <div className="space-y-4 py-2">
+        <div className="space-y-4 py-2 w-full">
           {sortedDocuments.map((document) => (
             <div 
               key={document.id} 
-              className={`rounded-lg border p-4 flex flex-col sm:flex-row justify-between items-center transition-all duration-200 hover:shadow-md ${
+              className={`rounded-lg border p-3 xs:p-4 flex flex-col sm:flex-row justify-between items-center transition-all duration-200 hover:shadow-md overflow-hidden break-words ${
                 isManagerSection 
                   ? "border-amber-200/40 dark:border-amber-800/40 bg-gradient-to-r from-amber-50/50 to-white dark:from-amber-950/30 dark:to-transparent" 
                   : "bg-gradient-to-r from-blue-50/30 to-white dark:from-blue-950/10 dark:to-transparent hover:border-blue-200/30 dark:hover:border-blue-800/30"
@@ -211,33 +211,33 @@ export function DocumentList({
             >
               <div className="flex items-center w-full sm:w-auto mb-3 sm:mb-0">
                 <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  <div className={`h-9 w-9 xs:h-10 xs:w-10 flex-shrink-0 rounded-full flex items-center justify-center ${
                     isManagerSection 
                       ? "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 shadow-sm" 
                       : "bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 shadow-sm"
                   }`}>
                     <FileTypeIcon 
                       fileType={document.fileType} 
-                      className={`h-5 w-5 ${
+                      className={`h-4 w-4 xs:h-5 xs:w-5 ${
                         isManagerSection 
                           ? "text-amber-600 dark:text-amber-500" 
                           : "text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))]"
                       }`}
                     />
                   </div>
-                  <div className="overflow-hidden">
-                    <h3 className="font-semibold text-sm md:text-base truncate max-w-[150px] sm:max-w-[200px] md:max-w-[300px]">
+                  <div className="overflow-hidden min-w-0 flex-1">
+                    <h3 className="font-semibold text-sm md:text-base truncate w-full">
                       {document.name}
                     </h3>
-                    <div className="flex flex-wrap items-center mt-1.5 gap-2">
-                      <span className="inline-flex items-center text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">
-                        <span className={`inline-block w-2 h-2 rounded-full ml-1.5 ${
+                    <div className="flex flex-wrap items-center mt-1 xs:mt-1.5 gap-1 xs:gap-2">
+                      <span className="inline-flex items-center text-[10px] xs:text-xs text-muted-foreground truncate max-w-full">
+                        <span className={`inline-block w-1.5 h-1.5 xs:w-2 xs:h-2 rounded-full ml-1 xs:ml-1.5 ${
                           document.projectId ? 'bg-green-400 dark:bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
                         }`}></span>
                         {projects.find(p => p.id === document.projectId)?.name || 'بدون مشروع'}
                       </span>
-                      <span className="text-xs text-muted-foreground flex items-center" dir="ltr">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <span className="text-[10px] xs:text-xs text-muted-foreground flex items-center" dir="ltr">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 xs:h-3 xs:w-3 ml-0.5 xs:ml-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
@@ -246,38 +246,38 @@ export function DocumentList({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 self-end sm:self-center">
+              <div className="flex flex-wrap items-center gap-2 w-full xs:w-auto justify-start xs:justify-end sm:self-center mt-1 sm:mt-0">
                 <FileTypeBadge 
                   fileType={document.fileType} 
-                  className="py-1 px-2.5 text-xs font-medium" 
+                  className="py-0.5 xs:py-1 px-2 xs:px-2.5 text-[10px] xs:text-xs font-medium" 
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-1 xs:gap-2 ml-auto xs:ml-0">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => handlePreviewClick(document)}
-                    className="rounded-full h-9 w-9 sm:h-9 sm:w-auto px-2 sm:px-3 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                    className="rounded-full h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-auto px-1.5 xs:px-2 sm:px-3 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                   >
-                    <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400 sm:ml-1" /> 
-                    <span className="hidden sm:inline ml-1 text-blue-600 dark:text-blue-400">معاينة</span>
+                    <Eye className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-blue-600 dark:text-blue-400 sm:ml-1" /> 
+                    <span className="hidden sm:inline ml-1 text-blue-600 dark:text-blue-400 text-xs">معاينة</span>
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => downloadFile(document)}
-                    className="rounded-full h-9 w-9 sm:h-9 sm:w-auto px-2 sm:px-3 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/30"
+                    className="rounded-full h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-auto px-1.5 xs:px-2 sm:px-3 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/30"
                   >
-                    <Download className="h-4 w-4 text-green-600 dark:text-green-400 sm:ml-1" /> 
-                    <span className="hidden sm:inline ml-1 text-green-600 dark:text-green-400">تنزيل</span>
+                    <Download className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-green-600 dark:text-green-400 sm:ml-1" /> 
+                    <span className="hidden sm:inline ml-1 text-green-600 dark:text-green-400 text-xs">تنزيل</span>
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="rounded-full h-9 w-9 sm:h-9 sm:w-auto px-2 sm:px-3 border-red-200 dark:border-red-800/60 hover:bg-red-50 dark:hover:bg-red-900/30" 
+                    className="rounded-full h-7 w-7 xs:h-8 xs:w-8 sm:h-9 sm:w-auto px-1.5 xs:px-2 sm:px-3 border-red-200 dark:border-red-800/60 hover:bg-red-50 dark:hover:bg-red-900/30" 
                     onClick={() => handleDeleteClick(document)}
                   >
-                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400 sm:ml-1" /> 
-                    <span className="hidden sm:inline ml-1 text-red-600 dark:text-red-400">حذف</span>
+                    <Trash2 className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-red-600 dark:text-red-400 sm:ml-1" /> 
+                    <span className="hidden sm:inline ml-1 text-red-600 dark:text-red-400 text-xs">حذف</span>
                   </Button>
                 </div>
               </div>
@@ -287,22 +287,25 @@ export function DocumentList({
       )}
       
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
-            <AlertDialogDescription>
-              هل أنت متأكد من رغبتك في حذف المستند "{documentToDelete?.name}"؟
-              <br />
+        <AlertDialogContent className="w-[95vw] xs:w-[90vw] sm:w-auto p-4 sm:p-6 max-w-md">
+          <AlertDialogHeader className="space-y-1 xs:space-y-2">
+            <AlertDialogTitle className="text-base xs:text-lg">تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs xs:text-sm">
+              هل أنت متأكد من رغبتك في حذف المستند؟
+              <div className="font-semibold text-sm mt-1 mb-1 text-foreground/90">"{documentToDelete?.name}"</div>
               لا يمكن التراجع عن هذا الإجراء.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col xs:flex-row gap-2 mt-4 xs:mt-2 sm:mt-0">
+            <AlertDialogCancel className="h-8 xs:h-9 text-xs xs:text-sm mt-0">إلغاء</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 xs:h-9 text-xs xs:text-sm mt-0"
             >
-              نعم، حذف المستند
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 ml-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+              </svg>
+              حذف المستند
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

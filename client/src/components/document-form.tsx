@@ -317,27 +317,27 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
   }
   
   return (
-    <div className="bg-secondary-light rounded-xl shadow-card p-3 xs:p-4 sm:p-5 md:p-6 w-full max-w-full">
-      <h3 className="text-lg font-bold text-primary-light mb-4">رفع مستند جديد</h3>
+    <div className="bg-secondary-light rounded-xl shadow-card p-3 xs:p-4 sm:p-5 w-full max-w-full">
+      <h3 className="text-sm xs:text-base sm:text-lg font-bold text-primary-light mb-2 xs:mb-3 sm:mb-4">رفع مستند جديد</h3>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4 sm:gap-5 md:gap-6">
+        <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-3 xs:space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 xs:gap-3 sm:gap-4">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>اسم المستند</FormLabel>
+                <FormItem className="space-y-1 xs:space-y-1.5 sm:space-y-2">
+                  <FormLabel className="text-xs xs:text-sm">اسم المستند</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="أدخل اسم المستند"
-                      className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
+                      className="w-full px-3 py-1.5 xs:px-4 xs:py-2 text-xs xs:text-sm rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
                       disabled={isLoading || mutation.isPending}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] xs:text-xs" />
                 </FormItem>
               )}
             />
@@ -346,19 +346,19 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
               control={form.control}
               name="projectId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>المشروع</FormLabel>
+                <FormItem className="space-y-1 xs:space-y-1.5 sm:space-y-2">
+                  <FormLabel className="text-xs xs:text-sm">المشروع</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     value={field.value} 
                     disabled={isLoading || mutation.isPending}
                   >
                     <FormControl>
-                      <SelectTrigger className="w-full px-4 py-2 h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light">
+                      <SelectTrigger className="w-full px-3 py-1.5 xs:px-4 xs:py-2 text-xs xs:text-sm h-auto rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light">
                         <SelectValue placeholder="اختر المشروع" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="text-xs xs:text-sm">
                       <SelectItem value="all">عام</SelectItem>
                       {projects.map((project) => (
                         <SelectItem key={project.id} value={project.id.toString()}>
@@ -367,7 +367,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] xs:text-xs" />
                 </FormItem>
               )}
             />
@@ -377,18 +377,18 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
             control={form.control}
             name="description"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>وصف المستند</FormLabel>
+              <FormItem className="space-y-1 xs:space-y-1.5 sm:space-y-2">
+                <FormLabel className="text-xs xs:text-sm">وصف المستند</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
-                    rows={3}
+                    rows={2}
                     placeholder="أدخل وصف المستند (اختياري)"
-                    className="w-full px-4 py-2 rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
+                    className="w-full px-3 py-1.5 xs:px-4 xs:py-2 text-xs xs:text-sm rounded-lg bg-secondary border border-secondary-light focus:border-primary-light focus:outline-none text-neutral-light"
                     disabled={isLoading || mutation.isPending}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-[10px] xs:text-xs" />
               </FormItem>
             )}
           />
@@ -398,18 +398,18 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
             name="file"
             render={({ field: { onChange, value, ...rest } }) => (
               <FormItem>
-                <FormLabel className="flex items-center">
+                <FormLabel className="flex items-center text-xs xs:text-sm">
                   الملف
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="inline-flex">
-                          <Info className="h-4 w-4 mr-1 text-muted-foreground cursor-help" />
+                          <Info className="h-3 w-3 xs:h-4 xs:w-4 mr-1 text-muted-foreground cursor-help" />
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p className="text-xs">
-                          يمكنك رفع ملفات بصيغة PDF أو صور (JPG, PNG) أو مستندات (DOC, DOCX) أو ملفات نصية (TXT) أو جداول بيانات (XLS, XLSX).
+                      <TooltipContent className="max-w-xs text-[10px] xs:text-xs p-2 xs:p-3">
+                        <p>
+                          يمكنك رفع ملفات بصيغة PDF أو صور (JPG, PNG) أو مستندات (DOC, DOCX) أو ملفات نصية (TXT).
                           الحد الأقصى لحجم الملف هو {MAX_FILE_SIZE / 1024 / 1024} ميجابايت.
                         </p>
                       </TooltipContent>
@@ -418,7 +418,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                 </FormLabel>
                 
                 <div 
-                  className={`border-2 border-dashed rounded-lg p-3 xs:p-4 sm:p-5 md:p-6 text-center transition-colors
+                  className={`border-2 border-dashed rounded-lg p-2 xs:p-3 sm:p-4 md:p-5 text-center transition-colors
                     ${isDragging 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border hover:border-primary/50 hover:bg-secondary/80'
@@ -528,18 +528,18 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
           />
           
           {mutation.isPending && (
-            <div className="space-y-2 border-2 border-primary/10 rounded-lg p-3 bg-primary/5">
-              <div className="flex items-center justify-between mb-1">
+            <div className="space-y-1.5 xs:space-y-2 border-2 border-primary/10 rounded-lg p-2 xs:p-3 bg-primary/5">
+              <div className="flex items-center justify-between mb-0.5 xs:mb-1">
                 <div className="flex items-center">
-                  <Loader2 className="h-4 w-4 ml-2 animate-spin text-primary" />
-                  <span className="text-sm font-medium text-primary-light">جاري رفع الملف...</span>
+                  <Loader2 className="h-3.5 w-3.5 xs:h-4 xs:w-4 ml-1.5 xs:ml-2 animate-spin text-primary" />
+                  <span className="text-xs xs:text-sm font-medium text-primary-light">جاري رفع الملف...</span>
                 </div>
-                <span className="text-sm font-bold text-primary bg-white px-3 py-1 rounded-full shadow-sm border border-primary/10">
+                <span className="text-xs xs:text-sm font-bold text-primary bg-white px-2 xs:px-3 py-0.5 xs:py-1 rounded-full shadow-sm border border-primary/10">
                   {uploadProgress}%
                 </span>
               </div>
-              <Progress value={uploadProgress} className="h-3 bg-white" />
-              <p className="text-xs text-center text-muted-foreground mt-1">
+              <Progress value={uploadProgress} className="h-2 xs:h-2.5 sm:h-3 bg-white" />
+              <p className="text-[10px] xs:text-xs text-center text-muted-foreground mt-0.5 xs:mt-1">
                 {uploadProgress < 20 ? 'بدء التحميل...' : 
                  uploadProgress < 60 ? 'جاري رفع الملف، يرجى الانتظار...' : 
                  uploadProgress < 90 ? 'اقترب التحميل من الانتهاء...' : 
@@ -551,17 +551,17 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
           <div className="text-center pt-2">
             <Button 
               type="submit" 
-              className="w-full xs:w-auto px-4 xs:px-6 py-2 xs:py-3 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              className="w-full xs:w-auto h-9 xs:h-10 text-xs xs:text-sm px-3 xs:px-4 sm:px-6 py-1.5 xs:py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
               disabled={isLoading || mutation.isPending || !file}
             >
               {mutation.isPending ? (
                 <>
-                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="ml-1.5 xs:ml-2 h-3.5 w-3.5 xs:h-4 xs:w-4 animate-spin" />
                   جاري الرفع...
                 </>
               ) : (
                 <>
-                  <UploadCloud className="ml-2 h-4 w-4" />
+                  <UploadCloud className="ml-1.5 xs:ml-2 h-3.5 w-3.5 xs:h-4 xs:w-4" />
                   رفع المستند
                 </>
               )}

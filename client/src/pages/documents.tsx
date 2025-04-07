@@ -202,50 +202,57 @@ export default function Documents() {
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-stretch mb-4 sm:mb-5">
           {/* محسّن TabsList - مع محاذاة أفضل وتفاعلية أعلى لمختلف أحجام الشاشة */}
           <div className="flex-grow">
-            <TabsList className="w-full overflow-auto scrollbar-hide rounded-lg shadow-sm border border-[hsl(var(--border))]">
-              <TabsTrigger 
-                value="all" 
-                className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
-              >
-                <FileText className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                <span>المستندات العامة</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="projects" 
-                className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
-              >
-                <File className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                <span>حسب المشروع</span>
-              </TabsTrigger>
-              {isManagerOrAdmin && (
+            {/* تحسين شريط التبويب للأجهزة المحمولة: يجعله قابل للتمرير أفقياً بنعومة */}
+            <div className="relative w-full overflow-hidden">
+              <TabsList className="w-full flex overflow-x-auto scrollbar-hide pb-1 no-scrollbar whitespace-nowrap rounded-lg shadow-sm border border-[hsl(var(--border))]">
                 <TabsTrigger 
-                  value="manager" 
-                  className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
+                  value="all" 
+                  className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md transition-all duration-200"
                 >
-                  <Lock className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                  <span>مستندات المدراء</span>
+                  <FileText className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+                  <span>المستندات العامة</span>
                 </TabsTrigger>
-              )}
-              <TabsTrigger 
-                value="attachments" 
-                className="flex items-center justify-center flex-1 min-w-[115px] text-xs sm:text-sm h-11 md:h-12 px-2 sm:px-3 data-[state=active]:shadow-md transition-all duration-200"
-              >
-                <FileImage className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                <span>مرفقات المعاملات</span>
-              </TabsTrigger>
-            </TabsList>
+                <TabsTrigger 
+                  value="projects" 
+                  className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md transition-all duration-200"
+                >
+                  <File className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+                  <span>حسب المشروع</span>
+                </TabsTrigger>
+                {isManagerOrAdmin && (
+                  <TabsTrigger 
+                    value="manager" 
+                    className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md transition-all duration-200"
+                  >
+                    <Lock className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+                    <span>مستندات المدراء</span>
+                  </TabsTrigger>
+                )}
+                <TabsTrigger 
+                  value="attachments" 
+                  className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md transition-all duration-200"
+                >
+                  <FileImage className="ml-1 sm:ml-1.5 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+                  <span>مرفقات المعاملات</span>
+                </TabsTrigger>
+              </TabsList>
+              {/* مؤشرات تمرير للأجهزة المحمولة */}
+              <div className="absolute left-0 top-0 h-full w-6 pointer-events-none bg-gradient-to-l from-transparent to-background/30 sm:hidden"></div>
+              <div className="absolute right-0 top-0 h-full w-6 pointer-events-none bg-gradient-to-r from-transparent to-background/30 sm:hidden"></div>
+            </div>
           </div>
           
-          {/* زر رفع مستند - معدل ليكون بشكل منتظم مع العناصر الأخرى */}
+          {/* زر رفع مستند - محسن لتجاوب أفضل على الجوال */}
           {user?.role !== 'viewer' && (
             <Button 
               variant="default" 
               size="sm" 
-              className="h-11 md:h-12 w-full sm:w-[160px] text-xs sm:text-sm rounded-lg shadow-sm flex items-center justify-center"
+              className="h-11 md:h-12 w-auto min-w-[auto] sm:min-w-[160px] text-xs sm:text-sm rounded-lg shadow-sm flex items-center justify-center whitespace-nowrap"
               onClick={() => setShowUploadDialog(true)}
             >
               <Upload className="ml-1.5 h-4 w-4" />
-              <span>رفع مستند جديد</span>
+              <span className="xs:inline">رفع مستند جديد</span>
+              <span className="xs:hidden">رفع مستند</span>
             </Button>
           )}
         </div>
@@ -1348,13 +1355,13 @@ export default function Documents() {
       </Tabs>
       {/* نافذة منبثقة لرفع مستند جديد */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="max-w-[95%] xs:max-w-[90%] sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto p-4 xs:p-5 sm:p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl text-[hsl(var(--primary))] font-bold flex items-center">
-              <Upload className="ml-2 h-5 w-5" />
+        <DialogContent className="max-w-[95%] xs:max-w-[90%] sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto p-3 xs:p-4 sm:p-5 md:p-6 overflow-hidden">
+          <DialogHeader className="space-y-1 sm:space-y-2">
+            <DialogTitle className="text-base xs:text-lg sm:text-xl text-[hsl(var(--primary))] font-bold flex items-center">
+              <Upload className="ml-1.5 xs:ml-2 h-4 w-4 xs:h-5 xs:w-5" />
               <span>رفع مستند جديد</span>
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground mt-1">
+            <DialogDescription className="text-xs xs:text-sm text-muted-foreground">
               قم بإضافة ملف جديد لأرشيف المستندات
             </DialogDescription>
           </DialogHeader>
