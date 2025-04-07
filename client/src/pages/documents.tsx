@@ -788,14 +788,9 @@ export default function Documents() {
             {/* شريط أدوات المشاريع */}
             <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-xl shadow-sm p-4 sm:p-5">
               <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3">
-                <div className="flex items-center">
-                  <div className="bg-[hsl(var(--primary))] bg-opacity-15 rounded-full p-2 ml-3">
-                    <File className="h-5 w-5 text-[hsl(var(--primary))]" />
-                  </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg font-bold text-[hsl(var(--foreground))]">مستندات المشاريع</h3>
-                    <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))]">تصفح المستندات حسب تصنيف المشاريع</p>
-                  </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[hsl(var(--foreground))]">مستندات المشاريع</h3>
+                  <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))]">تصفح المستندات حسب تصنيف المشاريع</p>
                 </div>
                 
 
