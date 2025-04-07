@@ -97,15 +97,15 @@ function AppRoutes() {
   return (
     <div className="flex">
       <Sidebar />
-      <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
+      <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 lg:mr-80 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
         {/* تم إزالة الأشرطة القديمة واستبدالها بشريط علوي مركزي في مكون Sidebar */}
         
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
-        <div className={`${isMobile ? 'h-20' : 'h-20'}`}></div>
+        <div className="h-16 xs:h-[4.5rem] sm:h-20"></div>
         
         {/* المحتوى الرئيسي - تم تصغيره أكثر وتحسينه للعرض العمودي في الشاشات الصغيرة */}
-        <div className="main-content-container fade-in px-2 sm:px-3 md:px-4 lg:px-5 py-2 max-w-[1100px] mx-auto pb-mobile-nav w-full">
-          <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden flex flex-col">
+        <div className="main-content-container fade-in px-2 xs:px-3 sm:px-4 md:px-5 lg:px-6 py-2 xs:py-3 md:py-4 max-w-[1100px] mx-auto pb-mobile-nav w-full">
+          <div className="bg-card rounded-lg xs:rounded-xl shadow-sm xs:shadow border border-border overflow-hidden flex flex-col">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/transactions" component={Transactions} />

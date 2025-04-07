@@ -40,7 +40,7 @@ export function AppHeader({ onOpenSidebar }: AppHeaderProps) {
   
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 md:px-6 py-3 md:py-4 transition-all duration-300 dark:border-b dark:border-gray-700/50`}
+      className={`fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-3 xs:px-4 md:px-6 py-2 xs:py-3 md:py-4 transition-all duration-300 dark:border-b dark:border-gray-700/50`}
       style={{
         backdropFilter: `blur(${headerBlur}px)`,
         boxShadow: isDarkMode
@@ -78,8 +78,9 @@ export function AppHeader({ onOpenSidebar }: AppHeaderProps) {
       {/* تبديل الوضع المظلم وصورة المستخدم */}
       <div className="flex items-center space-x-4 space-x-reverse">
         {/* التاريخ للشاشات الصغيرة فقط */}
-        <div className="md:hidden text-xs font-semibold text-blue-600 dark:text-blue-300 transition-colors duration-300">
-          <span>{format(new Date(), "d MMMM", { locale: ar })}</span>
+        <div className="md:hidden text-xs xs:text-sm font-semibold text-blue-600 dark:text-blue-300 transition-colors duration-300">
+          <span className="hidden xs:inline">{format(new Date(), "d MMMM", { locale: ar })}</span>
+          <span className="xs:hidden">{format(new Date(), "d MMM", { locale: ar })}</span>
         </div>
         
         {/* اسم المستخدم للشاشات المتوسطة والكبيرة فقط */}
