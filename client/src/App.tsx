@@ -103,8 +103,8 @@ function AppRoutes() {
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
         <div className="h-16 xs:h-[4.5rem] sm:h-20"></div>
         
-        {/* المحتوى الرئيسي - تم تصغيره أكثر وتحسينه للعرض العمودي في الشاشات الصغيرة */}
-        <div className="main-content-container fade-in px-2 xs:px-3 sm:px-4 md:px-5 lg:px-6 py-2 xs:py-3 md:py-4 max-w-[1100px] mx-auto pb-mobile-nav w-full">
+        {/* المحتوى الرئيسي - محسن للتكيف مع مختلف أحجام الشاشات بهوامش ديناميكية وعرض مناسب */}
+        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-3 md:px-4 lg:px-5 py-2 xs:py-3 md:py-4 max-w-full sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] xl:max-w-[1000px] mx-auto pb-mobile-nav w-full">
           <div className="bg-card rounded-lg xs:rounded-xl shadow-sm xs:shadow border border-border overflow-hidden flex flex-col">
             <Switch>
               <Route path="/" component={Dashboard} />
