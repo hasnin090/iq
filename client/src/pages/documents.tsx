@@ -242,17 +242,17 @@ export default function Documents() {
             </div>
           </div>
           
-          {/* زر رفع مستند - محسن لتجاوب أفضل على الجوال */}
+          {/* زر رفع مستند - بحجم أصغر ومحسن للعرض على الأجهزة المختلفة */}
           {user?.role !== 'viewer' && (
             <Button 
               variant="default" 
               size="sm" 
-              className="h-11 md:h-12 w-auto min-w-[auto] sm:min-w-[160px] text-xs sm:text-sm rounded-lg shadow-sm flex items-center justify-center whitespace-nowrap"
+              className="h-9 md:h-10 w-auto min-w-[auto] sm:min-w-[140px] text-xs rounded-md shadow-sm flex items-center justify-center whitespace-nowrap"
               onClick={() => setShowUploadDialog(true)}
             >
-              <Upload className="ml-1.5 h-4 w-4" />
-              <span className="xs:inline">رفع مستند جديد</span>
-              <span className="xs:hidden">رفع مستند</span>
+              <Upload className="ml-1 h-3 w-3 md:h-3.5 md:w-3.5" />
+              <span className="xs:inline">رفع مستند</span>
+              <span className="xs:hidden">رفع</span>
             </Button>
           )}
         </div>
