@@ -798,11 +798,7 @@ export default function Documents() {
                   </div>
                 </div>
                 
-                {!projectsLoading && projects && (
-                  <Badge variant="outline" className="bg-[hsl(var(--primary))] bg-opacity-5 px-3 py-1 h-auto text-[hsl(var(--primary))] border-[hsl(var(--primary))] border-opacity-30">
-                    {projects?.filter(p => documents?.some((doc: Document) => doc.projectId === p.id)).length ?? 0} مشروع
-                  </Badge>
-                )}
+
               </div>
             </div>
             
