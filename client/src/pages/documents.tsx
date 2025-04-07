@@ -192,7 +192,7 @@ export default function Documents() {
   };
   
   return (
-    <div className="w-full py-1 px-0 xs:px-1 sm:py-2 md:py-3 sm:px-1 max-w-full pb-mobile-nav-large flex flex-col">
+    <div className="w-full py-1 px-0 xs:px-1 sm:py-2 md:py-3 lg:py-4 sm:px-1 md:px-2 max-w-full md:max-w-[98%] lg:max-w-[96%] xl:max-w-[94%] 2xl:max-w-[92%] mx-auto pb-mobile-nav-large flex flex-col">
       <div className="mb-4 sm:mb-6 md:mb-8">
         <h2 className="heading-responsive font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
         <p className="text-responsive text-[hsl(var(--muted-foreground))] mt-1 sm:mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
@@ -269,7 +269,7 @@ export default function Documents() {
         
         <TabsContent value="all" className="p-0">
           {/* العامة المستندات محتوى - تصميم متجاوب تم تخصيصه للعرض العمودي في الشاشات الصغيرة */}
-          <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 lg:gap-4">
+          <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-5">
             {/* شريط جانبي للشاشات الكبيرة */}
             <div className="hidden lg:block w-64 xl:w-72 shrink-0">
               <DocumentSidebar
@@ -886,7 +886,7 @@ export default function Documents() {
                         </div>
                         
                         <div className="p-4 sm:p-5">
-                          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-5">
                             {filteredProjectDocuments.map((doc: Document) => (
                               <div
                                 key={doc.id}
@@ -970,7 +970,7 @@ export default function Documents() {
                   </div>
                   
                   <div className="p-4 sm:p-5">
-                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-5">
                       {documents
                         ?.filter(doc => !doc.projectId)
                         .map((doc: Document) => (
@@ -1272,7 +1272,7 @@ export default function Documents() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-5">
                   {transactionsWithAttachments?.map((transaction: Transaction) => {
                     const projectName = projects?.find(p => p.id === transaction.projectId)?.name || 'بدون مشروع';
                     return (
