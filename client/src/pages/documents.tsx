@@ -886,7 +886,7 @@ export default function Documents() {
                         </div>
                         
                         <div className="p-4 sm:p-5">
-                          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-5">
+                          <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5">
                             {filteredProjectDocuments.map((doc: Document) => (
                               <div
                                 key={doc.id}
@@ -970,7 +970,7 @@ export default function Documents() {
                   </div>
                   
                   <div className="p-4 sm:p-5">
-                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-5">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5">
                       {documents
                         ?.filter(doc => !doc.projectId)
                         .map((doc: Document) => (
@@ -1272,7 +1272,7 @@ export default function Documents() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 md:gap-5">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5">
                   {transactionsWithAttachments?.map((transaction: Transaction) => {
                     const projectName = projects?.find(p => p.id === transaction.projectId)?.name || 'بدون مشروع';
                     return (
