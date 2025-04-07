@@ -15,7 +15,6 @@ import {
   AlertCircle, CheckCircle, Trash2, UploadCloud, Info 
 } from 'lucide-react';
 import { 
-  uploadFile, 
   getFileType, 
   getReadableFileSize 
 } from '@/lib/firebase-storage';
@@ -318,12 +317,12 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
   }
   
   return (
-    <div className="bg-secondary-light rounded-xl shadow-card p-6">
+    <div className="bg-secondary-light rounded-xl shadow-card p-3 xs:p-4 sm:p-5 md:p-6 w-full max-w-full">
       <h3 className="text-lg font-bold text-primary-light mb-4">رفع مستند جديد</h3>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4 sm:gap-5 md:gap-6">
             <FormField
               control={form.control}
               name="name"
@@ -419,7 +418,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                 </FormLabel>
                 
                 <div 
-                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors
+                  className={`border-2 border-dashed rounded-lg p-3 xs:p-4 sm:p-5 md:p-6 text-center transition-colors
                     ${isDragging 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border hover:border-primary/50 hover:bg-secondary/80'
@@ -446,7 +445,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                         </div>
                       </div>
                       
-                      <div className="flex justify-center mt-4">
+                      <div className="flex flex-wrap justify-center gap-2 mt-4">
                         <Button
                           type="button"
                           variant="outline"
@@ -455,8 +454,8 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                             setFile(null);
                             onChange(null);
                           }}
-                          className="mr-2"
                           disabled={isLoading || mutation.isPending}
+                          className="w-full xs:w-auto"
                         >
                           <Trash2 className="ml-1 h-4 w-4" />
                           حذف
@@ -467,6 +466,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                           size="sm"
                           onClick={() => fileInputRef.current?.click()}
                           disabled={isLoading || mutation.isPending}
+                          className="w-full xs:w-auto"
                         >
                           <Upload className="ml-1 h-4 w-4" />
                           تغيير
@@ -475,11 +475,13 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <UploadCloud className="mx-auto h-8 w-8 xs:h-10 xs:w-10 md:h-12 md:w-12 text-muted-foreground" />
                       <div>
-                        <p className="text-base font-medium">اضغط لاختيار ملف أو قم بسحب الملف وإفلاته هنا</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          PDF، صور (JPG, PNG, GIF, SVG)، مستندات (DOC, DOCX, TXT, RTF)، أوراق عمل (XLS, XLSX)، عروض تقديمية (PPT, PPTX)، ملفات مضغوطة (ZIP, RAR)، وسائط (MP3, WAV, MP4) - أقصى حجم {MAX_FILE_SIZE / 1024 / 1024} ميجابايت
+                        <p className="text-sm xs:text-base font-medium">اضغط لاختيار ملف أو قم بسحب الملف وإفلاته هنا</p>
+                        <p className="text-xs xs:text-sm text-muted-foreground mt-1">
+                          <span className="hidden xs:inline">PDF، صور (JPG, PNG, GIF, SVG)، مستندات (DOC, DOCX, TXT, RTF)، أوراق عمل (XLS, XLSX)، عروض تقديمية (PPT, PPTX)، ملفات مضغوطة (ZIP, RAR)، وسائط (MP3, WAV, MP4) - </span>
+                          <span className="xs:hidden">ملفات PDF، صور، مستندات - </span>
+                          أقصى حجم {MAX_FILE_SIZE / 1024 / 1024} ميجابايت
                         </p>
                       </div>
                       
@@ -499,7 +501,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
                       <Button
                         type="button"
                         variant="outline"
-                        className="relative"
+                        className="relative w-full xs:w-auto"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isLoading || mutation.isPending}
                       >
@@ -549,7 +551,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
           <div className="text-center pt-2">
             <Button 
               type="submit" 
-              className="px-6 py-3 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              className="w-full xs:w-auto px-4 xs:px-6 py-2 xs:py-3 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
               disabled={isLoading || mutation.isPending || !file}
             >
               {mutation.isPending ? (

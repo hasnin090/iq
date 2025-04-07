@@ -1348,7 +1348,7 @@ export default function Documents() {
       </Tabs>
       {/* نافذة منبثقة لرفع مستند جديد */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="max-w-xl mx-auto">
+        <DialogContent className="max-w-[95%] xs:max-w-[90%] sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto p-4 xs:p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl text-[hsl(var(--primary))] font-bold flex items-center">
               <Upload className="ml-2 h-5 w-5" />
