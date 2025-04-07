@@ -192,7 +192,7 @@ export default function Documents() {
   };
   
   return (
-    <div className="w-full py-1 px-0 xs:px-1 sm:py-2 md:py-3 lg:py-4 sm:px-1 md:px-2 max-w-full md:max-w-[98%] lg:max-w-[96%] xl:max-w-[94%] 2xl:max-w-[92%] mx-auto pb-mobile-nav-large flex flex-col">
+    <>
       <div className="mb-4 sm:mb-6 md:mb-8">
         <h2 className="heading-responsive font-bold text-[hsl(var(--primary))]">إدارة المستندات</h2>
         <p className="text-responsive text-[hsl(var(--muted-foreground))] mt-1 sm:mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
@@ -1370,6 +1370,6 @@ export default function Documents() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
