@@ -48,7 +48,7 @@ interface Filter {
 
 export default function Documents() {
   const [filter, setFilter] = useState<Filter>({});
-  const [activeTab, setActiveTab] = useState("all"); // "all" or "manager"
+  const [activeTab, setActiveTab] = useState("general"); // "general", "projects", o "manager"
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const { user } = useAuth();
   const isManagerOrAdmin = user?.role === 'admin' || user?.role === 'manager';
@@ -249,8 +249,8 @@ export default function Documents() {
             </div>
           </div>
           
-          {/* زر رفع مستند - تصميم محسن */}
-          {user?.role !== 'viewer' && (
+          {/* زر رفع مستند - تصميم محسن - يظهر فقط في تبويب المستندات العامة */}
+          {user?.role !== 'viewer' && activeTab === "all" && (
             <Button 
               variant="default" 
               size="sm" 
