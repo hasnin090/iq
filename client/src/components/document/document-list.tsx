@@ -187,9 +187,9 @@ export function DocumentList({
       </div>
       
       {viewType === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 pt-2 pb-6 w-full overflow-x-visible">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 pt-2 pb-6 w-full overflow-x-visible">
           {sortedDocuments.map((document) => (
-            <div key={document.id} className="transform transition-all duration-200 hover:scale-[1.02] hover:-translate-y-1 max-w-full">
+            <div key={document.id} className="transform transition-all duration-200 hover:scale-[1.01] hover:-translate-y-0.5 max-w-full">
               <DocumentCard 
                 document={document}
                 projects={projects}
@@ -203,41 +203,41 @@ export function DocumentList({
           ))}
         </div>
       ) : (
-        <div className="space-y-5 py-2 w-full rounded-xl overflow-hidden border border-primary/10 shadow-sm divide-y divide-primary/10">
+        <div className="space-y-2 py-1 w-full rounded-xl overflow-hidden border border-primary/10 shadow-sm divide-y divide-primary/10">
           {sortedDocuments.map((document, index) => (
             <div 
               key={document.id} 
-              className={`p-4 ${index === 0 ? 'pt-4' : 'pt-5'} ${index === sortedDocuments.length - 1 ? 'pb-4' : 'pb-5'} flex flex-col sm:flex-row justify-between items-center transition-all duration-200 hover:bg-primary/5 overflow-hidden break-words ${
+              className={`p-2 xs:p-3 flex flex-col sm:flex-row justify-between items-center transition-all duration-200 hover:bg-primary/5 overflow-hidden break-words ${
                 isManagerSection 
                   ? "bg-gradient-to-r from-amber-50/30 to-transparent dark:from-amber-950/20 dark:to-transparent" 
                   : "bg-gradient-to-r from-primary/5 to-transparent dark:from-primary/10 dark:to-transparent"
               }`}
             >
-              <div className="flex items-center w-full sm:w-auto mb-3 sm:mb-0">
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className={`h-10 w-10 xs:h-12 xs:w-12 flex-shrink-0 rounded-xl flex items-center justify-center ${
+              <div className="flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <div className={`h-8 w-8 xs:h-10 xs:w-10 flex-shrink-0 rounded-lg flex items-center justify-center ${
                     isManagerSection 
-                      ? "bg-gradient-to-br from-amber-500/80 to-amber-400/70 shadow-md" 
-                      : "bg-gradient-to-br from-primary to-primary/80 shadow-md"
+                      ? "bg-gradient-to-br from-amber-500/80 to-amber-400/70 shadow-sm" 
+                      : "bg-gradient-to-br from-primary to-primary/80 shadow-sm"
                   }`}>
                     <FileTypeIcon 
                       fileType={document.fileType} 
-                      className="h-5 w-5 xs:h-6 xs:w-6 text-white"
+                      className="h-4 w-4 xs:h-5 xs:w-5 text-white"
                     />
                   </div>
                   <div className="overflow-hidden min-w-0 flex-1">
-                    <h3 className="font-semibold text-sm md:text-base lg:text-lg truncate w-full">
+                    <h3 className="font-semibold text-xs xs:text-sm sm:text-base truncate w-full">
                       {document.name}
                     </h3>
-                    <div className="flex flex-wrap items-center mt-1.5 gap-2">
-                      <span className="inline-flex items-center text-xs text-muted-foreground truncate max-w-full">
-                        <span className={`inline-block w-2 h-2 rounded-full ml-1.5 ${
+                    <div className="flex flex-wrap items-center mt-1 gap-1.5">
+                      <span className="inline-flex items-center text-[10px] xs:text-xs text-muted-foreground truncate max-w-full">
+                        <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1 ${
                           document.projectId ? 'bg-green-500 dark:bg-green-500' : 'bg-gray-400 dark:bg-gray-500'
                         }`}></span>
                         {projects.find(p => p.id === document.projectId)?.name || 'بدون مشروع'}
                       </span>
-                      <span className="text-xs text-muted-foreground flex items-center bg-gray-100 dark:bg-gray-800/60 rounded-full px-2 py-0.5" dir="ltr">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <span className="text-[10px] xs:text-xs text-muted-foreground flex items-center bg-gray-100 dark:bg-gray-800/60 rounded-full px-1.5 py-0.5" dir="ltr">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 ml-0.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
@@ -246,38 +246,38 @@ export function DocumentList({
                   </div>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2 w-full xs:w-auto justify-start xs:justify-end sm:self-center mt-2 sm:mt-0">
+              <div className="flex flex-wrap items-center gap-1.5 w-full xs:w-auto justify-start xs:justify-end sm:self-center mt-1.5 sm:mt-0">
                 <FileTypeBadge 
                   fileType={document.fileType} 
-                  className="py-1 px-3 text-xs font-medium shadow-sm" 
+                  className="py-0.5 px-2 text-[10px] xs:text-xs font-medium shadow-sm" 
                 />
-                <div className="flex gap-2 ml-auto xs:ml-0">
+                <div className="flex gap-1.5 ml-auto xs:ml-0">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => handlePreviewClick(document)}
-                    className="rounded-lg h-9 sm:h-10 w-auto px-3 border-primary/20 hover:border-primary/40 hover:bg-primary/10 shadow-sm"
+                    className="rounded-md h-7 xs:h-8 w-auto px-2 border-primary/20 hover:border-primary/40 hover:bg-primary/10 shadow-sm"
                   >
-                    <Eye className="h-4 w-4 text-primary sm:ml-1" /> 
-                    <span className="hidden sm:inline ml-1.5 text-primary text-xs">معاينة</span>
+                    <Eye className="h-3.5 w-3.5 text-primary" /> 
+                    <span className="hidden xs:inline ml-1 text-primary text-[10px]">معاينة</span>
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => downloadFile(document)}
-                    className="rounded-lg h-9 sm:h-10 w-auto px-3 border-green-500/20 hover:border-green-500/40 hover:bg-green-500/10 shadow-sm"
+                    className="rounded-md h-7 xs:h-8 w-auto px-2 border-green-500/20 hover:border-green-500/40 hover:bg-green-500/10 shadow-sm"
                   >
-                    <Download className="h-4 w-4 text-green-600 sm:ml-1" /> 
-                    <span className="hidden sm:inline ml-1.5 text-green-600 text-xs">تنزيل</span>
+                    <Download className="h-3.5 w-3.5 text-green-600" /> 
+                    <span className="hidden xs:inline ml-1 text-green-600 text-[10px]">تنزيل</span>
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="rounded-lg h-9 sm:h-10 w-auto px-3 border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 shadow-sm" 
+                    className="rounded-md h-7 xs:h-8 w-auto px-2 border-red-500/20 hover:border-red-500/40 hover:bg-red-500/10 shadow-sm" 
                     onClick={() => handleDeleteClick(document)}
                   >
-                    <Trash2 className="h-4 w-4 text-red-600 sm:ml-1" /> 
-                    <span className="hidden sm:inline ml-1.5 text-red-600 text-xs">حذف</span>
+                    <Trash2 className="h-3.5 w-3.5 text-red-600" /> 
+                    <span className="hidden xs:inline ml-1 text-red-600 text-[10px]">حذف</span>
                   </Button>
                 </div>
               </div>

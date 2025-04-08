@@ -71,34 +71,34 @@ export function DocumentCard({
         : "bg-gradient-to-br from-primary/5 to-transparent"
     )}>
       <CardHeader className={cn(
-        "p-3 xs:p-4 pb-0 flex justify-between items-start gap-2 xs:gap-3",
+        "p-2 xs:p-3 pb-0 flex justify-between items-start gap-1 xs:gap-2",
         isManagerSection 
           ? "bg-gradient-to-b from-amber-100/30 to-transparent dark:from-amber-900/20 dark:to-transparent" 
           : "bg-gradient-to-b from-primary/10 to-transparent dark:from-primary/20 dark:to-transparent"
       )}>
-        <div className="space-y-1 overflow-hidden flex-1">
-          <div className="flex items-start gap-2 xs:gap-3">
+        <div className="space-y-0.5 overflow-hidden flex-1">
+          <div className="flex items-start gap-1.5 xs:gap-2">
             <div className={cn(
-              "h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md",
+              "h-7 w-7 xs:h-9 xs:w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm",
               isManagerSection ? 
                 "bg-gradient-to-br from-amber-500 to-amber-400 dark:from-amber-600 dark:to-amber-700" :
                 "bg-gradient-to-br from-primary to-primary/80"
             )}>
               <FileTypeIcon 
                 fileType={document.fileType} 
-                className="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6 text-white"
+                className="h-3.5 w-3.5 xs:h-4.5 xs:w-4.5 sm:h-5 sm:w-5 text-white"
               />
             </div>
-            <div className="space-y-1 overflow-hidden w-full">
+            <div className="space-y-0.5 overflow-hidden w-full">
               <h3 className={cn(
-                "font-semibold text-sm xs:text-base sm:text-lg line-clamp-1 break-all transition-colors group-hover:text-primary",
+                "font-semibold text-xs xs:text-sm sm:text-base line-clamp-1 break-all transition-colors group-hover:text-primary",
                 isManagerSection && "text-amber-800 dark:text-amber-400"
               )}>
                 {highlightText(document.name)}
               </h3>
-              <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
-                <span className="truncate max-w-[150px] xs:max-w-[200px] sm:max-w-full inline-flex items-center bg-gray-100/80 dark:bg-gray-800/60 rounded-full px-2 py-0.5">
-                  <span className={`inline-block w-2 h-2 rounded-full ml-1.5 ${project ? 'bg-green-500 dark:bg-green-500' : 'bg-gray-400 dark:bg-gray-500'}`}></span>
+              <div className="flex flex-wrap gap-1 text-[10px] xs:text-xs text-muted-foreground">
+                <span className="truncate max-w-[120px] xs:max-w-[170px] sm:max-w-full inline-flex items-center bg-gray-100/80 dark:bg-gray-800/60 rounded-full px-1.5 py-0.5">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1 ${project ? 'bg-green-500 dark:bg-green-500' : 'bg-gray-400 dark:bg-gray-500'}`}></span>
                   {project ? highlightText(project.name) : 'بدون مشروع'}
                 </span>
               </div>
@@ -138,11 +138,11 @@ export function DocumentCard({
       </CardHeader>
       
       <CardContent 
-        className="p-3 xs:p-4 pt-3 cursor-pointer overflow-hidden" 
+        className="p-2 xs:p-3 pt-2 cursor-pointer overflow-hidden" 
         onClick={() => onPreview(document)}
       >
         <div className={cn(
-          "aspect-video rounded-xl overflow-hidden flex items-center justify-center relative shadow-md group-hover:shadow-lg border border-primary/10 dark:border-primary/5",
+          "aspect-video rounded-lg overflow-hidden flex items-center justify-center relative shadow-sm group-hover:shadow border border-primary/10 dark:border-primary/5",
           isManagerSection ? 
             "bg-gradient-to-br from-amber-50/80 to-white dark:from-amber-950/30 dark:to-gray-900/80" : 
             "bg-gradient-to-br from-primary/5 to-white/80 dark:from-primary/20 dark:to-gray-900"
@@ -160,15 +160,15 @@ export function DocumentCard({
               />
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-4 xs:py-6 transform group-hover:scale-105 transition-transform duration-500">
+            <div className="flex flex-col items-center justify-center py-3 xs:py-4 transform group-hover:scale-105 transition-transform duration-500">
               <FileIcon className={cn(
-                "h-10 w-10 xs:h-12 xs:w-12 sm:h-14 sm:w-14 mb-2 xs:mb-3",
+                "h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 mb-1.5 xs:mb-2",
                 isManagerSection 
                   ? "text-amber-500/80 dark:text-amber-500/70" 
                   : "text-primary/70 dark:text-primary/60"
               )} />
               <span className={cn(
-                "text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm",
+                "text-[10px] xs:text-xs font-medium px-2 py-1 rounded-md shadow-sm",
                 isManagerSection 
                   ? "bg-amber-100/90 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400/90" 
                   : "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground/90"
@@ -179,79 +179,79 @@ export function DocumentCard({
           )}
           
           {/* أزرار الإجراءات تظهر عند التحويم للشاشات الكبيرة فقط */}
-          <div className="hidden sm:flex absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 gap-2">
+          <div className="hidden sm:flex absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 gap-1.5">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(document);
               }}
-              className="h-8 w-8 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-md flex items-center justify-center hover:bg-white dark:hover:bg-gray-800"
+              className="h-7 w-7 rounded-md bg-white/90 dark:bg-gray-800/90 shadow-sm flex items-center justify-center hover:bg-white dark:hover:bg-gray-800"
             >
-              <Eye className="h-4 w-4 text-primary" />
+              <Eye className="h-3.5 w-3.5 text-primary" />
             </button>
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onDownload(document);
               }}
-              className="h-8 w-8 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-md flex items-center justify-center hover:bg-white dark:hover:bg-gray-800"
+              className="h-7 w-7 rounded-md bg-white/90 dark:bg-gray-800/90 shadow-sm flex items-center justify-center hover:bg-white dark:hover:bg-gray-800"
             >
-              <Download className="h-4 w-4 text-green-600" />
+              <Download className="h-3.5 w-3.5 text-green-600" />
             </button>
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(document);
               }}
-              className="h-8 w-8 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-md flex items-center justify-center hover:bg-white dark:hover:bg-gray-800"
+              className="h-7 w-7 rounded-md bg-white/90 dark:bg-gray-800/90 shadow-sm flex items-center justify-center hover:bg-white dark:hover:bg-gray-800"
             >
-              <Trash2 className="h-4 w-4 text-red-600" />
+              <Trash2 className="h-3.5 w-3.5 text-red-600" />
             </button>
           </div>
           
           {/* أزرار الإجراءات للشاشات الصغيرة، دائما مرئية وأكبر حجما */}
-          <div className="flex sm:hidden absolute bottom-2 left-2 right-2 justify-center gap-3">
+          <div className="flex sm:hidden absolute bottom-1.5 left-1.5 right-1.5 justify-center gap-2">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(document);
               }}
-              className="h-9 w-9 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-md flex items-center justify-center"
+              className="h-8 w-8 rounded-md bg-white/90 dark:bg-gray-800/90 shadow-sm flex items-center justify-center"
             >
-              <Eye className="h-4 w-4 text-primary" />
+              <Eye className="h-3.5 w-3.5 text-primary" />
             </button>
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onDownload(document);
               }}
-              className="h-9 w-9 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-md flex items-center justify-center"
+              className="h-8 w-8 rounded-md bg-white/90 dark:bg-gray-800/90 shadow-sm flex items-center justify-center"
             >
-              <Download className="h-4 w-4 text-green-600" />
+              <Download className="h-3.5 w-3.5 text-green-600" />
             </button>
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(document);
               }}
-              className="h-9 w-9 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-md flex items-center justify-center"
+              className="h-8 w-8 rounded-md bg-white/90 dark:bg-gray-800/90 shadow-sm flex items-center justify-center"
             >
-              <Trash2 className="h-4 w-4 text-red-600" />
+              <Trash2 className="h-3.5 w-3.5 text-red-600" />
             </button>
           </div>
         </div>
       </CardContent>
       
-      <CardFooter className="p-3 xs:p-4 flex items-center justify-between bg-gray-50/70 dark:bg-gray-800/30">
-        <span className="text-xs text-muted-foreground flex-shrink-0 flex items-center bg-gray-100/80 dark:bg-gray-800/60 rounded-full px-2 py-0.5" dir="ltr">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <CardFooter className="p-2 xs:p-3 flex items-center justify-between bg-gray-50/70 dark:bg-gray-800/30">
+        <span className="text-[10px] xs:text-xs text-muted-foreground flex-shrink-0 flex items-center bg-gray-100/80 dark:bg-gray-800/60 rounded-full px-1.5 py-0.5" dir="ltr">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 ml-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
           {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
         </span>
         <FileTypeBadge 
           fileType={document.fileType} 
-          className="text-xs py-1 px-3 shadow-sm" 
+          className="text-[10px] xs:text-xs py-0.5 px-2 shadow-sm" 
         />
       </CardFooter>
     </Card>

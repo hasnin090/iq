@@ -103,9 +103,9 @@ function AppRoutes() {
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
         <div className="h-16 xs:h-[4.5rem] sm:h-20"></div>
         
-        {/* المحتوى الرئيسي - محسن للتكيف مع مختلف أحجام الشاشات بهوامش ديناميكية وعرض مناسب */}
-        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-3 md:px-4 lg:px-5 py-2 xs:py-3 md:py-4 max-w-full sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] xl:max-w-[1000px] mx-auto pb-mobile-nav w-full">
-          <div className="bg-card rounded-lg xs:rounded-xl shadow-sm xs:shadow border border-border overflow-hidden flex flex-col">
+        {/* المحتوى الرئيسي - بعرض أصغر وأكثر ملاءمة */}
+        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-2 md:px-3 py-2 max-w-full sm:max-w-[92%] md:max-w-[85%] lg:max-w-[80%] xl:max-w-[900px] mx-auto pb-mobile-nav w-full">
+          <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden flex flex-col">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/transactions" component={Transactions} />
