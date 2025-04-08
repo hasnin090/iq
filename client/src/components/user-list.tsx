@@ -115,7 +115,7 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
       name: user.name,
       email: user.email,
       role: user.role as "admin" | "user",
-      permissions: user.permissions || [],
+      permissions: Array.isArray(user.permissions) ? user.permissions : [],
       password: "",
     },
   });
@@ -287,9 +287,9 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
                       >
                         <FormControl>
                           <Checkbox
-                            checked={field.value?.includes(permission.id)}
+                            checked={Array.isArray(field.value) && field.value.includes(permission.id)}
                             onCheckedChange={(checked) => {
-                              const currentPermissions = field.value || [];
+                              const currentPermissions = Array.isArray(field.value) ? field.value : [];
                               return checked
                                 ? field.onChange([...currentPermissions, permission.id])
                                 : field.onChange(
