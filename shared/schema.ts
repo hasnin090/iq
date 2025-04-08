@@ -37,7 +37,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  email: text("email").unique().notNull().default(""),
+  email: text("email"), // Haciendo el correo electrónico opcional (puede ser nulo o vacío)
   role: text("role").notNull().default("user"), // admin, user, manager, viewer
   permissions: jsonb("permissions").default([]).notNull(),
   active: boolean("active").notNull().default(true),
