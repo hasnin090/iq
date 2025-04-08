@@ -28,19 +28,19 @@ const ImagePreview = memo(({
   document: DocumentType;
   onOpenExternal: () => void;
 }) => (
-  <div className="relative w-full h-full flex items-center justify-center">
+  <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-6">
     <img 
       src={document.fileUrl} 
       alt={document.name}
-      className="max-w-full max-h-[50vh] xs:max-h-[55vh] sm:max-h-[60vh] object-contain dark:drop-shadow-md"
+      className="max-w-full max-h-[50vh] xs:max-h-[55vh] sm:max-h-[60vh] object-contain rounded-lg shadow-md dark:drop-shadow-xl border border-primary/10"
     />
     <Button 
       variant="ghost" 
       size="icon" 
-      className="absolute top-2 right-2 h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 bg-background/80 dark:bg-background/40 backdrop-blur-sm"
+      className="absolute top-3 right-3 h-8 w-8 xs:h-9 xs:w-9 sm:h-10 sm:w-10 bg-white/90 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 backdrop-blur-sm rounded-full shadow-md border border-primary/10"
       onClick={onOpenExternal}
     >
-      <Maximize2 className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+      <Maximize2 className="h-4 w-4 xs:h-4.5 xs:w-4.5 sm:h-5 sm:w-5 text-primary" />
     </Button>
   </div>
 ));
@@ -49,22 +49,26 @@ ImagePreview.displayName = 'ImagePreview';
 
 // PDF preview component
 const PdfPreview = memo(({ document }: { document: DocumentType }) => (
-  <iframe 
-    src={`${document.fileUrl}#toolbar=0`} 
-    className="w-full h-full min-h-[250px] xs:min-h-[300px] sm:min-h-[400px] border-none dark:opacity-90" 
-    title={document.name}
-  />
+  <div className="w-full h-full p-2 sm:p-4">
+    <iframe 
+      src={`${document.fileUrl}#toolbar=0`} 
+      className="w-full h-full min-h-[250px] xs:min-h-[300px] sm:min-h-[400px] border-none rounded-lg shadow-md border border-primary/10 dark:opacity-90" 
+      title={document.name}
+    />
+  </div>
 ));
 
 PdfPreview.displayName = 'PdfPreview';
 
 // Fallback preview component for unsupported file types
 const FallbackPreview = memo(({ document }: { document: DocumentType }) => (
-  <div className="flex flex-col items-center justify-center p-4 xs:p-5 sm:p-6 text-center">
-    <FileTypeIcon fileType={document.fileType} className="h-12 w-12 xs:h-14 xs:w-14 sm:h-16 sm:w-16 text-muted-foreground dark:text-muted-foreground/80 mb-3 xs:mb-4" />
-    <p className="text-sm xs:text-base text-muted-foreground dark:text-muted-foreground/90 mb-1 xs:mb-2">لا يمكن معاينة هذا النوع من الملفات</p>
-    <p className="text-xs xs:text-sm text-muted-foreground dark:text-muted-foreground/70">
-      يمكنك تنزيل الملف لعرضه على جهازك
+  <div className="flex flex-col items-center justify-center p-6 xs:p-8 sm:p-10 text-center">
+    <div className="h-16 w-16 xs:h-20 xs:w-20 sm:h-24 sm:w-24 bg-gradient-to-br from-primary/30 to-primary/10 dark:from-primary/20 dark:to-primary/5 rounded-xl flex items-center justify-center shadow-md mb-4 xs:mb-6">
+      <FileTypeIcon fileType={document.fileType} className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 text-primary dark:text-primary/90" />
+    </div>
+    <p className="text-base xs:text-lg text-foreground font-medium mb-2 xs:mb-3">لا يمكن معاينة هذا النوع من الملفات</p>
+    <p className="text-sm xs:text-base text-muted-foreground dark:text-muted-foreground/80 max-w-xs">
+      يمكنك تنزيل الملف لعرضه على جهازك من خلال زر التنزيل بالأسفل
     </p>
   </div>
 ));
@@ -115,34 +119,47 @@ export const DocumentPreviewDialog = memo(({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90dvh] w-[95vw] xs:w-[90vw] sm:w-auto overflow-hidden flex flex-col p-3 xs:p-4 sm:p-6">
-        <DialogHeader className="mb-1 xs:mb-2 sm:mb-3 space-y-1 xs:space-y-2">
-          <DialogTitle className="flex items-center gap-1.5 xs:gap-2 text-base xs:text-lg">
-            <FileTypeIcon fileType={document.fileType} className="h-4 w-4 xs:h-5 xs:w-5 flex-shrink-0" />
-            <span className="truncate">{document.name}</span>
+      <DialogContent className="sm:max-w-[800px] max-h-[90dvh] w-[95vw] xs:w-[90vw] sm:w-auto overflow-hidden flex flex-col p-4 xs:p-5 sm:p-6 rounded-xl border-primary/10 shadow-lg">
+        <DialogHeader className="mb-3 xs:mb-4 sm:mb-5 space-y-2">
+          <DialogTitle className="flex items-center gap-3 text-base xs:text-lg sm:text-xl">
+            <div className="h-8 w-8 xs:h-10 xs:w-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+              <FileTypeIcon fileType={document.fileType} className="h-4 w-4 xs:h-5 xs:w-5 text-white" />
+            </div>
+            <span className="truncate font-bold">{document.name}</span>
           </DialogTitle>
-          <DialogDescription className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-1 text-xs xs:text-sm mt-1">
-            <span>{fileTypeInfo.description}</span>
-            <span className="text-[10px] xs:text-xs opacity-70" dir="ltr">
+          <DialogDescription className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-2 text-xs xs:text-sm mt-2 pb-1 border-b border-primary/10">
+            <span className="bg-primary/10 py-1 px-3 rounded-full text-primary font-medium">{fileTypeInfo.description}</span>
+            <span className="text-xs xs:text-sm opacity-80 bg-gray-100 dark:bg-gray-800/60 rounded-full px-3 py-1 flex items-center" dir="ltr">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 ml-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               {new Date(document.uploadDate).toLocaleDateString('ar-EG')}
             </span>
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 overflow-hidden bg-muted dark:bg-muted/50 rounded-md my-1 xs:my-2 min-h-[200px] xs:min-h-[250px] sm:min-h-[300px] flex items-center justify-center relative">
+        <div className="flex-1 overflow-hidden bg-gradient-to-br from-primary/5 to-transparent dark:from-primary/10 dark:to-transparent rounded-xl my-1 xs:my-2 min-h-[250px] xs:min-h-[300px] sm:min-h-[400px] flex items-center justify-center relative border border-primary/10 shadow-inner">
           {renderPreview()}
         </div>
         
-        <DialogFooter className="sm:justify-between gap-1.5 xs:gap-2 flex-wrap pt-1.5 xs:pt-2 mt-1 xs:mt-2">
+        <DialogFooter className="sm:justify-between gap-3 xs:gap-4 flex-wrap pt-3 xs:pt-4 mt-2 xs:mt-3 border-t border-primary/10">
           <div className="flex items-center w-full xs:w-auto">
-            <Button variant="secondary" size="sm" onClick={handleOpenExternal} className="h-8 xs:h-9 text-xs xs:text-sm w-full xs:w-auto">
-              <ExternalLink className="h-3 w-3 xs:h-3.5 xs:w-3.5 ml-1 xs:ml-1.5" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleOpenExternal} 
+              className="h-10 xs:h-11 text-xs xs:text-sm w-full xs:w-auto rounded-lg border-primary/20 hover:border-primary/40 hover:bg-primary/10 shadow-sm"
+            >
+              <ExternalLink className="h-4 w-4 ml-2" />
               <span>فتح في تبويب جديد</span>
             </Button>
           </div>
-          <Button onClick={handleDownload} className="h-8 xs:h-9 text-xs xs:text-sm w-full xs:w-auto mt-1.5 xs:mt-0">
-            <Download className="h-3 w-3 xs:h-3.5 xs:w-3.5 ml-1 xs:ml-1.5" />
-            <span>تنزيل</span>
+          <Button 
+            onClick={handleDownload} 
+            className="h-10 xs:h-11 text-xs xs:text-sm w-full xs:w-auto mt-2 xs:mt-0 rounded-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md"
+          >
+            <Download className="h-4 w-4 ml-2" />
+            <span>تنزيل الملف</span>
           </Button>
         </DialogFooter>
       </DialogContent>
