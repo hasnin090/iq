@@ -36,15 +36,6 @@ export default function Projects() {
             </h2>
             <p className="text-[hsl(var(--muted-foreground))] mt-2 text-sm sm:text-base max-w-xl">إدارة وتتبع مشاريع الشركة وحالتها ومتابعة تقدمها بشكل مستمر</p>
           </div>
-          {user?.role === 'admin' && (
-            <button 
-              onClick={() => document.getElementById('add-project-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="mt-4 sm:mt-0 bg-primary/90 hover:bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium transition-colors shadow-sm flex items-center self-start"
-            >
-              <i className="fas fa-plus-circle ml-1.5"></i> 
-              إضافة مشروع جديد
-            </button>
-          )}
         </div>
       </div>
       
