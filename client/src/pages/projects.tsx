@@ -45,7 +45,7 @@ export default function Projects() {
           )}
           
           {/* Project List */}
-          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in">
+          <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 rounded-xl shadow-sm fade-in w-full max-w-full">
             <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
               <i className="fas fa-folder-open text-[hsl(var(--primary))]"></i>
               <span>قائمة المشاريع</span>
