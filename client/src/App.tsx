@@ -103,19 +103,24 @@ function AppRoutes() {
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
         <div className="h-16 xs:h-[4.5rem] sm:h-20"></div>
         
-        {/* المحتوى الرئيسي - تبسيط الهيكل وإزالة الطبقات المكررة */}
-        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-2 md:px-3 py-2 max-w-full sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] xl:max-w-[1100px] 2xl:max-w-[1200px] mx-auto pb-mobile-nav w-full">
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/transactions" component={Transactions} />
-            <Route path="/projects" component={Projects} />
-            <Route path="/users" component={Users} />
-            <Route path="/documents" component={Documents} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/activities" component={Activities} />
-            <Route path="/settings" component={Settings} />
-            <Route component={NotFound} />
-          </Switch>
+        {/* خلفية زخرفية متدرجة للمحتوى بأكمله */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50 via-muted/5 opacity-50 pointer-events-none z-0"></div>
+        
+        {/* المحتوى الرئيسي - تصميم أكثر احترافية */}
+        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-3 md:px-4 py-2 sm:py-3 md:py-4 max-w-full sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] xl:max-w-[1100px] 2xl:max-w-[1200px] mx-auto pb-mobile-nav w-full relative z-10">
+          <div className="backdrop-blur-sm bg-background/70 dark:bg-background/60 rounded-xl border border-border/40 shadow-lg overflow-hidden">
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/transactions" component={Transactions} />
+              <Route path="/projects" component={Projects} />
+              <Route path="/users" component={Users} />
+              <Route path="/documents" component={Documents} />
+              <Route path="/reports" component={Reports} />
+              <Route path="/activities" component={Activities} />
+              <Route path="/settings" component={Settings} />
+              <Route component={NotFound} />
+            </Switch>
+          </div>
         </div>
         
         {/* لم نعد بحاجة إلى مساحة إضافية هنا بسبب استخدام pb-mobile-nav */}
