@@ -57,10 +57,6 @@ export default function Projects() {
             />
           </div>
         </div>
-        
-        <div className="order-1 lg:order-2">
-          {/* This column intentionally left empty as the ProjectForm has been moved above */}
-        </div>
       </div>
     </div>
   );
