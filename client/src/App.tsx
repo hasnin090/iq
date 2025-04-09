@@ -103,21 +103,19 @@ function AppRoutes() {
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
         <div className="h-16 xs:h-[4.5rem] sm:h-20"></div>
         
-        {/* المحتوى الرئيسي - بعرض أصغر وأكثر ملاءمة */}
-        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-2 md:px-3 py-2 max-w-full sm:max-w-[92%] md:max-w-[85%] lg:max-w-[80%] xl:max-w-[900px] mx-auto pb-mobile-nav w-full">
-          <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden flex flex-col">
-            <Switch>
-              <Route path="/" component={Dashboard} />
-              <Route path="/transactions" component={Transactions} />
-              <Route path="/projects" component={Projects} />
-              <Route path="/users" component={Users} />
-              <Route path="/documents" component={Documents} />
-              <Route path="/reports" component={Reports} />
-              <Route path="/activities" component={Activities} />
-              <Route path="/settings" component={Settings} />
-              <Route component={NotFound} />
-            </Switch>
-          </div>
+        {/* المحتوى الرئيسي - تبسيط الهيكل وإزالة الطبقات المكررة */}
+        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-2 md:px-3 py-2 max-w-full sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] xl:max-w-[1100px] 2xl:max-w-[1200px] mx-auto pb-mobile-nav w-full">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/transactions" component={Transactions} />
+            <Route path="/projects" component={Projects} />
+            <Route path="/users" component={Users} />
+            <Route path="/documents" component={Documents} />
+            <Route path="/reports" component={Reports} />
+            <Route path="/activities" component={Activities} />
+            <Route path="/settings" component={Settings} />
+            <Route component={NotFound} />
+          </Switch>
         </div>
         
         {/* لم نعد بحاجة إلى مساحة إضافية هنا بسبب استخدام pb-mobile-nav */}
