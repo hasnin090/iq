@@ -280,25 +280,43 @@ export function TransactionList({
     
     // إنشاء عنصر مخصص للتصدير بتنسيق مناسب للطباعة
     const exportContainer = document.createElement('div');
-    exportContainer.style.direction = 'rtl';
-    exportContainer.style.fontFamily = 'Arial, Tahoma, sans-serif';
-    exportContainer.style.textAlign = 'right';
+    
+    // تحسين ظهور النص العربي عن طريق تطبيق الأنماط المباشرة للحاوية
+    exportContainer.setAttribute('dir', 'rtl');
+    exportContainer.innerHTML = `
+      <style>
+        @font-face {
+          font-family: 'CustomArabic';
+          src: local('Arial'), local('Tahoma'), local('Segoe UI');
+          font-weight: normal;
+          font-style: normal;
+        }
+        
+        * {
+          font-family: 'CustomArabic', 'Arial', 'Tahoma', sans-serif;
+        }
+        
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        
+        th, td {
+          padding: 8px;
+          text-align: right;
+        }
+        
+        /* تصحيح اتجاه النصوص العربية في الخلايا */
+        th, td {
+          unicode-bidi: embed;
+        }
+      </style>
+    `;
+    
     exportContainer.style.padding = '20px';
     exportContainer.style.backgroundColor = '#ffffff';
     exportContainer.style.width = '100%';
-    
-    // تحسين ظهور النص بجودة عالية
-    exportContainer.style.textRendering = 'optimizeLegibility';
-    // تطبيق أسلوب خط واضح ومناسب للعربية
-    exportContainer.setAttribute('style', `
-      direction: rtl;
-      font-family: Arial, Tahoma, sans-serif;
-      text-align: right;
-      padding: 20px;
-      background-color: #ffffff;
-      width: 100%;
-      text-rendering: optimizeLegibility;
-    `);
+    exportContainer.style.textAlign = 'right';
     
     // إضافة العنوان والتاريخ في أعلى المستند
     const header = document.createElement('div');
@@ -630,8 +648,20 @@ export function TransactionList({
       }
     };
     
-    // استخدام النسخة المخصصة المنشأة للتصدير
-    html2pdf().from(exportContainer).set(opt).save();
+    // استخدام طريقة جديدة لتوليد PDF مع تحسين عرض النص العربي
+    // إنشاء بيانات HTML لاستخدامها في توليد PDF مع سلسلة استبدال لضمان التوافق
+    const htmlContent = exportContainer.outerHTML;
+    
+    // تحسين أخير: استخدام فنت أحادي المسافة لضبط المسافات بين الأحرف العربية
+    const pdfContent = htmlContent
+      .replace(/dir="rtl"/g, 'dir="rtl" style="text-align: right; font-family: \'Arial\', \'Tahoma\', sans-serif;"')
+      .replace(/<td/g, '<td style="text-align: right; font-family: \'Arial\', \'Tahoma\', sans-serif; unicode-bidi: embed;"');
+      
+    // توليد PDF من المحتوى المعالج
+    const pdf = html2pdf()
+      .from(pdfContent)
+      .set(opt)
+      .save();
     
     toast({
       title: "تم التصدير بنجاح",
