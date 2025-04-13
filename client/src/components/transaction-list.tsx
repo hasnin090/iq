@@ -281,10 +281,24 @@ export function TransactionList({
     // إنشاء عنصر مخصص للتصدير بتنسيق مناسب للطباعة
     const exportContainer = document.createElement('div');
     exportContainer.style.direction = 'rtl';
-    exportContainer.style.fontFamily = 'Arial, sans-serif';
+    exportContainer.style.fontFamily = 'Arial, Tahoma, sans-serif';
     exportContainer.style.textAlign = 'right';
     exportContainer.style.padding = '20px';
     exportContainer.style.backgroundColor = '#ffffff';
+    exportContainer.style.width = '100%';
+    
+    // تحسين ظهور النص بجودة عالية
+    exportContainer.style.textRendering = 'optimizeLegibility';
+    // تطبيق أسلوب خط واضح ومناسب للعربية
+    exportContainer.setAttribute('style', `
+      direction: rtl;
+      font-family: Arial, Tahoma, sans-serif;
+      text-align: right;
+      padding: 20px;
+      background-color: #ffffff;
+      width: 100%;
+      text-rendering: optimizeLegibility;
+    `);
     
     // إضافة العنوان والتاريخ في أعلى المستند
     const header = document.createElement('div');
@@ -331,7 +345,10 @@ export function TransactionList({
     table.style.width = '100%';
     table.style.borderCollapse = 'collapse';
     table.style.marginBottom = '20px';
-    table.style.fontSize = '14px';
+    table.style.fontSize = '16px'; // تكبير الخط للحصول على نتائج أفضل
+    table.style.fontWeight = '500'; // زيادة سماكة الخط
+    table.style.letterSpacing = '0.2px'; // زيادة المسافة بين الحروف
+    table.style.color = '#000'; // جعل اللون أغمق لتحسين الوضوح
     
     // إنشاء صف العناوين
     const thead = document.createElement('thead');
@@ -586,16 +603,21 @@ export function TransactionList({
     footer.textContent = `صفحة 1 من 1 - نظام المحاسبة المالية - تم التصدير بتاريخ: ${currentDate} الساعة: ${currentTime}`;
     exportContainer.appendChild(footer);
     
-    // إعدادات التصدير
+    // إعدادات التصدير محسنة لدعم اللغة العربية بشكل أفضل
     const opt = {
       margin: [15, 10, 15, 10], // [top, right, bottom, left] بالملم
       filename: `transactions_${dateString}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg', quality: 1 },
       html2canvas: { 
-        scale: 2, 
+        scale: 3,  // زيادة الدقة للحصول على نص أكثر وضوحاً 
         useCORS: true,
         letterRendering: true,
-        allowTaint: true
+        allowTaint: true,
+        backgroundColor: '#FFFFFF',
+        removeContainer: true,
+        logging: false,
+        imageTimeout: 15000,
+        foreignObjectRendering: false // تغيير إلى false لتحسين توافق النصوص العربية
       },
       jsPDF: { 
         unit: 'mm', 
@@ -603,7 +625,8 @@ export function TransactionList({
         orientation: 'landscape',
         compress: true,
         putOnlyUsedFonts: true,
-        floatPrecision: 16
+        floatPrecision: 16,
+        hotfixes: ['px_scaling'] // إصلاح مشكلة تحجيم النص
       }
     };
     
