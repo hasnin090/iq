@@ -29,7 +29,7 @@ import { formatCurrency } from '@/lib/chart-utils';
 import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { z } from 'zod';
 import {
   Form,
@@ -354,7 +354,7 @@ export function TransactionList({
     });
     
     // إنشاء الجدول باستخدام jspdf-autotable
-    (pdf as any).autoTable({
+    autoTable(pdf, {
       startY: 35,
       head: [tableColumns.map(col => col.header)],
       body: tableData.map(row => tableColumns.map(col => row[col.dataKey])),
@@ -413,7 +413,7 @@ export function TransactionList({
     const balance = income - expense;
     
     // الحصول على الموقع النهائي للجدول للبدء في إضافة الملخص
-    const finalY = (pdf as any).lastAutoTable.finalY + 10;
+    const finalY = pdf.lastAutoTable.finalY + 10;
     
     // إضافة ملخص التقرير
     pdf.setFillColor(249, 250, 251); // لون خلفية فاتح - #f9fafb
