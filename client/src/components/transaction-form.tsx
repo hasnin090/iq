@@ -570,13 +570,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         disabled={isLoading || mutation.isPending}
                       />
                     </FormControl>
-                    
-                    {typeof field.value === 'number' && field.value > 0 && (
-                      <div className="mt-1.5 text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-lg border border-blue-100 dark:border-blue-800">
-                        <span className="mr-1">المبلغ بالفواصل:</span>
-                        <span className="font-bold">{field.value.toLocaleString('ar-EG')}</span>
-                      </div>
-                    )}
+
                     
 
                     <div className="mt-1 flex flex-wrap gap-1">
