@@ -564,32 +564,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     <FormControl>
                       <div className="flex items-center">
                         <input
-                          name="amount"
-                          type="text" 
+                          type="number" 
                           placeholder="أدخل المبلغ"
                           className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium text-center text-lg font-bold"
                           disabled={isLoading || mutation.isPending}
+                          value={field.value || ''}
                           onChange={(e) => {
-                            // استخدام قيمة الإدخال الأصلية
-                            let inputValue = e.target.value;
-                            
-                            // إزالة أي شيء ما عدا الأرقام
-                            const digitsOnly = inputValue.replace(/[^\d]/g, '');
-                            
-                            // إذا كان الإدخال فارغًا، أعد تعيين القيمة
-                            if (digitsOnly === '') {
-                              form.setValue('amount', undefined);
-                              return;
-                            }
-                            
-                            // تحويل إلى رقم
-                            const numValue = parseInt(digitsOnly, 10);
-                            
-                            // تحديث القيمة في النموذج
-                            form.setValue('amount', numValue);
-                            
-                            // تنسيق القيمة المعروضة مع فواصل
-                            e.target.value = numValue.toLocaleString('ar-EG');
+                            const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                            form.setValue('amount', value);
                           }}
                         />
                       </div>
@@ -601,12 +583,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       <button
                         type="button"
                         className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                        onClick={() => {
-                          form.setValue('amount', 10000);
-                          // تعيين قيمة العنصر مباشرة
-                          const input = document.querySelector('input[name="amount"]') as HTMLInputElement;
-                          if (input) input.value = "10,000";
-                        }}
+                        onClick={() => form.setValue('amount', 10000)}
                         disabled={isLoading || mutation.isPending}
                       >
                         10,000
@@ -614,12 +591,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       <button
                         type="button"
                         className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                        onClick={() => {
-                          form.setValue('amount', 50000);
-                          // تعيين قيمة العنصر مباشرة
-                          const input = document.querySelector('input[name="amount"]') as HTMLInputElement;
-                          if (input) input.value = "50,000";
-                        }}
+                        onClick={() => form.setValue('amount', 50000)}
                         disabled={isLoading || mutation.isPending}
                       >
                         50,000
@@ -627,12 +599,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       <button
                         type="button"
                         className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                        onClick={() => {
-                          form.setValue('amount', 100000);
-                          // تعيين قيمة العنصر مباشرة
-                          const input = document.querySelector('input[name="amount"]') as HTMLInputElement;
-                          if (input) input.value = "100,000";
-                        }}
+                        onClick={() => form.setValue('amount', 100000)}
                         disabled={isLoading || mutation.isPending}
                       >
                         100,000
@@ -640,12 +607,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       <button
                         type="button"
                         className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                        onClick={() => {
-                          form.setValue('amount', 500000);
-                          // تعيين قيمة العنصر مباشرة
-                          const input = document.querySelector('input[name="amount"]') as HTMLInputElement;
-                          if (input) input.value = "500,000";
-                        }}
+                        onClick={() => form.setValue('amount', 500000)}
                         disabled={isLoading || mutation.isPending}
                       >
                         500,000
@@ -653,12 +615,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       <button
                         type="button"
                         className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                        onClick={() => {
-                          form.setValue('amount', 1000000);
-                          // تعيين قيمة العنصر مباشرة
-                          const input = document.querySelector('input[name="amount"]') as HTMLInputElement;
-                          if (input) input.value = "1,000,000";
-                        }}
+                        onClick={() => form.setValue('amount', 1000000)}
                         disabled={isLoading || mutation.isPending}
                       >
                         1,000,000
