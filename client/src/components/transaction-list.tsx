@@ -291,10 +291,26 @@ export function TransactionList({
       unit: 'mm',
       format: 'a4',
       putOnlyUsedFonts: true,
+      compress: true,
     });
     
-    // إضافة دعم للغة العربية عن طريق استخدام الاتجاه من اليمين إلى اليسار
+    // تحسين الدعم للغة العربية
+    pdf.setLanguage("ar-SA");
     pdf.setR2L(true);
+    
+    // خدعة لتحسين دعم اللغة العربية - استخدام ترميز اليونيكود
+    function arabicToUnicode(str: string): string {
+      // تحويل النص العربي إلى سلسلة يونيكود عكسية
+      return str.split('').reverse().map(c => {
+        const code = c.charCodeAt(0);
+        if (code >= 0x0600 && code <= 0x06FF) {
+          // نطاق الأحرف العربية
+          return c;
+        } else {
+          return c;
+        }
+      }).join('');
+    }
 
     // إعداد عنوان التقرير
     pdf.setFont('helvetica', 'bold');
@@ -340,23 +356,31 @@ export function TransactionList({
       
       const attachments = transaction.fileUrl ? 'يوجد مرفق' : 'لا يوجد';
       
+      // استخدام الدالة لمعالجة النص العربي
+      const safeDescription = arabicToUnicode(getCustomTransactionDescription(transaction));
+      const safeDetails = arabicToUnicode(transaction.description || 'لا يوجد تفاصيل');
+      const safeProjectName = arabicToUnicode(projectName);
+      const safeTransactionType = arabicToUnicode(transactionType);
+      const safeFundType = arabicToUnicode(fundType);
+      const safeAttachments = arabicToUnicode(attachments);
+      
       tableData.push({
         index: (index + 1).toString(),
         date: formatDateTime(transaction.date),
-        description: getCustomTransactionDescription(transaction),
-        details: transaction.description || 'لا يوجد تفاصيل',
-        project: projectName,
-        type: transactionType,
+        description: safeDescription,
+        details: safeDetails,
+        project: safeProjectName,
+        type: safeTransactionType,
         amount: `${transaction.type === 'income' ? '+' : '-'} ${formatCurrency(transaction.amount)}`,
-        fundType: fundType,
-        attachments: attachments
+        fundType: safeFundType,
+        attachments: safeAttachments
       });
     });
     
     // إنشاء الجدول باستخدام jspdf-autotable
     autoTable(pdf, {
       startY: 35,
-      head: [tableColumns.map(col => col.header)],
+      head: [tableColumns.map(col => arabicToUnicode(col.header))],
       body: tableData.map(row => tableColumns.map(col => row[col.dataKey])),
       theme: 'grid',
       headStyles: {
@@ -413,7 +437,7 @@ export function TransactionList({
     const balance = income - expense;
     
     // الحصول على الموقع النهائي للجدول للبدء في إضافة الملخص
-    const finalY = pdf.lastAutoTable.finalY + 10;
+    const finalY = (pdf as any).lastAutoTable.finalY + 10;
     
     // إضافة ملخص التقرير
     pdf.setFillColor(249, 250, 251); // لون خلفية فاتح - #f9fafb
@@ -423,7 +447,7 @@ export function TransactionList({
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(14);
     pdf.setTextColor(17, 24, 39); // لون غامق - #111827
-    pdf.text('ملخص التقرير', pdf.internal.pageSize.width / 2, finalY + 7, { align: 'center' });
+    pdf.text(arabicToUnicode('ملخص التقرير'), pdf.internal.pageSize.width / 2, finalY + 7, { align: 'center' });
     
     // إضافة بيانات الملخص
     pdf.setFontSize(11);
@@ -431,19 +455,19 @@ export function TransactionList({
     
     // الإيرادات
     pdf.setTextColor(0, 0, 0); // لون أسود للنص
-    pdf.text('إجمالي الإيرادات:', 70, finalY + 15);
+    pdf.text(arabicToUnicode('إجمالي الإيرادات:'), 70, finalY + 15);
     pdf.setTextColor(4, 120, 87); // لون أخضر - #047857
     pdf.text(formatCurrency(income), pdf.internal.pageSize.width - 70, finalY + 15, { align: 'right' });
     
     // المصروفات
     pdf.setTextColor(0, 0, 0);
-    pdf.text('إجمالي المصروفات:', 70, finalY + 21);
+    pdf.text(arabicToUnicode('إجمالي المصروفات:'), 70, finalY + 21);
     pdf.setTextColor(185, 28, 28); // لون أحمر - #b91c1c
     pdf.text(formatCurrency(expense), pdf.internal.pageSize.width - 70, finalY + 21, { align: 'right' });
     
     // الرصيد
     pdf.setTextColor(0, 0, 0);
-    pdf.text('الرصيد:', 70, finalY + 27);
+    pdf.text(arabicToUnicode('الرصيد:'), 70, finalY + 27);
     const textColor = balance >= 0 ? [30, 64, 175] : [185, 28, 28]; // لون أزرق/أحمر - #1e40af / #b91c1c
     pdf.setTextColor(textColor[0], textColor[1], textColor[2]); 
     pdf.text(formatCurrency(balance), pdf.internal.pageSize.width - 70, finalY + 27, { align: 'right' });
@@ -451,7 +475,7 @@ export function TransactionList({
     // إضافة تذييل الصفحة
     pdf.setFontSize(8);
     pdf.setTextColor(107, 114, 128); // لون رمادي - #6b7280
-    const footerText = `صفحة 1 من 1 - نظام المحاسبة المالية - تم التصدير بتاريخ: ${currentDate} الساعة: ${currentTime}`;
+    const footerText = arabicToUnicode(`صفحة 1 من 1 - نظام المحاسبة المالية - تم التصدير بتاريخ: ${currentDate} الساعة: ${currentTime}`);
     pdf.text(footerText, pdf.internal.pageSize.width / 2, pdf.internal.pageSize.height - 10, { align: 'center' });
     
     // حفظ ملف PDF
