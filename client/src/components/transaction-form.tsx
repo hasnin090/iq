@@ -569,22 +569,22 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
                         disabled={isLoading || mutation.isPending}
                       />
-
-                      {/* عرض المبلغ منسقاً مع فواصل عشرية */}
-                      {field.value > 0 && (
-                        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center">
-                          <span className="font-medium ml-1">المبلغ بالفواصل العشرية:</span>
-                          <span className="font-bold">{Number(field.value).toLocaleString('ar-EG')}</span>
-                          <span className="mr-2 text-xs bg-blue-100 dark:bg-blue-800 px-1.5 py-0.5 rounded-full text-blue-800 dark:text-blue-200">
-                            {new Intl.NumberFormat('ar-EG', { 
-                              notation: 'compact', 
-                              compactDisplay: 'short',
-                              maximumFractionDigits: 1
-                            }).format(Number(field.value))}
-                          </span>
-                        </div>
-                      )}
                     </FormControl>
+                    
+                    {/* عرض المبلغ منسقاً مع فواصل عشرية - خارج FormControl */}
+                    {typeof field.value === 'number' && field.value > 0 && (
+                      <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center">
+                        <span className="font-medium ml-1">المبلغ بالفواصل العشرية:</span>
+                        <span className="font-bold">{field.value.toLocaleString('ar-EG')}</span>
+                        <span className="mr-2 text-xs bg-blue-100 dark:bg-blue-800 px-1.5 py-0.5 rounded-full text-blue-800 dark:text-blue-200">
+                          {new Intl.NumberFormat('ar-EG', { 
+                            notation: 'compact', 
+                            compactDisplay: 'short',
+                            maximumFractionDigits: 1
+                          }).format(field.value)}
+                        </span>
+                      </div>
+                    )}
                     <div className="mt-1 flex flex-wrap gap-1">
                       {commonAmounts.map((amount, idx) => (
                         <button
