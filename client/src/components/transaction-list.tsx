@@ -657,8 +657,8 @@ export function TransactionList({
                           : 'bg-white border-blue-100 dark:bg-gray-800 dark:border-blue-900/20' // صفوف فردية
                   } hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-150`}
                 >
-                  {/* رقم المعاملة (الترقيم) */}
-                  <div className="absolute top-2 right-2 w-7 h-7 bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 rounded-full flex items-center justify-center text-sm font-bold border border-orange-200 dark:border-orange-800/50 z-10">
+                  {/* رقم المعاملة (الترقيم) بحجم أصغر ومظهر أنيق */}
+                  <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-gradient-to-br from-amber-100 to-orange-200 dark:from-amber-900/40 dark:to-orange-800/40 text-orange-800 dark:text-orange-300 rounded-full flex items-center justify-center text-[10px] font-bold border border-orange-200/50 dark:border-orange-800/30 z-10 shadow-sm">
                     {index + 1}
                   </div>
                 
@@ -804,9 +804,9 @@ export function TransactionList({
                               : 'bg-white/75 dark:bg-gray-900/30' // صفوف فردية
                       } hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
                     >
-                      {/* رقم المعاملة (الترقيم) */}
-                      <td className="px-4 py-3 text-center text-sm font-bold border-r border-blue-50/50 dark:border-blue-900/10">
-                        <span className="inline-flex items-center justify-center w-7 h-7 bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 rounded-full border border-orange-200 dark:border-orange-800/50">
+                      {/* رقم المعاملة (الترقيم) بحجم أصغر */}
+                      <td className="px-4 py-3 text-center text-xs font-bold border-r border-blue-50/50 dark:border-blue-900/10">
+                        <span className="inline-flex items-center justify-center w-5 h-5 bg-gradient-to-br from-amber-100 to-orange-200 dark:from-amber-900/40 dark:to-orange-800/40 text-orange-800 dark:text-orange-300 rounded-full border border-orange-200/50 dark:border-orange-800/30 shadow-sm text-[10px]">
                           {index + 1}
                         </span>
                       </td>
