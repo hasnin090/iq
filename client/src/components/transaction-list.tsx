@@ -603,28 +603,42 @@ export function TransactionList({
   return (
     <>
       <div className="bg-secondary-light dark:bg-gray-800 rounded-xl shadow-card">
-        <div className="p-4 flex justify-end gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => window.print()}
-            className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
-          >
-            <i className="fas fa-print mr-2"></i> طباعة
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={exportToPdf}
-            className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
-          >
-            <i className="fas fa-file-pdf mr-2"></i> PDF
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={exportToExcel}
-            className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
-          >
-            <i className="fas fa-file-excel mr-2"></i> Excel
-          </Button>
+        <div className="p-4 flex flex-col md:flex-row justify-between md:items-center gap-3">
+          {/* عدد العمليات المالية */}
+          <div className="flex items-center">
+            <span className="px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg font-bold text-sm ml-2 flex items-center">
+              <i className="fas fa-clipboard-list ml-1.5"></i>
+              إجمالي العمليات: 
+            </span>
+            <span className="px-3 py-1.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 rounded-lg font-bold">
+              {transactions.length}
+            </span>
+          </div>
+          
+          {/* أزرار التصدير */}
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => window.print()}
+              className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+            >
+              <i className="fas fa-print mr-2"></i> طباعة
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={exportToPdf}
+              className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+            >
+              <i className="fas fa-file-pdf mr-2"></i> PDF
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={exportToExcel}
+              className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+            >
+              <i className="fas fa-file-excel mr-2"></i> Excel
+            </Button>
+          </div>
         </div>
         
         <div id="transactions-content">
@@ -633,7 +647,7 @@ export function TransactionList({
               {transactions.map((transaction, index) => (
                 <div 
                   key={transaction.id} 
-                  className={`p-5 rounded-lg border h-full flex flex-col shadow-sm ${
+                  className={`p-5 rounded-lg border h-full flex flex-col shadow-sm relative ${
                     isAdminFundTransaction(transaction)
                       ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
                       : isProjectFundingTransaction(transaction)
@@ -643,8 +657,13 @@ export function TransactionList({
                           : 'bg-white border-blue-100 dark:bg-gray-800 dark:border-blue-900/20' // صفوف فردية
                   } hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-150`}
                 >
+                  {/* رقم المعاملة (الترقيم) */}
+                  <div className="absolute top-2 right-2 w-7 h-7 bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 rounded-full flex items-center justify-center text-sm font-bold border border-orange-200 dark:border-orange-800/50 z-10">
+                    {index + 1}
+                  </div>
+                
                   {/* الجزء العلوي للبطاقة - التاريخ والعلامات */}
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-3 mt-3">
                     <span className="text-sm bg-gray-50 dark:bg-gray-900/50 px-2.5 py-1 rounded-lg text-gray-600 dark:text-gray-300 font-medium border border-gray-100 dark:border-gray-700 flex items-center">
                       <i className="fas fa-calendar-alt ml-1.5 text-gray-500 dark:text-gray-400"></i>
                       {formatDateTime(transaction.date)}
@@ -760,6 +779,7 @@ export function TransactionList({
               <table className="min-w-full divide-y divide-secondary dark:divide-gray-600 border-collapse">
                 <thead className="bg-blue-50 dark:bg-gray-700">
                   <tr>
+                    <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-16">#</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-36">التاريخ والوقت</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">الوصف</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">التفاصيل</th>
