@@ -71,22 +71,30 @@ export default function Transactions() {
   
   // فلترة العمليات المالية حسب التبويب النشط
   const filteredTransactions = useMemo(() => {
-    if (activeTab === 'all') return transactions;
-    if (activeTab === 'admin') {
+    // أولاً نقوم بفلترة المعاملات حسب التبويب النشط
+    let filtered = [];
+    if (activeTab === 'all') {
+      filtered = transactions || [];
+    } else if (activeTab === 'admin') {
       // للصندوق الرئيسي: عرض جميع المعاملات التي ليس لها مشروع
-      return transactions?.filter(t => t.projectId === null || t.projectId === undefined) || [];
-    }
-    if (activeTab === 'projects') {
+      filtered = transactions?.filter(t => t.projectId === null || t.projectId === undefined) || [];
+    } else if (activeTab === 'projects') {
       // للمشاريع: عرض المعاملات المرتبطة بمشاريع
       // بالإضافة إلى عمليات الإيداع في الصندوق الرئيسي (لأنها مصدر تمويل المشاريع)
-      return transactions?.filter(t => 
+      filtered = transactions?.filter(t => 
         // المعاملات المرتبطة بمشروع
         (t.projectId !== null && t.projectId !== undefined) ||
         // أو المعاملات من نوع إيراد في الصندوق الرئيسي (تغذية الصندوق)
         (t.type === 'income' && (t.projectId === null || t.projectId === undefined))
       ) || [];
+    } else {
+      filtered = transactions || [];
     }
-    return transactions;
+    
+    // ثم نقوم بترتيب المعاملات بحيث تظهر الأحدث في الأعلى
+    return [...filtered].sort((a, b) => {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
   }, [transactions, activeTab]);
 
   return (
