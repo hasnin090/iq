@@ -601,17 +601,46 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     
 
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {commonAmounts.map((amount, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
-                          onClick={() => form.setValue('amount', amount.value)}
-                          disabled={isLoading || mutation.isPending}
-                        >
-                          {amount.label}
-                        </button>
-                      ))}
+                      <button
+                        type="button"
+                        className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                        onClick={() => form.setValue('amount', 10000)}
+                        disabled={isLoading || mutation.isPending}
+                      >
+                        10,000
+                      </button>
+                      <button
+                        type="button"
+                        className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                        onClick={() => form.setValue('amount', 50000)}
+                        disabled={isLoading || mutation.isPending}
+                      >
+                        50,000
+                      </button>
+                      <button
+                        type="button"
+                        className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                        onClick={() => form.setValue('amount', 100000)}
+                        disabled={isLoading || mutation.isPending}
+                      >
+                        100,000
+                      </button>
+                      <button
+                        type="button"
+                        className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                        onClick={() => form.setValue('amount', 500000)}
+                        disabled={isLoading || mutation.isPending}
+                      >
+                        500,000
+                      </button>
+                      <button
+                        type="button"
+                        className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                        onClick={() => form.setValue('amount', 1000000)}
+                        disabled={isLoading || mutation.isPending}
+                      >
+                        1,000,000
+                      </button>
                     </div>
                     <FormMessage />
                   </FormItem>
