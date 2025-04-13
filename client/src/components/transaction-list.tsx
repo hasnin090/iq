@@ -418,7 +418,7 @@ export function TransactionList({
             >
               <i className="fas fa-print mr-2"></i> طباعة
             </Button>
-            {/* تم إلغاء زر PDF */}
+            {/* تم إلغاء وظيفة تصدير PDF بسبب مشاكل في عرض النص العربي */}
             <Button 
               variant="outline" 
               onClick={exportToExcel}
