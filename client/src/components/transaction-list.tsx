@@ -28,6 +28,8 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/chart-utils';
 import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { z } from 'zod';
 import {
   Form,
@@ -275,298 +277,131 @@ export function TransactionList({
   };
   
   const exportToPdf = () => {
-    const element = document.getElementById('transactions-content');
-    if (!element) return;
+    // استخدام مكتبة jsPDF مباشرة بدلاً من html2pdf
+    // هذا الحل مناسب أكثر للعربية حيث يمكننا التحكم بشكل كامل بكيفية رسم النصوص العربية
     
-    // إنشاء عنصر مخصص للتصدير بتنسيق مناسب للطباعة
-    const exportContainer = document.createElement('div');
-    
-    // تحسين ظهور النص العربي عن طريق تطبيق الأنماط المباشرة للحاوية
-    exportContainer.setAttribute('dir', 'rtl');
-    exportContainer.innerHTML = `
-      <style>
-        @font-face {
-          font-family: 'CustomArabic';
-          src: local('Arial'), local('Tahoma'), local('Segoe UI');
-          font-weight: normal;
-          font-style: normal;
-        }
-        
-        * {
-          font-family: 'CustomArabic', 'Arial', 'Tahoma', sans-serif;
-        }
-        
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        
-        th, td {
-          padding: 8px;
-          text-align: right;
-        }
-        
-        /* تصحيح اتجاه النصوص العربية في الخلايا */
-        th, td {
-          unicode-bidi: embed;
-        }
-      </style>
-    `;
-    
-    exportContainer.style.padding = '20px';
-    exportContainer.style.backgroundColor = '#ffffff';
-    exportContainer.style.width = '100%';
-    exportContainer.style.textAlign = 'right';
-    
-    // إضافة العنوان والتاريخ في أعلى المستند
-    const header = document.createElement('div');
-    header.style.marginBottom = '20px';
-    header.style.textAlign = 'center';
-    header.style.padding = '10px';
-    header.style.backgroundColor = '#f0f9ff';
-    header.style.borderRadius = '8px';
-    header.style.border = '1px solid #bae6fd';
-    
-    const title = document.createElement('h1');
-    title.textContent = 'تقرير المعاملات المالية';
-    title.style.margin = '0 0 10px 0';
-    title.style.color = '#1e40af';
-    title.style.fontSize = '24px';
-    header.appendChild(title);
-    
-    // التاريخ والوقت الحاليين
     const now = new Date();
     const currentDate = format(now, 'yyyy/MM/dd', { locale: ar });
     const currentTime = format(now, 'HH:mm:ss', { locale: ar });
     const dateString = format(now, 'yyyy-MM-dd-HHmmss');
     
-    const subtitle = document.createElement('p');
-    subtitle.textContent = `تم توليد التقرير بتاريخ: ${currentDate} الساعة: ${currentTime}`;
-    subtitle.style.margin = '0';
-    subtitle.style.fontSize = '14px';
-    subtitle.style.color = '#4b5563';
-    header.appendChild(subtitle);
+    // إنشاء وثيقة PDF جديدة بالاتجاه الأفقي
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+      putOnlyUsedFonts: true,
+    });
+    
+    // إضافة دعم للغة العربية عن طريق استخدام الاتجاه من اليمين إلى اليسار
+    pdf.setR2L(true);
+
+    // إعداد عنوان التقرير
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(20);
+    pdf.setTextColor(30, 64, 175); // لون أزرق داكن - #1e40af
+    pdf.text('تقرير المعاملات المالية', pdf.internal.pageSize.width / 2, 20, { align: 'center' });
+    
+    // إضافة معلومات التاريخ والوقت
+    pdf.setFontSize(10);
+    pdf.setTextColor(75, 85, 99); // لون رمادي - #4b5563
+    pdf.text(`تم توليد التقرير بتاريخ: ${currentDate} الساعة: ${currentTime}`, pdf.internal.pageSize.width / 2, 26, { align: 'center' });
     
     // عدد المعاملات
-    const countText = document.createElement('p');
-    countText.textContent = `عدد المعاملات: ${transactions.length} معاملة`;
-    countText.style.margin = '8px 0 0 0';
-    countText.style.fontSize = '14px';
-    countText.style.fontWeight = 'bold';
-    countText.style.color = '#2563eb';
-    header.appendChild(countText);
+    pdf.setFontSize(12);
+    pdf.setTextColor(37, 99, 235); // لون أزرق - #2563eb
+    pdf.text(`عدد المعاملات: ${transactions.length} معاملة`, pdf.internal.pageSize.width / 2, 31, { align: 'center' });
     
-    exportContainer.appendChild(header);
-    
-    // بناء جدول بيانات المعاملات المالية بشكل مخصص
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.borderCollapse = 'collapse';
-    table.style.marginBottom = '20px';
-    table.style.fontSize = '16px'; // تكبير الخط للحصول على نتائج أفضل
-    table.style.fontWeight = '500'; // زيادة سماكة الخط
-    table.style.letterSpacing = '0.2px'; // زيادة المسافة بين الحروف
-    table.style.color = '#000'; // جعل اللون أغمق لتحسين الوضوح
-    
-    // إنشاء صف العناوين
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    
-    // تحديد أسماء الأعمدة ومحاذاتها
-    const columns = [
-      { title: '#', align: 'center', width: '5%' },
-      { title: 'التاريخ والوقت', align: 'right', width: '12%' },
-      { title: 'الوصف', align: 'right', width: '20%' },
-      { title: 'التفاصيل', align: 'right', width: '20%' },
-      { title: 'المشروع', align: 'right', width: '12%' },
-      { title: 'النوع', align: 'center', width: '8%' },
-      { title: 'المبلغ', align: 'left', width: '10%' },
-      { title: 'نوع الصندوق', align: 'center', width: '10%' },
-      { title: 'المرفقات', align: 'center', width: '8%' }
+    // بناء بيانات الجدول
+    const tableData: Array<Record<string, string>> = [];
+    const tableColumns = [
+      { header: '#', dataKey: 'index' },
+      { header: 'التاريخ والوقت', dataKey: 'date' },
+      { header: 'الوصف', dataKey: 'description' },
+      { header: 'التفاصيل', dataKey: 'details' },
+      { header: 'المشروع', dataKey: 'project' },
+      { header: 'النوع', dataKey: 'type' },
+      { header: 'المبلغ', dataKey: 'amount' },
+      { header: 'نوع الصندوق', dataKey: 'fundType' },
+      { header: 'المرفقات', dataKey: 'attachments' }
     ];
     
-    columns.forEach(column => {
-      const th = document.createElement('th');
-      th.textContent = column.title;
-      th.style.padding = '10px 8px';
-      th.style.backgroundColor = '#dbeafe';
-      th.style.color = '#1e3a8a';
-      th.style.fontWeight = 'bold';
-      th.style.textAlign = column.align;
-      th.style.borderBottom = '2px solid #93c5fd';
-      th.style.width = column.width;
-      headerRow.appendChild(th);
-    });
-    
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-    
-    // إنشاء صفوف البيانات
-    const tbody = document.createElement('tbody');
-    
+    // إعداد بيانات المعاملات للجدول
     transactions.forEach((transaction, index) => {
-      const tr = document.createElement('tr');
+      const transactionType = transaction.type === 'income' ? 'إيراد' : 'مصروف';
+      const projectName = getProjectName(transaction.projectId);
       
-      // تنسيق الصفوف بألوان متناوبة وتلوين خاص لأنواع المعاملات الخاصة
+      let fundType = 'صرف مشروع';
       if (isAdminFundTransaction(transaction)) {
-        tr.style.backgroundColor = '#e0f2fe';
+        fundType = 'صندوق رئيسي';
       } else if (isProjectFundingTransaction(transaction)) {
-        tr.style.backgroundColor = '#dcfce7';
-      } else {
-        tr.style.backgroundColor = index % 2 === 0 ? '#f8fafc' : '#ffffff';
+        fundType = 'تمويل مشروع';
       }
       
-      // رقم المعاملة
-      const indexCell = document.createElement('td');
-      indexCell.textContent = (index + 1).toString();
-      indexCell.style.padding = '8px';
-      indexCell.style.textAlign = 'center';
-      indexCell.style.borderBottom = '1px solid #e5e7eb';
-      indexCell.style.fontWeight = 'bold';
-      indexCell.style.color = '#1e40af';
-      tr.appendChild(indexCell);
+      const attachments = transaction.fileUrl ? 'يوجد مرفق' : 'لا يوجد';
       
-      // التاريخ والوقت
-      const dateCell = document.createElement('td');
-      dateCell.textContent = formatDateTime(transaction.date);
-      dateCell.style.padding = '8px';
-      dateCell.style.textAlign = 'right';
-      dateCell.style.borderBottom = '1px solid #e5e7eb';
-      tr.appendChild(dateCell);
-      
-      // الوصف
-      const descCell = document.createElement('td');
-      descCell.textContent = getCustomTransactionDescription(transaction);
-      descCell.style.padding = '8px';
-      descCell.style.textAlign = 'right';
-      descCell.style.borderBottom = '1px solid #e5e7eb';
-      tr.appendChild(descCell);
-      
-      // التفاصيل
-      const detailsCell = document.createElement('td');
-      detailsCell.textContent = transaction.description || 'لا يوجد تفاصيل';
-      detailsCell.style.padding = '8px';
-      detailsCell.style.textAlign = 'right';
-      detailsCell.style.borderBottom = '1px solid #e5e7eb';
-      detailsCell.style.color = transaction.description ? '#374151' : '#9ca3af';
-      detailsCell.style.fontSize = '13px';
-      tr.appendChild(detailsCell);
-      
-      // المشروع
-      const projectCell = document.createElement('td');
-      projectCell.textContent = getProjectName(transaction.projectId);
-      projectCell.style.padding = '8px';
-      projectCell.style.textAlign = 'right';
-      projectCell.style.borderBottom = '1px solid #e5e7eb';
-      tr.appendChild(projectCell);
-      
-      // النوع (مع رمز وتنسيق)
-      const typeCell = document.createElement('td');
-      typeCell.style.padding = '8px';
-      typeCell.style.textAlign = 'center';
-      typeCell.style.borderBottom = '1px solid #e5e7eb';
-      
-      const typeContent = document.createElement('span');
-      typeContent.style.display = 'inline-block';
-      typeContent.style.padding = '4px 8px';
-      typeContent.style.borderRadius = '4px';
-      typeContent.style.fontWeight = 'bold';
-      
-      if (transaction.type === 'income') {
-        typeContent.textContent = 'إيراد';
-        typeContent.style.backgroundColor = '#d1fae5';
-        typeContent.style.color = '#065f46';
-        typeContent.style.border = '1px solid #a7f3d0';
-      } else {
-        typeContent.textContent = 'مصروف';
-        typeContent.style.backgroundColor = '#fee2e2';
-        typeContent.style.color = '#b91c1c';
-        typeContent.style.border = '1px solid #fecaca';
-      }
-      
-      typeCell.appendChild(typeContent);
-      tr.appendChild(typeCell);
-      
-      // المبلغ (بتنسيق العملة)
-      const amountCell = document.createElement('td');
-      amountCell.textContent = `${transaction.type === 'income' ? '+' : '-'} ${formatCurrency(transaction.amount)}`;
-      amountCell.style.padding = '8px';
-      amountCell.style.textAlign = 'left';
-      amountCell.style.direction = 'ltr';
-      amountCell.style.borderBottom = '1px solid #e5e7eb';
-      amountCell.style.fontWeight = 'bold';
-      amountCell.style.color = transaction.type === 'income' ? '#065f46' : '#b91c1c';
-      amountCell.style.fontFamily = 'Tahoma, Arial, sans-serif';
-      tr.appendChild(amountCell);
-      
-      // نوع الصندوق
-      const fundTypeCell = document.createElement('td');
-      fundTypeCell.style.padding = '8px';
-      fundTypeCell.style.textAlign = 'center';
-      fundTypeCell.style.borderBottom = '1px solid #e5e7eb';
-      
-      const fundTypeContent = document.createElement('span');
-      fundTypeContent.style.display = 'inline-block';
-      fundTypeContent.style.padding = '4px 8px';
-      fundTypeContent.style.borderRadius = '4px';
-      
-      if (isAdminFundTransaction(transaction)) {
-        fundTypeContent.textContent = 'صندوق رئيسي';
-        fundTypeContent.style.backgroundColor = '#dbeafe';
-        fundTypeContent.style.color = '#1e40af';
-        fundTypeContent.style.border = '1px solid #93c5fd';
-      } else if (isProjectFundingTransaction(transaction)) {
-        fundTypeContent.textContent = 'تمويل مشروع';
-        fundTypeContent.style.backgroundColor = '#d1fae5';
-        fundTypeContent.style.color = '#065f46';
-        fundTypeContent.style.border = '1px solid #a7f3d0';
-      } else {
-        fundTypeContent.textContent = 'صرف مشروع';
-        fundTypeContent.style.backgroundColor = '#fef3c7';
-        fundTypeContent.style.color = '#92400e';
-        fundTypeContent.style.border = '1px solid #fde68a';
-      }
-      
-      fundTypeCell.appendChild(fundTypeContent);
-      tr.appendChild(fundTypeCell);
-      
-      // المرفقات
-      const attachmentsCell = document.createElement('td');
-      attachmentsCell.style.padding = '8px';
-      attachmentsCell.style.textAlign = 'center';
-      attachmentsCell.style.borderBottom = '1px solid #e5e7eb';
-      
-      if (transaction.fileUrl) {
-        const attachmentLabel = document.createElement('span');
-        attachmentLabel.textContent = 'يوجد مرفق';
-        attachmentLabel.style.backgroundColor = '#eff6ff';
-        attachmentLabel.style.color = '#1e40af';
-        attachmentLabel.style.padding = '4px 8px';
-        attachmentLabel.style.borderRadius = '4px';
-        attachmentLabel.style.fontSize = '12px';
-        attachmentLabel.style.border = '1px solid #bfdbfe';
-        attachmentsCell.appendChild(attachmentLabel);
-      } else {
-        attachmentsCell.textContent = 'لا يوجد';
-        attachmentsCell.style.color = '#9ca3af';
-      }
-      
-      tr.appendChild(attachmentsCell);
-      
-      tbody.appendChild(tr);
+      tableData.push({
+        index: (index + 1).toString(),
+        date: formatDateTime(transaction.date),
+        description: getCustomTransactionDescription(transaction),
+        details: transaction.description || 'لا يوجد تفاصيل',
+        project: projectName,
+        type: transactionType,
+        amount: `${transaction.type === 'income' ? '+' : '-'} ${formatCurrency(transaction.amount)}`,
+        fundType: fundType,
+        attachments: attachments
+      });
     });
     
-    table.appendChild(tbody);
-    exportContainer.appendChild(table);
+    // إنشاء الجدول باستخدام jspdf-autotable
+    (pdf as any).autoTable({
+      startY: 35,
+      head: [tableColumns.map(col => col.header)],
+      body: tableData.map(row => tableColumns.map(col => row[col.dataKey])),
+      theme: 'grid',
+      headStyles: {
+        fontSize: 10,
+        halign: 'center',
+        valign: 'middle',
+        fillColor: [219, 234, 254], // لون خلفية زرقاء فاتحة - #dbeafe
+        textColor: [30, 58, 138], // لون الخط أزرق داكن - #1e3a8a
+        cellPadding: 3,
+      },
+      styles: {
+        fontSize: 9,
+        font: 'helvetica',
+        overflow: 'linebreak',
+        cellPadding: 3,
+        halign: 'right',
+      },
+      columnStyles: {
+        index: { halign: 'center', cellWidth: 10 },
+        amount: { halign: 'left', cellWidth: 25 },
+        type: { halign: 'center', cellWidth: 20 },
+        fundType: { halign: 'center', cellWidth: 25 },
+        attachments: { halign: 'center', cellWidth: 20 },
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252], // لون الصفوف البديلة - #f8fafc
+      },
+      // تلوين خاص للصفوف حسب نوع المعاملة
+      didDrawCell: (data: any) => {
+        const rowIndex = data.row.index;
+        // هذه الشرط فقط للصفوف (وليس للترويسة) والتي لها بيانات
+        if (rowIndex !== undefined && rowIndex >= 0 && rowIndex < transactions.length) {
+          const transaction = transactions[rowIndex];
+          
+          // تلوين خاص حسب نوع المعاملة
+          if (isAdminFundTransaction(transaction)) {
+            data.cell.styles.fillColor = [224, 242, 254]; // لون أزرق فاتح - #e0f2fe
+          } else if (isProjectFundingTransaction(transaction)) {
+            data.cell.styles.fillColor = [220, 252, 231]; // لون أخضر فاتح - #dcfce7
+          }
+        }
+      },
+    });
     
-    // إضافة ملخص في نهاية التقرير
-    const summary = document.createElement('div');
-    summary.style.marginTop = '20px';
-    summary.style.padding = '15px';
-    summary.style.backgroundColor = '#f9fafb';
-    summary.style.borderRadius = '8px';
-    summary.style.border = '1px solid #e5e7eb';
-    
+    // حساب إجمالي الإيرادات والمصروفات والرصيد
     const income = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
@@ -577,91 +412,50 @@ export function TransactionList({
       
     const balance = income - expense;
     
-    // ملخص المبالغ
-    const summaryTitle = document.createElement('h3');
-    summaryTitle.textContent = 'ملخص التقرير';
-    summaryTitle.style.margin = '0 0 10px 0';
-    summaryTitle.style.color = '#111827';
-    summary.appendChild(summaryTitle);
+    // الحصول على الموقع النهائي للجدول للبدء في إضافة الملخص
+    const finalY = (pdf as any).lastAutoTable.finalY + 10;
     
-    const summaryItems = [
-      { label: 'إجمالي الإيرادات:', value: formatCurrency(income), color: '#047857' },
-      { label: 'إجمالي المصروفات:', value: formatCurrency(expense), color: '#b91c1c' },
-      { label: 'الرصيد:', value: formatCurrency(balance), color: balance >= 0 ? '#1e40af' : '#b91c1c' }
-    ];
+    // إضافة ملخص التقرير
+    pdf.setFillColor(249, 250, 251); // لون خلفية فاتح - #f9fafb
+    pdf.setDrawColor(229, 231, 235); // لون حدود - #e5e7eb
+    pdf.roundedRect(40, finalY, pdf.internal.pageSize.width - 80, 30, 3, 3, 'FD');
     
-    summaryItems.forEach(item => {
-      const row = document.createElement('div');
-      row.style.display = 'flex';
-      row.style.justifyContent = 'space-between';
-      row.style.marginBottom = '8px';
-      
-      const label = document.createElement('span');
-      label.textContent = item.label;
-      label.style.fontWeight = 'bold';
-      
-      const value = document.createElement('span');
-      value.textContent = item.value;
-      value.style.color = item.color;
-      value.style.fontWeight = 'bold';
-      
-      row.appendChild(label);
-      row.appendChild(value);
-      summary.appendChild(row);
-    });
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.setTextColor(17, 24, 39); // لون غامق - #111827
+    pdf.text('ملخص التقرير', pdf.internal.pageSize.width / 2, finalY + 7, { align: 'center' });
     
-    exportContainer.appendChild(summary);
+    // إضافة بيانات الملخص
+    pdf.setFontSize(11);
+    pdf.setDrawColor(229, 231, 235); // لون حدود فاتح - #e5e7eb
     
-    // إضافة رقم الصفحة في التذييل
-    const footer = document.createElement('div');
-    footer.style.marginTop = '30px';
-    footer.style.textAlign = 'center';
-    footer.style.fontSize = '12px';
-    footer.style.color = '#6b7280';
-    footer.textContent = `صفحة 1 من 1 - نظام المحاسبة المالية - تم التصدير بتاريخ: ${currentDate} الساعة: ${currentTime}`;
-    exportContainer.appendChild(footer);
+    // الإيرادات
+    pdf.setTextColor(0, 0, 0); // لون أسود للنص
+    pdf.text('إجمالي الإيرادات:', 70, finalY + 15);
+    pdf.setTextColor(4, 120, 87); // لون أخضر - #047857
+    pdf.text(formatCurrency(income), pdf.internal.pageSize.width - 70, finalY + 15, { align: 'right' });
     
-    // إعدادات التصدير محسنة لدعم اللغة العربية بشكل أفضل
-    const opt = {
-      margin: [15, 10, 15, 10], // [top, right, bottom, left] بالملم
-      filename: `transactions_${dateString}.pdf`,
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: { 
-        scale: 3,  // زيادة الدقة للحصول على نص أكثر وضوحاً 
-        useCORS: true,
-        letterRendering: true,
-        allowTaint: true,
-        backgroundColor: '#FFFFFF',
-        removeContainer: true,
-        logging: false,
-        imageTimeout: 15000,
-        foreignObjectRendering: false // تغيير إلى false لتحسين توافق النصوص العربية
-      },
-      jsPDF: { 
-        unit: 'mm', 
-        format: 'a4', 
-        orientation: 'landscape',
-        compress: true,
-        putOnlyUsedFonts: true,
-        floatPrecision: 16,
-        hotfixes: ['px_scaling'] // إصلاح مشكلة تحجيم النص
-      }
-    };
+    // المصروفات
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('إجمالي المصروفات:', 70, finalY + 21);
+    pdf.setTextColor(185, 28, 28); // لون أحمر - #b91c1c
+    pdf.text(formatCurrency(expense), pdf.internal.pageSize.width - 70, finalY + 21, { align: 'right' });
     
-    // استخدام طريقة جديدة لتوليد PDF مع تحسين عرض النص العربي
-    // إنشاء بيانات HTML لاستخدامها في توليد PDF مع سلسلة استبدال لضمان التوافق
-    const htmlContent = exportContainer.outerHTML;
+    // الرصيد
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('الرصيد:', 70, finalY + 27);
+    const textColor = balance >= 0 ? [30, 64, 175] : [185, 28, 28]; // لون أزرق/أحمر - #1e40af / #b91c1c
+    pdf.setTextColor(textColor[0], textColor[1], textColor[2]); 
+    pdf.text(formatCurrency(balance), pdf.internal.pageSize.width - 70, finalY + 27, { align: 'right' });
     
-    // تحسين أخير: استخدام فنت أحادي المسافة لضبط المسافات بين الأحرف العربية
-    const pdfContent = htmlContent
-      .replace(/dir="rtl"/g, 'dir="rtl" style="text-align: right; font-family: \'Arial\', \'Tahoma\', sans-serif;"')
-      .replace(/<td/g, '<td style="text-align: right; font-family: \'Arial\', \'Tahoma\', sans-serif; unicode-bidi: embed;"');
-      
-    // توليد PDF من المحتوى المعالج
-    const pdf = html2pdf()
-      .from(pdfContent)
-      .set(opt)
-      .save();
+    // إضافة تذييل الصفحة
+    pdf.setFontSize(8);
+    pdf.setTextColor(107, 114, 128); // لون رمادي - #6b7280
+    const footerText = `صفحة 1 من 1 - نظام المحاسبة المالية - تم التصدير بتاريخ: ${currentDate} الساعة: ${currentTime}`;
+    pdf.text(footerText, pdf.internal.pageSize.width / 2, pdf.internal.pageSize.height - 10, { align: 'center' });
+    
+    // حفظ ملف PDF
+    pdf.save(`transactions_${dateString}.pdf`);
     
     toast({
       title: "تم التصدير بنجاح",
