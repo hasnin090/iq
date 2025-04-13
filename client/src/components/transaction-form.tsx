@@ -562,22 +562,23 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       </TooltipProvider>
                     </FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type="number"
-                          placeholder="أدخل المبلغ"
-                          className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium"
-                          disabled={isLoading || mutation.isPending}
-                        />
-                        {typeof field.value === 'number' && field.value > 0 && (
-                          <div className="absolute top-0 left-0 h-full flex items-center">
-                            <span className="mr-2 text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-800">
-                              {field.value.toLocaleString('ar-EG')}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      <Input
+                        type="text"
+                        placeholder="أدخل المبلغ"
+                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium text-center text-lg font-bold"
+                        disabled={isLoading || mutation.isPending}
+                        value={field.value ? field.value.toLocaleString('ar-EG') : ''}
+                        onChange={(e) => {
+                          // حذف جميع الفواصل والمسافات
+                          const rawValue = e.target.value.replace(/[,\s]/g, '');
+                          
+                          // التحقق من أن القيمة رقمية
+                          if (rawValue === '' || /^\d+$/.test(rawValue)) {
+                            // تحويل إلى رقم وتعيين القيمة
+                            form.setValue('amount', rawValue === '' ? 0 : parseInt(rawValue, 10));
+                          }
+                        }}
+                      />
                     </FormControl>
 
                     
