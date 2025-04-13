@@ -564,14 +564,25 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     <FormControl>
                       <div className="flex items-center">
                         <input
-                          type="number" 
+                          type="text" 
                           placeholder="أدخل المبلغ"
                           className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium text-center text-lg font-bold"
                           disabled={isLoading || mutation.isPending}
-                          value={field.value || ''}
+                          value={field.value ? field.value.toLocaleString('en-US') : ''}
                           onChange={(e) => {
-                            const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-                            form.setValue('amount', value);
+                            // إزالة كل الفواصل والمسافات للحصول على الرقم الخام
+                            const rawValue = e.target.value.replace(/[,\s]/g, '');
+                            // إذا كان الإدخال فارغًا، أعد تعيين القيمة
+                            if (rawValue === '') {
+                              form.setValue('amount', 0);
+                              return;
+                            }
+                            // تحويل إلى رقم
+                            const numValue = parseInt(rawValue, 10);
+                            // فقط إذا كان رقماً صالحاً
+                            if (!isNaN(numValue)) {
+                              form.setValue('amount', numValue);
+                            }
                           }}
                         />
                       </div>
