@@ -563,20 +563,28 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     </FormLabel>
                     <FormControl>
                       <Input
-                        {...field}
-                        type="number"
+                        type="text" 
                         placeholder="أدخل المبلغ"
-                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
+                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium"
                         disabled={isLoading || mutation.isPending}
+                        value={typeof field.value === 'number' ? field.value.toLocaleString('ar-EG') : ''}
+                        onChange={(e) => {
+                          // إزالة كافة الأحرف غير الرقمية (نحتفظ فقط بالأرقام)
+                          const rawValue = e.target.value.replace(/[^\d]/g, "");
+                          
+                          // تحويل السلسلة النصية إلى رقم
+                          const numValue = rawValue ? parseInt(rawValue, 10) : undefined;
+                          
+                          // تحديث القيمة في النموذج
+                          field.onChange(numValue);
+                        }}
                       />
                     </FormControl>
                     
-                    {/* عرض المبلغ منسقاً مع فواصل عشرية - خارج FormControl */}
+                    {/* عرض الصيغة المختصرة للمبلغ */}
                     {typeof field.value === 'number' && field.value > 0 && (
-                      <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center">
-                        <span className="font-medium ml-1">المبلغ بالفواصل العشرية:</span>
-                        <span className="font-bold">{field.value.toLocaleString('ar-EG')}</span>
-                        <span className="mr-2 text-xs bg-blue-100 dark:bg-blue-800 px-1.5 py-0.5 rounded-full text-blue-800 dark:text-blue-200">
+                      <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex justify-end">
+                        <span className="bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30">
                           {new Intl.NumberFormat('ar-EG', { 
                             notation: 'compact', 
                             compactDisplay: 'short',
