@@ -569,7 +569,6 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                           placeholder="أدخل المبلغ"
                           className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium text-center text-lg font-bold"
                           disabled={isLoading || mutation.isPending}
-                          value={field.value ? field.value.toLocaleString('ar-EG') : ''}
                           onChange={(e) => {
                             // استخدام قيمة الإدخال الأصلية
                             let inputValue = e.target.value;
@@ -579,14 +578,18 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                             
                             // إذا كان الإدخال فارغًا، أعد تعيين القيمة
                             if (digitsOnly === '') {
-                              form.setValue('amount', 0);
+                              form.setValue('amount', undefined);
                               return;
                             }
                             
                             // تحويل إلى رقم
                             const numValue = parseInt(digitsOnly, 10);
+                            
                             // تحديث القيمة في النموذج
                             form.setValue('amount', numValue);
+                            
+                            // تنسيق القيمة المعروضة مع فواصل
+                            e.target.value = numValue.toLocaleString('ar-EG');
                           }}
                         />
                       </div>
