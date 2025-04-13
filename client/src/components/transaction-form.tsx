@@ -563,36 +563,22 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     </FormLabel>
                     <FormControl>
                       <Input
-                        type="text" 
+                        {...field}
+                        type="number"
                         placeholder="أدخل المبلغ"
                         className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium"
                         disabled={isLoading || mutation.isPending}
-                        value={typeof field.value === 'number' ? field.value.toLocaleString('ar-EG') : ''}
-                        onChange={(e) => {
-                          // إزالة كافة الأحرف غير الرقمية (نحتفظ فقط بالأرقام)
-                          const rawValue = e.target.value.replace(/[^\d]/g, "");
-                          
-                          // تحويل السلسلة النصية إلى رقم
-                          const numValue = rawValue ? parseInt(rawValue, 10) : undefined;
-                          
-                          // تحديث القيمة في النموذج
-                          field.onChange(numValue);
-                        }}
                       />
                     </FormControl>
                     
-                    {/* عرض الصيغة المختصرة للمبلغ */}
                     {typeof field.value === 'number' && field.value > 0 && (
-                      <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex justify-end">
-                        <span className="bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30">
-                          {new Intl.NumberFormat('ar-EG', { 
-                            notation: 'compact', 
-                            compactDisplay: 'short',
-                            maximumFractionDigits: 1
-                          }).format(field.value)}
-                        </span>
+                      <div className="mt-1.5 text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-lg border border-blue-100 dark:border-blue-800">
+                        <span className="mr-1">المبلغ بالفواصل:</span>
+                        <span className="font-bold">{field.value.toLocaleString('ar-EG')}</span>
                       </div>
                     )}
+                    
+
                     <div className="mt-1 flex flex-wrap gap-1">
                       {commonAmounts.map((amount, idx) => (
                         <button
