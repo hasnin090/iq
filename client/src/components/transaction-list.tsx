@@ -804,6 +804,12 @@ export function TransactionList({
                               : 'bg-white/75 dark:bg-gray-900/30' // صفوف فردية
                       } hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
                     >
+                      {/* رقم المعاملة (الترقيم) */}
+                      <td className="px-4 py-3 text-center text-sm font-bold border-r border-blue-50/50 dark:border-blue-900/10">
+                        <span className="inline-flex items-center justify-center w-7 h-7 bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 rounded-full border border-orange-200 dark:border-orange-800/50">
+                          {index + 1}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light dark:text-gray-300 border-r border-blue-50/50 dark:border-blue-900/10">
                         <span className="font-medium">{formatDateTime(transaction.date)}</span>
                       </td>
