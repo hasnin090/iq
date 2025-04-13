@@ -562,13 +562,38 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       </TooltipProvider>
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        placeholder="أدخل المبلغ"
-                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
-                        disabled={isLoading || mutation.isPending}
-                      />
+                      <div className="relative">
+                        <Input
+                          type="text" 
+                          placeholder="أدخل المبلغ"
+                          className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900"
+                          disabled={isLoading || mutation.isPending}
+                          onChange={(e) => {
+                            // إزالة كافة الأحرف غير الرقمية
+                            const rawValue = e.target.value.replace(/[^\d]/g, "");
+                            
+                            // تحويل القيمة لرقم
+                            const numValue = rawValue ? Number(rawValue) : '';
+                            
+                            // تحديث قيمة النموذج بالرقم فقط (بدون فواصل)
+                            field.onChange(numValue);
+                          }}
+                          value={field.value !== undefined && field.value !== '' ? 
+                            Number(field.value).toLocaleString('ar-EG') : 
+                            ''}
+                        />
+                        {field.value && (
+                          <div className="absolute top-0 right-0 mt-2 mr-3">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50/80 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
+                              {new Intl.NumberFormat('ar-EG', { 
+                                notation: 'compact', 
+                                compactDisplay: 'short',
+                                maximumFractionDigits: 1
+                              }).format(Number(field.value))}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {commonAmounts.map((amount, idx) => (
