@@ -539,46 +539,102 @@ export function TransactionList({
   
   // تصدير المعاملات إلى Excel
   const exportToExcel = () => {
-    // إنشاء مصفوفة من بيانات المعاملات معدلة للتصدير
-    const data = transactions.map(transaction => ({
+    // إنشاء مصفوفة من بيانات المعاملات معدلة للتصدير مع تضمين جميع التفاصيل
+    const data = transactions.map((transaction, index) => ({
+      'الرقم': index + 1,
       'التاريخ والوقت': formatDateTime(transaction.date),
-      'الوصف': getCustomTransactionDescription(transaction),
+      'العنوان': getCustomTransactionDescription(transaction),
+      'التفاصيل': transaction.description || 'لا يوجد تفاصيل',
       'المشروع': getProjectName(transaction.projectId),
       'النوع': transaction.type === 'income' ? 'ايراد' : 'مصروف',
-      'المبلغ': transaction.amount,
+      'المبلغ': formatCurrency(transaction.amount), // استخدام دالة تنسيق العملة
+      'القيمة الرقمية': transaction.amount, // القيمة الرقمية للمبلغ (للفرز والحسابات)
       'نوع الصندوق': isAdminFundTransaction(transaction) 
         ? 'صندوق رئيسي' 
         : isProjectFundingTransaction(transaction) 
           ? 'تمويل مشروع' 
-          : 'صرف مشروع'
+          : 'صرف مشروع',
+      'حالة المرفقات': transaction.fileUrl ? 'يوجد مرفق' : 'لا يوجد مرفقات',
+      'رابط المرفق': transaction.fileUrl || 'لا يوجد',
+      'نوع الملف': transaction.fileType || 'لا يوجد',
+      'معرف المعاملة': transaction.id,
     }));
 
+    // العناوين المستخدمة في ملف Excel
+    const headers = [
+      'الرقم', 
+      'التاريخ والوقت', 
+      'العنوان', 
+      'التفاصيل', 
+      'المشروع', 
+      'النوع', 
+      'المبلغ',
+      'القيمة الرقمية', 
+      'نوع الصندوق', 
+      'حالة المرفقات',
+      'رابط المرفق',
+      'نوع الملف',
+      'معرف المعاملة'
+    ];
+
     // إنشاء ورقة عمل جديدة
-    const worksheet = XLSX.utils.json_to_sheet(data, { 
-      header: ['التاريخ والوقت', 'الوصف', 'المشروع', 'النوع', 'المبلغ', 'نوع الصندوق'],
-    });
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
 
     // تعديل عرض الأعمدة
     const wscols = [
-      { wch: 20 },  // عرض عمود التاريخ
-      { wch: 40 },  // عرض عمود الوصف
-      { wch: 20 },  // عرض عمود المشروع
-      { wch: 15 },  // عرض عمود النوع
-      { wch: 15 },  // عرض عمود المبلغ
-      { wch: 15 },  // عرض عمود نوع الصندوق
+      { wch: 8 },    // عرض عمود الرقم
+      { wch: 20 },   // عرض عمود التاريخ
+      { wch: 40 },   // عرض عمود العنوان
+      { wch: 40 },   // عرض عمود التفاصيل
+      { wch: 20 },   // عرض عمود المشروع
+      { wch: 15 },   // عرض عمود النوع
+      { wch: 15 },   // عرض عمود المبلغ (المنسق)
+      { wch: 12 },   // عرض عمود القيمة الرقمية
+      { wch: 15 },   // عرض عمود نوع الصندوق
+      { wch: 15 },   // عرض عمود حالة المرفقات
+      { wch: 50 },   // عرض عمود رابط المرفق
+      { wch: 15 },   // عرض عمود نوع الملف
+      { wch: 12 },   // عرض عمود معرف المعاملة
     ];
     worksheet['!cols'] = wscols;
+
+    // تنسيق أنماط الخلايا للترويسة
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:M1');
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + '1'; // عنوان الخلية في العمود C، الصف 1
+      if (!worksheet[address]) continue;
+      worksheet[address].s = {
+        font: { bold: true, color: { rgb: '0000FF' } }, // خط عريض وأزرق
+        fill: { fgColor: { rgb: 'E6F0FF' } }, // خلفية زرقاء فاتحة
+        alignment: { horizontal: 'center', vertical: 'center' }, // محاذاة للوسط
+        border: { // إطار حول الخلية
+          top: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' }
+        }
+      };
+    }
+
+    // إخفاء عمود القيمة الرقمية (سيظهر فقط في التصدير لأغراض المعالجة)
+    worksheet['!cols'][7].hidden = true;
+    worksheet['!cols'][12].hidden = true;
 
     // إنشاء كتاب عمل جديد وإضافة ورقة العمل إليه
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'المعاملات المالية');
 
+    // إنشاء اسم الملف مع التاريخ الحالي
+    const now = new Date();
+    const dateString = format(now, 'yyyy-MM-dd-HHmmss');
+    const fileName = `transactions_${dateString}.xlsx`;
+
     // تصدير كتاب العمل إلى ملف Excel
-    XLSX.writeFile(workbook, 'transactions.xlsx');
+    XLSX.writeFile(workbook, fileName);
     
     toast({
       title: "تم التصدير بنجاح",
-      description: "تم تصدير المعاملات المالية إلى ملف Excel بنجاح",
+      description: `تم تصدير المعاملات المالية إلى ملف Excel بنجاح (${transactions.length} معاملة)`,
     });
   };
   
