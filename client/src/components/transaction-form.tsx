@@ -567,16 +567,33 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         placeholder="أدخل المبلغ"
                         className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 focus:border-blue-300 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 font-medium text-center text-lg font-bold"
                         disabled={isLoading || mutation.isPending}
-                        value={field.value ? field.value.toLocaleString('ar-EG') : ''}
-                        onChange={(e) => {
-                          // حذف جميع الفواصل والمسافات
+                        defaultValue=""
+                        onBlur={(e) => {
+                          // عند مغادرة الحقل، تأكد من تنسيق القيمة والفواصل
                           const rawValue = e.target.value.replace(/[,\s]/g, '');
-                          
-                          // التحقق من أن القيمة رقمية
-                          if (rawValue === '' || /^\d+$/.test(rawValue)) {
-                            // تحويل إلى رقم وتعيين القيمة
-                            form.setValue('amount', rawValue === '' ? 0 : parseInt(rawValue, 10));
+                          if (rawValue) {
+                            const numValue = parseInt(rawValue, 10);
+                            form.setValue('amount', numValue);
+                            e.target.value = numValue.toLocaleString('ar-EG');
                           }
+                        }}
+                        onChange={(e) => {
+                          // استخدام قيمة الإدخال الأصلية
+                          let inputValue = e.target.value;
+                          
+                          // إزالة أي شيء ما عدا الأرقام
+                          const digitsOnly = inputValue.replace(/[^\d]/g, '');
+                          
+                          // إذا كان الإدخال فارغًا، أعد تعيين القيمة
+                          if (digitsOnly === '') {
+                            form.setValue('amount', 0);
+                            return;
+                          }
+                          
+                          // تحويل إلى رقم
+                          const numValue = parseInt(digitsOnly, 10);
+                          // تحديث القيمة في النموذج
+                          form.setValue('amount', numValue);
                         }}
                       />
                     </FormControl>
