@@ -171,7 +171,7 @@ function CompanyName() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/0 via-blue-600/40 to-blue-600/0 opacity-0 group-hover:opacity-100 animate-shimmer"></div>
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-l from-[hsl(var(--primary))] to-[hsl(var(--primary))/70]">{user?.name || "نظام المحاسبة"}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-l from-[hsl(var(--primary))] to-[hsl(var(--primary))/70]">{user ? <CompanyName /> : "نظام المحاسبة"}</h1>
                 <p className="text-xs text-blue-500/80 dark:text-blue-400/80 mt-0.5 hidden sm:inline-block">الإصدار 1.0.2</p>
               </div>
             </div>
