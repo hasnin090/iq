@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -26,25 +26,41 @@ export function Sidebar() {
 
 // مكون لعرض اسم الشركة أو اسم المشروع النشط
 function CompanyName() {
-  const { data: settings } = useQuery<{ key: string; value: string }[]>({
+  const { data: settings, isLoading: isLoadingSettings } = useQuery<{ key: string; value: string }[]>({
     queryKey: ['/api/settings'],
+    staleTime: 1000 * 60 * 5, // تخزين البيانات لمدة 5 دقائق قبل إعادة الطلب
+    gcTime: 1000 * 60 * 10, // الاحتفاظ بالبيانات في الذاكرة لمدة 10 دقائق (gcTime يحل محل cacheTime)
   });
   const { user } = useAuth();
   
   // جلب المشاريع في نفس المكون ليتمكن من الوصول للمشروع النشط
-  const { data: userProjects } = useQuery<Project[]>({
+  const { data: userProjects, isLoading: isLoadingProjects } = useQuery<Project[]>({
     queryKey: ['/api/user-projects'],
     enabled: !!user && user.role !== 'admin',
+    staleTime: 1000 * 60 * 3, // تخزين البيانات لمدة 3 دقائق قبل إعادة الطلب
   });
   
-  // الحصول على المشروع النشط (في الأعلى من الكود سيتم تعيين المشروع النشط)
-  const activeProject = Array.isArray(userProjects) && userProjects.length > 0 ? 
-    userProjects[0] : undefined;
+  // الحصول على المشروع النشط
+  const activeProject = useMemo(() => {
+    return Array.isArray(userProjects) && userProjects.length > 0 ? userProjects[0] : undefined;
+  }, [userProjects]);
 
-  // البحث عن اسم الشركة في أي من المفتاحين
-  let companyName = settings?.find(s => s.key === 'companyName')?.value;
-  if (!companyName) {
-    companyName = settings?.find(s => s.key === 'company_name')?.value || 'مدير النظام';
+  // البحث عن اسم الشركة في أي من المفتاحين - بتحسين الأداء باستخدام useMemo
+  const companyName = useMemo(() => {
+    if (!settings || !Array.isArray(settings)) return 'مدير النظام';
+    
+    const companyNameSetting = settings.find((s: {key: string, value: string}) => s.key === 'companyName');
+    if (companyNameSetting?.value) {
+      return companyNameSetting.value;
+    }
+    
+    const alternativeNameSetting = settings.find((s: {key: string, value: string}) => s.key === 'company_name');
+    return alternativeNameSetting?.value || 'مدير النظام';
+  }, [settings]);
+  
+  // في حالة جاري التحميل، نعرض مؤشر تحميل خفيف
+  if (isLoadingSettings && user?.role === 'admin') {
+    return <span className="opacity-70">جاري التحميل...</span>;
   }
   
   // إذا كان المستخدم مديرًا، يظهر اسم الشركة
@@ -53,6 +69,8 @@ function CompanyName() {
   } else if (activeProject) {
     // إذا كان مستخدم عادي ولديه مشروع نشط، يظهر اسم المشروع
     return <span>{activeProject.name}</span>;
+  } else if (isLoadingProjects) {
+    return <span className="opacity-70">جاري التحميل...</span>;
   } else {
     // إذا لم يكن هناك مشروع نشط
     return <span>مدير المشاريع</span>;
@@ -67,24 +85,17 @@ function CompanyName() {
   const { data: userProjects, isLoading: isLoadingProjects, isError: isProjectsError } = useQuery<Project[]>({
     queryKey: ['/api/user-projects'],
     queryFn: async () => {
-      console.log('جلب مشاريع المستخدم...');
       if (!user) return [];
-      try {
-        const response = await fetch('/api/user-projects');
-        if (!response.ok) {
-          console.log('خطأ في جلب المشاريع:', await response.text());
-          return [];
-        }
-        const projects = await response.json();
-        console.log('المشاريع المستلمة:', projects);
-        return projects;
-      } catch (error) {
-        console.error('خطأ في جلب مشاريع المستخدم:', error);
-        return [];
+      const response = await fetch('/api/user-projects');
+      if (!response.ok) {
+        throw new Error('فشل في جلب المشاريع');
       }
+      return response.json();
     },
     // فقط جلب المشاريع إذا كان المستخدم موجود وليس مديرًا
     enabled: !!user && user.role !== 'admin',
+    staleTime: 1000 * 60 * 3, // تخزين البيانات لمدة 3 دقائق قبل إعادة الطلب
+    retry: 1, // محاولة إعادة الطلب مرة واحدة فقط بعد الفشل
   });
   
   // اختيار المشروع النشط - نستخدم المشروع الأول كافتراضي أو نسمح للمستخدم باختيار مشروع معين
