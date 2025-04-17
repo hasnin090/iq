@@ -217,14 +217,10 @@ function CompanyName() {
                   <i className="fas fa-user-circle text-lg sm:text-xl text-white"></i>
                 </div>
                 <div>
-                  <div className="text-[hsl(var(--primary))] dark:text-white font-medium text-base sm:text-lg">{user.name}</div>
+                  <div className="text-[hsl(var(--primary))] dark:text-white font-medium text-base sm:text-lg"><CompanyName /></div>
                   <div className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] dark:text-gray-300 mt-1 flex items-center">
                     <i className="fas fa-circle text-[6px] mr-2 text-[hsl(var(--primary))]"></i>
-                    {user.role === 'admin' ? (
-                      <CompanyName />
-                    ) : (
-                      <span>مستخدم</span>
-                    )}
+                    <span>{user.name}</span>
                   </div>
                 </div>
               </div>
