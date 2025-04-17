@@ -19,7 +19,11 @@ function CompanyName() {
     queryKey: ['/api/settings'],
   });
 
-  const companyName = settings?.find(s => s.key === 'company_name')?.value || 'مدير النظام';
+  // البحث عن اسم الشركة في أي من المفتاحين
+  let companyName = settings?.find(s => s.key === 'companyName')?.value;
+  if (!companyName) {
+    companyName = settings?.find(s => s.key === 'company_name')?.value || 'مدير النظام';
+  }
   
   return <span>{companyName}</span>;
 }
