@@ -12,6 +12,19 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
+
+// مكون لعرض اسم الشركة
+function CompanyName() {
+  const { data: settings } = useQuery<{ key: string; value: string }[]>({
+    queryKey: ['/api/settings'],
+  });
+
+  const companyName = settings?.find(s => s.key === 'company_name')?.value || 'مدير النظام';
+  
+  return <span>{companyName}</span>;
+}
+
+
   const { toast } = useToast();
   const [isMobile, setIsMobile] = useState(false);
   
@@ -203,7 +216,11 @@ export function Sidebar() {
                   <div className="text-[hsl(var(--primary))] dark:text-white font-medium text-base sm:text-lg">{user.name}</div>
                   <div className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] dark:text-gray-300 mt-1 flex items-center">
                     <i className="fas fa-circle text-[6px] mr-2 text-[hsl(var(--primary))]"></i>
-                    <span>{user.role === 'admin' ? 'مدير النظام' : 'مستخدم'}</span>
+                    {user.role === 'admin' ? (
+                      <CompanyName />
+                    ) : (
+                      <span>مستخدم</span>
+                    )}
                   </div>
                 </div>
               </div>
