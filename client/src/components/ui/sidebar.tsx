@@ -8,16 +8,38 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AppHeader } from "@/components/ui/app-header";
 import { useQuery } from "@tanstack/react-query";
 
+// تعريف واجهة المشروع
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  startDate: string;
+  status: string;
+  progress?: number;
+  createdBy?: number;
+}
+
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
 
-// مكون لعرض اسم الشركة
+// مكون لعرض اسم الشركة أو اسم المشروع النشط
 function CompanyName() {
   const { data: settings } = useQuery<{ key: string; value: string }[]>({
     queryKey: ['/api/settings'],
   });
+  const { user } = useAuth();
+  
+  // جلب المشاريع في نفس المكون ليتمكن من الوصول للمشروع النشط
+  const { data: userProjects } = useQuery<Project[]>({
+    queryKey: ['/api/user-projects'],
+    enabled: !!user && user.role !== 'admin',
+  });
+  
+  // الحصول على المشروع النشط (في الأعلى من الكود سيتم تعيين المشروع النشط)
+  const activeProject = Array.isArray(userProjects) && userProjects.length > 0 ? 
+    userProjects[0] : undefined;
 
   // البحث عن اسم الشركة في أي من المفتاحين
   let companyName = settings?.find(s => s.key === 'companyName')?.value;
@@ -25,23 +47,21 @@ function CompanyName() {
     companyName = settings?.find(s => s.key === 'company_name')?.value || 'مدير النظام';
   }
   
-  return <span>{companyName}</span>;
+  // إذا كان المستخدم مديرًا، يظهر اسم الشركة
+  if (user?.role === 'admin') {
+    return <span>{companyName}</span>;
+  } else if (activeProject) {
+    // إذا كان مستخدم عادي ولديه مشروع نشط، يظهر اسم المشروع
+    return <span>{activeProject.name}</span>;
+  } else {
+    // إذا لم يكن هناك مشروع نشط
+    return <span>مدير المشاريع</span>;
+  }
 }
 
 
   const { toast } = useToast();
   const [isMobile, setIsMobile] = useState(false);
-  
-  // تعريف واجهة المشروع
-  interface Project {
-    id: number;
-    name: string;
-    description: string;
-    startDate: string;
-    status: string;
-    progress?: number;
-    createdBy?: number;
-  }
   
   // جلب المشاريع المتاحة للمستخدم (سيتم تصفيتها في الخلفية بواسطة API)
   const { data: userProjects, isLoading: isLoadingProjects, isError: isProjectsError } = useQuery<Project[]>({
