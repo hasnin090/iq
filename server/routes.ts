@@ -1028,6 +1028,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // نقطة النهاية لإعادة رفع مرفق للمعاملة
+  app.post("/api/transactions/:id/reupload-attachment", authenticate, upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // التحقق من وجود المعاملة
+      const transaction = await storage.getTransaction(id);
+      if (!transaction) {
+        // حذف الملف المؤقت إذا وجد
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(404).json({ message: "المعاملة غير موجودة" });
+      }
+      
+      // التحقق من صلاحيات المستخدم لتعديل المعاملة
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      // فقط المدير أو المسؤول يمكنه إعادة رفع المرفقات
+      if (userRole !== 'admin' && userRole !== 'manager') {
+        // حذف الملف المؤقت إذا وجد
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(403).json({ message: "ليس لديك صلاحية لإعادة رفع مرفقات المعاملات" });
+      }
+      
+      // التأكد من وجود ملف للرفع
+      if (!req.file) {
+        return res.status(400).json({ message: "لم يتم تقديم ملف للرفع" });
+      }
+      
+      // محاولة حذف الملف المرفق السابق إذا وجد
+      if (transaction.fileUrl) {
+        try {
+          console.log(`محاولة حذف الملف السابق: ${transaction.fileUrl}`);
+          // محاولة استخدام Firebase Storage للحذف
+          try {
+            await firebaseDelete(transaction.fileUrl);
+            console.log("تم حذف الملف المرفق السابق بنجاح من Firebase Storage");
+          } catch (firebaseError: unknown) {
+            // إذا فشل، محاولة استخدام التخزين المحلي
+            console.warn("فشل حذف الملف من Firebase Storage، محاولة الحذف من التخزين المحلي:", (firebaseError as Error).message);
+            await localDelete(transaction.fileUrl);
+            console.log("تم حذف الملف المرفق السابق بنجاح من التخزين المحلي");
+          }
+        } catch (fileError) {
+          console.error("خطأ في حذف الملف المرفق السابق:", fileError);
+          // استمر بعملية الرفع حتى لو فشل حذف الملف السابق
+        }
+      }
+      
+      // رفع الملف الجديد
+      const storageFolder = `transactions/${id}`;
+      let fileUrl;
+      try {
+        // محاولة استخدام Firebase أولاً
+        fileUrl = await firebaseUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
+        console.log("تم رفع الملف المرفق الجديد بنجاح باستخدام Firebase Storage:", fileUrl);
+      } catch (firebaseError: unknown) {
+        // إذا فشل، استخدم التخزين المحلي كخطة بديلة
+        console.warn("فشل استخدام Firebase Storage لرفع المرفق الجديد، الرجوع إلى التخزين المحلي:", (firebaseError as Error).message);
+        fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
+        console.log("تم رفع الملف المرفق الجديد بنجاح باستخدام التخزين المحلي:", fileUrl);
+      }
+      
+      // تحديث المعاملة بعنوان URL للملف المرفق الجديد
+      const updatedTransaction = await storage.updateTransaction(id, { 
+        fileUrl,
+        fileType: req.file.mimetype
+      });
+      
+      // حذف الملف المؤقت
+      fs.unlinkSync(req.file.path);
+      
+      // تسجيل نشاط إعادة رفع المرفق
+      await storage.createActivityLog({
+        action: "update",
+        entityType: "transaction",
+        entityId: id,
+        details: `إعادة رفع مرفق للمعاملة: ${transaction.description}`,
+        userId: userId
+      });
+      
+      return res.status(200).json({
+        message: "تم إعادة رفع مرفق المعاملة بنجاح",
+        transaction: updatedTransaction
+      });
+      
+    } catch (error) {
+      console.error("خطأ في إعادة رفع مرفق المعاملة:", error);
+      
+      // حذف الملف المؤقت في حالة حدوث خطأ
+      if (req.file) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error("خطأ في حذف الملف المؤقت:", unlinkError);
+        }
+      }
+      
+      return res.status(500).json({ message: "حدث خطأ أثناء إعادة رفع مرفق المعاملة" });
+    }
+  });
+
   // Documents routes
   app.get("/api/documents", authenticate, async (req: Request, res: Response) => {
     try {
