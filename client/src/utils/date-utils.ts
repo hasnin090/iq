@@ -1,26 +1,36 @@
 // مكتبة أدوات التعامل مع التواريخ
 import { format, formatDistance, parseISO } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, enUS } from 'date-fns/locale';
 
 /**
  * تنسيق التاريخ بالشكل المطلوب
+ * استخدام التقويم الميلادي بدلاً من الهجري
  * @param dateString التاريخ كسلسلة نصية
  * @param formatStr نمط التنسيق
+ * @param useGregorian استخدام التقويم الميلادي (true) أو الهجري (false)
  * @returns التاريخ بعد التنسيق
  */
-export const formatDate = (dateString: string, formatStr: string = 'yyyy/MM/dd') => {
+export const formatDate = (
+  dateString: string, 
+  formatStr: string = 'yyyy/MM/dd',
+  useGregorian: boolean = true
+) => {
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-  return format(date, formatStr, { locale: ar });
+  // استخدم اللغة الإنجليزية للتقويم الميلادي، والعربية للتقويم الهجري
+  const locale = useGregorian ? enUS : ar;
+  return format(date, formatStr, { locale });
 };
 
 /**
  * تنسيق التاريخ مع الوقت
  * @param dateString التاريخ كسلسلة نصية
+ * @param useGregorian استخدام التقويم الميلادي (true) أو الهجري (false)
  * @returns التاريخ والوقت بعد التنسيق
  */
-export const formatDateTime = (dateString: string) => {
+export const formatDateTime = (dateString: string, useGregorian: boolean = true) => {
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-  return format(date, 'yyyy/MM/dd HH:mm', { locale: ar });
+  const locale = useGregorian ? enUS : ar;
+  return format(date, 'yyyy/MM/dd HH:mm', { locale });
 };
 
 /**
