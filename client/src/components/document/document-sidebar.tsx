@@ -22,7 +22,7 @@ import { Document as DocumentType, Project } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { 
   Card,
@@ -179,12 +179,12 @@ export function DocumentSidebar({
                   {filter.dateRange?.from ? (
                     filter.dateRange.to ? (
                       <>
-                        من {format(filter.dateRange.from, "P", { locale: ar })}
+                        من {format(filter.dateRange.from, "P", { locale: enUS })}
                         <br />
-                        إلى {format(filter.dateRange.to, "P", { locale: ar })}
+                        إلى {format(filter.dateRange.to, "P", { locale: enUS })}
                       </>
                     ) : (
-                      format(filter.dateRange.from, "P", { locale: ar })
+                      format(filter.dateRange.from, "P", { locale: enUS })
                     )
                   ) : (
                     "اختر التاريخ..."
@@ -270,7 +270,7 @@ export function DocumentSidebar({
                     <p className="text-xs font-medium truncate">{doc.name}</p>
                     <div className="flex items-center mt-1">
                       <span className="text-[10px] text-muted-foreground">
-                        {format(new Date(doc.uploadDate), 'dd MMM yyyy', { locale: ar })}
+                        {format(new Date(doc.uploadDate), 'dd MMM yyyy', { locale: enUS })}
                       </span>
                       <span className="mx-1 text-muted-foreground text-[8px]">•</span>
                       <span className="text-[10px] text-muted-foreground truncate">

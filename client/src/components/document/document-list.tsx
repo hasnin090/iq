@@ -7,7 +7,7 @@ import { Document as DocumentType, Project } from '@/types';
 import { Search, Eye, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, enUS } from 'date-fns/locale';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -240,7 +240,7 @@ export function DocumentList({
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 ml-0.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: ar })}
+                        {format(new Date(document.uploadDate), 'dd MMM yyyy', { locale: enUS })}
                       </span>
                     </div>
                   </div>
