@@ -50,6 +50,10 @@ export default function Documents() {
   const [filter, setFilter] = useState<Filter>({});
   const [activeTab, setActiveTab] = useState("general"); // "general", "projects", o "manager"
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [showReuploadDialog, setShowReuploadDialog] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [reuploadFile, setReuploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const { user } = useAuth();
   const isManagerOrAdmin = user?.role === 'admin' || user?.role === 'manager';
 
@@ -127,6 +131,59 @@ export default function Documents() {
   
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+  };
+  
+  // التعامل مع إعادة رفع المستند المرفق
+  const handleReuploadClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setShowReuploadDialog(true);
+  };
+  
+  // إعادة تعيين حالة إعادة الرفع
+  const resetReuploadState = () => {
+    setSelectedTransaction(null);
+    setReuploadFile(null);
+    setShowReuploadDialog(false);
+    setIsUploading(false);
+  };
+  
+  // رفع الملف المحدث للمعاملة
+  const handleReuploadSubmit = async () => {
+    if (!selectedTransaction || !reuploadFile) return;
+    
+    setIsUploading(true);
+    
+    try {
+      // إنشاء نموذج بيانات للرفع
+      const formData = new FormData();
+      formData.append('file', reuploadFile);
+      formData.append('transactionId', selectedTransaction.id.toString());
+      
+      // إرسال طلب تحديث المرفق
+      const response = await fetch(`/api/transactions/${selectedTransaction.id}/reupload-attachment`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('فشل في تحديث المرفق');
+      }
+      
+      // تحديث البيانات
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions/attachments'] });
+      
+      // إغلاق الحوار
+      resetReuploadState();
+      
+      // إظهار رسالة نجاح
+      alert('تم تحديث المرفق بنجاح');
+    } catch (error) {
+      console.error('خطأ في تحديث المرفق:', error);
+      alert('حدث خطأ أثناء تحديث المرفق');
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   // تحديد المستندات المناسبة حسب علامة التبويب النشطة وتطبيق الفلاتر
@@ -1313,7 +1370,7 @@ export default function Documents() {
                             </span>
                           </div>
                           
-                          <div className="flex justify-between mt-3">
+                          <div className="flex flex-wrap justify-center gap-2 mt-3">
                             <Button 
                               size="sm" 
                               variant="outline" 
@@ -1340,6 +1397,19 @@ export default function Documents() {
                               <Download className="ml-1 h-3 w-3" />
                               تحميل
                             </Button>
+                            
+                            {/* زر إعادة رفع المستند - متاح فقط للمدراء والمسؤولين */}
+                            {isManagerOrAdmin && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="text-xs w-full mt-1"
+                                onClick={() => handleReuploadClick(transaction)}
+                              >
+                                <Upload className="ml-1 h-3 w-3" />
+                                إعادة رفع المستند
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -1374,6 +1444,60 @@ export default function Documents() {
               isLoading={projectsLoading}
               isManagerDocument={activeTab === "manager"}
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* نافذة حوار إعادة رفع المستند المرفق */}
+      <Dialog open={showReuploadDialog} onOpenChange={(open) => !open && resetReuploadState()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>إعادة رفع مستند مرفق</DialogTitle>
+            <DialogDescription>
+              يمكنك رفع نسخة جديدة أكثر وضوحاً من المستند المرفق للمعاملة
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            {selectedTransaction && (
+              <div className="text-xs border p-3 rounded-lg bg-muted/30">
+                <p><strong>المشروع:</strong> {projects?.find(p => p.id === selectedTransaction.projectId)?.name || 'بدون مشروع'}</p>
+                <p><strong>نوع المعاملة:</strong> {selectedTransaction.type === 'income' ? 'إيداع' : 'سحب'}</p>
+                <p><strong>المبلغ:</strong> {new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(selectedTransaction.amount)}</p>
+                <p><strong>الوصف:</strong> {selectedTransaction.description}</p>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="reupload-file">اختر الملف الجديد</Label>
+              <Input
+                id="reupload-file"
+                type="file"
+                className="cursor-pointer"
+                onChange={(e) => setReuploadFile(e.target.files ? e.target.files[0] : null)}
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+              />
+              <p className="text-xs text-muted-foreground">
+                يمكنك رفع صور أو مستندات PDF أو ملفات Office.
+              </p>
+            </div>
+            
+            <div className="flex gap-2 justify-end mt-4">
+              <Button variant="outline" onClick={resetReuploadState}>
+                إلغاء
+              </Button>
+              <Button 
+                onClick={handleReuploadSubmit} 
+                disabled={!reuploadFile || isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <div className="spinner w-4 h-4 ml-2"></div>
+                    جاري الرفع...
+                  </>
+                ) : 'رفع المستند الجديد'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
