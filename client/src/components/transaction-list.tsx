@@ -265,12 +265,22 @@ export function TransactionList({
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return format(date, 'yyyy/MM/dd', { locale: ar });
+    return date.toLocaleDateString('ar-SA-u-nu-latn', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
   };
   
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return format(date, 'yyyy/MM/dd HH:mm', { locale: ar });
+    return date.toLocaleDateString('ar-SA-u-nu-latn', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
   
   // تم إلغاء وظيفة تصدير PDF بسبب مشاكل في عرض النص العربي

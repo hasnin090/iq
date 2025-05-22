@@ -106,7 +106,12 @@ export default function ArchivePage() {
     filteredTransactions.forEach(transaction => {
       const date = new Date(transaction.date);
       const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-      const monthName = date.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' });
+      // استخدام التقويم الميلادي مع الأرقام اللاتينية
+      const monthName = date.toLocaleDateString('ar-SA-u-nu-latn', { 
+        month: 'long', 
+        year: 'numeric',
+        calendar: 'gregory' 
+      });
 
       if (!groups[monthKey]) {
         groups[monthKey] = {

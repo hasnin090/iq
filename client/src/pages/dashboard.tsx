@@ -90,7 +90,11 @@ export default function Dashboard() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ar-IQ');
+    return date.toLocaleDateString('ar-SA-u-nu-latn', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
   };
 
   // دالة للحصول على المعاملات المفلترة حسب وضع العرض
