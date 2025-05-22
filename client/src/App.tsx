@@ -9,6 +9,7 @@ import Transactions from "@/pages/transactions";
 import Projects from "@/pages/projects";
 import Users from "@/pages/users";
 import Documents from "@/pages/documents";
+import Archive from "@/pages/archive";
 import Reports from "@/pages/reports";
 import Activities from "@/pages/activities";
 import Settings from "@/pages/settings";
@@ -70,6 +71,7 @@ function AppRoutes() {
       case '/projects': return 'المشاريع';
       case '/users': return 'المستخدمين';
       case '/documents': return 'المستندات';
+      case '/archive': return 'الأرشيف';
       case '/reports': return 'التقارير';
       case '/activities': return 'سجل النشاطات';
       case '/settings': return 'الإعدادات';
@@ -115,6 +117,7 @@ function AppRoutes() {
               <Route path="/projects" component={Projects} />
               <Route path="/users" component={Users} />
               <Route path="/documents" component={Documents} />
+              <Route path="/archive" component={Archive} />
               <Route path="/reports" component={Reports} />
               <Route path="/activities" component={Activities} />
               <Route path="/settings" component={Settings} />
