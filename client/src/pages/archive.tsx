@@ -61,13 +61,13 @@ export default function Archive() {
   const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
 
   // جلب المستندات المؤرشفة (حالياً سنعرض بيانات تجريبية)
-  const { data: archivedDocuments = [], isLoading: documentsLoading } = useQuery({
+  const { data: archivedDocuments = [], isLoading: documentsLoading } = useQuery<ArchivedDocument[]>({
     queryKey: ['/api/archive'],
     enabled: !!user,
   });
 
   // جلب المشاريع
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     enabled: !!user,
   });

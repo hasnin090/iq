@@ -1134,6 +1134,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Archive routes
+  app.get("/api/archive", authenticate, async (req: Request, res: Response) => {
+    try {
+      // حالياً سنعيد مصفوفة فارغة لأن الأرشيف جديد
+      // في المستقبل يمكن إنشاء جدول منفصل للمستندات المؤرشفة
+      const archivedDocuments = [];
+      
+      return res.status(200).json(archivedDocuments);
+    } catch (error) {
+      console.error("خطأ في جلب المستندات المؤرشفة:", error);
+      return res.status(500).json({ message: "خطأ في جلب المستندات المؤرشفة" });
+    }
+  });
+
   // Documents routes
   app.get("/api/documents", authenticate, async (req: Request, res: Response) => {
     try {
