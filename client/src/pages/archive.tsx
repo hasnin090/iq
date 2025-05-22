@@ -1,67 +1,62 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/use-auth';
-import { 
-  Archive as ArchiveIcon, 
-  FileText, 
-  Search, 
-  Filter,
-  Calendar,
-  Download,
-  Eye,
-  Trash2,
-  Plus,
-  FolderOpen,
-  Clock,
-  User
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { useState, useMemo } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Archive, Search, Filter, Calendar, TrendingUp, TrendingDown, DollarSign, FileText } from "lucide-react";
+import { formatDate } from "@/utils/date-utils";
 
-interface ArchivedDocument {
+// دالة تنسيق العملة محلياً
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+// تعريف أنواع البيانات للمعاملات المالية
+interface ArchivedTransaction {
   id: number;
-  name: string;
-  description?: string;
-  fileUrl: string;
-  fileType: string;
-  uploadDate: string;
-  archivedDate: string;
-  archivedBy: number;
+  type: string;
+  amount: number;
+  description: string;
+  date: string;
   projectId?: number;
-  originalCategory: string;
-  archiveReason?: string;
+  userId: number;
+  attachmentUrl?: string;
 }
 
 interface Project {
   id: number;
   name: string;
+  description: string;
+  startDate: string;
+  status: string;
 }
 
-export default function Archive() {
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProject, setSelectedProject] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
+// تجميع المعاملات حسب الشهر
+interface MonthlyGroup {
+  month: string;
+  year: number;
+  transactions: ArchivedTransaction[];
+  totalRevenue: number;
+  totalExpense: number;
+}
 
-  // جلب المستندات المؤرشفة (حالياً سنعرض بيانات تجريبية)
-  const { data: archivedDocuments = [], isLoading: documentsLoading } = useQuery<ArchivedDocument[]>({
+export default function ArchivePage() {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<string>('all'); // all, income, expense
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+
+  // جلب المعاملات المؤرشفة
+  const { data: archivedTransactions = [], isLoading: transactionsLoading } = useQuery<ArchivedTransaction[]>({
     queryKey: ['/api/archive'],
     enabled: !!user,
   });
@@ -72,298 +67,330 @@ export default function Archive() {
     enabled: !!user,
   });
 
-  // فلترة المستندات المؤرشفة
-  const filteredDocuments = archivedDocuments.filter((doc: ArchivedDocument) => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.archiveReason?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesProject = selectedProject === 'all' || doc.projectId?.toString() === selectedProject;
-    const matchesCategory = selectedCategory === 'all' || doc.originalCategory === selectedCategory;
-    
-    return matchesSearch && matchesProject && matchesCategory;
-  });
+  // فلترة المعاملات المؤرشفة
+  const filteredTransactions = useMemo(() => {
+    let filtered = archivedTransactions;
 
-  const getFileTypeIcon = (fileType: string) => {
-    if (fileType.includes('image')) return '🖼️';
-    if (fileType.includes('pdf')) return '📄';
-    if (fileType.includes('word')) return '📝';
-    if (fileType.includes('excel')) return '📊';
-    return '📁';
-  };
+    // فلترة حسب البحث النصي
+    if (searchQuery) {
+      const searchTerm = searchQuery.toLowerCase();
+      filtered = filtered.filter(transaction => 
+        transaction.description.toLowerCase().includes(searchTerm) ||
+        projects.find(p => p.id === transaction.projectId)?.name.toLowerCase().includes(searchTerm)
+      );
+    }
 
-  const getProjectName = (projectId?: number) => {
-    const project = projects.find((p: Project) => p.id === projectId);
-    return project?.name || 'بدون مشروع';
-  };
+    // فلترة حسب المشروع
+    if (selectedProject !== 'all') {
+      filtered = filtered.filter(transaction => 
+        transaction.projectId === parseInt(selectedProject)
+      );
+    }
 
-  if (documentsLoading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">جاري تحميل الأرشيف...</p>
-          </div>
-        </div>
-      </div>
+    // فلترة حسب نوع المعاملة
+    if (selectedType !== 'all') {
+      if (selectedType === 'income') {
+        filtered = filtered.filter(transaction => transaction.type === 'income');
+      } else if (selectedType === 'expense') {
+        filtered = filtered.filter(transaction => transaction.type === 'expense');
+      }
+    }
+
+    return filtered;
+  }, [archivedTransactions, searchQuery, selectedProject, selectedType, projects]);
+
+  // تجميع المعاملات حسب الأشهر
+  const monthlyGroups = useMemo(() => {
+    const groups: { [key: string]: MonthlyGroup } = {};
+
+    filteredTransactions.forEach(transaction => {
+      const date = new Date(transaction.date);
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      const monthName = date.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' });
+
+      if (!groups[monthKey]) {
+        groups[monthKey] = {
+          month: monthName,
+          year: date.getFullYear(),
+          transactions: [],
+          totalRevenue: 0,
+          totalExpense: 0
+        };
+      }
+
+      groups[monthKey].transactions.push(transaction);
+      
+      if (transaction.type === 'income') {
+        groups[monthKey].totalRevenue += transaction.amount;
+      } else {
+        groups[monthKey].totalExpense += transaction.amount;
+      }
+    });
+
+    // ترتيب المجموعات حسب التاريخ (الأحدث أولاً)
+    return Object.values(groups).sort((a, b) => b.year - a.year);
+  }, [filteredTransactions]);
+
+  // فلترة حسب الشهر المحدد
+  const finalGroups = useMemo(() => {
+    if (selectedMonth === 'all') {
+      return monthlyGroups;
+    }
+    return monthlyGroups.filter(group => 
+      `${group.year}-${new Date(group.transactions[0].date).getMonth()}` === selectedMonth
     );
+  }, [monthlyGroups, selectedMonth]);
+
+  // احصائيات عامة
+  const totalStats = useMemo(() => {
+    const totalRevenue = filteredTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const totalExpense = filteredTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return { totalRevenue, totalExpense };
+  }, [filteredTransactions]);
+
+  // الحصول على اسم المشروع
+  const getProjectName = (projectId?: number) => {
+    if (!projectId) return 'غير محدد';
+    const project = projects.find(p => p.id === projectId);
+    return project?.name || 'مشروع غير معروف';
+  };
+
+  // أيقونة نوع المعاملة
+  const getTransactionIcon = (type: string) => {
+    return type === 'income' ? (
+      <TrendingUp className="h-4 w-4 text-green-600" />
+    ) : (
+      <TrendingDown className="h-4 w-4 text-red-600" />
+    );
+  };
+
+  // لون نوع المعاملة
+  const getTransactionColor = (type: string) => {
+    return type === 'income' ? 'text-green-600' : 'text-red-600';
+  };
+
+  if (!user) {
+    return <div>جاري التحميل...</div>;
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
-      {/* رأس الصفحة */}
-      <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-4">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="h-12 w-12 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
-            <ArchiveIcon className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">الأرشيف</h1>
-            <p className="text-sm text-muted-foreground">إدارة المستندات المؤرشفة والملفات القديمة</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-slate-50 dark:bg-slate-800">
-            {filteredDocuments.length} مستند مؤرشف
-          </Badge>
+        {/* عنوان الصفحة */}
+        <div className="bg-gradient-to-l from-primary/5 to-transparent p-4 sm:p-6 mb-6 sm:mb-8 rounded-xl border border-primary/10 shadow-sm">
+          <div className="max-w-4xl">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-md">
+                <Archive className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
+              <h2 className="heading-responsive font-bold text-primary">أرشيف المعاملات المالية</h2>
+            </div>
+            <p className="text-responsive text-muted-foreground pr-1">
+              عرض المعاملات المالية التي مضى عليها أكثر من 30 يوماً، مرتبة حسب الأشهر
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* أدوات البحث والفلترة */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            البحث والفلترة
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="search" className="text-xs mb-1 block">البحث</Label>
+        {/* الإحصائيات السريعة */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">إجمالي الإيرادات المؤرشفة</p>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(totalStats.totalRevenue)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">إجمالي المصاريف المؤرشفة</p>
+                  <p className="text-lg font-bold text-red-600">{formatCurrency(totalStats.totalExpense)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Archive className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">عدد المعاملات المؤرشفة</p>
+                  <p className="text-lg font-bold text-blue-600">{filteredTransactions.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* أدوات البحث والفلترة */}
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* البحث النصي */}
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="search"
-                  placeholder="اسم المستند أو السبب..."
+                  placeholder="البحث في الوصف أو المشروع..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10"
+                  className="pr-9"
                 />
               </div>
-            </div>
 
-            <div>
-              <Label htmlFor="project" className="text-xs mb-1 block">المشروع</Label>
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger id="project">
-                  <SelectValue placeholder="اختر مشروع" />
+              {/* فلتر نوع المعاملة */}
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="نوع المعاملة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">كل المشاريع</SelectItem>
-                  {projects.map((project: Project) => (
+                  <SelectItem value="all">جميع المعاملات</SelectItem>
+                  <SelectItem value="income">الإيرادات فقط</SelectItem>
+                  <SelectItem value="expense">المصاريف فقط</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* فلتر المشروع */}
+              <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <SelectTrigger>
+                  <SelectValue placeholder="المشروع" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع المشاريع</SelectItem>
+                  {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id.toString()}>
                       {project.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
 
-            <div>
-              <Label htmlFor="category" className="text-xs mb-1 block">الفئة الأصلية</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="اختر فئة" />
+              {/* فلتر الشهر */}
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger>
+                  <SelectValue placeholder="الشهر" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">كل الفئات</SelectItem>
-                  <SelectItem value="documents">مستندات</SelectItem>
-                  <SelectItem value="reports">تقارير</SelectItem>
-                  <SelectItem value="contracts">عقود</SelectItem>
-                  <SelectItem value="invoices">فواتير</SelectItem>
-                  <SelectItem value="other">أخرى</SelectItem>
+                  <SelectItem value="all">جميع الأشهر</SelectItem>
+                  {monthlyGroups.map((group) => {
+                    const monthKey = `${group.year}-${new Date(group.transactions[0].date).getMonth()}`;
+                    return (
+                      <SelectItem key={monthKey} value={monthKey}>
+                        {group.month}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedProject('all');
-                  setSelectedCategory('all');
-                }}
-                className="w-full"
-              >
-                إعادة تعيين
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* عرض النتائج */}
-      {filteredDocuments.length === 0 ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center">
-              <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">لا توجد مستندات مؤرشفة</h3>
-              <p className="text-sm text-muted-foreground">
-                {searchQuery || selectedProject !== 'all' || selectedCategory !== 'all'
-                  ? 'لا توجد مستندات مطابقة لمعايير البحث الحالية'
-                  : 'لم يتم أرشفة أي مستندات بعد'}
-              </p>
-            </div>
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-4">
-          {/* شريط أدوات العرض */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewType === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewType('grid')}
-                className="h-8"
-              >
-                <div className="grid grid-cols-2 gap-0.5 h-3 w-3 mr-1">
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                  <div className="bg-current rounded-sm"></div>
-                </div>
-                شبكة
-              </Button>
-              <Button
-                variant={viewType === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewType('list')}
-                className="h-8"
-              >
-                <div className="space-y-0.5 mr-1">
-                  <div className="h-0.5 w-3 bg-current"></div>
-                  <div className="h-0.5 w-3 bg-current"></div>
-                  <div className="h-0.5 w-3 bg-current"></div>
-                </div>
-                قائمة
-              </Button>
-            </div>
-            
-            <p className="text-sm text-muted-foreground">
-              عرض {filteredDocuments.length} من {archivedDocuments.length} مستند
-            </p>
-          </div>
 
-          {/* عرض المستندات */}
-          {viewType === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredDocuments.map((doc: ArchivedDocument) => (
-                <Card key={doc.id} className="hover:shadow-md transition-shadow border-slate-200 dark:border-slate-700">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-2 space-x-reverse">
-                        <span className="text-2xl">{getFileTypeIcon(doc.fileType)}</span>
-                        <div className="overflow-hidden">
-                          <h3 className="font-semibold text-sm truncate">{doc.name}</h3>
-                          <p className="text-xs text-muted-foreground">{getProjectName(doc.projectId)}</p>
-                        </div>
-                      </div>
+        {/* المحتوى الرئيسي */}
+        {transactionsLoading ? (
+          <div className="text-center py-10">
+            <div className="spinner w-10 h-10 mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">جاري تحميل المعاملات المؤرشفة...</p>
+          </div>
+        ) : finalGroups.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 sm:p-12 text-center">
+              <div className="text-5xl mb-4 opacity-20">📁</div>
+              <p className="text-muted-foreground text-lg mb-2">لا توجد معاملات مؤرشفة</p>
+              <p className="text-sm text-muted-foreground">
+                المعاملات المالية تظهر هنا بعد مضي 30 يوماً على إدخالها
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {finalGroups.map((group, groupIndex) => (
+              <Card key={groupIndex} className="shadow-md">
+                <CardHeader className="bg-gradient-to-l from-primary/10 to-primary/5 border-b">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg">{group.month}</CardTitle>
                     </div>
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0 pb-3">
-                    <div className="space-y-2">
-                      {doc.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">{doc.description}</p>
-                      )}
-                      
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3 mr-1" />
-                        أُرشف في {format(new Date(doc.archivedDate), 'dd MMM yyyy', { locale: enUS })}
-                      </div>
-                      
-                      {doc.archiveReason && (
-                        <div className="bg-slate-50 dark:bg-slate-800 rounded p-2">
-                          <p className="text-xs text-muted-foreground">
-                            <strong>سبب الأرشفة:</strong> {doc.archiveReason}
-                          </p>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-4 text-sm">
+                      <Badge variant="outline" className="text-green-600 border-green-200">
+                        إيرادات: {formatCurrency(group.totalRevenue)}
+                      </Badge>
+                      <Badge variant="outline" className="text-red-600 border-red-200">
+                        مصاريف: {formatCurrency(group.totalExpense)}
+                      </Badge>
                     </div>
-                  </CardContent>
-                  
-                  <CardFooter className="pt-0">
-                    <div className="flex gap-1 w-full">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Eye className="h-3 w-3 mr-1" />
-                        عرض
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Download className="h-3 w-3 mr-1" />
-                        تحميل
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="border-b">
-                      <tr className="text-right">
-                        <th className="p-4 text-sm font-medium">المستند</th>
-                        <th className="p-4 text-sm font-medium">المشروع</th>
-                        <th className="p-4 text-sm font-medium">تاريخ الأرشفة</th>
-                        <th className="p-4 text-sm font-medium">سبب الأرشفة</th>
-                        <th className="p-4 text-sm font-medium">الإجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredDocuments.map((doc: ArchivedDocument) => (
-                        <tr key={doc.id} className="border-b hover:bg-muted/50">
-                          <td className="p-4">
-                            <div className="flex items-center space-x-3 space-x-reverse">
-                              <span className="text-lg">{getFileTypeIcon(doc.fileType)}</span>
-                              <div>
-                                <p className="font-medium text-sm">{doc.name}</p>
-                                {doc.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-1">{doc.description}</p>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {group.transactions.map((transaction) => (
+                      <div key={transaction.id} className="p-4 sm:p-6 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="flex-shrink-0">
+                              {getTransactionIcon(transaction.type)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-foreground truncate">
+                                {transaction.description}
+                              </p>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                <span>{formatDate(transaction.date)}</span>
+                                <span>•</span>
+                                <span>{getProjectName(transaction.projectId)}</span>
+                                {transaction.attachmentUrl && (
+                                  <>
+                                    <span>•</span>
+                                    <div className="flex items-center gap-1">
+                                      <FileText className="h-3 w-3" />
+                                      <span>يحتوي على مرفق</span>
+                                    </div>
+                                  </>
                                 )}
                               </div>
                             </div>
-                          </td>
-                          <td className="p-4 text-sm">{getProjectName(doc.projectId)}</td>
-                          <td className="p-4 text-sm">{format(new Date(doc.archivedDate), 'dd MMM yyyy', { locale: enUS })}</td>
-                          <td className="p-4 text-sm">{doc.archiveReason || 'غير محدد'}</td>
-                          <td className="p-4">
-                            <div className="flex gap-1">
-                              <Button size="sm" variant="outline">
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Download className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+                          </div>
+                          <div className="flex-shrink-0 text-left">
+                            <p className={`text-lg font-bold ${getTransactionColor(transaction.type)}`}>
+                              {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

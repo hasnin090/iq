@@ -1134,17 +1134,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Archive routes
+  // Archive routes - جلب المعاملات المالية المؤرشفة (أكثر من 30 يوم)
   app.get("/api/archive", authenticate, async (req: Request, res: Response) => {
     try {
-      // حالياً سنعيد مصفوفة فارغة لأن الأرشيف جديد
-      // في المستقبل يمكن إنشاء جدول منفصل للمستندات المؤرشفة
-      const archivedDocuments = [];
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
       
-      return res.status(200).json(archivedDocuments);
+      // تحديد تاريخ قبل 30 يوم من الآن
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      // جلب جميع المعاملات المالية
+      let transactions = await storage.listTransactions();
+      
+      // فلترة المعاملات التي مضى عليها أكثر من 30 يوم
+      const archivedTransactions = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return transactionDate < thirtyDaysAgo;
+      });
+      
+      // فلترة حسب صلاحيات المستخدم
+      let filteredTransactions = archivedTransactions;
+      
+      if (userRole !== 'admin') {
+        // للمستخدمين غير المديرين، عرض المعاملات الخاصة بمشاريعهم فقط
+        const userProjects = await storage.getUserProjects(userId);
+        const userProjectIds = userProjects.map(p => p.id);
+        
+        filteredTransactions = archivedTransactions.filter(transaction => 
+          transaction.projectId && userProjectIds.includes(transaction.projectId)
+        );
+      }
+      
+      return res.status(200).json(filteredTransactions);
     } catch (error) {
-      console.error("خطأ في جلب المستندات المؤرشفة:", error);
-      return res.status(500).json({ message: "خطأ في جلب المستندات المؤرشفة" });
+      console.error("خطأ في جلب المعاملات المؤرشفة:", error);
+      return res.status(500).json({ message: "خطأ في جلب المعاملات المؤرشفة" });
     }
   });
 
