@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, ArrowDown, ArrowUp } from 'lucide-react';
+import { Filter, ArrowDown, ArrowUp, Search } from 'lucide-react';
 import { formatCurrency } from '@/lib/chart-utils';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -22,6 +22,7 @@ export default function Transactions() {
   const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>({});
   const [currentView, setCurrentView] = useState<'cards' | 'table'>('cards');
+  const [searchQuery, setSearchQuery] = useState("");
   
   interface Transaction {
     id: number;
@@ -69,7 +70,14 @@ export default function Transactions() {
   const defaultTab = user?.role === 'admin' ? 'all' : 'projects';
   const [activeTab, setActiveTab] = useState<'all' | 'admin' | 'projects'>(defaultTab);
   
-  // فلترة العمليات المالية حسب التبويب النشط
+  // دالة للحصول على اسم المشروع
+  const getProjectName = (projectId?: number): string => {
+    if (!projectId) return 'الصندوق الرئيسي';
+    const project = projects?.find(p => p.id === projectId);
+    return project?.name || `مشروع رقم ${projectId}`;
+  };
+
+  // فلترة العمليات المالية حسب التبويب النشط والبحث
   const filteredTransactions = useMemo(() => {
     // أولاً نقوم بفلترة المعاملات حسب التبويب النشط
     let filtered = [];
@@ -90,12 +98,30 @@ export default function Transactions() {
     } else {
       filtered = transactions || [];
     }
+
+    // ثم نطبق البحث النصي
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(transaction => {
+        // البحث في الوصف
+        const descriptionMatch = transaction.description?.toLowerCase().includes(query);
+        // البحث في اسم المشروع
+        const projectName = getProjectName(transaction.projectId);
+        const projectMatch = projectName.toLowerCase().includes(query);
+        // البحث في نوع المعاملة
+        const typeMatch = transaction.type === 'income' 
+          ? 'إيراد'.includes(query) || 'ايراد'.includes(query) 
+          : 'مصروف'.includes(query) || 'مصاريف'.includes(query);
+        
+        return descriptionMatch || projectMatch || typeMatch;
+      });
+    }
     
     // ثم نقوم بترتيب المعاملات بحيث تظهر الأحدث في الأعلى
     return [...filtered].sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
-  }, [transactions, activeTab]);
+  }, [transactions, activeTab, searchQuery, projects]);
 
   return (
     <div className="py-6 px-4 pb-mobile-nav-large">
@@ -129,12 +155,25 @@ export default function Transactions() {
               <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
               <span>العمليات المالية</span>
             </h3>
-            <div className="w-full md:w-auto">
-              {/* استخدام قائمة منسدلة لاختيار نوع العمليات المالية */}
-              <Select 
-                defaultValue={defaultTab}
-                onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}
-              >
+            
+            {/* شريط البحث */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <div className="relative">
+                <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="ابحث في الوصف أو المشروع..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-4 pr-10 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                />
+              </div>
+              <div className="w-full md:w-auto">
+                {/* استخدام قائمة منسدلة لاختيار نوع العمليات المالية */}
+                <Select 
+                  defaultValue={defaultTab}
+                  onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}
+                >
                 <SelectTrigger className="w-full md:w-56 h-10 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] shadow-sm">
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -184,6 +223,7 @@ export default function Transactions() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+              </div>
             </div>
           </div>
           
