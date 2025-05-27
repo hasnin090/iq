@@ -493,86 +493,85 @@ export default function ArchivePage() {
             </div>
           ) : (
             // عرض الجدول
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-secondary dark:divide-gray-600 border-collapse">
-                    <thead className="bg-blue-50 dark:bg-gray-700">
-                      <tr>
-                        <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-16">#</th>
-                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-36">التاريخ</th>
-                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">الوصف</th>
-                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">المشروع</th>
-                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-24">النوع</th>
-                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المبلغ</th>
-                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المرفقات</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-secondary-light dark:divide-gray-600">
-                      {filteredTransactions.map((transaction, index) => (
-                        <tr 
-                          key={transaction.id} 
-                          className={`hover:bg-slate-50 dark:hover:bg-gray-700 transition-all duration-150 ${
-                            transaction.type === 'income' 
-                              ? 'hover:bg-green-50 dark:hover:bg-green-900/20' 
-                              : 'hover:bg-red-50 dark:hover:bg-red-900/20'
-                          }`}
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
-                            <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-xs font-medium">
-                              {index + 1}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
-                            <div className="flex items-center">
-                              <Calendar className="w-4 h-4 ml-2 text-gray-400" />
-                              <span className="font-medium">{formatDate(transaction.date)}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <div className="max-w-xs">
-                              <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                                {transaction.description}
-                              </p>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
-                            <span className="text-gray-600 dark:text-gray-300">
-                              {getProjectName(transaction.projectId)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              transaction.type === 'income' 
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' 
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-                            }`}>
-                              {getTransactionIcon(transaction.type)}
-                              <span className="mr-1">{transaction.type === 'income' ? 'إيراد' : 'مصروف'}</span>
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm">
-                            <span className={`font-bold ${getTransactionColor(transaction.type)}`}>
-                              {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
-                            {transaction.attachmentUrl ? (
-                              <div className="flex items-center justify-center">
-                                <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                <span className="mr-1 text-blue-600 dark:text-blue-400 text-xs">مرفق</span>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-xs">-</span>
-                            )}
-                          </td>
+            <div className="w-full">
+              <Card className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="w-full overflow-x-auto" style={{ maxWidth: 'calc(100vw - 280px)' }}>
+                    <table className="w-full table-fixed divide-y divide-gray-200 dark:divide-gray-600">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th scope="col" className="w-12 px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
+                          <th scope="col" className="w-24 px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">التاريخ</th>
+                          <th scope="col" className="w-40 px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">الوصف</th>
+                          <th scope="col" className="w-32 px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">المشروع</th>
+                          <th scope="col" className="w-20 px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">النوع</th>
+                          <th scope="col" className="w-28 px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
+                          <th scope="col" className="w-20 px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">المرفقات</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
+                        {filteredTransactions.map((transaction, index) => (
+                          <tr 
+                            key={transaction.id} 
+                            className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-150 ${
+                              transaction.type === 'income' 
+                                ? 'hover:bg-green-50 dark:hover:bg-green-900/20' 
+                                : 'hover:bg-red-50 dark:hover:bg-red-900/20'
+                            }`}
+                          >
+                            <td className="px-2 py-3 text-center">
+                              <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-xs font-medium">
+                                {index + 1}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-sm truncate">
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {formatDate(transaction.date)}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-sm">
+                              <div className="truncate" title={transaction.description}>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                  {transaction.description}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 text-sm truncate">
+                              <span className="text-gray-600 dark:text-gray-300" title={getProjectName(transaction.projectId)}>
+                                {getProjectName(transaction.projectId)}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-center">
+                              <span className={`inline-flex items-center justify-center w-16 px-2 py-1 rounded-full text-xs font-medium ${
+                                transaction.type === 'income' 
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' 
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                              }`}>
+                                {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-sm text-right">
+                              <span className={`font-bold ${getTransactionColor(transaction.type)}`}>
+                                {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 text-center">
+                              {transaction.attachmentUrl ? (
+                                <div className="flex items-center justify-center">
+                                  <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-xs">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
       </div>
