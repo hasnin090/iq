@@ -441,11 +441,11 @@ export function TransactionList({
         
         <div id="transactions-content">
           {viewType === 'cards' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
               {transactions.map((transaction, index) => (
                 <div 
                   key={transaction.id} 
-                  className={`p-5 rounded-lg border h-full flex flex-col shadow-sm relative ${
+                  className={`p-4 rounded-lg border h-full flex flex-col shadow-sm relative min-h-[200px] max-w-full overflow-hidden ${
                     isAdminFundTransaction(transaction)
                       ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
                       : isProjectFundingTransaction(transaction)
@@ -503,23 +503,41 @@ export function TransactionList({
                   </div>
                   
                   {/* وصف المعاملة */}
-                  <div className="min-h-[60px] mb-2">
-                    <p className="font-medium text-sm leading-5 line-clamp-3">{getCustomTransactionDescription(transaction)}</p>
+                  <div className="min-h-[50px] mb-2 w-full">
+                    <p className="font-medium text-sm leading-5 break-words overflow-hidden" 
+                       style={{ 
+                         display: '-webkit-box', 
+                         WebkitLineClamp: 3, 
+                         WebkitBoxOrient: 'vertical' 
+                       }}
+                       title={getCustomTransactionDescription(transaction)}>
+                      {getCustomTransactionDescription(transaction)}
+                    </p>
                   </div>
                   
                   {/* تفاصيل المعاملة - إذا وجدت */}
                   {transaction.description && (
-                    <div className="mb-3 bg-gray-50 dark:bg-gray-900/40 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <div className="mb-3 bg-gray-50 dark:bg-gray-900/40 p-2 rounded-lg border border-gray-100 dark:border-gray-700 w-full">
                       <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">التفاصيل:</span>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{transaction.description}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 break-words overflow-hidden"
+                         style={{ 
+                           display: '-webkit-box', 
+                           WebkitLineClamp: 2, 
+                           WebkitBoxOrient: 'vertical' 
+                         }}
+                         title={transaction.description}>
+                        {transaction.description}
+                      </p>
                     </div>
                   )}
                   
                   {/* معلومات المشروع */}
-                  <p className="text-xs bg-gray-50 dark:bg-gray-900/40 px-2 py-1 rounded-lg text-gray-600 dark:text-gray-300 mb-3 border border-gray-100 dark:border-gray-700 flex items-center">
-                    <i className="fas fa-folder ml-1.5 text-gray-500 dark:text-gray-400"></i>
-                    المشروع: {getProjectName(transaction.projectId)}
-                  </p>
+                  <div className="text-xs bg-gray-50 dark:bg-gray-900/40 px-2 py-1 rounded-lg text-gray-600 dark:text-gray-300 mb-3 border border-gray-100 dark:border-gray-700 flex items-center w-full">
+                    <i className="fas fa-folder ml-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0"></i>
+                    <span className="truncate" title={`المشروع: ${getProjectName(transaction.projectId)}`}>
+                      المشروع: {getProjectName(transaction.projectId)}
+                    </span>
+                  </div>
                   
                   {/* عرض المرفق إذا وجد */}
                   {transaction.fileUrl && (
@@ -539,8 +557,8 @@ export function TransactionList({
                   )}
                   
                   {/* المبلغ والأزرار */}
-                  <div className="flex justify-between items-center mt-auto">
-                    <span className={`text-lg font-bold px-3 py-1.5 rounded-lg border ${
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-auto gap-2">
+                    <span className={`text-sm sm:text-lg font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border w-full sm:w-auto text-center sm:text-left ${
                       transaction.type === 'income' 
                         ? 'text-success bg-success/5 dark:bg-success/10 border-success/20' 
                         : 'text-destructive bg-destructive/5 dark:bg-destructive/10 border-destructive/20'
@@ -548,22 +566,22 @@ export function TransactionList({
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </span>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1 w-full sm:w-auto justify-center sm:justify-end">
                       {user?.role === 'admin' && (
                         <>
                           <button 
-                            className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                            className="flex-1 sm:flex-none px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow"
                             onClick={() => handleEditClick(transaction)}
                           >
                             <i className="fas fa-edit ml-1"></i>
-                            تعديل
+                            <span className="hidden sm:inline">تعديل</span>
                           </button>
                           <button 
-                            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                            className="flex-1 sm:flex-none px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow"
                             onClick={() => handleDeleteClick(transaction)}
                           >
                             <i className="fas fa-trash-alt ml-1"></i>
-                            حذف
+                            <span className="hidden sm:inline">حذف</span>
                           </button>
                         </>
                       )}
