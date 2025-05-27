@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Archive, Search, Filter, Calendar, TrendingUp, TrendingDown, DollarSign, FileText } from "lucide-react";
+import { Archive, Search, Filter, Calendar, TrendingUp, TrendingDown, DollarSign, FileText, Download, Printer, Grid, List } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { formatDate } from "@/utils/date-utils";
 
 // دالة تنسيق العملة محلياً
@@ -54,6 +55,7 @@ export default function ArchivePage() {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all'); // all, income, expense
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [viewType, setViewType] = useState<'cards' | 'table'>('cards');
 
   // جلب المعاملات المؤرشفة
   const { data: archivedTransactions = [], isLoading: transactionsLoading } = useQuery<ArchivedTransaction[]>({
@@ -180,6 +182,31 @@ export default function ArchivePage() {
     return type === 'income' ? 'text-green-600' : 'text-red-600';
   };
 
+  // تصدير البيانات إلى Excel
+  const exportToExcel = () => {
+    const dataToExport = filteredTransactions.map((transaction, index) => ({
+      'رقم المعاملة': index + 1,
+      'التاريخ': formatDate(transaction.date),
+      'الوصف': transaction.description,
+      'المشروع': getProjectName(transaction.projectId),
+      'النوع': transaction.type === 'income' ? 'إيراد' : 'مصروف',
+      'المبلغ': transaction.amount,
+      'المرفقات': transaction.attachmentUrl ? 'نعم' : 'لا'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'المعاملات المؤرشفة');
+    
+    const fileName = `المعاملات_المؤرشفة_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
+  // طباعة البيانات
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (!user) {
     return <div>جاري التحميل...</div>;
   }
@@ -251,6 +278,56 @@ export default function ArchivePage() {
         {/* أدوات البحث والفلترة */}
         <Card>
           <CardContent className="p-4 sm:p-6">
+            {/* شريط الأدوات العلوي */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              {/* عدد العمليات المالية */}
+              <div className="flex items-center">
+                <span className="px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg font-bold text-sm ml-2 flex items-center">
+                  <Archive className="w-4 h-4 ml-1.5" />
+                  إجمالي العمليات المؤرشفة: 
+                </span>
+                <span className="px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg font-bold">
+                  {filteredTransactions.length}
+                </span>
+              </div>
+              
+              {/* أزرار التصدير والعرض */}
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handlePrint}
+                  className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+                >
+                  <Printer className="w-4 h-4 mr-2" /> طباعة
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={exportToExcel}
+                  className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+                >
+                  <Download className="w-4 h-4 mr-2" /> تصدير Excel
+                </Button>
+                
+                {/* أزرار نمط العرض */}
+                <div className="flex border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                  <Button
+                    variant={viewType === 'cards' ? 'default' : 'outline'}
+                    onClick={() => setViewType('cards')}
+                    className="px-3 py-2 rounded-none border-0"
+                  >
+                    <Grid className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewType === 'table' ? 'default' : 'outline'}
+                    onClick={() => setViewType('table')}
+                    className="px-3 py-2 rounded-none border-0"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* البحث النصي */}
@@ -313,88 +390,191 @@ export default function ArchivePage() {
         </Card>
 
         {/* المحتوى الرئيسي */}
-        {transactionsLoading ? (
-          <div className="text-center py-10">
-            <div className="spinner w-10 h-10 mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">جاري تحميل المعاملات المؤرشفة...</p>
-          </div>
-        ) : finalGroups.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 sm:p-12 text-center">
-              <div className="text-5xl mb-4 opacity-20">📁</div>
-              <p className="text-muted-foreground text-lg mb-2">لا توجد معاملات مؤرشفة</p>
-              <p className="text-sm text-muted-foreground">
-                المعاملات المالية تظهر هنا بعد مضي 30 يوماً على إدخالها
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {finalGroups.map((group, groupIndex) => (
-              <Card key={groupIndex} className="shadow-md">
-                <CardHeader className="bg-gradient-to-l from-primary/10 to-primary/5 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">{group.month}</CardTitle>
+        <div id="archive-content">
+          {transactionsLoading ? (
+            <div className="text-center py-10">
+              <div className="spinner w-10 h-10 mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">جاري تحميل المعاملات المؤرشفة...</p>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 sm:p-12 text-center">
+                <div className="text-5xl mb-4 opacity-20">📁</div>
+                <p className="text-muted-foreground text-lg mb-2">لا توجد معاملات مؤرشفة</p>
+                <p className="text-sm text-muted-foreground">
+                  المعاملات المالية تظهر هنا بعد مضي 30 يوماً على إدخالها
+                </p>
+              </CardContent>
+            </Card>
+          ) : viewType === 'cards' ? (
+            <div className="space-y-6">
+              {finalGroups.map((group, groupIndex) => (
+                <Card key={groupIndex} className="shadow-md">
+                  <CardHeader className="bg-gradient-to-l from-primary/10 to-primary/5 border-b">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">{group.month}</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <Badge variant="outline" className="text-green-600 border-green-200">
+                          إيرادات: {formatCurrency(group.totalRevenue)}
+                        </Badge>
+                        <Badge variant="outline" className="text-red-600 border-red-200">
+                          مصاريف: {formatCurrency(group.totalExpense)}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <Badge variant="outline" className="text-green-600 border-green-200">
-                        إيرادات: {formatCurrency(group.totalRevenue)}
-                      </Badge>
-                      <Badge variant="outline" className="text-red-600 border-red-200">
-                        مصاريف: {formatCurrency(group.totalExpense)}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="p-0">
-                  <div className="divide-y">
-                    {group.transactions.map((transaction) => (
-                      <div key={transaction.id} className="p-4 sm:p-6 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className="flex-shrink-0">
-                              {getTransactionIcon(transaction.type)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-foreground truncate">
-                                {transaction.description}
-                              </p>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                  </CardHeader>
+                  
+                  <CardContent className="p-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                      {group.transactions.map((transaction, index) => (
+                        <div 
+                          key={transaction.id} 
+                          className={`p-5 rounded-lg border h-full flex flex-col shadow-sm relative ${
+                            transaction.type === 'income' 
+                              ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900'
+                              : index % 2 === 0 
+                                ? 'bg-gray-50 border-gray-200 dark:bg-gray-800/70 dark:border-gray-700'
+                                : 'bg-white border-blue-100 dark:bg-gray-800 dark:border-blue-900/20'
+                          } transition-all duration-200 hover:shadow-md hover:scale-[1.02]`}
+                        >
+                          {/* أيقونة نوع المعاملة */}
+                          <div className={`absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center ${
+                            transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900/40' : 'bg-red-100 dark:bg-red-900/40'
+                          }`}>
+                            {getTransactionIcon(transaction.type)}
+                          </div>
+
+                          {/* المحتوى الرئيسي */}
+                          <div className="flex-1 pr-10">
+                            <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                              {transaction.description}
+                            </h3>
+                            
+                            <div className="space-y-2 text-sm text-muted-foreground">
+                              <div className="flex items-center">
+                                <Calendar className="w-4 h-4 ml-2" />
                                 <span>{formatDate(transaction.date)}</span>
-                                <span>•</span>
-                                <span>{getProjectName(transaction.projectId)}</span>
-                                {transaction.attachmentUrl && (
-                                  <>
-                                    <span>•</span>
-                                    <div className="flex items-center gap-1">
-                                      <FileText className="h-3 w-3" />
-                                      <span>يحتوي على مرفق</span>
-                                    </div>
-                                  </>
-                                )}
                               </div>
+                              
+                              <div className="flex items-center">
+                                <DollarSign className="w-4 h-4 ml-2" />
+                                <span>{getProjectName(transaction.projectId)}</span>
+                              </div>
+                              
+                              {transaction.attachmentUrl && (
+                                <div className="flex items-center">
+                                  <FileText className="w-4 h-4 ml-2" />
+                                  <span>يحتوي على مرفق</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <div className="flex-shrink-0 text-left">
-                            <p className={`text-lg font-bold ${getTransactionColor(transaction.type)}`}>
-                              {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
-                            </p>
+
+                          {/* المبلغ */}
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-muted-foreground">
+                                {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                              </span>
+                              <span className={`text-lg font-bold ${getTransactionColor(transaction.type)}`}>
+                                {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            // عرض الجدول
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-secondary dark:divide-gray-600 border-collapse">
+                    <thead className="bg-blue-50 dark:bg-gray-700">
+                      <tr>
+                        <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-16">#</th>
+                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-36">التاريخ</th>
+                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">الوصف</th>
+                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">المشروع</th>
+                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-24">النوع</th>
+                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المبلغ</th>
+                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المرفقات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-secondary-light dark:divide-gray-600">
+                      {filteredTransactions.map((transaction, index) => (
+                        <tr 
+                          key={transaction.id} 
+                          className={`hover:bg-slate-50 dark:hover:bg-gray-700 transition-all duration-150 ${
+                            transaction.type === 'income' 
+                              ? 'hover:bg-green-50 dark:hover:bg-green-900/20' 
+                              : 'hover:bg-red-50 dark:hover:bg-red-900/20'
+                          }`}
+                        >
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
+                            <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-xs font-medium">
+                              {index + 1}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                            <div className="flex items-center">
+                              <Calendar className="w-4 h-4 ml-2 text-gray-400" />
+                              <span className="font-medium">{formatDate(transaction.date)}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <div className="max-w-xs">
+                              <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {transaction.description}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                            <span className="text-gray-600 dark:text-gray-300">
+                              {getProjectName(transaction.projectId)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              transaction.type === 'income' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' 
+                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                            }`}>
+                              {getTransactionIcon(transaction.type)}
+                              <span className="mr-1">{transaction.type === 'income' ? 'إيراد' : 'مصروف'}</span>
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm">
+                            <span className={`font-bold ${getTransactionColor(transaction.type)}`}>
+                              {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
+                            {transaction.attachmentUrl ? (
+                              <div className="flex items-center justify-center">
+                                <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                <span className="mr-1 text-blue-600 dark:text-blue-400 text-xs">مرفق</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-xs">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
