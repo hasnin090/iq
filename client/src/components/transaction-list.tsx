@@ -445,7 +445,7 @@ export function TransactionList({
               {transactions.map((transaction, index) => (
                 <div 
                   key={transaction.id} 
-                  className={`p-4 rounded-lg border h-full flex flex-col shadow-sm relative min-h-[200px] max-w-full overflow-hidden ${
+                  className={`p-4 rounded-lg border h-full flex flex-col shadow-sm relative min-h-[250px] max-w-full ${
                     isAdminFundTransaction(transaction)
                       ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
                       : isProjectFundingTransaction(transaction)
@@ -557,8 +557,8 @@ export function TransactionList({
                   )}
                   
                   {/* المبلغ والأزرار */}
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-auto gap-2">
-                    <span className={`text-sm sm:text-lg font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border w-full sm:w-auto text-center sm:text-left ${
+                  <div className="flex flex-col gap-3 mt-auto pt-3 border-t border-gray-200 dark:border-gray-600">
+                    <span className={`text-sm sm:text-lg font-bold px-3 py-2 rounded-lg border text-center ${
                       transaction.type === 'income' 
                         ? 'text-success bg-success/5 dark:bg-success/10 border-success/20' 
                         : 'text-destructive bg-destructive/5 dark:bg-destructive/10 border-destructive/20'
@@ -566,26 +566,25 @@ export function TransactionList({
                       {transaction.type === 'income' ? '+' : '-'}
                       {formatCurrency(transaction.amount)}
                     </span>
-                    <div className="flex gap-1 w-full sm:w-auto justify-center sm:justify-end">
-                      {user?.role === 'admin' && (
-                        <>
-                          <button 
-                            className="flex-1 sm:flex-none px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow"
-                            onClick={() => handleEditClick(transaction)}
-                          >
-                            <i className="fas fa-edit ml-1"></i>
-                            <span className="hidden sm:inline">تعديل</span>
-                          </button>
-                          <button 
-                            className="flex-1 sm:flex-none px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow"
-                            onClick={() => handleDeleteClick(transaction)}
-                          >
-                            <i className="fas fa-trash-alt ml-1"></i>
-                            <span className="hidden sm:inline">حذف</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    
+                    {user?.role === 'admin' && (
+                      <div className="flex gap-2 justify-center">
+                        <button 
+                          className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow-md border border-blue-200 dark:border-blue-800"
+                          onClick={() => handleEditClick(transaction)}
+                        >
+                          <i className="fas fa-edit ml-1"></i>
+                          تعديل
+                        </button>
+                        <button 
+                          className="flex-1 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow-md border border-red-200 dark:border-red-800"
+                          onClick={() => handleDeleteClick(transaction)}
+                        >
+                          <i className="fas fa-trash-alt ml-1"></i>
+                          حذف
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
