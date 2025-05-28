@@ -75,6 +75,10 @@ interface TransactionListProps {
   viewType: 'cards' | 'table';
   isLoading: boolean;
   onTransactionUpdated: () => void;
+  // خصائص الأرشفة اليدوية
+  isArchiveMode?: boolean;
+  selectedTransactions?: number[];
+  onToggleSelection?: (transactionId: number) => void;
 }
 
 // مخطط نموذج المعاملة
@@ -95,7 +99,10 @@ export function TransactionList({
   projects, 
   viewType,
   isLoading,
-  onTransactionUpdated 
+  onTransactionUpdated,
+  isArchiveMode = false,
+  selectedTransactions = [],
+  onToggleSelection 
 }: TransactionListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);

@@ -65,6 +65,7 @@ export const transactions = pgTable("transactions", {
   createdBy: integer("created_by").notNull().references(() => users.id),
   fileUrl: text("file_url"), // URL للملف المرفق (اختياري)
   fileType: text("file_type"), // نوع الملف المرفق (اختياري)
+  archived: boolean("archived").notNull().default(false), // حقل الأرشفة
 });
 
 // UserProjects table - for managing user project assignments
