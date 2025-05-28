@@ -373,6 +373,67 @@ export default function Transactions() {
             </div>
           </div>
 
+          {/* أزرار الأرشفة اليدوية */}
+          {(user?.role === 'admin' || user?.role === 'manager') && (
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+              <div className="flex items-center gap-2">
+                <Archive className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                  الأرشفة اليدوية
+                </span>
+                {selectedTransactions.length > 0 && (
+                  <span className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs">
+                    {selectedTransactions.length} محدد
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2 w-full md:w-auto">
+                <button
+                  onClick={() => setIsArchiveMode(!isArchiveMode)}
+                  className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center justify-center gap-2 ${
+                    isArchiveMode 
+                      ? 'bg-orange-600 text-white border-orange-600' 
+                      : 'bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/30'
+                  }`}
+                >
+                  {isArchiveMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                  <span>{isArchiveMode ? 'إنهاء التحديد' : 'بدء التحديد'}</span>
+                </button>
+                
+                {isArchiveMode && (
+                  <>
+                    <button
+                      onClick={selectAllTransactions}
+                      className="flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <CheckSquare className="w-4 h-4" />
+                      <span>تحديد الكل</span>
+                    </button>
+                    <button
+                      onClick={clearSelection}
+                      className="flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Square className="w-4 h-4" />
+                      <span>إلغاء التحديد</span>
+                    </button>
+                    <button
+                      onClick={handleArchiveSelected}
+                      disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
+                      className="flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {archiveMutation.isPending ? (
+                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Archive className="w-4 h-4" />
+                      )}
+                      <span>أرشفة المحدد</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="p-4 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-sm mt-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* إظهار تصفية المشاريع فقط في تبويب "الكل" أو "المشاريع" */}
@@ -484,6 +545,9 @@ export default function Transactions() {
                 queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
                 queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
               }}
+              isArchiveMode={isArchiveMode}
+              selectedTransactions={selectedTransactions}
+              onToggleSelection={toggleTransactionSelection}
             />
           </TabsContent>
         </Tabs>
