@@ -1824,6 +1824,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Archive endpoint - المعاملات المؤرشفة (أقدم من 30 يوماً)
+  app.get("/api/archive", authenticate, async (req: Request, res: Response) => {
+    try {
+      let transactions = await storage.listTransactions();
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      // تحديد التاريخ الحد الفاصل (30 يوماً من اليوم)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      // فلترة المعاملات لتشمل فقط التي هي أقدم من 30 يوماً
+      transactions = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return transactionDate < thirtyDaysAgo;
+      });
+      
+      // تطبيق قيود الوصول للمستخدمين العاديين (نفس منطق /api/transactions)
+      if (userRole !== "admin") {
+        const userProjects = await storage.getUserProjects(userId);
+        const projectIds = userProjects.map(project => project.id);
+        
+        transactions = transactions.filter(t => 
+          t.projectId && projectIds.includes(t.projectId)
+        );
+      }
+      
+      // فلترة حسب المشروع إذا تم تحديده
+      const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
+      if (projectId) {
+        if (userRole !== "admin") {
+          const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+          if (!hasAccess) {
+            return res.status(403).json({ message: "غير مصرح لك بالوصول إلى هذا المشروع" });
+          }
+        }
+        transactions = transactions.filter(t => t.projectId === projectId);
+      }
+      
+      // فلترة حسب النوع إذا تم تحديده
+      const type = req.query.type as string | undefined;
+      if (type) {
+        transactions = transactions.filter(t => t.type === type);
+      }
+      
+      return res.status(200).json(transactions);
+    } catch (error) {
+      console.error("خطأ في استرجاع المعاملات المؤرشفة:", error);
+      return res.status(500).json({ message: "خطأ في استرجاع المعاملات المؤرشفة" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
