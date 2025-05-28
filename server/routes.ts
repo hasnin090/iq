@@ -1876,6 +1876,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual archive endpoint - أرشفة المعاملات يدوياً
+  app.post("/api/transactions/archive", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { transactionIds } = req.body;
+      
+      if (!transactionIds || !Array.isArray(transactionIds) || transactionIds.length === 0) {
+        return res.status(400).json({ message: "يجب تحديد معاملات للأرشفة" });
+      }
+      
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      // التحقق من صلاحية المستخدم لأرشفة المعاملات
+      for (const transactionId of transactionIds) {
+        const transaction = await storage.getTransaction(transactionId);
+        if (!transaction) {
+          return res.status(404).json({ message: `المعاملة رقم ${transactionId} غير موجودة` });
+        }
+        
+        // التحقق من الصلاحيات
+        if (userRole !== "admin" && transaction.createdBy !== userId) {
+          return res.status(403).json({ message: "غير مصرح لك بأرشفة هذه المعاملة" });
+        }
+      }
+      
+      // أرشفة المعاملات (تحديث حقل archived إلى true)
+      const archivedTransactions = [];
+      for (const transactionId of transactionIds) {
+        const updatedTransaction = await storage.updateTransaction(transactionId, { archived: true });
+        if (updatedTransaction) {
+          archivedTransactions.push(updatedTransaction);
+          
+          // إضافة سجل نشاط
+          await storage.createActivityLog({
+            action: "archive",
+            entityType: "transaction",
+            entityId: transactionId,
+            details: `أرشفة المعاملة: ${updatedTransaction.description}`,
+            userId: userId
+          });
+        }
+      }
+      
+      return res.status(200).json({ 
+        message: `تم أرشفة ${archivedTransactions.length} معاملة بنجاح`,
+        archivedTransactions 
+      });
+    } catch (error) {
+      console.error("خطأ في أرشفة المعاملات:", error);
+      return res.status(500).json({ message: "خطأ في أرشفة المعاملات" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

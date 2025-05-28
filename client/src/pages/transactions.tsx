@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, ArrowDown, ArrowUp, Search } from 'lucide-react';
+import { Filter, ArrowDown, ArrowUp, Search, Archive, CheckSquare, Square } from 'lucide-react';
 import { formatCurrency } from '@/lib/chart-utils';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 
 interface Filter {
   projectId?: number;
@@ -20,9 +21,12 @@ interface Filter {
 
 export default function Transactions() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [filter, setFilter] = useState<Filter>({});
   const [currentView, setCurrentView] = useState<'cards' | 'table'>('cards');
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTransactions, setSelectedTransactions] = useState<number[]>([]);
+  const [isArchiveMode, setIsArchiveMode] = useState(false);
   
   interface Transaction {
     id: number;
@@ -64,6 +68,68 @@ export default function Transactions() {
   const handleFormSubmit = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
     queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+  };
+
+  // دالة الأرشفة اليدوية
+  const archiveMutation = useMutation({
+    mutationFn: async (transactionIds: number[]) => {
+      const response = await fetch('/api/transactions/archive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transactionIds }),
+      });
+      if (!response.ok) throw new Error('فشل في أرشفة المعاملات');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم الأرشفة بنجاح",
+        description: `تم أرشفة ${selectedTransactions.length} معاملة بنجاح`,
+      });
+      setSelectedTransactions([]);
+      setIsArchiveMode(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في الأرشفة",
+        description: error.message || "حدث خطأ أثناء أرشفة المعاملات",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // دوال التحديد
+  const toggleTransactionSelection = (transactionId: number) => {
+    setSelectedTransactions(prev => 
+      prev.includes(transactionId) 
+        ? prev.filter(id => id !== transactionId)
+        : [...prev, transactionId]
+    );
+  };
+
+  const selectAllTransactions = () => {
+    const allIds = filteredTransactions.map(t => t.id);
+    setSelectedTransactions(allIds);
+  };
+
+  const clearSelection = () => {
+    setSelectedTransactions([]);
+  };
+
+  const handleArchiveSelected = () => {
+    if (selectedTransactions.length === 0) {
+      toast({
+        title: "لا توجد معاملات محددة",
+        description: "يرجى تحديد معاملة واحدة على الأقل للأرشفة",
+        variant: "destructive",
+      });
+      return;
+    }
+    archiveMutation.mutate(selectedTransactions);
   };
   
   // تعيين التبويب الافتراضي حسب دور المستخدم
@@ -156,8 +222,56 @@ export default function Transactions() {
               <span>العمليات المالية</span>
             </h3>
             
-            {/* شريط البحث */}
+            {/* شريط البحث وأدوات الأرشفة */}
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              {/* أزرار الأرشفة */}
+              {!isArchiveMode ? (
+                <Button
+                  onClick={() => setIsArchiveMode(true)}
+                  variant="outline"
+                  className="flex items-center gap-2 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                >
+                  <Archive className="h-4 w-4" />
+                  أرشفة يدوية
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleArchiveSelected}
+                    disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
+                    className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
+                  >
+                    <Archive className="h-4 w-4" />
+                    أرشفة ({selectedTransactions.length})
+                  </Button>
+                  <Button
+                    onClick={selectAllTransactions}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    تحديد الكل
+                  </Button>
+                  <Button
+                    onClick={clearSelection}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Square className="h-4 w-4" />
+                    إلغاء التحديد
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsArchiveMode(false);
+                      setSelectedTransactions([]);
+                    }}
+                    variant="outline"
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              )}
+              
               <div className="relative">
                 <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
                 <input
