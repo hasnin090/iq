@@ -13,8 +13,8 @@ export const formatDate = (
   formatStr: string = 'dd/MM/yyyy'
 ) => {
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-  // استخدام التقويم الميلادي مع الأرقام العربية
-  return date.toLocaleDateString('ar-SA-u-nu-latn', {
+  // استخدام التقويم الميلادي مع الأرقام الإنجليزية
+  return date.toLocaleDateString('en-GB', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
@@ -28,13 +28,17 @@ export const formatDate = (
  */
 export const formatDateTime = (dateString: string) => {
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-  return date.toLocaleDateString('ar-SA-u-nu-latn', {
+  const dateStr = date.toLocaleDateString('en-GB', {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+    day: '2-digit'
   });
+  const timeStr = date.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  return `${dateStr} ${timeStr}`;
 };
 
 /**
