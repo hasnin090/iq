@@ -2,6 +2,15 @@ import { formatCurrency } from '@/lib/chart-utils';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
+// دالة لتحديد حجم الخط بناءً على طول النص
+const getTextSize = (text: string) => {
+  const length = text.length;
+  if (length <= 12) return 'text-3xl'; // للأرقام القصيرة
+  if (length <= 16) return 'text-2xl'; // للأرقام المتوسطة
+  if (length <= 20) return 'text-xl'; // للأرقام الطويلة
+  return 'text-lg'; // للأرقام الطويلة جداً
+};
+
 interface StatisticsCardsProps {
   income: number;
   expenses: number;
@@ -46,11 +55,9 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1 min-w-0 pr-2">
               <h3 className="text-gray-800 dark:text-gray-200 text-lg font-bold mb-3">إجمالي الإيرادات</h3>
-              <div className="w-full overflow-x-auto">
-                <p className={`text-xl md:text-2xl lg:text-3xl font-bold whitespace-nowrap ${isShowingAdmin ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`} id="totalIncome">
-                  {formatCurrency(income)}
-                </p>
-              </div>
+              <p className={`${getTextSize(formatCurrency(income))} font-bold ${isShowingAdmin ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`} id="totalIncome">
+                {formatCurrency(income)}
+              </p>
             </div>
             <div className={`flex-shrink-0 ${isShowingAdmin ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'} p-3 rounded-lg shadow-sm`}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${isShowingAdmin ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
@@ -81,11 +88,9 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1 min-w-0 pr-2">
               <h3 className="text-gray-800 dark:text-gray-200 text-lg font-bold mb-3">إجمالي المصروفات</h3>
-              <div className="w-full overflow-x-auto">
-                <p className={`text-xl md:text-2xl lg:text-3xl font-bold whitespace-nowrap ${isShowingAdmin ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`} id="totalExpenses">
-                  {formatCurrency(expenses)}
-                </p>
-              </div>
+              <p className={`${getTextSize(formatCurrency(expenses))} font-bold ${isShowingAdmin ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`} id="totalExpenses">
+                {formatCurrency(expenses)}
+              </p>
             </div>
             <div className={`flex-shrink-0 ${isShowingAdmin ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'} p-3 rounded-lg shadow-sm`}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${isShowingAdmin ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
@@ -116,11 +121,9 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1 min-w-0 pr-2">
               <h3 className="text-gray-800 dark:text-gray-200 text-lg font-bold mb-3">صافي الربح</h3>
-              <div className="w-full overflow-x-auto">
-                <p className={`text-xl md:text-2xl lg:text-3xl font-bold whitespace-nowrap ${isShowingAdmin ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} id="netProfit">
-                  {formatCurrency(profit)}
-                </p>
-              </div>
+              <p className={`${getTextSize(formatCurrency(profit))} font-bold ${isShowingAdmin ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} id="netProfit">
+                {formatCurrency(profit)}
+              </p>
             </div>
             <div className={`flex-shrink-0 ${isShowingAdmin ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-purple-100 dark:bg-purple-900/30'} p-3 rounded-lg shadow-sm`}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${isShowingAdmin ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`}>
