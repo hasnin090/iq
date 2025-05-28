@@ -142,7 +142,17 @@ export default function Reports() {
   // Format date and time
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return format(date, 'yyyy/MM/dd HH:mm', { locale: ar });
+    const dateStr = date.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const timeStr = date.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return `${dateStr} ${timeStr}`;
   };
   
   // Initialize charts

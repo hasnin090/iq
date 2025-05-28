@@ -274,13 +274,17 @@ export function TransactionList({
   
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA-u-nu-latn', {
+    const dateStr = date.toLocaleDateString('en-GB', {
       year: 'numeric',
       month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit'
     });
+    const timeStr = date.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return `${dateStr} ${timeStr}`;
   };
   
   // تم إلغاء وظيفة تصدير PDF بسبب مشاكل في عرض النص العربي
