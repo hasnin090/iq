@@ -497,6 +497,9 @@ export default function Transactions() {
                   queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
                   queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
                 }}
+                isArchiveMode={isArchiveMode}
+                selectedTransactions={selectedTransactions}
+                onToggleSelection={toggleTransactionSelection}
               />
             </TabsContent>
           )}
@@ -522,6 +525,9 @@ export default function Transactions() {
                   queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
                   queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
                 }}
+                isArchiveMode={isArchiveMode}
+                selectedTransactions={selectedTransactions}
+                onToggleSelection={toggleTransactionSelection}
               />
             </TabsContent>
           )}

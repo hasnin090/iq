@@ -457,15 +457,37 @@ export function TransactionList({
                 <div 
                   key={transaction.id} 
                   className={`p-4 rounded-lg border h-full flex flex-col shadow-sm relative min-h-[250px] max-w-full ${
-                    isAdminFundTransaction(transaction)
-                      ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
-                      : isProjectFundingTransaction(transaction)
-                        ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900' // تمويل مشروع
-                        : index % 2 === 0 
-                          ? 'bg-gray-50 border-gray-200 dark:bg-gray-800/70 dark:border-gray-700' // صفوف زوجية
-                          : 'bg-white border-blue-100 dark:bg-gray-800 dark:border-blue-900/20' // صفوف فردية
-                  } hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-150`}
+                    isArchiveMode && selectedTransactions.includes(transaction.id)
+                      ? 'bg-orange-50 border-orange-300 dark:bg-orange-950/30 dark:border-orange-700' // محدد للأرشفة
+                      : isAdminFundTransaction(transaction)
+                        ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
+                        : isProjectFundingTransaction(transaction)
+                          ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900' // تمويل مشروع
+                          : index % 2 === 0 
+                            ? 'bg-gray-50 border-gray-200 dark:bg-gray-800/70 dark:border-gray-700' // صفوف زوجية
+                            : 'bg-white border-blue-100 dark:bg-gray-800 dark:border-blue-900/20' // صفوف فردية
+                  } hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-150 ${
+                    isArchiveMode ? 'cursor-pointer' : ''
+                  }`}
+                  onClick={isArchiveMode ? () => onToggleSelection?.(transaction.id) : undefined}
                 >
+                  {/* مربع التحديد للأرشفة */}
+                  {isArchiveMode && (
+                    <div className="absolute top-2 left-2 z-20">
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                        selectedTransactions.includes(transaction.id)
+                          ? 'bg-orange-500 border-orange-500'
+                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-orange-400'
+                      }`}>
+                        {selectedTransactions.includes(transaction.id) && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* رقم المعاملة (الترقيم) بحجم أصغر ومظهر أنيق - لون أزرق */}
                   <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 text-blue-800 dark:text-blue-300 rounded-full flex items-center justify-center text-[10px] font-bold border border-blue-200/50 dark:border-blue-800/30 z-10 shadow-sm">
                     {index + 1}
@@ -605,6 +627,22 @@ export function TransactionList({
               <table className="min-w-full divide-y divide-secondary dark:divide-gray-600 border-collapse">
                 <thead className="bg-blue-50 dark:bg-gray-700">
                   <tr>
+                    {isArchiveMode && (
+                      <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-12">
+                        <input
+                          type="checkbox"
+                          checked={selectedTransactions.length === transactions.length && transactions.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              onToggleSelection && transactions.forEach(t => onToggleSelection(t.id));
+                            } else {
+                              selectedTransactions.forEach(id => onToggleSelection && onToggleSelection(id));
+                            }
+                          }}
+                          className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        />
+                      </th>
+                    )}
                     <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-16">#</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-36">التاريخ والوقت</th>
                     <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">الوصف</th>
@@ -621,15 +659,35 @@ export function TransactionList({
                     <tr 
                       key={transaction.id}
                       className={`${
-                        isAdminFundTransaction(transaction)
-                          ? 'bg-indigo-50/50 dark:bg-indigo-950/20' // صندوق رئيسي
-                          : isProjectFundingTransaction(transaction)
-                            ? 'bg-green-50/50 dark:bg-green-950/20' // تمويل مشروع
-                            : index % 2 === 0 
-                              ? 'bg-gray-50/50 dark:bg-gray-800/50' // صفوف زوجية
-                              : 'bg-white/75 dark:bg-gray-900/30' // صفوف فردية
-                      } hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150`}
+                        isArchiveMode && selectedTransactions.includes(transaction.id)
+                          ? 'bg-orange-50 dark:bg-orange-950/30' // محدد للأرشفة
+                          : isAdminFundTransaction(transaction)
+                            ? 'bg-indigo-50/50 dark:bg-indigo-950/20' // صندوق رئيسي
+                            : isProjectFundingTransaction(transaction)
+                              ? 'bg-green-50/50 dark:bg-green-950/20' // تمويل مشروع
+                              : index % 2 === 0 
+                                ? 'bg-gray-50/50 dark:bg-gray-800/50' // صفوف زوجية
+                                : 'bg-white/75 dark:bg-gray-900/30' // صفوف فردية
+                      } hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 ${
+                        isArchiveMode ? 'cursor-pointer' : ''
+                      }`}
+                      onClick={isArchiveMode ? () => onToggleSelection?.(transaction.id) : undefined}
                     >
+                      {/* مربع التحديد للأرشفة */}
+                      {isArchiveMode && (
+                        <td className="px-4 py-3 text-center border-r border-blue-50/50 dark:border-blue-900/10">
+                          <input
+                            type="checkbox"
+                            checked={selectedTransactions.includes(transaction.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              onToggleSelection?.(transaction.id);
+                            }}
+                            className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          />
+                        </td>
+                      )}
+
                       {/* رقم المعاملة (الترقيم) بحجم أصغر - لون أزرق */}
                       <td className="px-4 py-3 text-center text-xs font-bold border-r border-blue-50/50 dark:border-blue-900/10">
                         <span className="inline-flex items-center justify-center w-5 h-5 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 text-blue-800 dark:text-blue-300 rounded-full border border-blue-200/50 dark:border-blue-800/30 shadow-sm text-[10px]">
