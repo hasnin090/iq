@@ -373,18 +373,18 @@ export default function Transactions() {
             </div>
           </div>
 
-          {/* أزرار الأرشفة اليدوية */}
+          {/* أزرار الأرشفة اليدوية - مع تباعد محسن */}
           {(user?.role === 'admin' || user?.role === 'manager') && (
-            <div className="mb-4">
-              <div className="flex flex-col gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <div className="flex items-center justify-between">
+            <div className="mb-6 mt-8">
+              <div className="flex flex-col gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Archive className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
                       الأرشفة اليدوية
                     </span>
                     {selectedTransactions.length > 0 && (
-                      <span className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs">
+                      <span className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-medium">
                         {selectedTransactions.length} محدد
                       </span>
                     )}
@@ -396,7 +396,7 @@ export default function Transactions() {
                         clearSelection();
                       }
                     }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-2 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-2 whitespace-nowrap ${
                       isArchiveMode 
                         ? 'bg-orange-600 text-white border-orange-600 shadow-md' 
                         : 'bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/30'
@@ -408,7 +408,7 @@ export default function Transactions() {
                 </div>
                 
                 {isArchiveMode && (
-                  <div className="flex flex-wrap gap-2 pt-2 border-t border-orange-200 dark:border-orange-700">
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-orange-200 dark:border-orange-700">
                     <button
                       onClick={selectAllTransactions}
                       className="px-3 py-1.5 rounded-md text-sm font-medium border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors flex items-center gap-1.5"
