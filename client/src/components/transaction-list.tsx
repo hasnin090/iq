@@ -461,14 +461,14 @@ export function TransactionList({
                   </div>
                 
                   {/* الجزء العلوي للبطاقة - التاريخ والعلامات */}
-                  <div className="flex justify-between items-start mb-3 mt-3">
-                    <span className="text-sm bg-gray-50 dark:bg-gray-900/50 px-2.5 py-1 rounded-lg text-gray-600 dark:text-gray-300 font-medium border border-gray-100 dark:border-gray-700 flex items-center">
+                  <div className="flex flex-col gap-2 mb-3 mt-3">
+                    <span className="text-sm bg-gray-50 dark:bg-gray-900/50 px-2.5 py-1 rounded-lg text-gray-600 dark:text-gray-300 font-medium border border-gray-100 dark:border-gray-700 flex items-center w-fit">
                       <i className="fas fa-calendar-alt ml-1.5 text-gray-500 dark:text-gray-400"></i>
                       {formatDateTime(transaction.date)}
                     </span>
-                    <div className="flex flex-wrap gap-1 justify-end">
+                    <div className="flex flex-wrap gap-1 w-full">
                       {isAdminFundTransaction(transaction) && (
-                        <span className="px-2 py-1 text-[10px] rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center border border-blue-200 dark:border-blue-800">
+                        <span className="px-2 py-1 text-[10px] rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center border border-blue-200 dark:border-blue-800 whitespace-nowrap">
                           <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 2v20M2 12h20"></path>
                           </svg>
@@ -476,14 +476,14 @@ export function TransactionList({
                         </span>
                       )}
                       {isProjectFundingTransaction(transaction) && (
-                        <span className="px-2 py-1 text-[10px] rounded-lg bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center border border-green-200 dark:border-green-800">
+                        <span className="px-2 py-1 text-[10px] rounded-lg bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center border border-green-200 dark:border-green-800 whitespace-nowrap">
                           <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14M12 5l7 7-7 7"></path>
                           </svg>
                           تمويل مشروع
                         </span>
                       )}
-                      <span className={`px-2 py-1 text-[10px] rounded-lg flex items-center border ${
+                      <span className={`px-2 py-1 text-[10px] rounded-lg flex items-center border whitespace-nowrap ${
                         transaction.type === 'income' 
                           ? 'bg-success/10 text-success border-success/20' 
                           : 'bg-destructive/10 text-destructive border-destructive/20'
