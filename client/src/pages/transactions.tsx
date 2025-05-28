@@ -192,8 +192,11 @@ export default function Transactions() {
   return (
     <div className="py-6 px-4 pb-mobile-nav-large">
       <div className="mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-[hsl(var(--primary))]">إدارة الحسابات</h2>
-        <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة المعاملات المالية للإيرادات والمصروفات</p>
+        <h1 className="text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-3">
+          <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
+          العمليات المالية
+        </h1>
+        <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة ومتابعة جميع المعاملات المالية في النظام</p>
       </div>
       
       {user?.role !== 'viewer' && (
@@ -217,9 +220,9 @@ export default function Transactions() {
       <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
         <Tabs defaultValue={defaultTab} onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
-            <h3 className="text-xl font-bold text-[hsl(var(--primary))] flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
-              <span>العمليات المالية</span>
+            <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center space-x-2 space-x-reverse">
+              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
+              <span>تصفية وعرض المعاملات</span>
             </h3>
             
             {/* شريط البحث وأدوات الأرشفة */}
