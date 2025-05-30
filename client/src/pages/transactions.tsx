@@ -219,48 +219,53 @@ export default function Transactions() {
       {/* تبويبات العمليات المالية - تم تحسين التنسيق */}
       <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
         <Tabs defaultValue={defaultTab} onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
-            <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
+          {/* العنوان وأدوات التحكم في صف واحد مرتب */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-3">
+            <h3 className="text-base font-medium text-[hsl(var(--foreground))] flex items-center gap-2">
+              <i className="fas fa-filter text-[hsl(var(--primary))] text-sm"></i>
               <span>تصفية وعرض المعاملات</span>
             </h3>
             
             {/* شريط البحث وأدوات الأرشفة */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              {/* أزرار الأرشفة */}
+            <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
+              {/* أزرار الأرشفة مصغرة */}
               {!isArchiveMode ? (
                 <Button
                   onClick={() => setIsArchiveMode(true)}
                   variant="outline"
-                  className="flex items-center gap-2 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                  size="sm"
+                  className="flex items-center gap-1 hover:bg-orange-50 dark:hover:bg-orange-900/20"
                 >
-                  <Archive className="h-4 w-4" />
+                  <Archive className="h-3 w-3" />
                   أرشفة يدوية
                 </Button>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-1">
                   <Button
                     onClick={handleArchiveSelected}
                     disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
-                    className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
+                    size="sm"
+                    className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-xs"
                   >
-                    <Archive className="h-4 w-4" />
+                    <Archive className="h-3 w-3" />
                     أرشفة ({selectedTransactions.length})
                   </Button>
                   <Button
                     onClick={selectAllTransactions}
                     variant="outline"
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
                   >
-                    <CheckSquare className="h-4 w-4" />
+                    <CheckSquare className="h-3 w-3" />
                     تحديد الكل
                   </Button>
                   <Button
                     onClick={clearSelection}
                     variant="outline"
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
                   >
-                    <Square className="h-4 w-4" />
+                    <Square className="h-3 w-3" />
                     إلغاء التحديد
                   </Button>
                   <Button
@@ -269,6 +274,8 @@ export default function Transactions() {
                       setSelectedTransactions([]);
                     }}
                     variant="outline"
+                    size="sm"
+                    className="text-xs"
                   >
                     إلغاء
                   </Button>
@@ -276,28 +283,27 @@ export default function Transactions() {
               )}
               
               <div className="relative">
-                <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute right-2 top-2 h-3 w-3 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="ابحث في الوصف أو المشروع..."
+                  placeholder="بحث..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-4 pr-10 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                  className="pl-3 pr-7 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-transparent w-full lg:w-40"
                 />
               </div>
-              <div className="w-full md:w-auto">
-                {/* استخدام قائمة منسدلة لاختيار نوع العمليات المالية */}
+              <div className="w-full lg:w-auto">
                 <Select 
                   defaultValue={defaultTab}
                   onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}
                 >
-                <SelectTrigger className="w-full md:w-56 h-10 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] shadow-sm">
+                <SelectTrigger className="w-full lg:w-44 h-8 text-sm rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] shadow-sm">
                   <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                      {activeTab === 'all' && <Filter className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />}
-                      {activeTab === 'admin' && <ArrowUp className="h-4 w-4 text-blue-500 dark:text-blue-400" />}
-                      {activeTab === 'projects' && <ArrowDown className="h-4 w-4 text-green-500 dark:text-green-400" />}
-                      <SelectValue placeholder="اختر نوع العمليات" className="text-sm font-medium" />
+                    <div className="flex items-center gap-1.5">
+                      {activeTab === 'all' && <Filter className="h-3 w-3 text-[hsl(var(--muted-foreground))]" />}
+                      {activeTab === 'admin' && <ArrowUp className="h-3 w-3 text-blue-500 dark:text-blue-400" />}
+                      {activeTab === 'projects' && <ArrowDown className="h-3 w-3 text-green-500 dark:text-green-400" />}
+                      <SelectValue placeholder="اختر نوع العمليات" className="text-xs font-medium" />
                     </div>
                   </div>
                 </SelectTrigger>
