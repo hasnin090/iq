@@ -1932,7 +1932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // إنشاء نسخة احتياطية شاملة
   app.get("/api/backup/download", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      // جمع جميع البيانات
+      // جمع جميع البيانات من قاعدة البيانات
       const [users, projects, transactions, documents, activityLogs, settings, funds] = await Promise.all([
         storage.listUsers(),
         storage.listProjects(),
@@ -1943,17 +1943,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.listFunds(),
       ]);
 
+      // جمع بيانات الملفات والمستندات
+      const fs = require('fs');
+      const path = require('path');
+      
+      let filesData = {};
+      
+      try {
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (fs.existsSync(uploadsDir)) {
+          const readDirRecursively = (dir: string, baseDir = dir): any => {
+            const items = fs.readdirSync(dir);
+            const result: any = {};
+            
+            for (const item of items) {
+              const itemPath = path.join(dir, item);
+              const stat = fs.statSync(itemPath);
+              
+              if (stat.isDirectory()) {
+                result[item] = readDirRecursively(itemPath, baseDir);
+              } else {
+                // قراءة الملف وتحويله إلى base64
+                const fileContent = fs.readFileSync(itemPath);
+                const relativePath = path.relative(baseDir, itemPath);
+                result[item] = {
+                  type: 'file',
+                  content: fileContent.toString('base64'),
+                  size: stat.size,
+                  relativePath: relativePath.replace(/\\/g, '/')
+                };
+              }
+            }
+            return result;
+          };
+          
+          filesData = readDirRecursively(uploadsDir);
+        }
+      } catch (fileError) {
+        console.warn('Warning: Could not read files directory:', fileError);
+        filesData = { error: 'Could not read files directory' };
+      }
+
       const backup = {
         timestamp: new Date().toISOString(),
         version: "1.0",
         data: {
-          users,
-          projects,
-          transactions,
-          documents,
-          activityLogs,
-          settings,
-          funds
+          database: {
+            users,
+            projects,
+            transactions,
+            documents,
+            activityLogs,
+            settings,
+            funds
+          },
+          files: filesData
+        },
+        metadata: {
+          totalTransactions: transactions.length,
+          totalDocuments: documents.length,
+          totalUsers: users.length,
+          totalProjects: projects.length,
+          hasFiles: Object.keys(filesData).length > 0
         }
       };
 
@@ -1963,9 +2014,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "backup_download",
         entityType: "system",
         entityId: 0,
-        details: "تم إنشاء نسخة احتياطية شاملة"
+        details: `تم إنشاء نسخة احتياطية شاملة تتضمن ${transactions.length} معاملة و ${documents.length} مستند`
       });
 
+      // تعيين headers للتنزيل
+      const filename = `backup_${new Date().toISOString().split('T')[0]}.json`;
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Type', 'application/json');
+      
       res.json(backup);
     } catch (error) {
       console.error('Error creating backup:', error);
@@ -1982,12 +2038,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "بيانات النسخة الاحتياطية غير صحيحة" });
       }
 
-      const { users, projects, transactions, documents, activityLogs, settings, funds } = backupData.data;
+      // التحقق من إصدار النسخة الاحتياطية
+      const isNewFormat = backupData.data.database && backupData.data.files;
+      let databaseData, filesData;
+      
+      if (isNewFormat) {
+        databaseData = backupData.data.database;
+        filesData = backupData.data.files;
+      } else {
+        // النسخة القديمة - البيانات مباشرة في data
+        databaseData = backupData.data;
+        filesData = null;
+      }
+
+      const { users, projects, transactions, documents, activityLogs, settings, funds } = databaseData;
 
       // استعادة الإعدادات
       if (settings && Array.isArray(settings)) {
         for (const setting of settings) {
           await storage.updateSetting(setting.key, setting.value);
+        }
+      }
+
+      // استعادة الملفات إذا كانت موجودة
+      let filesRestored = 0;
+      if (filesData && typeof filesData === 'object' && !filesData.error) {
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+          const uploadsDir = path.join(process.cwd(), 'uploads');
+          
+          // إنشاء مجلد uploads إذا لم يكن موجوداً
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          
+          const restoreFilesRecursively = (filesObj: any, basePath: string) => {
+            for (const [name, data] of Object.entries(filesObj)) {
+              if (typeof data === 'object' && data !== null) {
+                if ((data as any).type === 'file') {
+                  // استعادة الملف
+                  const fileData = data as any;
+                  const fullPath = path.join(basePath, name);
+                  
+                  // إنشاء المجلد إذا لم يكن موجوداً
+                  const dir = path.dirname(fullPath);
+                  if (!fs.existsSync(dir)) {
+                    fs.mkdirSync(dir, { recursive: true });
+                  }
+                  
+                  // كتابة الملف
+                  const buffer = Buffer.from(fileData.content, 'base64');
+                  fs.writeFileSync(fullPath, buffer);
+                  filesRestored++;
+                } else {
+                  // مجلد - استدعاء تكراري
+                  const subDir = path.join(basePath, name);
+                  if (!fs.existsSync(subDir)) {
+                    fs.mkdirSync(subDir, { recursive: true });
+                  }
+                  restoreFilesRecursively(data, subDir);
+                }
+              }
+            }
+          };
+          
+          restoreFilesRecursively(filesData, uploadsDir);
+        } catch (fileError) {
+          console.warn('Warning: Could not restore files:', fileError);
         }
       }
 
@@ -1997,12 +2116,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: "backup_restore",
         entityType: "system",
         entityId: 0,
-        details: `تم استعادة نسخة احتياطية من تاريخ ${backupData.timestamp}`
+        details: `تم استعادة نسخة احتياطية من تاريخ ${backupData.timestamp}${filesRestored > 0 ? ` مع ${filesRestored} ملف` : ''}`
       });
 
       res.json({ 
         message: "تم استعادة النسخة الاحتياطية بنجاح",
-        timestamp: backupData.timestamp
+        timestamp: backupData.timestamp,
+        filesRestored: filesRestored,
+        metadata: backupData.metadata || {}
       });
     } catch (error) {
       console.error('Error restoring backup:', error);
