@@ -202,9 +202,208 @@ export default function ArchivePage() {
     XLSX.writeFile(wb, fileName);
   };
 
-  // طباعة البيانات
+  // طباعة البيانات مع تنسيق محسن
   const handlePrint = () => {
-    window.print();
+    // إنشاء نافذة طباعة جديدة
+    const printWindow = window.open('', '_blank');
+    
+    if (!printWindow) {
+      alert('يرجى السماح بفتح النوافذ المنبثقة لإتمام عملية الطباعة');
+      return;
+    }
+
+    // إنشاء محتوى HTML للطباعة
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>تقرير الأرشيف - المعاملات المالية</title>
+        <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Arial', sans-serif;
+            direction: rtl;
+            background: white;
+            color: #000;
+            font-size: 12pt;
+            line-height: 1.5;
+            padding: 1cm;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 2cm;
+            border-bottom: 2px solid #333;
+            padding-bottom: 1cm;
+          }
+          
+          .header h1 {
+            font-size: 20pt;
+            font-weight: bold;
+            margin-bottom: 0.5cm;
+          }
+          
+          .header p {
+            font-size: 12pt;
+            color: #666;
+          }
+          
+          .summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1cm;
+            margin-bottom: 2cm;
+            background: #f8f9fa;
+            padding: 1cm;
+            border-radius: 8px;
+          }
+          
+          .summary-item {
+            text-align: center;
+          }
+          
+          .summary-item h3 {
+            font-size: 14pt;
+            margin-bottom: 0.3cm;
+            color: #333;
+          }
+          
+          .summary-item .value {
+            font-size: 16pt;
+            font-weight: bold;
+          }
+          
+          .income { color: #059669; }
+          .expense { color: #dc2626; }
+          .total { color: #1f2937; }
+          
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1cm;
+            font-size: 10pt;
+          }
+          
+          th, td {
+            border: 1px solid #ddd;
+            padding: 0.3cm;
+            text-align: right;
+          }
+          
+          th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            font-size: 11pt;
+          }
+          
+          .income-row {
+            background-color: #f0fdf4;
+          }
+          
+          .expense-row {
+            background-color: #fef2f2;
+          }
+          
+          .amount {
+            font-weight: bold;
+            text-align: left;
+          }
+          
+          .footer {
+            margin-top: 2cm;
+            text-align: center;
+            font-size: 10pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 0.5cm;
+          }
+          
+          @media print {
+            body { print-color-adjust: exact; }
+            .page-break { page-break-before: always; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>تقرير الأرشيف - المعاملات المالية</h1>
+          <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+          <p>إجمالي المعاملات: ${filteredTransactions.length}</p>
+        </div>
+        
+        <div class="summary">
+          <div class="summary-item">
+            <h3>إجمالي الإيرادات</h3>
+            <div class="value income">${formatCurrency(
+              filteredTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0)
+            )}</div>
+          </div>
+          <div class="summary-item">
+            <h3>إجمالي المصروفات</h3>
+            <div class="value expense">${formatCurrency(
+              filteredTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0)
+            )}</div>
+          </div>
+          <div class="summary-item">
+            <h3>صافي المبلغ</h3>
+            <div class="value total">${formatCurrency(
+              filteredTransactions.reduce((sum, t) => 
+                sum + (t.type === 'income' ? t.amount : -t.amount), 0)
+            )}</div>
+          </div>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الوصف</th>
+              <th>المشروع</th>
+              <th>النوع</th>
+              <th>المبلغ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredTransactions.map(transaction => `
+              <tr class="${transaction.type === 'income' ? 'income-row' : 'expense-row'}">
+                <td>${formatDate(transaction.date)}</td>
+                <td>${transaction.description}</td>
+                <td>${getProjectName(transaction.projectId) || 'غير محدد'}</td>
+                <td>${transaction.type === 'income' ? 'إيراد' : 'مصروف'}</td>
+                <td class="amount">${formatCurrency(transaction.amount)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>نظام المحاسبة المتقدم - تم إنتاج هذا التقرير في ${new Date().toLocaleString('ar-SA')}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // كتابة المحتوى في النافذة الجديدة
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // انتظار تحميل المحتوى ثم الطباعة
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    };
   };
 
   if (!user) {
