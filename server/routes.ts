@@ -1944,8 +1944,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ]);
 
       // جمع بيانات الملفات والمستندات
-      const fs = require('fs');
-      const path = require('path');
+      const fs = await import('fs');
+      const path = await import('path');
       
       let filesData = {};
       
@@ -2063,8 +2063,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // استعادة الملفات إذا كانت موجودة
       let filesRestored = 0;
       if (filesData && typeof filesData === 'object' && !filesData.error) {
-        const fs = require('fs');
-        const path = require('path');
+        const fs = await import('fs');
+        const path = await import('path');
         
         try {
           const uploadsDir = path.join(process.cwd(), 'uploads');
