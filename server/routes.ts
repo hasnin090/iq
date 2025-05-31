@@ -1959,12 +1959,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // تسجيل نشاط إنشاء النسخة الاحتياطية
       await storage.createActivityLog({
-        userId: (req.session as SessionData).userId,
+        userId: (req.session as any).userId,
         action: "backup_download",
         entityType: "system",
         entityId: 0,
-        description: "تم إنشاء نسخة احتياطية شاملة",
-        timestamp: new Date()
+        details: "تم إنشاء نسخة احتياطية شاملة"
       });
 
       res.json(backup);
@@ -1994,12 +1993,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // تسجيل نشاط استعادة النسخة الاحتياطية
       await storage.createActivityLog({
-        userId: (req.session as SessionData).userId,
+        userId: (req.session as any).userId,
         action: "backup_restore",
         entityType: "system",
         entityId: 0,
-        description: `تم استعادة نسخة احتياطية من تاريخ ${backupData.timestamp}`,
-        timestamp: new Date()
+        details: `تم استعادة نسخة احتياطية من تاريخ ${backupData.timestamp}`
       });
 
       res.json({ 
