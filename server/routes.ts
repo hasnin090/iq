@@ -1929,6 +1929,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // إنشاء نسخة احتياطية شاملة
+  app.get("/api/backup/download", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      // جمع جميع البيانات
+      const [users, projects, transactions, documents, activityLogs, settings, funds] = await Promise.all([
+        storage.listUsers(),
+        storage.listProjects(),
+        storage.listTransactions(),
+        storage.listDocuments(),
+        storage.listActivityLogs(),
+        storage.listSettings(),
+        storage.listFunds(),
+      ]);
+
+      const backup = {
+        timestamp: new Date().toISOString(),
+        version: "1.0",
+        data: {
+          users,
+          projects,
+          transactions,
+          documents,
+          activityLogs,
+          settings,
+          funds
+        }
+      };
+
+      // تسجيل نشاط إنشاء النسخة الاحتياطية
+      await storage.createActivityLog({
+        userId: (req.session as SessionData).userId,
+        action: "backup_download",
+        entityType: "system",
+        entityId: 0,
+        description: "تم إنشاء نسخة احتياطية شاملة",
+        timestamp: new Date()
+      });
+
+      res.json(backup);
+    } catch (error) {
+      console.error('Error creating backup:', error);
+      res.status(500).json({ message: "خطأ في إنشاء النسخة الاحتياطية" });
+    }
+  });
+
+  // استعادة نسخة احتياطية
+  app.post("/api/backup/restore", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const backupData = req.body;
+      
+      if (!backupData || !backupData.data) {
+        return res.status(400).json({ message: "بيانات النسخة الاحتياطية غير صحيحة" });
+      }
+
+      const { users, projects, transactions, documents, activityLogs, settings, funds } = backupData.data;
+
+      // استعادة الإعدادات
+      if (settings && Array.isArray(settings)) {
+        for (const setting of settings) {
+          await storage.updateSetting(setting.key, setting.value);
+        }
+      }
+
+      // تسجيل نشاط استعادة النسخة الاحتياطية
+      await storage.createActivityLog({
+        userId: (req.session as SessionData).userId,
+        action: "backup_restore",
+        entityType: "system",
+        entityId: 0,
+        description: `تم استعادة نسخة احتياطية من تاريخ ${backupData.timestamp}`,
+        timestamp: new Date()
+      });
+
+      res.json({ 
+        message: "تم استعادة النسخة الاحتياطية بنجاح",
+        timestamp: backupData.timestamp
+      });
+    } catch (error) {
+      console.error('Error restoring backup:', error);
+      res.status(500).json({ message: "خطأ في استعادة النسخة الاحتياطية" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
