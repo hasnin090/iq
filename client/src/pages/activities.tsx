@@ -5,10 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
+import { Activity, User, FileText, Settings, FolderOpen, Eye, Edit, Trash2, LogIn, LogOut, Plus, Clock, Filter } from 'lucide-react';
 
 interface ActivityLog {
   id: number;
@@ -102,22 +104,55 @@ export default function Activities() {
   
   const getActionColor = (action: string) => {
     switch (action) {
-      case 'create': return 'bg-success bg-opacity-20 text-success';
-      case 'update': return 'bg-primary bg-opacity-20 text-primary';
-      case 'delete': return 'bg-destructive bg-opacity-20 text-destructive';
-      case 'login': return 'bg-info bg-opacity-20 text-info';
-      case 'logout': return 'bg-warning bg-opacity-20 text-warning';
-      default: return 'bg-muted bg-opacity-20 text-muted';
+      case 'create': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+      case 'update': return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+      case 'delete': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
+      case 'login': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
+      case 'logout': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+    }
+  };
+
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case 'create': return <Plus className="w-3 h-3" />;
+      case 'update': return <Edit className="w-3 h-3" />;
+      case 'delete': return <Trash2 className="w-3 h-3" />;
+      case 'login': return <LogIn className="w-3 h-3" />;
+      case 'logout': return <LogOut className="w-3 h-3" />;
+      default: return <Activity className="w-3 h-3" />;
+    }
+  };
+
+  const getEntityIcon = (entityType: string) => {
+    switch (entityType) {
+      case 'transaction': return <FileText className="w-4 h-4 text-blue-600" />;
+      case 'project': return <FolderOpen className="w-4 h-4 text-green-600" />;
+      case 'user': return <User className="w-4 h-4 text-purple-600" />;
+      case 'document': return <FileText className="w-4 h-4 text-orange-600" />;
+      case 'setting': return <Settings className="w-4 h-4 text-gray-600" />;
+      default: return <Activity className="w-4 h-4 text-gray-600" />;
     }
   };
   
   return (
-    <div className="space-y-8 py-6">
-      <h2 className="text-2xl font-bold text-primary-light pb-2 border-b border-neutral-dark border-opacity-20">سجل النشاطات</h2>
+    <div className="space-y-6 p-4 md:p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+          <Activity className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">سجل النشاطات</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">تتبع جميع العمليات والأنشطة في النظام</p>
+        </div>
+      </div>
       
-      <Card className="bg-secondary-light">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold text-primary-light">تصفية سجل النشاطات</CardTitle>
+      <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200">
+            <Filter className="w-5 h-5" />
+            تصفية سجل النشاطات
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
@@ -192,33 +227,59 @@ export default function Activities() {
       ) : logs && logs.length > 0 ? (
         <div className="space-y-4" id="activitiesList">
           {logs.map((log) => (
-            <div key={log.id} className="bg-secondary-light rounded-xl shadow-card p-4">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-reverse space-x-2">
-                  <span className={`px-2 py-1 text-xs rounded-full ${getActionColor(log.action)}`}>
-                    {getActionText(log.action)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {getEntityTypeText(log.entityType)}
-                  </span>
+            <Card key={log.id} className="border-0 shadow-md hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  {/* أيقونة نوع العنصر */}
+                  <div className="flex-shrink-0 w-10 h-10 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    {getEntityIcon(log.entityType)}
+                  </div>
+                  
+                  {/* المحتوى الرئيسي */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge 
+                        variant="outline" 
+                        className={`${getActionColor(log.action)} border text-xs font-medium flex items-center gap-1`}
+                      >
+                        {getActionIcon(log.action)}
+                        {getActionText(log.action)}
+                      </Badge>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {getEntityTypeText(log.entityType)}
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
+                      {log.details}
+                    </p>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <User className="w-3 h-3" />
+                        <span>بواسطة: {getUserName(log.userId)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3 h-3" />
+                        <span>{formatTimestamp(log.timestamp)}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {formatTimestamp(log.timestamp)}
-                </span>
-              </div>
-              <div className="mt-2">
-                <p className="text-sm">{log.details}</p>
-              </div>
-              <div className="mt-2 text-xs text-muted-foreground">
-                بواسطة: {getUserName(log.userId)}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : (
-        <div className="bg-secondary-light rounded-xl shadow-card p-10 text-center">
-          <p className="text-muted-foreground">لا توجد سجلات نشاط متطابقة مع معايير التصفية</p>
-        </div>
+        <Card className="border-0 shadow-md bg-white dark:bg-gray-800">
+          <CardContent className="p-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Activity className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">لا توجد سجلات نشاط</h3>
+            <p className="text-gray-500 dark:text-gray-400">لا توجد سجلات نشاط متطابقة مع معايير التصفية المحددة</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
