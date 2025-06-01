@@ -623,12 +623,12 @@ export function TransactionList({
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-secondary dark:divide-gray-600 border-collapse">
-                <thead className="bg-blue-50 dark:bg-gray-700">
-                  <tr>
+            <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+              <table className="w-full table-fixed border-collapse bg-white dark:bg-gray-800">
+                <thead className="bg-blue-50 dark:bg-gray-700 sticky top-0">
+                  <tr className="border-b border-gray-200 dark:border-gray-600">
                     {isArchiveMode && (
-                      <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-12">
+                      <th scope="col" className="w-12 px-3 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">
                         <input
                           type="checkbox"
                           checked={selectedTransactions.length === transactions.length && transactions.length > 0}
@@ -643,22 +643,21 @@ export function TransactionList({
                         />
                       </th>
                     )}
-                    <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-16">#</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-36">التاريخ والوقت</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">الوصف</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">التفاصيل</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">المشروع</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-24">النوع</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المبلغ</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-32">المرفقات</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider w-40">الإجراءات</th>
+                    <th scope="col" className="w-16 px-3 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">#</th>
+                    <th scope="col" className="w-36 px-3 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">التاريخ</th>
+                    <th scope="col" className="w-48 px-3 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">الوصف</th>
+                    <th scope="col" className="w-32 px-3 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">المشروع</th>
+                    <th scope="col" className="w-24 px-3 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">النوع</th>
+                    <th scope="col" className="w-32 px-3 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">المبلغ</th>
+                    <th scope="col" className="w-24 px-3 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">مرفق</th>
+                    <th scope="col" className="w-32 px-3 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">الإجراءات</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-secondary-light dark:divide-gray-600">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
                   {transactions.map((transaction, index) => (
                     <tr 
                       key={transaction.id}
-                      className={`${
+                      className={`border-b border-gray-200 dark:border-gray-600 ${
                         isArchiveMode && selectedTransactions.includes(transaction.id)
                           ? 'bg-orange-50 dark:bg-orange-950/30' // محدد للأرشفة
                           : isAdminFundTransaction(transaction)
@@ -667,7 +666,7 @@ export function TransactionList({
                               ? 'bg-green-50/50 dark:bg-green-950/20' // تمويل مشروع
                               : index % 2 === 0 
                                 ? 'bg-gray-50/50 dark:bg-gray-800/50' // صفوف زوجية
-                                : 'bg-white/75 dark:bg-gray-900/30' // صفوف فردية
+                                : 'bg-white dark:bg-gray-800' // صفوف فردية
                       } hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 ${
                         isArchiveMode ? 'cursor-pointer' : ''
                       }`}
@@ -675,7 +674,7 @@ export function TransactionList({
                     >
                       {/* مربع التحديد للأرشفة */}
                       {isArchiveMode && (
-                        <td className="px-4 py-3 text-center border-r border-blue-50/50 dark:border-blue-900/10">
+                        <td className="w-12 px-3 py-3 text-center border-l border-gray-200 dark:border-gray-600">
                           <input
                             type="checkbox"
                             checked={selectedTransactions.includes(transaction.id)}
@@ -688,105 +687,110 @@ export function TransactionList({
                         </td>
                       )}
 
-                      {/* رقم المعاملة (الترقيم) بحجم أصغر - لون أزرق */}
-                      <td className="px-4 py-3 text-center text-xs font-bold border-r border-blue-50/50 dark:border-blue-900/10">
-                        <span className="inline-flex items-center justify-center w-5 h-5 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 text-blue-800 dark:text-blue-300 rounded-full border border-blue-200/50 dark:border-blue-800/30 shadow-sm text-[10px]">
+                      {/* رقم المعاملة */}
+                      <td className="w-16 px-3 py-3 text-center text-xs font-bold border-l border-gray-200 dark:border-gray-600">
+                        <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-xs font-bold">
                           {index + 1}
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-neutral-light dark:text-gray-300 border-r border-blue-50/50 dark:border-blue-900/10">
-                        <span className="font-medium">{formatDateTime(transaction.date)}</span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300 max-w-[150px] border-r border-blue-50/50 dark:border-blue-900/10">
-                        <span className="font-medium">{getCustomTransactionDescription(transaction)}</span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300 max-w-[200px] border-r border-blue-50/50 dark:border-blue-900/10">
-                        <div className="line-clamp-2">
-                          {transaction.description || <span className="text-gray-400 dark:text-gray-500 italic">لا يوجد تفاصيل</span>}
+                      
+                      {/* التاريخ */}
+                      <td className="w-36 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-600">
+                        <div className="truncate font-medium">
+                          {formatDate(transaction.date)}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-neutral-light dark:text-gray-300 border-r border-blue-50/50 dark:border-blue-900/10">
-                        {isAdminFundTransaction(transaction) ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 2v20M2 12h20"></path>
-                            </svg>
-                            صندوق رئيسي
-                          </span>
-                        ) : isProjectFundingTransaction(transaction) ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M5 12h14M12 5l7 7-7 7"></path>
-                            </svg>
-                            {getProjectName(transaction.projectId)}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center">
-                            {getProjectName(transaction.projectId)}
-                          </span>
+                      
+                      {/* الوصف */}
+                      <td className="w-48 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-600">
+                        <div className="truncate" title={getCustomTransactionDescription(transaction)}>
+                          {getCustomTransactionDescription(transaction)}
+                        </div>
+                        {transaction.description && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate" title={transaction.description}>
+                            {transaction.description}
+                          </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap border-r border-blue-50/50 dark:border-blue-900/10">
-                        <span className={`px-2.5 py-1 inline-flex items-center text-xs leading-5 font-medium rounded-full ${
-                          transaction.type === 'income' 
-                            ? 'bg-success/10 text-success border border-success/20' 
-                            : 'bg-destructive/10 text-destructive border border-destructive/20'
-                        }`}>
-                          {transaction.type === 'income' ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 19V5M5 12l7-7 7 7"/>
-                            </svg>
+                      
+                      {/* المشروع */}
+                      <td className="w-32 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-600">
+                        <div className="truncate">
+                          {isAdminFundTransaction(transaction) ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              رئيسي
+                            </span>
                           ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 5v14M5 12l7 7 7-7"/>
-                            </svg>
+                            <span className="truncate" title={getProjectName(transaction.projectId)}>
+                              {getProjectName(transaction.projectId)}
+                            </span>
                           )}
-                          {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
-                        </span>
-                      </td>
-                      <td className={`px-4 py-3 whitespace-nowrap text-sm border-r border-blue-50/50 dark:border-blue-900/10 ${
-                        transaction.type === 'income' ? 'text-success' : 'text-destructive'
-                      } font-bold`}>
-                        <div className="flex items-center justify-end">
-                          <span className="px-2 py-1 rounded bg-opacity-10 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            {transaction.type === 'income' ? '+' : '-'}
-                            {formatCurrency(transaction.amount)}
-                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm border-r border-blue-50/50 dark:border-blue-900/10">
+                      
+                      {/* النوع */}
+                      <td className="w-24 px-3 py-3 text-center border-l border-gray-200 dark:border-gray-600">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          transaction.type === 'income' 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}>
+                          {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                        </span>
+                      </td>
+                      
+                      {/* المبلغ */}
+                      <td className={`w-32 px-3 py-3 text-sm font-bold border-l border-gray-200 dark:border-gray-600 text-left ${
+                        transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        <div className="flex items-center justify-end">
+                          {transaction.type === 'income' ? '+' : '-'}
+                          {formatCurrency(transaction.amount)}
+                        </div>
+                      </td>
+                      
+                      {/* المرفق */}
+                      <td className="w-24 px-3 py-3 text-center text-sm border-l border-gray-200 dark:border-gray-600">
                         {transaction.fileUrl ? (
                           <button 
                             onClick={() => window.open(transaction.fileUrl, '_blank')}
-                            className="text-blue-600 hover:underline focus:outline-none flex items-center"
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                            title="عرض المرفق"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
                               <polyline points="14 2 14 8 20 8"/>
                             </svg>
-                            عرض المرفق
                           </button>
                         ) : (
-                          <span className="text-gray-400 dark:text-gray-500 text-xs">لا يوجد</span>
+                          <span className="text-gray-400 dark:text-gray-500">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm">
-                        <div className="flex gap-2 justify-end">
+                      
+                      {/* الإجراءات */}
+                      <td className="w-32 px-3 py-3 text-sm">
+                        <div className="flex gap-1 justify-end">
                           {user?.role === 'admin' && (
                             <>
                               <button 
-                                className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                                className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded text-xs transition-colors"
                                 onClick={() => handleEditClick(transaction)}
+                                title="تعديل"
                               >
-                                <i className="fas fa-edit ml-1"></i>
-                                تعديل
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
                               </button>
                               <button 
-                                className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center shadow-sm transition-all duration-150 hover:shadow"
+                                className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded text-xs transition-colors"
                                 onClick={() => handleDeleteClick(transaction)}
+                                title="حذف"
                               >
-                                <i className="fas fa-trash-alt ml-1"></i>
-                                حذف
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3,6 5,6 21,6"/>
+                                  <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                                </svg>
                               </button>
                             </>
                           )}
