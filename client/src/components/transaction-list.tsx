@@ -526,8 +526,8 @@ export function TransactionList({
                   <FormItem>
                     <FormLabel>المشروع (اختياري)</FormLabel>
                     <Select 
-                      onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                      value={field.value?.toString() || ""}
+                      onValueChange={(value) => field.onChange(value === "null" ? null : parseInt(value))}
+                      value={field.value ? field.value.toString() : "null"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -535,7 +535,7 @@ export function TransactionList({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون مشروع</SelectItem>
+                        <SelectItem value="null">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
