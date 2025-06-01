@@ -107,7 +107,7 @@ export function TransactionList({
 
   const deleteMutation = useMutation({
     mutationFn: (transactionId: number) => 
-      apiRequest(`/api/transactions/${transactionId}`, { method: 'DELETE' }),
+      apiRequest(`/api/transactions/${transactionId}`, 'DELETE'),
     onSuccess: () => {
       toast({
         title: "تم الحذف بنجاح",
@@ -132,10 +132,7 @@ export function TransactionList({
         ...data.transaction,
         date: data.transaction.date.toISOString(),
       };
-      return apiRequest(`/api/transactions/${data.id}`, { 
-        method: 'PUT', 
-        body: JSON.stringify(formattedData) 
-      });
+      return apiRequest(`/api/transactions/${data.id}`, 'PUT', formattedData);
     },
     onSuccess: () => {
       toast({
@@ -286,32 +283,32 @@ export function TransactionList({
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
                     {isArchiveMode && onToggleSelection && (
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                         اختيار
                       </th>
                     )}
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24 md:w-32">
                       التاريخ
                     </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-32">
                       الوصف
                     </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20 md:w-28">
                       المشروع
                     </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16 md:w-20">
                       النوع
                     </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20 md:w-24">
                       المبلغ
                     </th>
                     {user?.role === 'admin' && !isArchiveMode && (
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                         الإجراءات
                       </th>
                     )}
@@ -321,49 +318,55 @@ export function TransactionList({
                   {transactions.map((transaction) => (
                     <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       {isArchiveMode && onToggleSelection && (
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 py-2 whitespace-nowrap">
                           <Checkbox
                             checked={selectedTransactions.includes(transaction.id)}
                             onCheckedChange={() => onToggleSelection(transaction.id)}
                           />
                         </td>
                       )}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      <td className="px-3 py-2 whitespace-nowrap text-xs md:text-sm text-gray-900 dark:text-white">
                         {formatDateTime(transaction.date)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                        {transaction.description}
+                      <td className="px-3 py-2 text-xs md:text-sm text-gray-900 dark:text-white max-w-40 truncate">
+                        <span title={transaction.description}>
+                          {transaction.description}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {getProjectName(transaction.projectId)}
+                      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 max-w-20 truncate">
+                        <span title={getProjectName(transaction.projectId)}>
+                          {getProjectName(transaction.projectId)}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'} className="text-xs px-1 py-0">
                           {transaction.type === 'income' ? 'دخل' : 'مصروف'}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-3 py-2 whitespace-nowrap text-xs md:text-sm font-medium">
                         <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
                           {transaction.type === 'income' ? '+' : '-'}
                           {formatCurrency(transaction.amount)}
                         </span>
                       </td>
                       {user?.role === 'admin' && !isArchiveMode && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex gap-2">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex gap-1">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleEditClick(transaction)}
+                              className="h-6 w-6 p-0"
                             >
-                              <Edit2 className="h-4 w-4" />
+                              <Edit2 className="h-3 w-3" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleDeleteClick(transaction)}
+                              className="h-6 w-6 p-0"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </td>
