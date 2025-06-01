@@ -1,57 +1,28 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { formatCurrency } from '@/lib/chart-utils';
+import { formatDateTime } from '@/utils/date-utils';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CalendarIcon, Trash2, Edit2, FileText, CheckSquare, Square } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/chart-utils';
-import * as XLSX from 'xlsx';
-import { z } from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 interface Transaction {
   id: number;
@@ -75,20 +46,18 @@ interface TransactionListProps {
   viewType: 'cards' | 'table';
   isLoading: boolean;
   onTransactionUpdated: () => void;
-  // خصائص الأرشفة اليدوية
   isArchiveMode?: boolean;
   selectedTransactions?: number[];
   onToggleSelection?: (transactionId: number) => void;
 }
 
-// مخطط نموذج المعاملة
 const transactionFormSchema = z.object({
   date: z.date({
     required_error: "الرجاء اختيار تاريخ",
   }),
   type: z.string().min(1, "الرجاء اختيار نوع المعاملة"),
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من الصفر"),
-  description: z.string().min(1, "الرجاء إدخال وصف للمعاملة"),
+  description: z.string().min(1, "الرجاء إدخال الوصف"),
   projectId: z.number().nullable().optional(),
 });
 
@@ -109,23 +78,21 @@ export function TransactionList({
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
   
-  // نموذج التعديل
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       date: new Date(),
-      type: "income", // تعيين القيمة الافتراضية إلى "income" بدلاً من ""
+      type: "income",
       amount: 0,
       description: "",
       projectId: null,
     },
   });
   
-  // إعادة تعيين قيم النموذج عند اختيار معاملة للتعديل
   useEffect(() => {
     if (transactionToEdit) {
-      // تأكد من أن نوع المعاملة ليس فارغًا
       const type = transactionToEdit.type || "income";
       
       form.reset({
@@ -133,670 +100,274 @@ export function TransactionList({
         type: type,
         amount: transactionToEdit.amount,
         description: transactionToEdit.description || "",
-        // تأكد من أن قيمة projectId إما رقم أو null وليست undefined
-        projectId: transactionToEdit.projectId !== undefined ? transactionToEdit.projectId : null,
+        projectId: transactionToEdit.projectId || null,
       });
     }
   }, [transactionToEdit, form]);
-  
-  // تعريف mutation لحذف المعاملة
+
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => {
-      return apiRequest('DELETE', `/api/transactions/${id}`, undefined);
-    },
+    mutationFn: (transactionId: number) => 
+      apiRequest(`/api/transactions/${transactionId}`, { method: 'DELETE' }),
     onSuccess: () => {
       toast({
         title: "تم الحذف بنجاح",
-        description: "تم حذف المعاملة المالية بنجاح",
+        description: "تم حذف المعاملة المالية بنجاح.",
       });
       onTransactionUpdated();
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
+        title: "خطأ في الحذف",
+        description: "حدث خطأ أثناء محاولة حذف المعاملة المالية.",
         variant: "destructive",
-        title: "خطأ",
-        description: error instanceof Error ? error.message : "فشل في حذف المعاملة المالية",
       });
     },
   });
-  
-  // تعريف mutation لتحديث المعاملة
+
   const updateMutation = useMutation({
     mutationFn: (data: { id: number; transaction: TransactionFormValues }) => {
-      return apiRequest('PUT', `/api/transactions/${data.id}`, data.transaction);
+      const formattedData = {
+        ...data.transaction,
+        date: data.transaction.date.toISOString(),
+      };
+      return apiRequest(`/api/transactions/${data.id}`, { 
+        method: 'PUT', 
+        body: JSON.stringify(formattedData) 
+      });
     },
     onSuccess: () => {
       toast({
-        title: "تم التعديل بنجاح",
-        description: "تم تعديل المعاملة المالية بنجاح",
+        title: "تم التحديث بنجاح",
+        description: "تم تحديث المعاملة المالية بنجاح.",
       });
-      setEditDialogOpen(false);
       onTransactionUpdated();
+      setEditDialogOpen(false);
+      setTransactionToEdit(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
+        title: "خطأ في التحديث",
+        description: "حدث خطأ أثناء محاولة تحديث المعاملة المالية.",
         variant: "destructive",
-        title: "خطأ",
-        description: error instanceof Error ? error.message : "فشل في تعديل المعاملة المالية",
       });
     },
   });
-  
+
   const handleDeleteClick = (transaction: Transaction) => {
     setTransactionToDelete(transaction);
     setDeleteDialogOpen(true);
   };
-  
+
   const handleEditClick = (transaction: Transaction) => {
     setTransactionToEdit(transaction);
     setEditDialogOpen(true);
   };
-  
-  const confirmDelete = () => {
-    if (transactionToDelete) {
-      deleteMutation.mutate(transactionToDelete.id);
-    }
-    setDeleteDialogOpen(false);
-  };
-  
+
   const onEditSubmit = (values: TransactionFormValues) => {
-    if (transactionToEdit) {
-      // تأكد من صحة البيانات قبل الإرسال
-      const formattedData = {
-        ...values,
-        // التأكد من أن projectId هو null أو رقم صحيح وليس undefined
-        projectId: values.projectId === undefined ? null : values.projectId
-      };
-      
-      console.log("تحديث المعاملة - القيم:", formattedData);
-      
-      updateMutation.mutate({
-        id: transactionToEdit.id,
-        transaction: formattedData
-      });
-    }
+    if (!transactionToEdit) return;
+    updateMutation.mutate({ id: transactionToEdit.id, transaction: values });
   };
-  
-  const getProjectName = (projectId?: number) => {
-    if (!projectId) return 'عام';
+
+  const getProjectName = (projectId: number | undefined) => {
+    if (!projectId) return "بدون مشروع";
     const project = projects.find(p => p.id === projectId);
-    return project ? project.name : 'غير معروف';
+    return project ? project.name : "مشروع غير معروف";
   };
-  
-  // التحقق ما إذا كانت المعاملة هي من الصندوق الرئيسي
-  const isAdminFundTransaction = (transaction: Transaction) => {
-    return transaction.projectId === null || transaction.projectId === undefined;
-  };
-  
-  // التحقق ما إذا كانت المعاملة تمثل عملية تغذية للصندوق الرئيسي
-  const isAdminFundDeposit = (transaction: Transaction) => {
-    return isAdminFundTransaction(transaction) && transaction.type === 'income';
-  };
-  
-  // التحقق ما إذا كانت المعاملة تمثل عملية تغذية للمشروع من الصندوق الرئيسي
-  const isProjectFundingTransaction = (transaction: Transaction) => {
-    return !isAdminFundTransaction(transaction) && transaction.type === 'income';
-  };
-  
-  // تحديد وصف المعاملة حسب نوع المستخدم والمعاملة
-  const { user } = useAuth();
-  const getCustomTransactionDescription = (transaction: Transaction) => {
-    // إذا كانت عملية الصندوق الرئيسي (بدون مشروع)
-    if (isAdminFundTransaction(transaction)) {
-      if (transaction.type === 'income') {
-        return `إيراد للصندوق الرئيسي: ${transaction.description}`;
-      } else {
-        return `مصروف من الصندوق الرئيسي: ${transaction.description}`;
-      }
-    }
-    
-    // إذا كانت عملية متعلقة بمشروع
-    
-    // إذا كان المستخدم مديراً
-    if (user?.role === 'admin') {
-      if (transaction.type === 'income') {
-        return `تم تحويل مبلغ إلى مشروع: ${getProjectName(transaction.projectId)}`;
-      } else {
-        return `تم استلام مبلغ من مشروع: ${getProjectName(transaction.projectId)}`;
-      }
-    } 
-    // إذا كان مستخدم عادي أو مسؤول مشروع
-    else {
-      if (transaction.type === 'income') {
-        return `تم استلام مبلغ من المدير للمشروع`;
-      } else {
-        return `عملية صرف يومية من المشروع`;
-      }
-    }
-  };
-  
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA-u-nu-latn', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-  };
-  
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const dateStr = date.toLocaleDateString('en-GB', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-    const timeStr = date.toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-    return `${dateStr} ${timeStr}`;
-  };
-  
-  // تم إلغاء وظيفة تصدير PDF بسبب مشاكل في عرض النص العربي
-  
-  // تصدير المعاملات إلى Excel
-  const exportToExcel = () => {
-    // إنشاء مصفوفة من بيانات المعاملات معدلة للتصدير مع تضمين جميع التفاصيل
-    const data = transactions.map((transaction, index) => ({
-      'الرقم': index + 1,
-      'التاريخ والوقت': formatDateTime(transaction.date),
-      'العنوان': getCustomTransactionDescription(transaction),
-      'التفاصيل': transaction.description || 'لا يوجد تفاصيل',
-      'المشروع': getProjectName(transaction.projectId),
-      'النوع': transaction.type === 'income' ? 'ايراد' : 'مصروف',
-      'المبلغ': formatCurrency(transaction.amount), // استخدام دالة تنسيق العملة
-      'القيمة الرقمية': transaction.amount, // القيمة الرقمية للمبلغ (للفرز والحسابات)
-      'نوع الصندوق': isAdminFundTransaction(transaction) 
-        ? 'صندوق رئيسي' 
-        : isProjectFundingTransaction(transaction) 
-          ? 'تمويل مشروع' 
-          : 'صرف مشروع',
-      'حالة المرفقات': transaction.fileUrl ? 'يوجد مرفق' : 'لا يوجد مرفقات',
-      'رابط المرفق': transaction.fileUrl || 'لا يوجد',
-      'نوع الملف': transaction.fileType || 'لا يوجد',
-      'معرف المعاملة': transaction.id,
-    }));
 
-    // العناوين المستخدمة في ملف Excel
-    const headers = [
-      'الرقم', 
-      'التاريخ والوقت', 
-      'العنوان', 
-      'التفاصيل', 
-      'المشروع', 
-      'النوع', 
-      'المبلغ',
-      'القيمة الرقمية', 
-      'نوع الصندوق', 
-      'حالة المرفقات',
-      'رابط المرفق',
-      'نوع الملف',
-      'معرف المعاملة'
-    ];
-
-    // إنشاء ورقة عمل جديدة
-    const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
-
-    // تعديل عرض الأعمدة
-    const wscols = [
-      { wch: 8 },    // عرض عمود الرقم
-      { wch: 20 },   // عرض عمود التاريخ
-      { wch: 40 },   // عرض عمود العنوان
-      { wch: 40 },   // عرض عمود التفاصيل
-      { wch: 20 },   // عرض عمود المشروع
-      { wch: 15 },   // عرض عمود النوع
-      { wch: 15 },   // عرض عمود المبلغ (المنسق)
-      { wch: 12 },   // عرض عمود القيمة الرقمية
-      { wch: 15 },   // عرض عمود نوع الصندوق
-      { wch: 15 },   // عرض عمود حالة المرفقات
-      { wch: 50 },   // عرض عمود رابط المرفق
-      { wch: 15 },   // عرض عمود نوع الملف
-      { wch: 12 },   // عرض عمود معرف المعاملة
-    ];
-    worksheet['!cols'] = wscols;
-
-    // تنسيق أنماط الخلايا للترويسة
-    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:M1');
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const address = XLSX.utils.encode_col(C) + '1'; // عنوان الخلية في العمود C، الصف 1
-      if (!worksheet[address]) continue;
-      worksheet[address].s = {
-        font: { bold: true, color: { rgb: '0000FF' } }, // خط عريض وأزرق
-        fill: { fgColor: { rgb: 'E6F0FF' } }, // خلفية زرقاء فاتحة
-        alignment: { horizontal: 'center', vertical: 'center' }, // محاذاة للوسط
-        border: { // إطار حول الخلية
-          top: { style: 'thin' },
-          bottom: { style: 'thin' },
-          left: { style: 'thin' },
-          right: { style: 'thin' }
-        }
-      };
-    }
-
-    // إخفاء عمود القيمة الرقمية (سيظهر فقط في التصدير لأغراض المعالجة)
-    worksheet['!cols'][7].hidden = true;
-    worksheet['!cols'][12].hidden = true;
-
-    // إنشاء كتاب عمل جديد وإضافة ورقة العمل إليه
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعاملات المالية');
-
-    // إنشاء اسم الملف مع التاريخ الحالي
-    const now = new Date();
-    const dateString = format(now, 'yyyy-MM-dd-HHmmss');
-    const fileName = `transactions_${dateString}.xlsx`;
-
-    // تصدير كتاب العمل إلى ملف Excel
-    XLSX.writeFile(workbook, fileName);
-    
-    toast({
-      title: "تم التصدير بنجاح",
-      description: `تم تصدير المعاملات المالية إلى ملف Excel بنجاح (${transactions.length} معاملة)`,
-    });
-  };
-  
   if (isLoading) {
     return (
-      <div className="text-center py-20">
-        <div className="spinner w-8 h-8 mx-auto"></div>
-        <p className="mt-4 text-muted">جاري تحميل البيانات...</p>
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-6">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
-  
+
   if (transactions.length === 0) {
     return (
-      <div className="bg-secondary-light dark:bg-gray-800 rounded-xl shadow-card p-10 text-center">
-        <p className="text-muted-foreground">لا توجد معاملات مالية حتى الآن</p>
-        <p className="text-sm text-muted mt-2 dark:text-gray-400">أضف معاملة جديدة باستخدام النموذج أعلاه</p>
+      <div className="text-center py-12">
+        <div className="text-gray-400 mb-4">
+          <i className="fas fa-receipt text-6xl"></i>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          {isArchiveMode ? "لا توجد معاملات مؤرشفة" : "لا توجد معاملات مالية"}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400">
+          {isArchiveMode ? "لم يتم أرشفة أي معاملات بعد" : "ابدأ بإضافة معاملتك المالية الأولى"}
+        </p>
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="bg-secondary-light dark:bg-gray-800 rounded-xl shadow-card">
         <div className="p-4 flex flex-col md:flex-row justify-between md:items-center gap-3">
-          {/* عدد العمليات المالية */}
           <div className="flex items-center">
             <span className="px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg font-bold text-sm ml-2 flex items-center">
               <i className="fas fa-clipboard-list ml-1.5"></i>
-              إجمالي العمليات: 
+              {transactions.length} معاملة
             </span>
-            <span className="px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg font-bold">
-              {transactions.length}
-            </span>
-          </div>
-          
-          {/* أزرار التصدير */}
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => window.print()}
-              className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
-            >
-              <i className="fas fa-print mr-2"></i> طباعة
-            </Button>
-            {/* تم إلغاء وظيفة تصدير PDF بسبب مشاكل في عرض النص العربي */}
-            <Button 
-              variant="outline" 
-              onClick={exportToExcel}
-              className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
-            >
-              <i className="fas fa-file-excel mr-2"></i> Excel
-            </Button>
           </div>
         </div>
         
-        <div id="transactions-content">
+        <div className="px-4 pb-4">
           {viewType === 'cards' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-              {transactions.map((transaction, index) => (
-                <div 
-                  key={transaction.id} 
-                  className={`p-4 rounded-lg border h-full flex flex-col shadow-sm relative min-h-[250px] max-w-full ${
-                    isArchiveMode && selectedTransactions.includes(transaction.id)
-                      ? 'bg-orange-50 border-orange-300 dark:bg-orange-950/30 dark:border-orange-700' // محدد للأرشفة
-                      : isAdminFundTransaction(transaction)
-                        ? 'bg-indigo-50 border-blue-200 dark:bg-indigo-950/30 dark:border-blue-900' // صندوق رئيسي
-                        : isProjectFundingTransaction(transaction)
-                          ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900' // تمويل مشروع
-                          : index % 2 === 0 
-                            ? 'bg-gray-50 border-gray-200 dark:bg-gray-800/70 dark:border-gray-700' // صفوف زوجية
-                            : 'bg-white border-blue-100 dark:bg-gray-800 dark:border-blue-900/20' // صفوف فردية
-                  } hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-150 ${
-                    isArchiveMode ? 'cursor-pointer' : ''
-                  }`}
-                  onClick={isArchiveMode ? () => onToggleSelection?.(transaction.id) : undefined}
-                >
-                  {/* مربع التحديد للأرشفة */}
-                  {isArchiveMode && (
-                    <div className="absolute top-2 left-2 z-20">
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                        selectedTransactions.includes(transaction.id)
-                          ? 'bg-orange-500 border-orange-500'
-                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-orange-400'
-                      }`}>
-                        {selectedTransactions.includes(transaction.id) && (
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {transactions.map((transaction) => (
+                <Card key={transaction.id} className="transition-all hover:shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {isArchiveMode && onToggleSelection && (
+                          <button
+                            onClick={() => onToggleSelection(transaction.id)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            {selectedTransactions.includes(transaction.id) ? (
+                              <CheckSquare className="h-5 w-5" />
+                            ) : (
+                              <Square className="h-5 w-5" />
+                            )}
+                          </button>
                         )}
+                        <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                          {transaction.type === 'income' ? 'دخل' : 'مصروف'}
+                        </Badge>
                       </div>
-                    </div>
-                  )}
-
-                  {/* رقم المعاملة (الترقيم) بحجم أصغر ومظهر أنيق - لون أزرق */}
-                  <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 text-blue-800 dark:text-blue-300 rounded-full flex items-center justify-center text-[10px] font-bold border border-blue-200/50 dark:border-blue-800/30 z-10 shadow-sm">
-                    {index + 1}
-                  </div>
-                
-                  {/* الجزء العلوي للبطاقة - التاريخ والعلامات */}
-                  <div className="flex flex-col gap-2 mb-3 mt-3">
-                    <span className="text-sm bg-gray-50 dark:bg-gray-900/50 px-2.5 py-1 rounded-lg text-gray-600 dark:text-gray-300 font-medium border border-gray-100 dark:border-gray-700 flex items-center w-fit">
-                      <i className="fas fa-calendar-alt ml-1.5 text-gray-500 dark:text-gray-400"></i>
-                      {formatDateTime(transaction.date)}
-                    </span>
-                    <div className="flex flex-wrap gap-1 w-full">
-                      {isAdminFundTransaction(transaction) && (
-                        <span className="px-2 py-1 text-[10px] rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center border border-blue-200 dark:border-blue-800 whitespace-nowrap">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2v20M2 12h20"></path>
-                          </svg>
-                          صندوق رئيسي
-                        </span>
-                      )}
-                      {isProjectFundingTransaction(transaction) && (
-                        <span className="px-2 py-1 text-[10px] rounded-lg bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 flex items-center border border-green-200 dark:border-green-800 whitespace-nowrap">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14M12 5l7 7-7 7"></path>
-                          </svg>
-                          تمويل مشروع
-                        </span>
-                      )}
-                      <span className={`px-2 py-1 text-[10px] rounded-lg flex items-center border whitespace-nowrap ${
-                        transaction.type === 'income' 
-                          ? 'bg-success/10 text-success border-success/20' 
-                          : 'bg-destructive/10 text-destructive border-destructive/20'
-                      }`}>
-                        {transaction.type === 'income' ? (
-                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 19V5M5 12l7-7 7 7"/>
-                          </svg>
-                        ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 5v14M5 12l7 7 7-7"/>
-                          </svg>
-                        )}
-                        {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatDateTime(transaction.date)}
                       </span>
                     </div>
-                  </div>
-                  
-                  {/* وصف المعاملة */}
-                  <div className="min-h-[50px] mb-2 w-full">
-                    <p className="font-medium text-sm leading-5 break-words overflow-hidden" 
-                       style={{ 
-                         display: '-webkit-box', 
-                         WebkitLineClamp: 3, 
-                         WebkitBoxOrient: 'vertical' 
-                       }}
-                       title={getCustomTransactionDescription(transaction)}>
-                      {getCustomTransactionDescription(transaction)}
-                    </p>
-                  </div>
-                  
-                  {/* تفاصيل المعاملة - إذا وجدت */}
-                  {transaction.description && (
-                    <div className="mb-3 bg-gray-50 dark:bg-gray-900/40 p-2 rounded-lg border border-gray-100 dark:border-gray-700 w-full">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">التفاصيل:</span>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 break-words overflow-hidden"
-                         style={{ 
-                           display: '-webkit-box', 
-                           WebkitLineClamp: 2, 
-                           WebkitBoxOrient: 'vertical' 
-                         }}
-                         title={transaction.description}>
-                        {transaction.description}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* معلومات المشروع */}
-                  <div className="text-xs bg-gray-50 dark:bg-gray-900/40 px-2 py-1 rounded-lg text-gray-600 dark:text-gray-300 mb-3 border border-gray-100 dark:border-gray-700 flex items-center w-full">
-                    <i className="fas fa-folder ml-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0"></i>
-                    <span className="truncate" title={`المشروع: ${getProjectName(transaction.projectId)}`}>
-                      المشروع: {getProjectName(transaction.projectId)}
-                    </span>
-                  </div>
-                  
-                  {/* عرض المرفق إذا وجد */}
-                  {transaction.fileUrl && (
-                    <div className="mb-3 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-100 dark:border-blue-800/30">
-                      <span className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1 block">المرفقات:</span>
-                      <button 
-                        onClick={() => window.open(transaction.fileUrl, '_blank')}
-                        className="text-blue-600 dark:text-blue-400 hover:underline focus:outline-none text-xs flex items-center"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                          <polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                        عرض المرفق
-                      </button>
-                    </div>
-                  )}
-                  
-                  {/* المبلغ والأزرار */}
-                  <div className="flex flex-col gap-3 mt-auto pt-3 border-t border-gray-200 dark:border-gray-600">
-                    <span className={`text-sm sm:text-lg font-bold px-3 py-2 rounded-lg border text-center ${
-                      transaction.type === 'income' 
-                        ? 'text-success bg-success/5 dark:bg-success/10 border-success/20' 
-                        : 'text-destructive bg-destructive/5 dark:bg-destructive/10 border-destructive/20'
-                    }`}>
-                      {transaction.type === 'income' ? '+' : '-'}
-                      {formatCurrency(transaction.amount)}
-                    </span>
                     
-                    {user?.role === 'admin' && (
-                      <div className="flex gap-2 justify-center">
-                        <button 
-                          className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow-md border border-blue-200 dark:border-blue-800"
-                          onClick={() => handleEditClick(transaction)}
-                        >
-                          <i className="fas fa-edit ml-1"></i>
-                          تعديل
-                        </button>
-                        <button 
-                          className="flex-1 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-lg text-xs font-medium flex items-center justify-center shadow-sm transition-all duration-150 hover:shadow-md border border-red-200 dark:border-red-800"
-                          onClick={() => handleDeleteClick(transaction)}
-                        >
-                          <i className="fas fa-trash-alt ml-1"></i>
-                          حذف
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    <h3 className="font-medium mb-2">{transaction.description}</h3>
+                    
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      المشروع: {getProjectName(transaction.projectId)}
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className={`font-bold text-lg ${
+                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                      </span>
+                      
+                      {user?.role === 'admin' && !isArchiveMode && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditClick(transaction)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteClick(transaction)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
-            <div className="w-full overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse bg-white dark:bg-gray-800">
-                  <thead className="bg-blue-50 dark:bg-gray-700 sticky top-0">
-                    <tr className="border-b border-gray-200 dark:border-gray-600">
-                      {isArchiveMode && (
-                        <th scope="col" className="w-12 px-2 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">
-                          <input
-                            type="checkbox"
-                            checked={selectedTransactions.length === transactions.length && transactions.length > 0}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                onToggleSelection && transactions.forEach(t => onToggleSelection(t.id));
-                              } else {
-                                selectedTransactions.forEach(id => onToggleSelection && onToggleSelection(id));
-                              }
-                            }}
-                            className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                          />
-                        </th>
-                      )}
-                      <th scope="col" className="w-16 px-2 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">#</th>
-                      <th scope="col" className="w-28 px-2 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">التاريخ</th>
-                      <th scope="col" className="w-48 px-2 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">الوصف</th>
-                      <th scope="col" className="w-24 px-2 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">المشروع</th>
-                      <th scope="col" className="w-20 px-2 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">النوع</th>
-                      <th scope="col" className="w-28 px-2 py-3 text-right text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">المبلغ</th>
-                      <th scope="col" className="w-16 px-2 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider border-l border-gray-200 dark:border-gray-600">مرفق</th>
-                      <th scope="col" className="w-24 px-2 py-3 text-center text-xs font-medium text-blue-700 dark:text-blue-300 uppercase tracking-wider">إجراءات</th>
-                    </tr>
-                  </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-                  {transactions.map((transaction, index) => (
-                    <tr 
-                      key={transaction.id}
-                      className={`border-b border-gray-200 dark:border-gray-600 ${
-                        isArchiveMode && selectedTransactions.includes(transaction.id)
-                          ? 'bg-orange-50 dark:bg-orange-950/30' // محدد للأرشفة
-                          : isAdminFundTransaction(transaction)
-                            ? 'bg-indigo-50/50 dark:bg-indigo-950/20' // صندوق رئيسي
-                            : isProjectFundingTransaction(transaction)
-                              ? 'bg-green-50/50 dark:bg-green-950/20' // تمويل مشروع
-                              : index % 2 === 0 
-                                ? 'bg-gray-50/50 dark:bg-gray-800/50' // صفوف زوجية
-                                : 'bg-white dark:bg-gray-800' // صفوف فردية
-                      } hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 ${
-                        isArchiveMode ? 'cursor-pointer' : ''
-                      }`}
-                      onClick={isArchiveMode ? () => onToggleSelection?.(transaction.id) : undefined}
-                    >
-                      {/* مربع التحديد للأرشفة */}
-                      {isArchiveMode && (
-                        <td className="w-12 px-3 py-3 text-center border-l border-gray-200 dark:border-gray-600">
-                          <input
-                            type="checkbox"
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    {isArchiveMode && onToggleSelection && (
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        اختيار
+                      </th>
+                    )}
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      التاريخ
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      الوصف
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      المشروع
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      النوع
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      المبلغ
+                    </th>
+                    {user?.role === 'admin' && !isArchiveMode && (
+                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        الإجراءات
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                  {transactions.map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                      {isArchiveMode && onToggleSelection && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Checkbox
                             checked={selectedTransactions.includes(transaction.id)}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              onToggleSelection?.(transaction.id);
-                            }}
-                            className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                            onCheckedChange={() => onToggleSelection(transaction.id)}
                           />
                         </td>
                       )}
-
-                      {/* رقم المعاملة */}
-                      <td className="w-16 px-3 py-3 text-center text-xs font-bold border-l border-gray-200 dark:border-gray-600">
-                        <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-xs font-bold">
-                          {index + 1}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {formatDateTime(transaction.date)}
                       </td>
-                      
-                      {/* التاريخ */}
-                      <td className="w-36 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-600">
-                        <div className="truncate font-medium">
-                          {formatDate(transaction.date)}
-                        </div>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                        {transaction.description}
                       </td>
-                      
-                      {/* الوصف */}
-                      <td className="w-48 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-600">
-                        <div className="truncate" title={getCustomTransactionDescription(transaction)}>
-                          {getCustomTransactionDescription(transaction)}
-                        </div>
-                        {transaction.description && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate" title={transaction.description}>
-                            {transaction.description}
-                          </div>
-                        )}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {getProjectName(transaction.projectId)}
                       </td>
-                      
-                      {/* المشروع */}
-                      <td className="w-32 px-3 py-3 text-sm text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-600">
-                        <div className="truncate">
-                          {isAdminFundTransaction(transaction) ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                              رئيسي
-                            </span>
-                          ) : (
-                            <span className="truncate" title={getProjectName(transaction.projectId)}>
-                              {getProjectName(transaction.projectId)}
-                            </span>
-                          )}
-                        </div>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                          {transaction.type === 'income' ? 'دخل' : 'مصروف'}
+                        </Badge>
                       </td>
-                      
-                      {/* النوع */}
-                      <td className="w-24 px-3 py-3 text-center border-l border-gray-200 dark:border-gray-600">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          transaction.type === 'income' 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}>
-                          {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
-                        </span>
-                      </td>
-                      
-                      {/* المبلغ */}
-                      <td className={`w-32 px-3 py-3 text-sm font-bold border-l border-gray-200 dark:border-gray-600 text-left ${
-                        transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                      }`}>
-                        <div className="flex items-center justify-end">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
                           {transaction.type === 'income' ? '+' : '-'}
                           {formatCurrency(transaction.amount)}
-                        </div>
+                        </span>
                       </td>
-                      
-                      {/* المرفق */}
-                      <td className="w-24 px-3 py-3 text-center text-sm border-l border-gray-200 dark:border-gray-600">
-                        {transaction.fileUrl ? (
-                          <button 
-                            onClick={() => window.open(transaction.fileUrl, '_blank')}
-                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                            title="عرض المرفق"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                              <polyline points="14 2 14 8 20 8"/>
-                            </svg>
-                          </button>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500">-</span>
-                        )}
-                      </td>
-                      
-                      {/* الإجراءات */}
-                      <td className="w-32 px-3 py-3 text-sm">
-                        <div className="flex gap-1 justify-end">
-                          {user?.role === 'admin' && (
-                            <>
-                              <button 
-                                className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 rounded text-xs transition-colors"
-                                onClick={() => handleEditClick(transaction)}
-                                title="تعديل"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                              </button>
-                              <button 
-                                className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded text-xs transition-colors"
-                                onClick={() => handleDeleteClick(transaction)}
-                                title="حذف"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="3,6 5,6 21,6"/>
-                                  <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
-                                </svg>
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                      {user?.role === 'admin' && !isArchiveMode && (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditClick(transaction)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteClick(transaction)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -806,7 +377,6 @@ export function TransactionList({
         </div>
       </div>
       
-      {/* مربع حوار حذف معاملة */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -818,47 +388,47 @@ export function TransactionList({
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmDelete}
+              onClick={() => {
+                if (transactionToDelete) {
+                  deleteMutation.mutate(transactionToDelete.id);
+                }
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? (
-                <span className="spinner ml-2"></span>
-              ) : null}
-              تأكيد الحذف
+              حذف
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
-      {/* مربع حوار تعديل معاملة */}
+
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="mb-4">تعديل معاملة مالية</DialogTitle>
+            <DialogTitle>تعديل المعاملة المالية</DialogTitle>
           </DialogHeader>
-          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-4">
-              {/* حقل التاريخ */}
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="mb-2">التاريخ</FormLabel>
+                  <FormItem>
+                    <FormLabel>التاريخ</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={"outline"}
-                            className="pl-3 text-right font-normal justify-between"
+                            className={`w-full pl-3 text-right font-normal ${
+                              !field.value && "text-muted-foreground"
+                            }`}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP', { locale: ar })
+                              format(field.value, "PPP", { locale: ar })
                             ) : (
-                              <span>اختر تاريخ</span>
+                              <span>اختر التاريخ</span>
                             )}
-                            <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -867,7 +437,9 @@ export function TransactionList({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date > new Date()}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
                           initialFocus
                         />
                       </PopoverContent>
@@ -876,26 +448,21 @@ export function TransactionList({
                   </FormItem>
                 )}
               />
-              
-              {/* حقل نوع المعاملة */}
+
               <FormField
                 control={form.control}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>نوع المعاملة</FormLabel>
-                    <Select
-                      dir="rtl"
-                      value={field.value || "income"}
-                      onValueChange={field.onChange}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر نوع المعاملة" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper">
-                        <SelectItem value="income">إيراد</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="income">دخل</SelectItem>
                         <SelectItem value="expense">مصروف</SelectItem>
                       </SelectContent>
                     </Select>
@@ -903,8 +470,7 @@ export function TransactionList({
                   </FormItem>
                 )}
               />
-              
-              {/* حقل المبلغ */}
+
               <FormField
                 control={form.control}
                 name="amount"
@@ -912,22 +478,18 @@ export function TransactionList({
                   <FormItem>
                     <FormLabel>المبلغ</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="أدخل المبلغ"
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value === "" ? "0" : e.target.value;
-                          field.onChange(Number(value));
-                        }}
+                      <Input 
+                        type="number" 
+                        step="0.01" 
+                        placeholder="أدخل المبلغ" 
+                        {...field} 
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              {/* حقل الوصف */}
+
               <FormField
                 control={form.control}
                 name="description"
@@ -935,7 +497,7 @@ export function TransactionList({
                   <FormItem>
                     <FormLabel>الوصف</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <Textarea 
                         placeholder="أدخل وصف المعاملة"
                         className="resize-none"
                         {...field}
@@ -945,34 +507,28 @@ export function TransactionList({
                   </FormItem>
                 )}
               />
-              
-              {/* حقل المشروع */}
+
               <FormField
                 control={form.control}
                 name="projectId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>المشروع</FormLabel>
-                    <Select
-                      dir="rtl"
-                      value={field.value !== null && field.value !== undefined ? field.value.toString() : "none"}
-                      onValueChange={(value) => {
-                        if (value === "none") {
-                          field.onChange(null);
-                        } else {
-                          field.onChange(Number(value));
-                        }
-                      }}
+                    <FormLabel>المشروع (اختياري)</FormLabel>
+                    <Select 
+                      onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
+                      value={field.value?.toString() || ""}
                     >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر المشروع" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper">
-                        <SelectItem value="none">عام (بدون مشروع)</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="">بدون مشروع</SelectItem>
                         {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id.toString()}>{project.name}</SelectItem>
+                          <SelectItem key={project.id} value={project.id.toString()}>
+                            {project.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -980,22 +536,15 @@ export function TransactionList({
                   </FormItem>
                 )}
               />
-              
-              <DialogFooter className="mt-6 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditDialogOpen(false)}
-                >
-                  إلغاء
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-primary text-white"
+
+              <DialogFooter>
+                <Button 
+                  type="submit" 
                   disabled={updateMutation.isPending}
+                  className="w-full"
                 >
                   {updateMutation.isPending && (
-                    <span className="spinner ml-2"></span>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
                   )}
                   حفظ التغييرات
                 </Button>
