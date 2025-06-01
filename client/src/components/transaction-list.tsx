@@ -328,10 +328,10 @@ export function TransactionList({
                       <td className="px-3 py-2 whitespace-nowrap text-xs md:text-sm text-gray-900 dark:text-white">
                         {formatDateTime(transaction.date)}
                       </td>
-                      <td className="px-3 py-2 text-xs md:text-sm text-gray-900 dark:text-white max-w-40 truncate">
-                        <span title={transaction.description}>
+                      <td className="px-3 py-2 text-xs md:text-sm text-gray-900 dark:text-white">
+                        <div className="max-w-48 break-words">
                           {transaction.description}
-                        </span>
+                        </div>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 max-w-20 truncate">
                         <span title={getProjectName(transaction.projectId)}>
