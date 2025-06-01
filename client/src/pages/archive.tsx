@@ -12,12 +12,10 @@ import { formatDate } from "@/utils/date-utils";
 
 // دالة تنسيق العملة محلياً
 const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('ar-SA', {
-    style: 'currency',
-    currency: 'SAR',
+  return new Intl.NumberFormat('ar-IQ', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(amount) + ' د.ع';
 };
 
 // تعريف أنواع البيانات للمعاملات المالية
@@ -648,24 +646,24 @@ export default function ArchivePage() {
 
                           {/* المحتوى الرئيسي */}
                           <div className="flex-1 pr-10">
-                            <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                            <h3 className="font-medium text-sm text-foreground mb-2 line-clamp-2">
                               {transaction.description}
                             </h3>
                             
-                            <div className="space-y-2 text-sm text-muted-foreground">
+                            <div className="space-y-1 text-xs text-muted-foreground">
                               <div className="flex items-center">
-                                <Calendar className="w-4 h-4 ml-2" />
+                                <Calendar className="w-3 h-3 ml-1" />
                                 <span>{formatDate(transaction.date)}</span>
                               </div>
                               
                               <div className="flex items-center">
-                                <DollarSign className="w-4 h-4 ml-2" />
+                                <DollarSign className="w-3 h-3 ml-1" />
                                 <span>{getProjectName(transaction.projectId)}</span>
                               </div>
                               
                               {transaction.attachmentUrl && (
                                 <div className="flex items-center">
-                                  <FileText className="w-4 h-4 ml-2" />
+                                  <FileText className="w-3 h-3 ml-1" />
                                   <span>يحتوي على مرفق</span>
                                 </div>
                               )}
@@ -673,12 +671,12 @@ export default function ArchivePage() {
                           </div>
 
                           {/* المبلغ */}
-                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
                             <div className="flex justify-between items-center">
                               <span className="text-xs text-muted-foreground">
                                 {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                               </span>
-                              <span className={`text-lg font-bold ${getTransactionColor(transaction.type)}`}>
+                              <span className={`text-sm font-bold ${getTransactionColor(transaction.type)}`}>
                                 {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
                               </span>
                             </div>
