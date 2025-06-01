@@ -218,11 +218,12 @@ export function TransactionList({
         
         <div className="px-4 pb-4">
           {viewType === 'cards' ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {transactions.map((transaction) => (
-                <Card key={transaction.id} className="transition-all hover:shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
+                <Card key={transaction.id} className="transition-all hover:shadow-md relative">
+                  <CardContent className="p-3">
+                    {/* الصف الأول: النوع والتاريخ والأزرار */}
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         {isArchiveMode && onToggleSelection && (
                           <button
@@ -230,53 +231,60 @@ export function TransactionList({
                             className="text-blue-600 hover:text-blue-700"
                           >
                             {selectedTransactions.includes(transaction.id) ? (
-                              <CheckSquare className="h-5 w-5" />
+                              <CheckSquare className="h-4 w-4" />
                             ) : (
-                              <Square className="h-5 w-5" />
+                              <Square className="h-4 w-4" />
                             )}
                           </button>
                         )}
-                        <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                        <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'} className="text-xs px-2 py-0.5">
                           {transaction.type === 'income' ? 'دخل' : 'مصروف'}
                         </Badge>
                       </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatDateTime(transaction.date)}
-                      </span>
+                      
+                      {user?.role === 'admin' && !isArchiveMode && (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditClick(transaction)}
+                            className="h-7 w-7 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteClick(transaction)}
+                            className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     
-                    <h3 className="font-medium mb-2">{transaction.description}</h3>
+                    {/* التاريخ */}
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      {formatDateTime(transaction.date)}
+                    </div>
                     
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    {/* الوصف */}
+                    <h3 className="text-sm font-medium mb-2 line-clamp-2">{transaction.description}</h3>
+                    
+                    {/* المشروع */}
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                       المشروع: {getProjectName(transaction.projectId)}
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <span className={`font-bold text-lg ${
+                    {/* المبلغ */}
+                    <div className="text-left">
+                      <span className={`font-bold text-sm ${
                         transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {transaction.type === 'income' ? '+' : '-'}
                         {formatCurrency(transaction.amount)}
                       </span>
-                      
-                      {user?.role === 'admin' && !isArchiveMode && (
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditClick(transaction)}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteClick(transaction)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
