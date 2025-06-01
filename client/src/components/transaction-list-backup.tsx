@@ -1004,6 +1004,6 @@ export function TransactionList({
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
