@@ -48,29 +48,40 @@ export default function Transactions() {
       const [_, filterParams] = queryKey as [string, Filter];
       const params = new URLSearchParams();
       
-      if (filterParams.projectId) params.append('projectId', String(filterParams.projectId));
-      if (filterParams.type) params.append('type', filterParams.type);
+      if (filterParams.projectId) {
+        params.append('projectId', filterParams.projectId.toString());
+      }
+      if (filterParams.type) {
+        params.append('type', filterParams.type);
+      }
+      if (filterParams.startDate) {
+        params.append('startDate', filterParams.startDate);
+      }
+      if (filterParams.endDate) {
+        params.append('endDate', filterParams.endDate);
+      }
       
-      const response = await fetch(`/api/transactions?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch transactions');
+      const url = `/api/transactions${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       return response.json();
-    }
+    },
   });
-  
+
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
   });
-  
-  const handleFilterChange = (newFilter: Partial<Filter>) => {
-    setFilter({ ...filter, ...newFilter });
-  };
-  
+
   const handleFormSubmit = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
   };
 
-  // دالة الأرشفة اليدوية
+  const [activeTab, setActiveTab] = useState<"admin" | "all" | "projects">("all");
+
   const archiveMutation = useMutation({
     mutationFn: async (transactionIds: number[]) => {
       const response = await fetch('/api/transactions/archive', {
@@ -80,499 +91,214 @@ export default function Transactions() {
         },
         body: JSON.stringify({ transactionIds }),
       });
-      if (!response.ok) throw new Error('فشل في أرشفة المعاملات');
+
+      if (!response.ok) {
+        throw new Error('فشل في أرشفة المعاملات');
+      }
+
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "تم الأرشفة بنجاح",
-        description: `تم أرشفة ${selectedTransactions.length} معاملة بنجاح`,
+        description: `تم أرشفة ${data.archivedCount} معاملة مالية`,
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       setSelectedTransactions([]);
       setIsArchiveMode(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/archive'] });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
-        title: "خطأ في الأرشفة",
-        description: error.message || "حدث خطأ أثناء أرشفة المعاملات",
         variant: "destructive",
+        title: "خطأ في الأرشفة",
+        description: error instanceof Error ? error.message : "فشل في أرشفة المعاملات",
       });
     },
   });
 
-  // دوال التحديد
+  const handleArchive = () => {
+    if (selectedTransactions.length > 0) {
+      archiveMutation.mutate(selectedTransactions);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (transactions) {
+      setSelectedTransactions(transactions.map(t => t.id));
+    }
+  };
+
+  const handleUnselectAll = () => {
+    setSelectedTransactions([]);
+  };
+
   const toggleTransactionSelection = (transactionId: number) => {
     setSelectedTransactions(prev => 
-      prev.includes(transactionId) 
+      prev.includes(transactionId)
         ? prev.filter(id => id !== transactionId)
         : [...prev, transactionId]
     );
   };
 
-  const selectAllTransactions = () => {
-    const allIds = filteredTransactions.map(t => t.id);
-    setSelectedTransactions(allIds);
-  };
-
-  const clearSelection = () => {
-    setSelectedTransactions([]);
-  };
-
-  const handleArchiveSelected = () => {
-    if (selectedTransactions.length === 0) {
-      toast({
-        title: "لا توجد معاملات محددة",
-        description: "يرجى تحديد معاملة واحدة على الأقل للأرشفة",
-        variant: "destructive",
-      });
-      return;
-    }
-    archiveMutation.mutate(selectedTransactions);
-  };
-  
-  // تعيين التبويب الافتراضي حسب دور المستخدم
-  const defaultTab = user?.role === 'admin' ? 'all' : 'projects';
-  const [activeTab, setActiveTab] = useState<'all' | 'admin' | 'projects'>(defaultTab);
-  
-  // دالة للحصول على اسم المشروع
-  const getProjectName = (projectId?: number): string => {
-    if (!projectId) return 'الصندوق الرئيسي';
-    const project = projects?.find(p => p.id === projectId);
-    return project?.name || `مشروع رقم ${projectId}`;
-  };
-
-  // فلترة العمليات المالية حسب التبويب النشط والبحث
   const filteredTransactions = useMemo(() => {
-    // أولاً نقوم بفلترة المعاملات حسب التبويب النشط
-    let filtered = [];
-    if (activeTab === 'all') {
-      filtered = transactions || [];
-    } else if (activeTab === 'admin') {
-      // للصندوق الرئيسي: عرض جميع المعاملات التي ليس لها مشروع
-      filtered = transactions?.filter(t => t.projectId === null || t.projectId === undefined) || [];
-    } else if (activeTab === 'projects') {
-      // للمشاريع: عرض المعاملات المرتبطة بمشاريع
-      // بالإضافة إلى عمليات الإيداع في الصندوق الرئيسي (لأنها مصدر تمويل المشاريع)
-      filtered = transactions?.filter(t => 
-        // المعاملات المرتبطة بمشروع
-        (t.projectId !== null && t.projectId !== undefined) ||
-        // أو المعاملات من نوع إيراد في الصندوق الرئيسي (تغذية الصندوق)
-        (t.type === 'income' && (t.projectId === null || t.projectId === undefined))
-      ) || [];
-    } else {
-      filtered = transactions || [];
-    }
+    if (!transactions) return [];
+    
+    let filtered = [...transactions];
 
-    // ثم نطبق البحث النصي
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(transaction => {
-        // البحث في الوصف
-        const descriptionMatch = transaction.description?.toLowerCase().includes(query);
-        // البحث في اسم المشروع
-        const projectName = getProjectName(transaction.projectId);
-        const projectMatch = projectName.toLowerCase().includes(query);
-        // البحث في نوع المعاملة
-        const typeMatch = transaction.type === 'income' 
-          ? 'إيراد'.includes(query) || 'ايراد'.includes(query) 
-          : 'مصروف'.includes(query) || 'مصاريف'.includes(query);
-        
-        return descriptionMatch || projectMatch || typeMatch;
-      });
+      filtered = filtered.filter(transaction => 
+        transaction.description.toLowerCase().includes(query) ||
+        transaction.amount.toString().includes(query) ||
+        (transaction.type === 'income' && 'ايراد'.includes(query)) ||
+        (transaction.type === 'expense' && 'مصروف'.includes(query)) ||
+        projects?.find(p => p.id === transaction.projectId)?.name.toLowerCase().includes(query)
+      );
     }
     
-    // ثم نقوم بترتيب المعاملات بحيث تظهر الأحدث في الأعلى
     return [...filtered].sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
-  }, [transactions, activeTab, searchQuery, projects]);
+  }, [transactions, searchQuery, projects]);
 
   return (
-    <div className="py-6 px-4 pb-mobile-nav-large">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-3">
-          <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
-          العمليات المالية
-        </h1>
-        <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة ومتابعة جميع المعاملات المالية في النظام</p>
-      </div>
-      
-      {user?.role !== 'viewer' && (
-        <div className="mb-8 fade-in">
-          {/* Transaction Form - Now occupies full width at the top */}
-          <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm">
-            <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-              <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
-              <span>إضافة معاملة جديدة</span>
-            </h3>
-            <TransactionForm 
-              projects={projects || []} 
-              onSubmit={handleFormSubmit} 
-              isLoading={projectsLoading}
-            />
-          </div>
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="py-6 px-4 pb-mobile-nav-large">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-3">
+            <i className="fas fa-exchange-alt text-[hsl(var(--primary))]"></i>
+            العمليات المالية
+          </h1>
+          <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة ومتابعة جميع المعاملات المالية في النظام</p>
         </div>
-      )}
       
-      {/* تبويبات العمليات المالية - تم تحسين التنسيق */}
-      <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
-        <Tabs defaultValue={defaultTab} onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}>
-          {/* العنوان وأدوات التحكم في صف واحد مرتب */}
+        {user?.role !== 'viewer' && (
+          <div className="mb-8 fade-in">
+            <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm">
+              <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
+                <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
+                <span>إضافة معاملة جديدة</span>
+              </h3>
+              <TransactionForm 
+                projects={projects || []} 
+                onSubmit={handleFormSubmit} 
+                isLoading={projectsLoading}
+              />
+            </div>
+          </div>
+        )}
+        
+        <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-5 rounded-xl shadow-sm fade-in">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-3">
             <h3 className="text-base font-medium text-[hsl(var(--foreground))] flex items-center gap-2">
-              <i className="fas fa-filter text-[hsl(var(--primary))] text-sm"></i>
-              <span>تصفية وعرض المعاملات</span>
+              <Filter className="w-4 h-4" />
+              عرض وفلترة المعاملات المالية
             </h3>
             
-            {/* شريط البحث وأدوات الأرشفة */}
             <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
-              {/* أزرار الأرشفة مصغرة */}
-              {!isArchiveMode ? (
-                <Button
-                  onClick={() => setIsArchiveMode(true)}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                >
-                  <Archive className="h-3 w-3" />
-                  أرشفة يدوية
-                </Button>
-              ) : (
+              <Button
+                variant={isArchiveMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsArchiveMode(!isArchiveMode)}
+                className="flex items-center gap-1 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+              >
+                <Archive className="w-4 h-4" />
+                {isArchiveMode ? 'إلغاء الأرشفة' : 'وضع الأرشفة'}
+              </Button>
+              
+              {isArchiveMode && (
                 <div className="flex flex-wrap gap-1">
                   <Button
-                    onClick={handleArchiveSelected}
-                    disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
                     size="sm"
+                    onClick={handleSelectAll}
                     className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-xs"
                   >
-                    <Archive className="h-3 w-3" />
-                    أرشفة ({selectedTransactions.length})
+                    <CheckSquare className="w-3 h-3" />
+                    تحديد الكل ({selectedTransactions.length})
                   </Button>
+                  
                   <Button
-                    onClick={selectAllTransactions}
-                    variant="outline"
                     size="sm"
+                    variant="outline"
+                    onClick={handleUnselectAll}
                     className="flex items-center gap-1 text-xs"
                   >
-                    <CheckSquare className="h-3 w-3" />
-                    تحديد الكل
-                  </Button>
-                  <Button
-                    onClick={clearSelection}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1 text-xs"
-                  >
-                    <Square className="h-3 w-3" />
+                    <Square className="w-3 h-3" />
                     إلغاء التحديد
                   </Button>
+                  
                   <Button
-                    onClick={() => {
-                      setIsArchiveMode(false);
-                      setSelectedTransactions([]);
-                    }}
-                    variant="outline"
                     size="sm"
-                    className="text-xs"
+                    variant="outline"
+                    onClick={handleArchive}
+                    disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
+                    className="flex items-center gap-1 text-xs"
                   >
-                    إلغاء
+                    <Archive className="w-3 h-3" />
+                    أرشفة ({selectedTransactions.length})
                   </Button>
                 </div>
               )}
-              
-              <div className="relative">
-                <Search className="absolute right-2 top-2 h-3 w-3 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="بحث..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-3 pr-7 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-transparent w-full lg:w-40"
-                />
-              </div>
-              <div className="w-full lg:w-auto">
-                <Select 
-                  defaultValue={defaultTab}
-                  onValueChange={(value) => setActiveTab(value as 'all' | 'admin' | 'projects')}
-                >
-                <SelectTrigger className="w-full lg:w-44 h-8 text-sm rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] shadow-sm">
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-1.5">
-                      {activeTab === 'all' && <Filter className="h-3 w-3 text-[hsl(var(--muted-foreground))]" />}
-                      {activeTab === 'admin' && <ArrowUp className="h-3 w-3 text-blue-500 dark:text-blue-400" />}
-                      {activeTab === 'projects' && <ArrowDown className="h-3 w-3 text-green-500 dark:text-green-400" />}
-                      <SelectValue placeholder="اختر نوع العمليات" className="text-xs font-medium" />
-                    </div>
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="bg-[hsl(var(--background))] border border-[hsl(var(--border))] shadow-md rounded-lg">
-                  {/* إظهار خيار "الكل" للمدير فقط */}
-                  {user?.role === 'admin' && (
-                    <SelectItem 
-                      value="all" 
-                      className="hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors py-2.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-[hsl(var(--muted-foreground))] ml-2" />
-                        <span className="font-medium text-[hsl(var(--foreground))]">جميع العمليات المالية</span>
-                      </div>
-                    </SelectItem>
-                  )}
-                  
-                  {/* إظهار خيار "الصندوق الرئيسي" للمدير فقط */}
-                  {user?.role === 'admin' && (
-                    <SelectItem 
-                      value="admin" 
-                      className="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors py-2.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <ArrowUp className="h-4 w-4 text-blue-500 dark:text-blue-400 ml-2" />
-                        <span className="font-medium text-blue-700 dark:text-blue-400">عمليات الصندوق الرئيسي</span>
-                      </div>
-                    </SelectItem>
-                  )}
-                  
-                  {/* خيار "المشاريع" مرئي للجميع */}
-                  <SelectItem 
-                    value="projects" 
-                    className="hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors py-2.5"
-                  >
-                    <div className="flex items-center gap-2">
-                      <ArrowDown className="h-4 w-4 text-green-500 dark:text-green-400 ml-2" />
-                      <span className="font-medium text-green-700 dark:text-green-400">عمليات المشاريع</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              </div>
             </div>
           </div>
-          
-          {/* Filters and Controls - تم تحسين التنسيق */}
+
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-100 dark:border-slate-700">
             <h3 className="text-lg font-bold text-[hsl(var(--primary))] flex items-center gap-2">
-              <i className="fas fa-filter text-[hsl(var(--primary))]"></i>
-              <span>تصفية المعاملات</span>
+              <Search className="w-5 h-5" />
+              البحث والعرض
             </h3>
             <div className="flex gap-2 mt-2 md:mt-0 w-full md:w-auto">
-              <button 
+              <Button
+                variant={currentView === 'cards' ? 'default' : 'outline'}
+                onClick={() => setCurrentView('cards')}
                 className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center justify-center gap-2 ${
                   currentView === 'cards' 
-                    ? 'bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))]' 
-                    : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border))] hover:border-[hsl(var(--primary))]'
+                    ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-[hsl(var(--primary))]' 
+                    : 'bg-[hsl(var(--background))] text-[hsl(var(--foreground))] border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]'
                 }`}
-                onClick={() => setCurrentView('cards')}
               >
-                <i className="fas fa-th"></i>
-                <span>بطاقات</span>
-              </button>
-              <button 
+                عرض البطاقات
+              </Button>
+              <Button
+                variant={currentView === 'table' ? 'default' : 'outline'}
+                onClick={() => setCurrentView('table')}
                 className={`flex-1 md:flex-none px-3 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center justify-center gap-2 ${
                   currentView === 'table' 
-                    ? 'bg-[hsl(var(--primary))] text-white border-[hsl(var(--primary))]' 
-                    : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border))] hover:border-[hsl(var(--primary))]'
+                    ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-[hsl(var(--primary))]' 
+                    : 'bg-[hsl(var(--background))] text-[hsl(var(--foreground))] border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]'
                 }`}
-                onClick={() => setCurrentView('table')}
               >
-                <i className="fas fa-list"></i>
-                <span>جدول</span>
-              </button>
+                عرض الجدول
+              </Button>
             </div>
           </div>
 
-          {/* أزرار الأرشفة اليدوية - مع تباعد محسن */}
-          {(user?.role === 'admin' || user?.role === 'manager') && (
-            <div className="mb-6 mt-8">
-              <div className="flex flex-col gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Archive className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                      الأرشفة اليدوية
-                    </span>
-                    {selectedTransactions.length > 0 && (
-                      <span className="bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full text-xs font-medium">
-                        {selectedTransactions.length} محدد
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => {
-                      setIsArchiveMode(!isArchiveMode);
-                      if (isArchiveMode) {
-                        clearSelection();
-                      }
-                    }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-2 whitespace-nowrap ${
-                      isArchiveMode 
-                        ? 'bg-orange-600 text-white border-orange-600 shadow-md' 
-                        : 'bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/30'
-                    }`}
-                  >
-                    {isArchiveMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                    <span>{isArchiveMode ? 'إنهاء التحديد' : 'بدء التحديد'}</span>
-                  </button>
-                </div>
-                
-                {isArchiveMode && (
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-orange-200 dark:border-orange-700">
-                    <button
-                      onClick={selectAllTransactions}
-                      className="px-3 py-1.5 rounded-md text-sm font-medium border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors flex items-center gap-1.5"
-                    >
-                      <CheckSquare className="w-3.5 h-3.5" />
-                      <span>تحديد الكل</span>
-                    </button>
-                    <button
-                      onClick={clearSelection}
-                      className="px-3 py-1.5 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1.5"
-                    >
-                      <Square className="w-3.5 h-3.5" />
-                      <span>إلغاء التحديد</span>
-                    </button>
-                    <button
-                      onClick={handleArchiveSelected}
-                      disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
-                      className="px-3 py-1.5 rounded-md text-sm font-medium border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {archiveMutation.isPending ? (
-                        <div className="w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <Archive className="w-3.5 h-3.5" />
-                      )}
-                      <span>أرشفة المحدد</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="p-4 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-sm mt-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* إظهار تصفية المشاريع فقط في تبويب "الكل" أو "المشاريع" */}
-              {activeTab !== 'admin' && (
-                <div className="p-2">
-                  <label className="block text-sm font-medium mb-2 text-[hsl(var(--foreground))]" htmlFor="filterProject">
-                    <i className="fas fa-project-diagram ml-1.5 text-blue-500 dark:text-blue-400"></i>
-                    تصفية حسب المشروع
-                  </label>
-                  <select 
-                    id="filterProject" 
-                    className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none shadow-sm"
-                    onChange={(e) => handleFilterChange({ projectId: e.target.value ? parseInt(e.target.value) : undefined })}
-                    value={filter.projectId || ''}
-                  >
-                    <option value="">كل المشاريع</option>
-                    {projects?.map((project: Project) => (
-                      <option key={project.id} value={project.id}>{project.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              <div className="p-2">
-                <label className="block text-sm font-medium mb-2 text-[hsl(var(--foreground))]" htmlFor="filterType">
-                  <i className="fas fa-tag ml-1.5 text-green-500 dark:text-green-400"></i>
-                  تصفية حسب نوع العملية
-                </label>
-                <select 
-                  id="filterType" 
-                  className="w-full px-4 py-2.5 rounded-lg bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--primary))] focus:outline-none shadow-sm"
-                  onChange={(e) => handleFilterChange({ type: e.target.value || undefined })}
-                  value={filter.type || ''}
-                >
-                  <option value="">كل العمليات</option>
-                  <option value="income">إيرادات</option>
-                  <option value="expense">مصروفات</option>
-                </select>
-              </div>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="البحث في المعاملات المالية..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
           </div>
-          
-          {/* محتوى التبويبات */}
-          {/* محتوى تبويب "الكل" - يظهر للمدير فقط */}
-          {user?.role === 'admin' && (
-            <TabsContent value="all" className="pt-4">
-              <div className="mb-4 px-1">
-                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                  جميع العمليات المالية
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  عرض كافة العمليات المالية في النظام
-                </p>
-              </div>
-              <TransactionList 
-                transactions={filteredTransactions || []} 
-                projects={projects || []} 
-                viewType={currentView}
-                isLoading={transactionsLoading || projectsLoading}
-                onTransactionUpdated={() => {
-                  queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-                  queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-                }}
-                isArchiveMode={isArchiveMode}
-                selectedTransactions={selectedTransactions}
-                onToggleSelection={toggleTransactionSelection}
-              />
-            </TabsContent>
-          )}
-          
-          {/* محتوى تبويب "الصندوق الرئيسي" - يظهر للمدير فقط */}
-          {user?.role === 'admin' && (
-            <TabsContent value="admin" className="pt-4">
-              <div className="mb-4 px-1">
-                <h3 className="text-lg font-medium text-blue-700 dark:text-blue-400 flex items-center">
-                  <i className="fas fa-university ml-2"></i>
-                  عمليات الصندوق الرئيسي
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  عرض العمليات المالية الخاصة بالصندوق الرئيسي فقط
-                </p>
-              </div>
-              <TransactionList 
-                transactions={filteredTransactions || []} 
-                projects={projects || []} 
-                viewType={currentView}
-                isLoading={transactionsLoading || projectsLoading}
-                onTransactionUpdated={() => {
-                  queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-                  queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-                }}
-                isArchiveMode={isArchiveMode}
-                selectedTransactions={selectedTransactions}
-                onToggleSelection={toggleTransactionSelection}
-              />
-            </TabsContent>
-          )}
-          
-          <TabsContent value="projects" className="pt-4">
-            <div className="mb-4 px-1">
-              <h3 className="text-lg font-medium text-green-700 dark:text-green-400 flex items-center">
-                <i className="fas fa-project-diagram ml-2"></i>
-                عمليات المشاريع
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                عرض العمليات المالية الخاصة بالمشاريع فقط
-              </p>
-            </div>
+
+          <div className="w-full">
             <TransactionList 
               transactions={filteredTransactions || []} 
               projects={projects || []} 
               viewType={currentView}
               isLoading={transactionsLoading || projectsLoading}
-              onTransactionUpdated={() => {
-                queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-                queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-              }}
+              onTransactionUpdated={handleFormSubmit}
               isArchiveMode={isArchiveMode}
               selectedTransactions={selectedTransactions}
               onToggleSelection={toggleTransactionSelection}
             />
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );
