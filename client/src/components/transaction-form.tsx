@@ -65,7 +65,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       date: new Date(),
-      type: "income",
+      type: "expense",
       amount: 0,
       projectId: "",
       description: "",
