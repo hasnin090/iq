@@ -254,33 +254,52 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               <FormField
                 control={form.control}
                 name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>المبلغ (د.ع)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="أدخل المبلغ"
-                        className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700"
-                        value={field.value ? new Intl.NumberFormat('ar-EG', {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 2
-                        }).format(field.value) : ''}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^\d.]/g, '');
-                          const numValue = parseFloat(value) || 0;
-                          field.onChange(numValue);
-                        }}
-                        onBlur={(e) => {
-                          const value = e.target.value.replace(/[^\d.]/g, '');
-                          const numValue = parseFloat(value) || 0;
-                          field.onChange(numValue);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const [displayValue, setDisplayValue] = React.useState('');
+
+                  React.useEffect(() => {
+                    if (field.value) {
+                      setDisplayValue(field.value.toLocaleString('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2
+                      }));
+                    } else {
+                      setDisplayValue('');
+                    }
+                  }, [field.value]);
+
+                  return (
+                    <FormItem>
+                      <FormLabel>المبلغ (د.ع)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="مثال: 1,000.50"
+                          className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-left"
+                          value={displayValue}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9.]/g, '');
+                            setDisplayValue(value);
+                            const numValue = parseFloat(value) || 0;
+                            field.onChange(numValue);
+                          }}
+                          onBlur={() => {
+                            if (field.value) {
+                              setDisplayValue(field.value.toLocaleString('en-US', {
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 2
+                              }));
+                            }
+                          }}
+                          onFocus={() => {
+                            setDisplayValue(field.value ? field.value.toString() : '');
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
