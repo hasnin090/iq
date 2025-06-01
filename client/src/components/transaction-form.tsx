@@ -259,11 +259,23 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     <FormLabel>المبلغ (د.ع)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
+                        type="text"
                         placeholder="أدخل المبلغ"
                         className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700"
-                        {...field}
+                        value={field.value ? new Intl.NumberFormat('ar-EG', {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 2
+                        }).format(field.value) : ''}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^\d.]/g, '');
+                          const numValue = parseFloat(value) || 0;
+                          field.onChange(numValue);
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value.replace(/[^\d.]/g, '');
+                          const numValue = parseFloat(value) || 0;
+                          field.onChange(numValue);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
