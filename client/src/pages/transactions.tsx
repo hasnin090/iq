@@ -175,10 +175,6 @@ export default function Transactions() {
         {user?.role !== 'viewer' && (
           <div className="mb-8 fade-in">
             <div className="bg-[hsl(var(--card))] border border-blue-100 p-6 rounded-xl shadow-sm">
-              <h3 className="text-xl font-bold text-[hsl(var(--primary))] mb-5 flex items-center space-x-2 space-x-reverse">
-                <i className="fas fa-plus-circle text-[hsl(var(--primary))]"></i>
-                <span>إضافة معاملة جديدة</span>
-              </h3>
               <TransactionForm 
                 projects={projects || []} 
                 onSubmit={handleFormSubmit} 
