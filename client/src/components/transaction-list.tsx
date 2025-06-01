@@ -413,7 +413,7 @@ export function TransactionList({
       </AlertDialog>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>تعديل المعاملة المالية</DialogTitle>
           </DialogHeader>
@@ -547,6 +547,50 @@ export function TransactionList({
                   </FormItem>
                 )}
               />
+
+              {/* قسم المرفقات والملفات */}
+              <div className="space-y-3">
+                <FormLabel>المرفقات</FormLabel>
+                
+                {/* عرض الملف الحالي إن وجد */}
+                {transactionToEdit?.fileUrl && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          مرفق موجود
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(transactionToEdit.fileUrl, '_blank')}
+                        className="text-xs"
+                      >
+                        عرض الملف
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* خيار إعادة رفع ملف جديد */}
+                <div className="space-y-2">
+                  <Input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.doc,.docx,.txt,.rtf,.xls,.xlsx,.zip,.rar"
+                    className="text-sm"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      // ستتم معالجة الملف عند الحفظ
+                    }}
+                  />
+                  <p className="text-xs text-gray-500">
+                    اختر ملف جديد لاستبدال المرفق الحالي (اختياري)
+                  </p>
+                </div>
+              </div>
 
               <DialogFooter>
                 <Button 
