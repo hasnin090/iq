@@ -20,7 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Trash2, Edit2, FileText, CheckSquare, Square, Paperclip } from 'lucide-react';
+import { CalendarIcon, Trash2, Edit2, FileText, CheckSquare, Square, Paperclip, Eye, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
@@ -77,6 +77,8 @@ export function TransactionList({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
+  const [selectedAttachment, setSelectedAttachment] = useState<{url: string; type: string} | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   
@@ -167,10 +169,20 @@ export function TransactionList({
     updateMutation.mutate({ id: transactionToEdit.id, transaction: values });
   };
 
+  const handleAttachmentClick = (fileUrl: string, fileType: string = '') => {
+    setSelectedAttachment({ url: fileUrl, type: fileType });
+    setAttachmentDialogOpen(true);
+  };
+
   const getProjectName = (projectId: number | undefined) => {
     if (!projectId) return "بدون مشروع";
     const project = projects.find(p => p.id === projectId);
     return project ? project.name : "مشروع غير معروف";
+  };
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType?.includes('image')) return <Eye className="h-3 w-3" />;
+    return <FileText className="h-3 w-3" />;
   };
 
   if (isLoading) {
@@ -281,10 +293,10 @@ export function TransactionList({
                     {transaction.fileUrl && (
                       <div className="mb-2">
                         <button
-                          onClick={() => window.open(transaction.fileUrl, '_blank')}
+                          onClick={() => handleAttachmentClick(transaction.fileUrl!, transaction.fileType || '')}
                           className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
                         >
-                          <Paperclip className="h-3 w-3" />
+                          {getFileIcon(transaction.fileType || '')}
                           عرض المرفق
                         </button>
                       </div>
@@ -619,6 +631,59 @@ export function TransactionList({
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* نافذة عرض المرفق */}
+      <Dialog open={attachmentDialogOpen} onOpenChange={setAttachmentDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>عرض المرفق</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAttachmentDialogOpen(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedAttachment && (
+            <div className="mt-4">
+              {selectedAttachment.type?.includes('image') ? (
+                <div className="flex justify-center">
+                  <img
+                    src={selectedAttachment.url}
+                    alt="مرفق الصورة"
+                    className="max-w-full max-h-[70vh] object-contain rounded-lg border"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.parentElement?.insertAdjacentHTML('afterbegin', 
+                        '<div class="text-center text-gray-500 p-8">لا يمكن عرض الصورة</div>'
+                      );
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="text-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                  <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-4">
+                    ملف غير قابل للعرض المباشر
+                  </p>
+                  <Button
+                    onClick={() => window.open(selectedAttachment.url, '_blank')}
+                    variant="outline"
+                  >
+                    تحميل الملف
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
