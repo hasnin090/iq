@@ -20,7 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Trash2, Edit2, FileText, CheckSquare, Square } from 'lucide-react';
+import { CalendarIcon, Trash2, Edit2, FileText, CheckSquare, Square, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
@@ -276,6 +276,19 @@ export function TransactionList({
                     <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                       المشروع: {getProjectName(transaction.projectId)}
                     </div>
+                    
+                    {/* المرفق */}
+                    {transaction.fileUrl && (
+                      <div className="mb-2">
+                        <button
+                          onClick={() => window.open(transaction.fileUrl, '_blank')}
+                          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                          <Paperclip className="h-3 w-3" />
+                          عرض المرفق
+                        </button>
+                      </div>
+                    )}
                     
                     {/* المبلغ */}
                     <div className="text-left">

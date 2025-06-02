@@ -8,11 +8,11 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest<T = any>(
-  method: string,
   url: string,
+  method: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  console.log(`Making API request: ${method} ${url}`, data);
+  console.log(`Making API request: ${url} ${method}`, data);
   
   try {
     const res = await fetch(url, {
@@ -34,7 +34,7 @@ export async function apiRequest<T = any>(
     const jsonData = await res.json().catch(() => ({}));
     return jsonData as T;
   } catch (error) {
-    console.error(`Request failed to ${url}:`, error);
+    console.error(`Request failed to ${method} ${url}:`, error);
     throw error;
   }
 }
