@@ -170,9 +170,15 @@ export function TransactionList({
   };
 
   const handleAttachmentClick = (fileUrl: string, fileType: string = '') => {
+    console.log('Opening attachment:', { url: fileUrl, type: fileType });
+    console.log('Setting selectedAttachment state...');
     setSelectedAttachment({ url: fileUrl, type: fileType });
     setAttachmentDialogOpen(true);
   };
+
+  // Add useEffect to track state changes
+  console.log('Current selectedAttachment:', selectedAttachment);
+  console.log('Current attachmentDialogOpen:', attachmentDialogOpen);
 
   const getProjectName = (projectId: number | undefined) => {
     if (!projectId) return "بدون مشروع";
@@ -293,7 +299,10 @@ export function TransactionList({
                     {transaction.fileUrl && (
                       <div className="mb-2">
                         <button
-                          onClick={() => handleAttachmentClick(transaction.fileUrl!, transaction.fileType || '')}
+                          onClick={() => {
+                            console.log('Button clicked for transaction:', transaction.id, 'fileUrl:', transaction.fileUrl, 'fileType:', transaction.fileType);
+                            handleAttachmentClick(transaction.fileUrl!, transaction.fileType || '');
+                          }}
                           className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
                         >
                           {getFileIcon(transaction.fileType || '')}
