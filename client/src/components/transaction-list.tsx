@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -636,54 +636,103 @@ export function TransactionList({
 
       {/* نافذة عرض المرفق */}
       <Dialog open={attachmentDialogOpen} onOpenChange={setAttachmentDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>عرض المرفق</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAttachmentDialogOpen(false)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
+        <DialogContent className="max-w-5xl max-h-[95vh] p-0">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle className="text-right">عرض المرفق</DialogTitle>
+            <DialogDescription className="text-right text-sm text-gray-600">
+              انقر خارج النافذة أو على زر الإغلاق للخروج
+            </DialogDescription>
           </DialogHeader>
           
-          {selectedAttachment && (
-            <div className="mt-4">
-              {selectedAttachment.type?.includes('image') ? (
-                <div className="flex justify-center">
-                  <img
-                    src={selectedAttachment.url}
-                    alt="مرفق الصورة"
-                    className="max-w-full max-h-[70vh] object-contain rounded-lg border"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      target.parentElement?.insertAdjacentHTML('afterbegin', 
-                        '<div class="text-center text-gray-500 p-8">لا يمكن عرض الصورة</div>'
-                      );
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="text-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
-                  <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    ملف غير قابل للعرض المباشر
-                  </p>
-                  <Button
-                    onClick={() => window.open(selectedAttachment.url, '_blank')}
-                    variant="outline"
-                  >
-                    تحميل الملف
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setAttachmentDialogOpen(false)}
+              className="absolute top-2 left-2 z-10 h-8 w-8 p-0 rounded-full bg-black/50 hover:bg-black/70 text-white"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
+            {selectedAttachment && (
+              <div className="p-4">
+                {selectedAttachment.type?.includes('image') ? (
+                  <div className="flex justify-center items-center min-h-[400px]">
+                    <img
+                      src={selectedAttachment.url}
+                      alt="مرفق الصورة"
+                      className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg"
+                      style={{
+                        maxWidth: '100%',
+                        height: 'auto'
+                      }}
+                      onLoad={() => {
+                        console.log('تم تحميل الصورة بنجاح');
+                      }}
+                      onError={(e) => {
+                        console.error('خطأ في تحميل الصورة:', selectedAttachment.url);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'text-center text-red-500 p-8 bg-red-50 rounded-lg border border-red-200';
+                        errorDiv.innerHTML = `
+                          <div class="mb-4">⚠️</div>
+                          <p class="mb-2">لا يمكن عرض الصورة</p>
+                          <button onclick="window.open('${selectedAttachment.url}', '_blank')" 
+                                  class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            فتح الرابط مباشرة
+                          </button>
+                        `;
+                        target.parentElement?.appendChild(errorDiv);
+                      }}
+                    />
+                  </div>
+                ) : selectedAttachment.type?.includes('pdf') ? (
+                  <div className="w-full h-[75vh]">
+                    <iframe
+                      src={selectedAttachment.url}
+                      className="w-full h-full rounded-lg border"
+                      title="عرض ملف PDF"
+                    >
+                      <div className="text-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+                        <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                        <p className="text-gray-600 mb-4">
+                          متصفحك لا يدعم عرض PDF مباشرة
+                        </p>
+                        <Button
+                          onClick={() => window.open(selectedAttachment.url, '_blank')}
+                          variant="outline"
+                        >
+                          فتح الملف في نافذة جديدة
+                        </Button>
+                      </div>
+                    </iframe>
+                  </div>
+                ) : (
+                  <div className="text-center p-12 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                    <FileText className="h-20 w-20 mx-auto text-gray-400 mb-6" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      ملف غير قابل للعرض المباشر
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      هذا النوع من الملفات يتطلب تحميله لعرضه
+                    </p>
+                    <div className="space-y-3">
+                      <Button
+                        onClick={() => window.open(selectedAttachment.url, '_blank')}
+                        className="w-full max-w-xs"
+                      >
+                        تحميل الملف
+                      </Button>
+                      <div className="text-xs text-gray-500">
+                        سيتم فتح الملف في نافذة جديدة
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
