@@ -50,7 +50,7 @@ const transactionFormSchema = z.object({
   type: z.string().min(1, "الرجاء اختيار نوع العملية"),
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من الصفر"),
   description: z.string().min(1, "الرجاء إدخال الوصف"),
-  projectId: z.string().min(1, "الرجاء اختيار مشروع"),
+  projectId: z.string().optional(),
   file: z.any().optional(),
 });
 
@@ -78,15 +78,19 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     enabled: user?.role !== 'admin',
   });
 
-  // تعيين مشروع افتراضي للمستخدمين العاديين
-  React.useEffect(() => {
-    if (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0) {
-      const currentProjectId = form.getValues('projectId');
-      if (!currentProjectId || currentProjectId === "") {
-        form.setValue('projectId', userProjects[0].id.toString());
-      }
+  // التحقق من وجوب اختيار مشروع للمستخدمين العاديين
+  const validateProjectSelection = () => {
+    const projectId = form.getValues('projectId');
+    if (user?.role !== 'admin' && (!projectId || projectId === "" || projectId === "none")) {
+      toast({
+        variant: "destructive",
+        title: "خطأ في البيانات",
+        description: "يجب على المستخدمين اختيار مشروع لإضافة المعاملة",
+      });
+      return false;
     }
-  }, [userProjects, user?.role, form]);
+    return true;
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: TransactionFormValues) => {
@@ -143,6 +147,10 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   });
 
   function onFormSubmit(data: TransactionFormValues) {
+    // التحقق من اختيار المشروع للمستخدمين العاديين
+    if (!validateProjectSelection()) {
+      return;
+    }
     mutation.mutate(data);
   }
 
@@ -314,7 +322,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             </div>
 
             {/* الصف الثاني: المشروع (إذا لزم الأمر) */}
-            {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && userProjects.length > 1)) && (
+            {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0)) && (
               <FormField
                 control={form.control}
                 name="projectId"
@@ -333,7 +341,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                             الصندوق الرئيسي
                           </SelectItem>
                         )}
-                        {(user?.role === 'admin' ? projects : userProjects || []).map((project) => (
+                        {(user?.role === 'admin' ? projects : (Array.isArray(userProjects) ? userProjects : [])).map((project: any) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
                           </SelectItem>
