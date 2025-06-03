@@ -78,6 +78,13 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     enabled: user?.role !== 'admin',
   });
 
+  // تعيين المشروع تلقائياً للمستخدمين العاديين
+  React.useEffect(() => {
+    if (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0) {
+      form.setValue('projectId', userProjects[0].id.toString());
+    }
+  }, [userProjects, user?.role, form]);
+
   // التحقق من وجوب اختيار مشروع للمستخدمين العاديين
   const validateProjectSelection = () => {
     const projectId = form.getValues('projectId');
@@ -321,8 +328,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               />
             </div>
 
-            {/* الصف الثاني: المشروع (إذا لزم الأمر) */}
-            {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0)) && (
+            {/* الصف الثاني: المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
+            {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 1)) && (
               <FormField
                 control={form.control}
                 name="projectId"
