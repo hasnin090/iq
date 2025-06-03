@@ -50,7 +50,7 @@ const transactionFormSchema = z.object({
   type: z.string().min(1, "الرجاء اختيار نوع العملية"),
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من الصفر"),
   description: z.string().min(1, "الرجاء إدخال الوصف"),
-  projectId: z.string().optional(),
+  projectId: z.string().min(1, "الرجاء اختيار مشروع"),
   file: z.any().optional(),
 });
 
@@ -77,6 +77,16 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     queryKey: ['/api/user-projects'],
     enabled: user?.role !== 'admin',
   });
+
+  // تعيين مشروع افتراضي للمستخدمين العاديين
+  React.useEffect(() => {
+    if (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0) {
+      const currentProjectId = form.getValues('projectId');
+      if (!currentProjectId || currentProjectId === "") {
+        form.setValue('projectId', userProjects[0].id.toString());
+      }
+    }
+  }, [userProjects, user?.role, form]);
 
   const mutation = useMutation({
     mutationFn: async (data: TransactionFormValues) => {
