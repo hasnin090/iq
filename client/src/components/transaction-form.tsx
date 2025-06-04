@@ -88,14 +88,27 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   // التحقق من وجوب اختيار مشروع للمستخدمين العاديين
   const validateProjectSelection = () => {
     const projectId = form.getValues('projectId');
-    if (user?.role !== 'admin' && (!projectId || projectId === "" || projectId === "none")) {
-      toast({
-        variant: "destructive",
-        title: "خطأ في البيانات",
-        description: "يجب على المستخدمين اختيار مشروع لإضافة المعاملة",
-      });
-      return false;
+    
+    // إذا كان المستخدم عادي وليس لديه مشروع محدد
+    if (user?.role !== 'admin') {
+      // إذا لم يتم تعيين مشروع تلقائياً، حاول تعيين المشروع الأول من القائمة
+      if ((!projectId || projectId === "" || projectId === "none") && 
+          userProjects && Array.isArray(userProjects) && userProjects.length > 0) {
+        form.setValue('projectId', userProjects[0].id.toString());
+        return true;
+      }
+      
+      // إذا لم يكن هناك مشاريع متاحة للمستخدم
+      if (!userProjects || !Array.isArray(userProjects) || userProjects.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "خطأ في البيانات",
+          description: "لا توجد مشاريع مخصصة لك. يرجى الاتصال بالمدير",
+        });
+        return false;
+      }
     }
+    
     return true;
   };
 
@@ -133,11 +146,16 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         title: "تمت العملية بنجاح",
         description: "تم حفظ المعاملة المالية بنجاح",
       });
+      // إعادة تعيين النموذج مع الحفاظ على المشروع للمستخدمين العاديين
+      const resetProjectId = user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0 
+        ? userProjects[0].id.toString() 
+        : "";
+        
       form.reset({
         date: new Date(),
-        type: "income",
+        type: "expense",
         amount: 0,
-        projectId: "",
+        projectId: resetProjectId,
         description: "",
         file: undefined,
       });
