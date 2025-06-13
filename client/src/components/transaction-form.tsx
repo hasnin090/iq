@@ -62,7 +62,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
             </FormControl>
             <SelectContent>
               <SelectItem value="راتب">راتب</SelectItem>
-              <SelectItem value="سفة">سفة</SelectItem>
+              <SelectItem value="سلفة">سلفة</SelectItem>
               <SelectItem value="مشتريات">مشتريات</SelectItem>
               <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
               <SelectItem value="مصروف عام">مصروف عام</SelectItem>
