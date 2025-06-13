@@ -142,7 +142,7 @@ export function TransactionList({
   // تعريف mutation لحذف المعاملة
   const deleteMutation = useMutation({
     mutationFn: (id: number) => {
-      return apiRequest('DELETE', `/api/transactions/${id}`, undefined);
+      return apiRequest(`/api/transactions/${id}`, 'DELETE', undefined);
     },
     onSuccess: () => {
       toast({
@@ -163,7 +163,7 @@ export function TransactionList({
   // تعريف mutation لتحديث المعاملة
   const updateMutation = useMutation({
     mutationFn: (data: { id: number; transaction: TransactionFormValues }) => {
-      return apiRequest('PUT', `/api/transactions/${data.id}`, data.transaction);
+      return apiRequest(`/api/transactions/${data.id}`, 'PUT', data.transaction);
     },
     onSuccess: () => {
       toast({

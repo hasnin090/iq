@@ -146,7 +146,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           try {
             const idToken = await firebaseUser.getIdToken();
             // إرسال معلومات المستخدم إلى الخادم للتحقق
-            const response = await apiRequest('POST', '/api/auth/firebase-login', { 
+            const response = await apiRequest('/api/auth/firebase-login', 'POST', { 
               token: idToken,
               email: firebaseUser.email,
               name: firebaseUser.displayName,
