@@ -857,7 +857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             result = await storage.processWithdrawal(userId, projectId, amount, description, expenseType);
           } else {
             // عملية صرف من الصندوق الرئيسي
-            result = await storage.processAdminTransaction(userId, type, amount, description);
+            result = await storage.processAdminTransaction(userId, type, amount, description, expenseType);
           }
         }
       } else {
@@ -872,7 +872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           result = await storage.processDeposit(userId, projectId, amount, description, expenseType);
         } else if (type === "expense") {
           // عملية صرف من المشروع
-          result = await storage.processWithdrawal(userId, projectId, amount, description);
+          result = await storage.processWithdrawal(userId, projectId, amount, description, expenseType);
         }
       }
       

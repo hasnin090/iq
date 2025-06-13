@@ -356,8 +356,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               />
             </div>
 
-            {/* قائمة نوع المصروف - تظهر فقط عندما يكون نوع العملية مصروف */}
-            {form.watch("type") === "expense" && (
+            {(form.watch("type") as string) === "expense" && (
               <FormField
                 control={form.control}
                 name="expenseType"
