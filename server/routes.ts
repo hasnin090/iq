@@ -797,6 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userRole = req.session.role as string;
       const amount = Number(req.body.amount);
       const type = req.body.type as string;
+      const expenseType = req.body.expenseType as string || null;
       const description = req.body.description as string;
       const projectId = req.body.projectId ? Number(req.body.projectId) : undefined;
       

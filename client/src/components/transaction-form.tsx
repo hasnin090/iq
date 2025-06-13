@@ -67,6 +67,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     defaultValues: {
       date: new Date(),
       type: "expense",
+      expenseType: "مصروف عام",
       amount: 0,
       projectId: "",
       description: "",
@@ -269,7 +270,15 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>نوع العملية</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      // إعادة تعيين نوع المصروف عند تغيير نوع العملية
+                      if (value === "expense") {
+                        form.setValue("expenseType", "مصروف عام");
+                      } else {
+                        form.setValue("expenseType", undefined);
+                      }
+                    }} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
                           <SelectValue placeholder="اختر نوع العملية" />
@@ -346,6 +355,34 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 }}
               />
             </div>
+
+            {/* قائمة نوع المصروف - تظهر فقط عندما يكون نوع العملية مصروف */}
+            {form.watch("type") === "expense" && (
+              <FormField
+                control={form.control}
+                name="expenseType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>نوع المصروف</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
+                          <SelectValue placeholder="اختر نوع المصروف" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="راتب">راتب</SelectItem>
+                        <SelectItem value="سفة">سفة</SelectItem>
+                        <SelectItem value="مشتريات">مشتريات</SelectItem>
+                        <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
+                        <SelectItem value="مصروف عام">مصروف عام</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* الصف الثاني: المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
             {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 1)) && (

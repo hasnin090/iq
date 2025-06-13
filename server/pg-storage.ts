@@ -290,7 +290,7 @@ export class PgStorage implements IStorage {
   
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     // تحديد حقول المعاملة التي سيتم إدخالها
-    const { date, amount, type, description, projectId, fileUrl, fileType } = transaction;
+    const { date, amount, type, expenseType, description, projectId, fileUrl, fileType } = transaction;
     const createdBy = transaction.createdBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
     
     // إنشاء معاملة جديدة بالقيم المحددة
@@ -298,6 +298,7 @@ export class PgStorage implements IStorage {
       date,
       amount,
       type,
+      expenseType,
       description,
       projectId,
       createdBy,
