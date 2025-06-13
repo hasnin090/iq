@@ -88,7 +88,7 @@ export function UserForm({ onSubmit }: UserFormProps) {
   
   const mutation = useMutation({
     mutationFn: (data: UserFormValues) => {
-      return apiRequest('POST', '/api/users', data);
+      return apiRequest('/api/users', 'POST', data);
     },
     onSuccess: () => {
       toast({

@@ -54,7 +54,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
   
   const deleteMutation = useMutation({
     mutationFn: (id: number) => {
-      return apiRequest('DELETE', `/api/projects/${id}`, undefined);
+      return apiRequest(`/api/projects/${id}`, 'DELETE', undefined);
     },
     onSuccess: (data) => {
       toast({

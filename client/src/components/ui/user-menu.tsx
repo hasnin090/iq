@@ -17,7 +17,7 @@ export function UserMenu() {
 
   const handleLogout = async () => {
     try {
-      await apiRequest("POST", "/api/auth/logout", {});
+      await apiRequest("/api/auth/logout", "POST", {});
       logout();
       queryClient.clear();
       toast({

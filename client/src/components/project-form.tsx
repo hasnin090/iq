@@ -60,7 +60,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
         name: data.name.trim() // إزالة المسافات الزائدة
       };
       
-      return apiRequest('POST', '/api/projects', projectData);
+      return apiRequest('/api/projects', 'POST', projectData);
     },
     onSuccess: (data: any) => {
       toast({
