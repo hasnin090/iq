@@ -43,6 +43,38 @@ const ACCEPTED_FILE_TYPES = [
 
 const ACCEPTED_FILE_EXTENSIONS = ".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.doc,.docx,.txt,.rtf,.xls,.xlsx,.zip,.rar";
 
+// Component for expense type field
+function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }) {
+  if (transactionType !== "expense") return null;
+  
+  return (
+    <FormField
+      control={form.control}
+      name="expenseType"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>نوع المصروف</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
+            <FormControl>
+              <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
+                <SelectValue placeholder="اختر نوع المصروف" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value="راتب">راتب</SelectItem>
+              <SelectItem value="سفة">سفة</SelectItem>
+              <SelectItem value="مشتريات">مشتريات</SelectItem>
+              <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
+              <SelectItem value="مصروف عام">مصروف عام</SelectItem>
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 const transactionFormSchema = z.object({
   date: z.date({
     required_error: "الرجاء اختيار تاريخ",
@@ -358,32 +390,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               />
             </div>
 
-            {transactionType === "expense" ? (
-              <FormField
-                control={form.control}
-                name="expenseType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>نوع المصروف</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
-                          <SelectValue placeholder="اختر نوع المصروف" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="راتب">راتب</SelectItem>
-                        <SelectItem value="سفة">سفة</SelectItem>
-                        <SelectItem value="مشتريات">مشتريات</SelectItem>
-                        <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
-                        <SelectItem value="مصروف عام">مصروف عام</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : null}
+            <ExpenseTypeField transactionType={transactionType} form={form} />
 
             {/* الصف الثاني: المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
             {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 1)) && (
