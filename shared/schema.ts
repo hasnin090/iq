@@ -60,6 +60,7 @@ export const transactions = pgTable("transactions", {
   date: timestamp("date").notNull(),
   amount: integer("amount").notNull(),
   type: text("type").notNull(), // income, expense
+  expenseType: text("expense_type"), // نوع المصروف: راتب، سفة، مشتريات، اجور تشغيلية، مصروف عام
   description: text("description").notNull(),
   projectId: integer("project_id").references(() => projects.id),
   createdBy: integer("created_by").notNull().references(() => users.id),

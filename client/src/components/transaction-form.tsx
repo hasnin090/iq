@@ -48,6 +48,7 @@ const transactionFormSchema = z.object({
     required_error: "الرجاء اختيار تاريخ",
   }),
   type: z.string().min(1, "الرجاء اختيار نوع العملية"),
+  expenseType: z.string().optional(),
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من الصفر"),
   description: z.string().min(1, "الرجاء إدخال الوصف"),
   projectId: z.string().optional(),
