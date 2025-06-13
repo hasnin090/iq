@@ -94,7 +94,7 @@ export function DocumentList({ documents, projects, isLoading, onDocumentUpdated
         }
         
         // ثم حذف السجل من قاعدة البيانات
-        return apiRequest('DELETE', `/api/documents/${document.id}`, undefined);
+        return apiRequest(`/api/documents/${document.id}`, 'DELETE', undefined);
       } finally {
         // تنظيف الحالة بعد الحذف
         setDocumentToDelete(null);

@@ -47,7 +47,7 @@ export default function Settings() {
   
   const mutation = useMutation({
     mutationFn: ({ key, value }: { key: string; value: string }) => {
-      return apiRequest('PUT', `/api/settings/${key}`, { value });
+      return apiRequest(`/api/settings/${key}`, 'PUT', { value });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
@@ -68,7 +68,7 @@ export default function Settings() {
   // إضافة mutation لتغيير كلمة المرور
   const passwordChangeMutation = useMutation({
     mutationFn: (data: PasswordChangeValues) => {
-      return apiRequest('PUT', `/api/users/change-password`, data);
+      return apiRequest(`/api/users/change-password`, 'PUT', data);
     },
     onSuccess: () => {
       toast({
@@ -108,7 +108,7 @@ export default function Settings() {
   // دوال النسخ الاحتياطية
   const downloadBackup = async () => {
     try {
-      const response = await apiRequest('GET', '/api/backup/download');
+      const response = await apiRequest('/api/backup/download', 'GET');
       
       // إنشاء رابط تنزيل
       const blob = new Blob([JSON.stringify(response, null, 2)], { 
@@ -146,7 +146,7 @@ export default function Settings() {
         const content = e.target?.result as string;
         const backupData = JSON.parse(content);
         
-        const response = await apiRequest('POST', '/api/backup/restore', backupData);
+        const response = await apiRequest('/api/backup/restore', 'POST', backupData);
         
         toast({
           title: "تم استعادة النسخة الاحتياطية",

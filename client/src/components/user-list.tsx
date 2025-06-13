@@ -345,7 +345,7 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
   
   const deleteMutation = useMutation({
     mutationFn: (id: number) => {
-      return apiRequest('DELETE', `/api/users/${id}`, undefined);
+      return apiRequest(`/api/users/${id}`, 'DELETE', undefined);
     },
     onSuccess: () => {
       toast({
@@ -365,7 +365,7 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
   
   const updateMutation = useMutation({
     mutationFn: (data: {id: number, userData: Partial<User>}) => {
-      return apiRequest('PUT', `/api/users/${data.id}`, data.userData);
+      return apiRequest(`/api/users/${data.id}`, 'PUT', data.userData);
     },
     onSuccess: () => {
       toast({
