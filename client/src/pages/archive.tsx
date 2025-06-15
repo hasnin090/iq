@@ -488,22 +488,26 @@ export default function ArchivePage() {
                 </span>
               </div>
               
-              {/* أزرار التصدير والعرض */}
+              {/* أزرار التصدير والعرض - مخفية للمستخدمين مشاهدة فقط */}
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={handlePrint}
-                  className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
-                >
-                  <Printer className="w-4 h-4 mr-2" /> طباعة
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={exportToExcel}
-                  className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
-                >
-                  <Download className="w-4 h-4 mr-2" /> تصدير Excel
-                </Button>
+                {user?.role !== 'viewer' && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={handlePrint}
+                      className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+                    >
+                      <Printer className="w-4 h-4 mr-2" /> طباعة
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={exportToExcel}
+                      className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+                    >
+                      <Download className="w-4 h-4 mr-2" /> تصدير Excel
+                    </Button>
+                  </>
+                )}
                 
                 {/* أزرار نمط العرض */}
                 <div className="flex border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
