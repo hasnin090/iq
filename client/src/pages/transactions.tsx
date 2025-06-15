@@ -126,7 +126,7 @@ export default function Transactions() {
     }
   }
 
-  // وظيفة تصدير البيانات إلى Excel
+  // وظيفة تصدير البيانات إلى Excel - مخصصة للمستخدمين من نوع المشاهدة
   const exportToExcel = () => {
     if (!filteredTransactions || filteredTransactions.length === 0) {
       toast({
@@ -137,10 +137,24 @@ export default function Transactions() {
       return;
     }
 
+    // فلترة البيانات لإخفاء الإيرادات للمستخدمين من نوع المشاهدة
+    const dataForExport = user?.role === 'viewer' 
+      ? filteredTransactions.filter(t => t.type !== 'income')
+      : filteredTransactions;
+
+    if (dataForExport.length === 0) {
+      toast({
+        title: "لا توجد بيانات للتصدير",
+        description: "لا توجد معاملات مالية متاحة للتصدير بعد تطبيق القيود",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // تحضير البيانات للتصدير
-    const exportData = filteredTransactions.map(transaction => {
+    const exportData = dataForExport.map(transaction => {
       const project = projects?.find(p => p.id === transaction.projectId);
-      return {
+      const baseData = {
         'التاريخ': format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar }),
         'الوصف': transaction.description || '',
         'المشروع': project?.name || 'بدون مشروع',
@@ -149,6 +163,13 @@ export default function Transactions() {
         'المبلغ': transaction.amount,
         'المبلغ المنسق': formatCurrency(transaction.amount),
       };
+      
+      // للمستخدمين من نوع المشاهدة، لا نعرض معلومات الإيرادات
+      if (user?.role === 'viewer') {
+        delete baseData['النوع']; // إزالة عمود النوع لأنه سيكون مصروفات فقط
+      }
+      
+      return baseData;
     });
 
     // إنشاء ورقة عمل
@@ -182,7 +203,7 @@ export default function Transactions() {
     });
   };
 
-  // وظيفة الطباعة
+  // وظيفة الطباعة - مخصصة للمستخدمين من نوع المشاهدة
   const handlePrint = () => {
     if (!filteredTransactions || filteredTransactions.length === 0) {
       toast({
@@ -193,11 +214,31 @@ export default function Transactions() {
       return;
     }
 
+    // فلترة البيانات لإخفاء الإيرادات للمستخدمين من نوع المشاهدة
+    const dataForPrint = user?.role === 'viewer' 
+      ? filteredTransactions.filter(t => t.type !== 'income')
+      : filteredTransactions;
+
+    if (dataForPrint.length === 0) {
+      toast({
+        title: "لا توجد بيانات للطباعة",
+        description: "لا توجد معاملات مالية متاحة للطباعة بعد تطبيق القيود",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // إنشاء نافذة طباعة
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
     const currentDate = format(new Date(), 'yyyy/MM/dd', { locale: ar });
+    const reportTitle = user?.role === 'viewer' ? 'تقرير المصروفات المالية' : 'تقرير المعاملات المالية';
+    
+    // تحديد العناوين حسب نوع المستخدم
+    const headers = user?.role === 'viewer' 
+      ? ['التاريخ', 'الوصف', 'المشروع', 'نوع المصروف', 'المبلغ']
+      : ['التاريخ', 'الوصف', 'المشروع', 'النوع', 'نوع المصروف', 'المبلغ'];
     
     // محتوى الطباعة
     const printContent = `
@@ -205,7 +246,7 @@ export default function Transactions() {
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="UTF-8">
-        <title>تقرير المعاملات المالية</title>
+        <title>${reportTitle}</title>
         <style>
           body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; margin: 20px; }
           .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2563eb; padding-bottom: 15px; }
@@ -221,38 +262,34 @@ export default function Transactions() {
       </head>
       <body>
         <div class="header">
-          <h1>تقرير المعاملات المالية</h1>
+          <h1>${reportTitle}</h1>
           <p>تاريخ التقرير: ${currentDate}</p>
-          <p>عدد المعاملات: ${filteredTransactions.length}</p>
+          <p>عدد المعاملات: ${dataForPrint.length}</p>
         </div>
         <table>
           <thead>
             <tr>
-              <th>التاريخ</th>
-              <th>الوصف</th>
-              <th>المشروع</th>
-              <th>النوع</th>
-              <th>نوع المصروف</th>
-              <th>المبلغ</th>
+              ${headers.map(header => `<th>${header}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
-            ${filteredTransactions.map(transaction => {
+            ${dataForPrint.map(transaction => {
               const project = projects?.find(p => p.id === transaction.projectId);
-              return `
-                <tr>
-                  <td>${format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar })}</td>
-                  <td>${transaction.description || ''}</td>
-                  <td>${project?.name || 'بدون مشروع'}</td>
-                  <td class="${transaction.type === 'income' ? 'income' : 'expense'}">
-                    ${transaction.type === 'income' ? 'إيراد' : 'مصروف'}
-                  </td>
-                  <td>${transaction.expenseType || ''}</td>
-                  <td class="${transaction.type === 'income' ? 'income' : 'expense'}">
-                    ${formatCurrency(transaction.amount)}
-                  </td>
-                </tr>
-              `;
+              const cells = [
+                format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar }),
+                transaction.description || '',
+                project?.name || 'بدون مشروع'
+              ];
+              
+              // إضافة النوع فقط للمستخدمين غير المشاهدين
+              if (user?.role !== 'viewer') {
+                cells.push(`<span class="${transaction.type === 'income' ? 'income' : 'expense'}">${transaction.type === 'income' ? 'إيراد' : 'مصروف'}</span>`);
+              }
+              
+              cells.push(transaction.expenseType || '');
+              cells.push(formatCurrency(transaction.amount));
+              
+              return `<tr>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
             }).join('')}
           </tbody>
         </table>
@@ -338,8 +375,8 @@ export default function Transactions() {
             </h3>
             
             <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
-              {/* أزرار الطباعة والتصدير - مخفية لمستخدمي المشاهدة فقط */}
-              {user?.role !== 'viewer' && (
+              {/* أزرار الطباعة والتصدير - متاحة فقط لمستخدمي المشاهدة */}
+              {user?.role === 'viewer' && (
                 <>
                   <Button
                     variant="outline"
