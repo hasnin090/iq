@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2 } from 'lucide-react'
+import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2, Activity } from 'lucide-react'
 import { format } from 'date-fns'
 import { ar } from 'date-fns/locale'
 import * as XLSX from 'xlsx'
@@ -136,52 +136,55 @@ export default function Reports() {
             <TabsTrigger value="balances" className="text-xs md:text-sm">الأرصدة</TabsTrigger>
           </TabsList>
 
-          {/* أدوات الفلترة */}
-          <div className="flex flex-col md:flex-row gap-3 md:gap-4 my-4 md:my-6">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="البحث في الوصف أو المبلغ..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-10 text-sm"
-              />
+          {/* أدوات الفلترة المحسنة */}
+          <div className="bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl p-4 md:p-6 border shadow-sm">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="البحث في الوصف أو المبلغ..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10 text-sm bg-background/80 border-border/50 focus:border-primary/50 transition-colors"
+                />
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={selectedProject} onValueChange={setSelectedProject}>
+                  <SelectTrigger className="w-full sm:w-[200px] bg-background/80 border-border/50">
+                    <SelectValue placeholder="اختر المشروع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع المشاريع</SelectItem>
+                    {projects.map(project => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px] bg-background/80 border-border/50">
+                    <SelectValue placeholder="الفترة الزمنية" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الفترات</SelectItem>
+                    <SelectItem value="today">اليوم</SelectItem>
+                    <SelectItem value="week">آخر أسبوع</SelectItem>
+                    <SelectItem value="month">آخر شهر</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button 
+                  onClick={exportToExcel} 
+                  className="btn-primary flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Download className="w-4 h-4" />
+                  تصدير Excel
+                </Button>
+              </div>
             </div>
-            
-            <Select value={selectedProject} onValueChange={setSelectedProject}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="اختر المشروع" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع المشاريع</SelectItem>
-                {projects.map(project => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full md:w-[160px]">
-                <SelectValue placeholder="الفترة الزمنية" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع الفترات</SelectItem>
-                <SelectItem value="today">اليوم</SelectItem>
-                <SelectItem value="week">آخر أسبوع</SelectItem>
-                <SelectItem value="month">آخر شهر</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button 
-              onClick={exportToExcel} 
-              variant="outline" 
-              className="flex items-center gap-2 whitespace-nowrap"
-            >
-              <Download className="w-4 h-4" />
-              تصدير Excel
-            </Button>
           </div>
 
           <TabsContent value="overview" className="space-y-6 animate-fade-in">
