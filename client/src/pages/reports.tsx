@@ -76,9 +76,43 @@ export default function GeneralLedger() {
     queryKey: ['/api/transactions'],
   });
 
-  const { data: funds = [] } = useQuery<Fund[]>({
+  const { data: adminFundData } = useQuery({
     queryKey: ['/api/admin-fund'],
   });
+
+  // إنشاء مصفوفة الصناديق من البيانات المستلمة
+  const funds = useMemo(() => {
+    const fundsArray: Fund[] = [];
+    
+    // إضافة صندوق المدير الرئيسي
+    if (adminFundData?.balance !== undefined) {
+      fundsArray.push({
+        id: 1,
+        name: 'الصندوق الرئيسي',
+        balance: adminFundData.balance,
+        type: 'admin',
+        projectId: null
+      });
+    }
+    
+    // إضافة صناديق المشاريع (حساب رصيد كل مشروع من المعاملات)
+    projects.forEach(project => {
+      const projectTransactions = transactions.filter(t => t.projectId === project.id);
+      const income = projectTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+      const expenses = projectTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+      const balance = income - expenses;
+      
+      fundsArray.push({
+        id: project.id + 1000, // تأكد من عدم التداخل مع معرف الصندوق الرئيسي
+        name: `صندوق ${project.name}`,
+        balance: balance,
+        type: 'project',
+        projectId: project.id
+      });
+    });
+    
+    return fundsArray;
+  }, [adminFundData, projects, transactions]);
 
   // فلترة المعاملات
   const filteredTransactions = useMemo(() => {
