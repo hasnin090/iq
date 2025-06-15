@@ -1,6 +1,6 @@
 {
-  "variant": "vibrant",
-  "primary": "#2563eb",
-  "appearance": "system",
-  "radius": 0.85
+  "variant": "professional",
+  "primary": "#0f172a",
+  "appearance": "light",
+  "radius": 12
 }
