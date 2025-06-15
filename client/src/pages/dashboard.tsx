@@ -101,17 +101,34 @@ export default function Dashboard() {
   const getFilteredTransactions = () => {
     if (!stats?.recentTransactions) return [];
     
+    let filteredTransactions;
+    
     if (displayMode === 'admin') {
       // عرض معاملات الصندوق الرئيسي فقط (بدون معرف مشروع أو projectId = null)
-      return stats.recentTransactions.filter(t => t.projectId === null || t.projectId === undefined);
+      filteredTransactions = stats.recentTransactions.filter(t => t.projectId === null || t.projectId === undefined);
     } else {
       // عرض معاملات المشاريع فقط (مع وجود معرف المشروع)
       // بدون إظهار إيرادات المدير في قسم المشاريع
-      return stats.recentTransactions.filter(t => 
+      filteredTransactions = stats.recentTransactions.filter(t => 
         // المعاملات المرتبطة بمشروع محدد فقط
         (t.projectId !== null && t.projectId !== undefined)
       );
     }
+    
+    // للمشاهدين: إخفاء المعاملات من نوع الإيرادات
+    const userString = localStorage.getItem("auth_user");
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        if (user.role === 'viewer') {
+          filteredTransactions = filteredTransactions.filter(t => t.type !== 'income');
+        }
+      } catch (e) {
+        console.error("Error parsing user data for transaction filtering:", e);
+      }
+    }
+    
+    return filteredTransactions;
   };
 
   // المعاملات المفلترة

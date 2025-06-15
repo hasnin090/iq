@@ -18,17 +18,23 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
   const financialChartRef = useRef<HTMLCanvasElement>(null);
   const expenseChartRef = useRef<HTMLCanvasElement>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canViewIncome, setCanViewIncome] = useState(false);
   
   useEffect(() => {
     const userString = localStorage.getItem("auth_user");
     if (!userString) return;
     try {
       const user = JSON.parse(userString);
-      setIsAdmin(user.role === 'admin');
-      console.log("Charts - User role from localStorage:", user.role);
+      const userIsAdmin = user.role === 'admin';
+      const userCanViewIncome = user.role !== 'viewer'; // المشاهدون لا يمكنهم رؤية الإيرادات
+      
+      setIsAdmin(userIsAdmin);
+      setCanViewIncome(userCanViewIncome);
+      console.log("Charts - User role from localStorage:", user.role, "canViewIncome:", userCanViewIncome);
     } catch (e) {
       console.error("Charts - Error parsing user data:", e);
       setIsAdmin(false);
+      setCanViewIncome(false);
     }
   }, []);
   
@@ -51,10 +57,13 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
       if (financialChartRef.current) {
         const ctx = financialChartRef.current.getContext('2d');
         if (ctx) {
-          // إنشاء مخطط جديد
+          // إنشاء مخطط جديد - إخفاء الإيرادات للمشاهدين
+          const chartIncome = canViewIncome ? income : 0;
+          const chartProfit = canViewIncome ? profit : -expenses; // المشاهدون يرون فقط المصروفات كرقم سالب
+          
           const financialChart = new Chart(ctx, {
             type: 'bar',
-            data: createFinancialSummaryData(income, expenses, profit),
+            data: createFinancialSummaryData(chartIncome, expenses, chartProfit),
             options: getFinancialSummaryOptions()
           });
           chartInstances.push(financialChart);
@@ -116,9 +125,9 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
         <h3 className={`text-lg font-bold mb-4 ${
           isShowingAdmin ? 'text-blue-700' : 'text-green-700'
         }`}>
-          {isShowingAdmin 
-            ? 'ملخص الصندوق الرئيسي' 
-            : 'ملخص أموال المشاريع'
+          {canViewIncome 
+            ? (isShowingAdmin ? 'ملخص الصندوق الرئيسي' : 'ملخص أموال المشاريع')
+            : 'ملخص المصروفات'
           }
         </h3>
         <div className="h-64">
