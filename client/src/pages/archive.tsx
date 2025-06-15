@@ -472,56 +472,57 @@ export default function ArchivePage() {
           </Card>
         </div>
 
-        {/* أدوات البحث والفلترة */}
-        <Card>
-          <CardContent className="p-4 sm:p-6">
+        {/* أدوات البحث والفلترة - محسنة للهاتف */}
+        <Card className="shadow-lg border-0 bg-gradient-to-br from-card/95 to-card/85 backdrop-blur-sm">
+          <CardContent className="p-3 sm:p-6">
             {/* شريط الأدوات العلوي */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div className="flex flex-col gap-4 mb-6">
               {/* عدد العمليات المالية */}
-              <div className="flex items-center">
-                <span className="px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg font-bold text-sm ml-2 flex items-center">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-2 bg-primary/10 text-primary rounded-lg font-bold text-sm flex items-center">
                   <Archive className="w-4 h-4 ml-1.5" />
-                  إجمالي العمليات المؤرشفة: 
-                </span>
-                <span className="px-3 py-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 rounded-lg font-bold">
-                  {filteredTransactions.length}
+                  إجمالي العمليات: {filteredTransactions.length}
                 </span>
               </div>
               
-              {/* أزرار التصدير والعرض - مخفية للمستخدمين مشاهدة فقط */}
-              <div className="flex gap-2">
+              {/* أزرار التصدير والعرض */}
+              <div className="flex flex-wrap gap-2">
                 {user?.role !== 'viewer' && (
                   <>
                     <Button 
                       variant="outline" 
                       onClick={handlePrint}
-                      className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+                      size="sm"
+                      className="flex-1 sm:flex-initial bg-background/80 border-border/50"
                     >
-                      <Printer className="w-4 h-4 mr-2" /> طباعة
+                      <Printer className="w-4 h-4 ml-2" /> طباعة
                     </Button>
                     <Button 
                       variant="outline" 
                       onClick={exportToExcel}
-                      className="px-3 py-2 bg-secondary dark:bg-gray-700 rounded-lg text-neutral-light dark:text-gray-200 border border-secondary-light dark:border-gray-600 hover:border-primary-light dark:hover:border-gray-500 transition-all"
+                      size="sm"
+                      className="flex-1 sm:flex-initial bg-background/80 border-border/50"
                     >
-                      <Download className="w-4 h-4 mr-2" /> تصدير Excel
+                      <Download className="w-4 h-4 ml-2" /> تصدير
                     </Button>
                   </>
                 )}
                 
                 {/* أزرار نمط العرض */}
-                <div className="flex border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+                <div className="flex border border-border/50 rounded-lg overflow-hidden">
                   <Button
                     variant={viewType === 'cards' ? 'default' : 'outline'}
                     onClick={() => setViewType('cards')}
-                    className="px-3 py-2 rounded-none border-0"
+                    size="sm"
+                    className="rounded-none border-0"
                   >
                     <Grid className="w-4 h-4" />
                   </Button>
                   <Button
                     variant={viewType === 'table' ? 'default' : 'outline'}
                     onClick={() => setViewType('table')}
-                    className="px-3 py-2 rounded-none border-0"
+                    size="sm"
+                    className="rounded-none border-0"
                   >
                     <List className="w-4 h-4" />
                   </Button>
@@ -537,15 +538,15 @@ export default function ArchivePage() {
                   placeholder="البحث في الوصف أو المشروع..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-9 h-12 text-sm"
+                  className="pr-9 h-12 text-sm bg-background/80 border-border/50"
                 />
               </div>
 
               {/* الفلاتر - تخطيط محسن للهاتف */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* فلتر نوع المعاملة */}
                 <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className="h-12 text-sm">
+                  <SelectTrigger className="h-12 text-sm bg-background/80 border-border/50">
                     <SelectValue placeholder="نوع المعاملة" />
                   </SelectTrigger>
                   <SelectContent>
@@ -557,7 +558,7 @@ export default function ArchivePage() {
 
                 {/* فلتر المشروع */}
                 <Select value={selectedProject} onValueChange={setSelectedProject}>
-                  <SelectTrigger className="h-12 text-sm">
+                  <SelectTrigger className="h-12 text-sm bg-background/80 border-border/50">
                     <SelectValue placeholder="المشروع" />
                   </SelectTrigger>
                   <SelectContent>
@@ -572,24 +573,23 @@ export default function ArchivePage() {
 
                 {/* فلتر الشهر */}
                 <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="h-12 text-sm">
+                  <SelectTrigger className="h-12 text-sm bg-background/80 border-border/50">
                     <SelectValue placeholder="الشهر" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">جميع الأشهر</SelectItem>
-                  {monthlyGroups.map((group) => {
-                    const monthKey = `${group.year}-${new Date(group.transactions[0].date).getMonth()}`;
-                    return (
-                      <SelectItem key={monthKey} value={monthKey}>
-                        {group.month}
-                      </SelectItem>
-                    );
-                  })}
+                    {monthlyGroups.map((group) => {
+                      const monthKey = `${group.year}-${new Date(group.transactions[0].date).getMonth()}`;
+                      return (
+                        <SelectItem key={monthKey} value={monthKey}>
+                          {group.month}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-          </div>
           </CardContent>
         </Card>
 
