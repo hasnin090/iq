@@ -376,29 +376,17 @@ export default function Transactions() {
             </h3>
             
             <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
-              {/* أزرار الطباعة والتصدير - متاحة فقط لمستخدمي المشاهدة */}
+              {/* زر تصدير Excel - متاح فقط لمستخدمي المشاهدة */}
               {user?.role === 'viewer' && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePrint}
-                    className="flex items-center gap-1 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  >
-                    <Printer className="w-4 h-4" />
-                    طباعة
-                  </Button>
-              
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={exportToExcel}
-                    className="flex items-center gap-1 hover:bg-green-50 dark:hover:bg-green-900/20"
-                  >
-                    <Download className="w-4 h-4" />
-                    تصدير Excel
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportToExcel}
+                  className="flex items-center gap-1 hover:bg-green-50 dark:hover:bg-green-900/20"
+                >
+                  <Download className="w-4 h-4" />
+                  تصدير Excel
+                </Button>
               )}
 
               {/* أزرار الأرشفة - مخفية للمستخدمين مشاهدة فقط */}
