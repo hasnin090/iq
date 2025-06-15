@@ -638,7 +638,7 @@ export class PgStorage implements IStorage {
   }
 
   // عملية الإيداع: يستقطع المبلغ من حساب المدير ويذهب إلى حساب المشروع
-  async processDeposit(userId: number, projectId: number, amount: number, description: string, expenseType?: string): Promise<{ transaction: Transaction, adminTransaction?: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+  async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminTransaction?: Transaction, adminFund?: Fund, projectFund?: Fund }> {
     console.log(`processDeposit - بدء عملية إيداع بواسطة المستخدم ${userId} في المشروع ${projectId} بمبلغ ${amount}`);
     
     try {
@@ -779,7 +779,7 @@ export class PgStorage implements IStorage {
         date: new Date(),
         amount,
         type: "expense",
-        expenseType: expenseType || "مصروف عام",
+        expenseType: "مصروف عام",
         description: `مصروف تمويل المشروع: ${project.name}`,
         projectId: null, // لا يرتبط بمشروع محدد لأنه معاملة للمدير
         createdBy: userId,
@@ -811,7 +811,7 @@ export class PgStorage implements IStorage {
   }
 
   // عملية السحب: يستقطع المبلغ من صندوق المشروع نفسه
-  async processWithdrawal(userId: number, projectId: number, amount: number, description: string, expenseType?: string): Promise<{ transaction: Transaction, projectFund?: Fund }> {
+  async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, projectFund?: Fund }> {
     console.log(`processWithdrawal - بدء عملية صرف بواسطة المستخدم ${userId} من المشروع ${projectId} بمبلغ ${amount}`);
     
     try {
