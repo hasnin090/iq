@@ -440,20 +440,20 @@ export default function GeneralLedger() {
                 <CardTitle className="text-lg md:text-xl">سجل المعاملات المالية</CardTitle>
                 <CardDescription className="text-sm">عرض تفصيلي لجميع المعاملات المالية ({filteredTransactions.length} معاملة)</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="rounded-md border overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="min-w-[90px] text-xs md:text-sm">التاريخ</TableHead>
-                        <TableHead className="min-w-[120px] text-xs md:text-sm">الوصف</TableHead>
-                        <TableHead className="min-w-[100px] text-xs md:text-sm hidden md:table-cell">المشروع</TableHead>
-                        <TableHead className="min-w-[70px] text-xs md:text-sm">النوع</TableHead>
-                        <TableHead className="min-w-[100px] text-xs md:text-sm hidden lg:table-cell">نوع المصروف</TableHead>
-                        <TableHead className="min-w-[90px] text-right text-xs md:text-sm">المبلغ</TableHead>
-                        <TableHead className="min-w-[90px] text-right text-xs md:text-sm hidden xl:table-cell">الرصيد التراكمي</TableHead>
-                      </TableRow>
-                    </TableHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto rounded-md border">
+                  <Table className="min-w-full">
+                      <TableHeader>
+                        <TableRow className="border-b bg-muted/50">
+                          <TableHead className="w-20 md:w-24 text-xs md:text-sm px-2 md:px-4 py-2 md:py-3">التاريخ</TableHead>
+                          <TableHead className="min-w-[120px] text-xs md:text-sm px-2 md:px-4 py-2 md:py-3">الوصف</TableHead>
+                          <TableHead className="w-24 md:w-32 text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 hidden md:table-cell">المشروع</TableHead>
+                          <TableHead className="w-16 md:w-20 text-xs md:text-sm px-2 md:px-4 py-2 md:py-3">النوع</TableHead>
+                          <TableHead className="w-24 md:w-32 text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 hidden lg:table-cell">نوع المصروف</TableHead>
+                          <TableHead className="w-20 md:w-28 text-right text-xs md:text-sm px-2 md:px-4 py-2 md:py-3">المبلغ</TableHead>
+                          <TableHead className="w-24 md:w-32 text-right text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 hidden xl:table-cell">الرصيد التراكمي</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {filteredTransactions.length === 0 ? (
                         <TableRow>
@@ -467,51 +467,55 @@ export default function GeneralLedger() {
                           const runningBalance = getRunningBalance(transaction.id);
                           
                           return (
-                            <TableRow key={`transaction-${transaction.id}-${index}`} className="hover:bg-muted/50">
-                              <TableCell className="text-xs md:text-sm py-2 md:py-3">
-                                <div className="font-medium">
+                            <TableRow key={`transaction-${transaction.id}-${index}`} className="hover:bg-muted/50 border-b">
+                              <TableCell className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3">
+                                <div className="font-medium whitespace-nowrap">
                                   {format(new Date(transaction.date), 'MM/dd', { locale: ar })}
                                 </div>
                                 <div className="text-xs text-muted-foreground md:hidden">
                                   {format(new Date(transaction.date), 'yyyy', { locale: ar })}
                                 </div>
                               </TableCell>
-                              <TableCell className="text-xs md:text-sm py-2 md:py-3">
-                                <div className="max-w-[120px] md:max-w-xs truncate font-medium">
+                              <TableCell className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3">
+                                <div className="max-w-[100px] md:max-w-[200px] truncate font-medium">
                                   {transaction.description}
                                 </div>
-                                <div className="text-xs text-muted-foreground md:hidden mt-1">
+                                <div className="text-xs text-muted-foreground md:hidden mt-1 truncate">
                                   {project?.name || 'الصندوق الرئيسي'}
                                 </div>
                               </TableCell>
-                              <TableCell className="text-xs md:text-sm py-2 md:py-3 hidden md:table-cell">
-                                {project?.name || 'الصندوق الرئيسي'}
+                              <TableCell className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 hidden md:table-cell">
+                                <div className="truncate">
+                                  {project?.name || 'الصندوق الرئيسي'}
+                                </div>
                               </TableCell>
-                              <TableCell className="text-xs md:text-sm py-2 md:py-3">
+                              <TableCell className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3">
                                 <Badge 
                                   variant={transaction.type === 'income' ? 'default' : 'destructive'}
-                                  className="text-xs"
+                                  className="text-xs whitespace-nowrap"
                                 >
                                   {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                                 </Badge>
-                                <div className="text-xs text-muted-foreground lg:hidden mt-1">
+                                <div className="text-xs text-muted-foreground lg:hidden mt-1 truncate">
                                   {transaction.expenseType || '-'}
                                 </div>
                               </TableCell>
-                              <TableCell className="text-xs md:text-sm py-2 md:py-3 hidden lg:table-cell">
-                                {transaction.expenseType || '-'}
+                              <TableCell className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 hidden lg:table-cell">
+                                <div className="truncate">
+                                  {transaction.expenseType || '-'}
+                                </div>
                               </TableCell>
-                              <TableCell className={`text-right font-medium text-xs md:text-sm py-2 md:py-3 ${
+                              <TableCell className={`text-right font-medium text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 ${
                                 transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                               }`}>
-                                <div>
+                                <div className="whitespace-nowrap">
                                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                                 </div>
-                                <div className="text-xs text-muted-foreground xl:hidden mt-1">
+                                <div className="text-xs text-muted-foreground xl:hidden mt-1 whitespace-nowrap">
                                   رصيد: {formatCurrency(Math.abs(runningBalance))}
                                 </div>
                               </TableCell>
-                              <TableCell className={`text-right font-bold text-xs md:text-sm py-2 md:py-3 hidden xl:table-cell ${
+                              <TableCell className={`text-right font-bold text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 hidden xl:table-cell whitespace-nowrap ${
                                 runningBalance >= 0 ? 'text-green-600' : 'text-red-600'
                               }`}>
                                 {formatCurrency(Math.abs(runningBalance))}
