@@ -192,7 +192,7 @@ export default function GeneralLedger() {
         'نوع المصروف': t.expenseType || '',
         'المبلغ': t.amount,
         'المبلغ المنسق': formatCurrency(t.amount),
-        'الرصيد التراكمي': calculateRunningBalance(t.id)
+        'الرصيد التراكمي': getRunningBalance(t.id)
       };
     });
 
@@ -209,36 +209,40 @@ export default function GeneralLedger() {
     });
   };
 
-  // حساب الرصيد التراكمي
-  const calculateRunningBalance = (transactionId: number) => {
-    const sortedTransactions = filteredTransactions.sort((a, b) => 
+  // حساب الرصيد التراكمي مع تحسين الأداء
+  const runningBalanceMap = useMemo(() => {
+    const sortedTransactions = [...filteredTransactions].sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
     
+    const balanceMap = new Map<number, number>();
     let runningBalance = 0;
-    const index = sortedTransactions.findIndex(t => t.id === transactionId);
     
-    for (let i = 0; i <= index; i++) {
-      const transaction = sortedTransactions[i];
+    sortedTransactions.forEach((transaction) => {
       if (transaction.type === 'income') {
         runningBalance += transaction.amount;
       } else {
         runningBalance -= transaction.amount;
       }
-    }
+      balanceMap.set(transaction.id, runningBalance);
+    });
     
-    return runningBalance;
+    return balanceMap;
+  }, [filteredTransactions]);
+
+  const getRunningBalance = (transactionId: number) => {
+    return runningBalanceMap.get(transactionId) || 0;
   };
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
-      <div className="py-6 px-4 pb-mobile-nav-large">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-3">
-            <BookOpen className="text-[hsl(var(--primary))]" />
+      <div className="py-4 md:py-6 px-3 md:px-4 pb-mobile-nav-large">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-2 md:gap-3">
+            <BookOpen className="text-[hsl(var(--primary))] w-6 h-6 md:w-8 md:h-8" />
             دفتر الأستاذ العام
           </h1>
-          <p className="text-[hsl(var(--muted-foreground))] mt-2">دفتر شامل لجميع المعاملات المالية والأرصدة - مخصص للمدير فقط</p>
+          <p className="text-[hsl(var(--muted-foreground))] mt-2 text-sm md:text-base">دفتر شامل لجميع المعاملات المالية والأرصدة - مخصص للمدير فقط</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -458,12 +462,12 @@ export default function GeneralLedger() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredTransactions.map((transaction) => {
+                        filteredTransactions.map((transaction, index) => {
                           const project = projects.find(p => p.id === transaction.projectId);
-                          const runningBalance = calculateRunningBalance(transaction.id);
+                          const runningBalance = getRunningBalance(transaction.id);
                           
                           return (
-                            <TableRow key={transaction.id} className="hover:bg-muted/50">
+                            <TableRow key={`transaction-${transaction.id}-${index}`} className="hover:bg-muted/50">
                               <TableCell className="text-xs md:text-sm py-2 md:py-3">
                                 <div className="font-medium">
                                   {format(new Date(transaction.date), 'MM/dd', { locale: ar })}
