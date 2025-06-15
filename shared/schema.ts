@@ -28,7 +28,8 @@ export const PERMISSIONS = {
   VIEW_DOCUMENTS: 'view_documents',
   VIEW_REPORTS: 'view_reports',
   VIEW_ACTIVITY_LOGS: 'view_activity_logs',
-  MANAGE_SETTINGS: 'manage_settings'
+  MANAGE_SETTINGS: 'manage_settings',
+  VIEW_INCOME: 'view_income'
 } as const;
 
 // Users table - نستخدم البنية الحالية

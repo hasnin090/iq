@@ -58,6 +58,7 @@ const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'view_project_transactions',
     'view_transactions',
     'view_documents'
+    // لا تتضمن 'view_income' - المشاهدون لا يمكنهم رؤية بيانات الإيرادات
   ]
 };
 
