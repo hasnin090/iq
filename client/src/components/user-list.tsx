@@ -82,7 +82,7 @@ interface UserListProps {
 const userEditSchema = z.object({
   name: z.string().min(3, "الاسم يجب أن يحتوي على الأقل 3 أحرف"),
   email: z.string().email("البريد الإلكتروني غير صالح"),
-  role: z.enum(["admin", "user"], {
+  role: z.enum(["admin", "user", "viewer"], {
     required_error: "الصلاحية مطلوبة",
   }),
   permissions: z.array(z.string()).optional(),
@@ -96,6 +96,7 @@ const permissions = [
   { id: "manageProjects", label: "إدارة المشاريع", icon: <KeyIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
   { id: "manageTransactions", label: "إدارة المعاملات المالية", icon: <KeyIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
   { id: "viewOnly", label: "صلاحيات المشاهدة فقط", icon: <EyeOffIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
+  { id: "hideRevenue", label: "إخفاء الإيرادات", icon: <EyeOffIcon className="h-3.5 w-3.5 ml-1.5 text-red-400" /> },
   { id: "manageDocuments", label: "إدارة المستندات", icon: <ShieldIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" /> },
 ];
 
@@ -114,7 +115,7 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
     defaultValues: {
       name: user.name,
       email: user.email,
-      role: user.role as "admin" | "user",
+      role: user.role as "admin" | "user" | "viewer",
       permissions: Array.isArray(user.permissions) ? user.permissions : [],
       password: "",
     },
@@ -131,12 +132,14 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
 
   // تحديث دور المستخدم وعرض/إخفاء الصلاحيات
   const handleRoleChange = (role: string) => {
-    form.setValue("role", role as "admin" | "user");
-    setShowPermissions(role === "user");
+    form.setValue("role", role as "admin" | "user" | "viewer");
+    setShowPermissions(role === "user" || role === "viewer");
     
-    // إذا تم تغيير الدور إلى مدير، قم بإعادة تعيين الصلاحيات
+    // إعادة تعيين الصلاحيات حسب الدور
     if (role === "admin") {
       form.setValue("permissions", []);
+    } else if (role === "viewer") {
+      form.setValue("permissions", ["viewOnly"]);
     }
   };
 
@@ -245,7 +248,7 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
                     <SelectValue placeholder="اختر الصلاحية" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="admin" className="flex items-center">
                     <div className="flex items-center">
                       <ShieldIcon className="h-4 w-4 ml-2 text-red-500" />
@@ -258,11 +261,19 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
                       مستخدم
                     </div>
                   </SelectItem>
+                  <SelectItem value="viewer" className="flex items-center">
+                    <div className="flex items-center">
+                      <EyeIcon className="h-4 w-4 ml-2 text-gray-500" />
+                      مشاهدة فقط
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>
+              <FormDescription className="text-gray-600 dark:text-gray-400">
                 {field.value === "admin" 
                   ? "المدير لديه صلاحيات كاملة للنظام" 
+                  : field.value === "viewer"
+                  ? "مشاهدة فقط - إمكانية عرض البيانات بدون تعديل"
                   : "المستخدم يحتاج لتحديد صلاحيات محددة"}
               </FormDescription>
               <FormMessage />
@@ -271,8 +282,8 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
         />
 
         {showPermissions && (
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-            <FormLabel className="mb-2 block font-medium text-blue-700">الصلاحيات:</FormLabel>
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <FormLabel className="mb-2 block font-medium text-gray-800 dark:text-gray-200">الصلاحيات:</FormLabel>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {permissions.map((permission) => (
                 <FormField
