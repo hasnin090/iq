@@ -811,10 +811,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 2. إذا تم تحديد مشروع وكان المستخدم غير مدير، يجب التحقق من وصوله للمشروع
       if (projectId && userRole !== "admin") {
-        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
-        if (!hasAccess) {
-          return res.status(403).json({ 
-            message: "غير مصرح لك بإنشاء معاملات لهذا المشروع"
+        try {
+          const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+          if (!hasAccess) {
+            console.log(`المستخدم ${userId} ليس لديه صلاحية للوصول للمشروع ${projectId}`);
+            return res.status(403).json({ 
+              message: "غير مصرح لك بإنشاء معاملات لهذا المشروع"
+            });
+          }
+          console.log(`المستخدم ${userId} لديه صلاحية للوصول للمشروع ${projectId}`);
+        } catch (error) {
+          console.error("خطأ في التحقق من صلاحية الوصول للمشروع:", error);
+          return res.status(500).json({ 
+            message: "خطأ في التحقق من صلاحية الوصول للمشروع"
           });
         }
       }

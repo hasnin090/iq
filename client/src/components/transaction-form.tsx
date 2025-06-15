@@ -161,6 +161,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         formData.append('amount', data.amount.toString());
         formData.append('description', data.description);
         
+        // إضافة نوع المصروف إذا كان النوع مصروف
+        if (data.type === 'expense' && data.expenseType) {
+          formData.append('expenseType', data.expenseType);
+        }
+        
         if (data.projectId && data.projectId !== "none") {
           formData.append('projectId', data.projectId);
         }
@@ -168,8 +173,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         return fetch('/api/transactions', {
           method: 'POST',
           body: formData,
-        }).then(res => {
-          if (!res.ok) throw new Error('Failed to create transaction');
+        }).then(async res => {
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ message: 'خطأ غير معروف' }));
+            throw new Error(errorData.message || `HTTP ${res.status}: ${res.statusText}`);
+          }
           return res.json();
         });
       } catch (error) {
