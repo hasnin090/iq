@@ -164,9 +164,10 @@ export default function Transactions() {
         'المبلغ المنسق': formatCurrency(transaction.amount),
       };
       
-      // للمستخدمين من نوع المشاهدة، لا نعرض معلومات الإيرادات
+      // للمستخدمين من نوع المشاهدة، إنشاء كائن بدون عمود النوع
       if (user?.role === 'viewer') {
-        delete baseData['النوع']; // إزالة عمود النوع لأنه سيكون مصروفات فقط
+        const { النوع, ...dataWithoutType } = baseData;
+        return dataWithoutType;
       }
       
       return baseData;
@@ -303,7 +304,7 @@ export default function Transactions() {
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.print();
-  };;
+  };
 
   const handleSelectAll = () => {
     if (transactions) {
