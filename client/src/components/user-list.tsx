@@ -294,7 +294,7 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
                     return (
                       <FormItem
                         key={permission.id}
-                        className="flex flex-row items-center space-x-reverse space-x-2 space-y-0 py-1.5 px-2 rounded-lg hover:bg-blue-100/50"
+                        className="flex flex-row items-center space-x-reverse space-x-2 space-y-0 py-1.5 px-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         <FormControl>
                           <Checkbox
@@ -310,7 +310,7 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
                             className="border-blue-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                           />
                         </FormControl>
-                        <FormLabel className="text-sm font-normal cursor-pointer flex items-center">
+                        <FormLabel className="text-sm font-normal cursor-pointer flex items-center text-gray-700 dark:text-gray-300">
                           {permission.icon}
                           {permission.label}
                         </FormLabel>
@@ -641,15 +641,15 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
       </AlertDialog>
       
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle className="text-lg text-blue-700 dark:text-blue-300">
+            <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-gray-200">
               <div className="flex items-center">
                 <UserIcon className="h-5 w-5 ml-2 text-blue-600 dark:text-blue-400" />
                 تعديل المستخدم
               </div>
             </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+            <DialogDescription className="text-gray-600 dark:text-gray-400 text-sm mt-1">
               قم بتعديل بيانات المستخدم ثم اضغط على حفظ لإكمال العملية.
             </DialogDescription>
           </DialogHeader>
