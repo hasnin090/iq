@@ -33,6 +33,7 @@ interface Transaction {
   projectId?: number;
   fileUrl?: string;
   fileType?: string;
+  expenseType?: string;
 }
 
 interface Project {
@@ -394,6 +395,9 @@ export function TransactionList({
                         <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'} className="text-xs px-1 py-0">
                           {transaction.type === 'income' ? 'دخل' : 'مصروف'}
                         </Badge>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-xs text-purple-600 dark:text-purple-400">
+                        {transaction.type === 'expense' && transaction.expenseType ? transaction.expenseType : '-'}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs md:text-sm font-medium">
                         <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
