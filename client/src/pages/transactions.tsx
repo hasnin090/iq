@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, ArrowDown, ArrowUp, Search, Archive, CheckSquare, Square } from 'lucide-react';
+import { Filter, ArrowDown, ArrowUp, Search, Archive, CheckSquare, Square, Download, Printer } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
+import { ar } from 'date-fns/locale';
 import { formatCurrency } from '@/lib/chart-utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +38,7 @@ export default function Transactions() {
     type: string;
     description: string;
     projectId?: number;
+    expenseType?: string;
   }
 
   interface Project {
@@ -120,7 +124,149 @@ export default function Transactions() {
     if (selectedTransactions.length > 0) {
       archiveMutation.mutate(selectedTransactions);
     }
+  }
+
+  // وظيفة تصدير البيانات إلى Excel
+  const exportToExcel = () => {
+    if (!filteredTransactions || filteredTransactions.length === 0) {
+      toast({
+        title: "لا توجد بيانات للتصدير",
+        description: "لا توجد معاملات مالية متاحة للتصدير",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // تحضير البيانات للتصدير
+    const exportData = filteredTransactions.map(transaction => {
+      const project = projects?.find(p => p.id === transaction.projectId);
+      return {
+        'التاريخ': format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar }),
+        'الوصف': transaction.description || '',
+        'المشروع': project?.name || 'بدون مشروع',
+        'النوع': transaction.type === 'income' ? 'إيراد' : 'مصروف',
+        'نوع المصروف': transaction.expenseType || '',
+        'المبلغ': transaction.amount,
+        'المبلغ المنسق': formatCurrency(transaction.amount),
+      };
+    });
+
+    // إنشاء ورقة عمل
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    
+    // تنسيق عرض الأعمدة
+    const wscols = [
+      { wch: 12 }, // التاريخ
+      { wch: 30 }, // الوصف
+      { wch: 20 }, // المشروع
+      { wch: 10 }, // النوع
+      { wch: 15 }, // نوع المصروف
+      { wch: 15 }, // المبلغ الرقمي
+      { wch: 20 }, // المبلغ المنسق
+    ];
+    worksheet['!cols'] = wscols;
+
+    // إنشاء كتاب عمل
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعاملات المالية');
+
+    // تصدير الملف
+    const now = new Date();
+    const dateString = format(now, 'yyyy-MM-dd-HHmmss');
+    const fileName = `transactions_${dateString}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    toast({
+      title: "تم التصدير بنجاح",
+      description: `تم تصدير ${filteredTransactions.length} معاملة مالية إلى Excel`,
+    });
   };
+
+  // وظيفة الطباعة
+  const handlePrint = () => {
+    if (!filteredTransactions || filteredTransactions.length === 0) {
+      toast({
+        title: "لا توجد بيانات للطباعة",
+        description: "لا توجد معاملات مالية متاحة للطباعة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // إنشاء نافذة طباعة
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const currentDate = format(new Date(), 'yyyy/MM/dd', { locale: ar });
+    
+    // محتوى الطباعة
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="UTF-8">
+        <title>تقرير المعاملات المالية</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2563eb; padding-bottom: 15px; }
+          .header h1 { color: #2563eb; margin: 0; font-size: 24px; }
+          .header p { margin: 5px 0; color: #666; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+          th { background-color: #f8fafc; font-weight: bold; color: #374151; }
+          .income { color: #059669; font-weight: bold; }
+          .expense { color: #dc2626; font-weight: bold; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>تقرير المعاملات المالية</h1>
+          <p>تاريخ التقرير: ${currentDate}</p>
+          <p>عدد المعاملات: ${filteredTransactions.length}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الوصف</th>
+              <th>المشروع</th>
+              <th>النوع</th>
+              <th>نوع المصروف</th>
+              <th>المبلغ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredTransactions.map(transaction => {
+              const project = projects?.find(p => p.id === transaction.projectId);
+              return `
+                <tr>
+                  <td>${format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar })}</td>
+                  <td>${transaction.description || ''}</td>
+                  <td>${project?.name || 'بدون مشروع'}</td>
+                  <td class="${transaction.type === 'income' ? 'income' : 'expense'}">
+                    ${transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                  </td>
+                  <td>${transaction.expenseType || ''}</td>
+                  <td class="${transaction.type === 'income' ? 'income' : 'expense'}">
+                    ${formatCurrency(transaction.amount)}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="footer">
+          <p>نظام المحاسبة المالية - تم إنشاء التقرير في ${format(new Date(), 'yyyy/MM/dd HH:mm', { locale: ar })}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+  };;
 
   const handleSelectAll = () => {
     if (transactions) {
@@ -192,6 +338,27 @@ export default function Transactions() {
             </h3>
             
             <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
+              {/* أزرار الطباعة والتصدير */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                className="flex items-center gap-1 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              >
+                <Printer className="w-4 h-4" />
+                طباعة
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToExcel}
+                className="flex items-center gap-1 hover:bg-green-50 dark:hover:bg-green-900/20"
+              >
+                <Download className="w-4 h-4" />
+                تصدير Excel
+              </Button>
+
               {/* أزرار الأرشفة - مخفية للمستخدمين مشاهدة فقط */}
               {user?.role !== 'viewer' && (
                 <>

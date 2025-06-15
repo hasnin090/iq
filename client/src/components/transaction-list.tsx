@@ -295,6 +295,13 @@ export function TransactionList({
                       المشروع: {getProjectName(transaction.projectId)}
                     </div>
                     
+                    {/* نوع المصروف - إظهاره فقط للمصروفات */}
+                    {transaction.type === 'expense' && transaction.expenseType && (
+                      <div className="text-xs text-purple-600 dark:text-purple-400 mb-2">
+                        نوع المصروف: {transaction.expenseType}
+                      </div>
+                    )}
+                    
                     {/* المرفق */}
                     {transaction.fileUrl && (
                       <div className="mb-2">
@@ -345,6 +352,9 @@ export function TransactionList({
                     </th>
                     <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16 md:w-20">
                       النوع
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20 md:w-24">
+                      نوع المصروف
                     </th>
                     <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20 md:w-24">
                       المبلغ
