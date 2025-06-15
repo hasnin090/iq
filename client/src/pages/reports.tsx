@@ -85,13 +85,13 @@ export default function GeneralLedger() {
     const fundsArray: Fund[] = [];
     
     // إضافة صندوق المدير الرئيسي
-    if (adminFundData?.balance !== undefined) {
+    if (adminFundData && typeof adminFundData === 'object' && 'balance' in adminFundData) {
       fundsArray.push({
         id: 1,
         name: 'الصندوق الرئيسي',
-        balance: adminFundData.balance,
+        balance: (adminFundData as any).balance || 0,
         type: 'admin',
-        projectId: null
+        projectId: undefined
       });
     }
     
@@ -242,11 +242,11 @@ export default function GeneralLedger() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="transactions">سجل المعاملات</TabsTrigger>
-            <TabsTrigger value="projects">تحليل المشاريع</TabsTrigger>
-            <TabsTrigger value="balances">الأرصدة</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+            <TabsTrigger value="overview" className="text-xs md:text-sm">نظرة عامة</TabsTrigger>
+            <TabsTrigger value="transactions" className="text-xs md:text-sm">المعاملات</TabsTrigger>
+            <TabsTrigger value="projects" className="text-xs md:text-sm">المشاريع</TabsTrigger>
+            <TabsTrigger value="balances" className="text-xs md:text-sm">الأرصدة</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -329,14 +329,14 @@ export default function GeneralLedger() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="transactions" className="space-y-6">
+          <TabsContent value="transactions" className="space-y-4 md:space-y-6">
             {/* أدوات التحكم والفلترة */}
             <Card>
-              <CardHeader>
-                <CardTitle>فلترة وبحث المعاملات</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg md:text-xl">فلترة وبحث المعاملات</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                   <div>
                     <Label>المشروع</Label>
                     <Select value={selectedProject} onValueChange={setSelectedProject}>
@@ -408,7 +408,7 @@ export default function GeneralLedger() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     variant="outline" 
                     onClick={() => {
@@ -417,11 +417,12 @@ export default function GeneralLedger() {
                       setEndDate(undefined);
                       setSearchQuery('');
                     }}
+                    className="w-full sm:w-auto"
                   >
                     <Filter className="w-4 h-4 mr-2" />
                     مسح الفلاتر
                   </Button>
-                  <Button onClick={exportToExcel}>
+                  <Button onClick={exportToExcel} className="w-full sm:w-auto">
                     <Download className="w-4 h-4 mr-2" />
                     تصدير إلى Excel
                   </Button>
@@ -431,28 +432,28 @@ export default function GeneralLedger() {
 
             {/* جدول المعاملات */}
             <Card>
-              <CardHeader>
-                <CardTitle>سجل المعاملات المالية</CardTitle>
-                <CardDescription>عرض تفصيلي لجميع المعاملات المالية ({filteredTransactions.length} معاملة)</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg md:text-xl">سجل المعاملات المالية</CardTitle>
+                <CardDescription className="text-sm">عرض تفصيلي لجميع المعاملات المالية ({filteredTransactions.length} معاملة)</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>التاريخ</TableHead>
-                        <TableHead>الوصف</TableHead>
-                        <TableHead>المشروع</TableHead>
-                        <TableHead>النوع</TableHead>
-                        <TableHead>نوع المصروف</TableHead>
-                        <TableHead className="text-right">المبلغ</TableHead>
-                        <TableHead className="text-right">الرصيد التراكمي</TableHead>
+                        <TableHead className="min-w-[90px] text-xs md:text-sm">التاريخ</TableHead>
+                        <TableHead className="min-w-[120px] text-xs md:text-sm">الوصف</TableHead>
+                        <TableHead className="min-w-[100px] text-xs md:text-sm hidden md:table-cell">المشروع</TableHead>
+                        <TableHead className="min-w-[70px] text-xs md:text-sm">النوع</TableHead>
+                        <TableHead className="min-w-[100px] text-xs md:text-sm hidden lg:table-cell">نوع المصروف</TableHead>
+                        <TableHead className="min-w-[90px] text-right text-xs md:text-sm">المبلغ</TableHead>
+                        <TableHead className="min-w-[90px] text-right text-xs md:text-sm hidden xl:table-cell">الرصيد التراكمي</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredTransactions.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground text-sm">
                             لا توجد معاملات مالية وفقاً للفلاتر المحددة
                           </TableCell>
                         </TableRow>
@@ -462,30 +463,51 @@ export default function GeneralLedger() {
                           const runningBalance = calculateRunningBalance(transaction.id);
                           
                           return (
-                            <TableRow key={transaction.id}>
-                              <TableCell>
-                                {format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar })}
+                            <TableRow key={transaction.id} className="hover:bg-muted/50">
+                              <TableCell className="text-xs md:text-sm py-2 md:py-3">
+                                <div className="font-medium">
+                                  {format(new Date(transaction.date), 'MM/dd', { locale: ar })}
+                                </div>
+                                <div className="text-xs text-muted-foreground md:hidden">
+                                  {format(new Date(transaction.date), 'yyyy', { locale: ar })}
+                                </div>
                               </TableCell>
-                              <TableCell className="max-w-xs truncate">
-                                {transaction.description}
+                              <TableCell className="text-xs md:text-sm py-2 md:py-3">
+                                <div className="max-w-[120px] md:max-w-xs truncate font-medium">
+                                  {transaction.description}
+                                </div>
+                                <div className="text-xs text-muted-foreground md:hidden mt-1">
+                                  {project?.name || 'الصندوق الرئيسي'}
+                                </div>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="text-xs md:text-sm py-2 md:py-3 hidden md:table-cell">
                                 {project?.name || 'الصندوق الرئيسي'}
                               </TableCell>
-                              <TableCell>
-                                <Badge variant={transaction.type === 'income' ? 'default' : 'destructive'}>
+                              <TableCell className="text-xs md:text-sm py-2 md:py-3">
+                                <Badge 
+                                  variant={transaction.type === 'income' ? 'default' : 'destructive'}
+                                  className="text-xs"
+                                >
                                   {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                                 </Badge>
+                                <div className="text-xs text-muted-foreground lg:hidden mt-1">
+                                  {transaction.expenseType || '-'}
+                                </div>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="text-xs md:text-sm py-2 md:py-3 hidden lg:table-cell">
                                 {transaction.expenseType || '-'}
                               </TableCell>
-                              <TableCell className={`text-right font-medium ${
+                              <TableCell className={`text-right font-medium text-xs md:text-sm py-2 md:py-3 ${
                                 transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                               }`}>
-                                {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                                <div>
+                                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                                </div>
+                                <div className="text-xs text-muted-foreground xl:hidden mt-1">
+                                  رصيد: {formatCurrency(Math.abs(runningBalance))}
+                                </div>
                               </TableCell>
-                              <TableCell className={`text-right font-bold ${
+                              <TableCell className={`text-right font-bold text-xs md:text-sm py-2 md:py-3 hidden xl:table-cell ${
                                 runningBalance >= 0 ? 'text-green-600' : 'text-red-600'
                               }`}>
                                 {formatCurrency(Math.abs(runningBalance))}
@@ -501,27 +523,27 @@ export default function GeneralLedger() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="projects" className="space-y-6">
+          <TabsContent value="projects" className="space-y-4 md:space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>تحليل الأداء المالي للمشاريع</CardTitle>
-                <CardDescription>مقارنة أداء المشاريع المختلفة</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg md:text-xl">تحليل الأداء المالي للمشاريع</CardTitle>
+                <CardDescription className="text-sm">مقارنة أداء المشاريع المختلفة</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-6">
+                <div className="grid gap-4 md:gap-6">
                   {statistics.projectsData.map(project => (
-                    <Card key={project.id} className="p-4">
-                      <div className="flex items-center justify-between mb-4">
+                    <Card key={project.id} className="p-3 md:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
                         <div className="flex items-center space-x-3 space-x-reverse">
-                          <Building className="h-6 w-6 text-blue-600" />
-                          <h3 className="text-lg font-semibold">{project.name}</h3>
+                          <Building className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+                          <h3 className="text-base md:text-lg font-semibold">{project.name}</h3>
                         </div>
-                        <Badge variant={project.balance >= 0 ? 'default' : 'destructive'}>
+                        <Badge variant={project.balance >= 0 ? 'default' : 'destructive'} className="text-xs w-fit">
                           {project.balance >= 0 ? 'ربحي' : 'خاسر'}
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                         <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                           <p className="text-sm text-green-600 dark:text-green-400">الإيرادات</p>
                           <p className="text-xl font-bold text-green-700 dark:text-green-300">
@@ -571,31 +593,31 @@ export default function GeneralLedger() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="balances" className="space-y-6">
+          <TabsContent value="balances" className="space-y-4 md:space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle>أرصدة الصناديق</CardTitle>
-                <CardDescription>عرض أرصدة جميع الصناديق في النظام</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg md:text-xl">أرصدة الصناديق</CardTitle>
+                <CardDescription className="text-sm">عرض أرصدة جميع الصناديق في النظام</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4">
+                <div className="grid gap-3 md:gap-4">
                   {funds.map(fund => (
-                    <Card key={fund.id} className="p-4">
-                      <div className="flex items-center justify-between">
+                    <Card key={fund.id} className="p-3 md:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center space-x-3 space-x-reverse">
-                          <PiggyBank className={`h-6 w-6 ${fund.type === 'admin' ? 'text-purple-600' : 'text-blue-600'}`} />
+                          <PiggyBank className={`h-5 w-5 md:h-6 md:w-6 ${fund.type === 'admin' ? 'text-purple-600' : 'text-blue-600'}`} />
                           <div>
-                            <h3 className="font-semibold">{fund.name}</h3>
-                            <p className="text-sm text-muted-foreground">
+                            <h3 className="text-sm md:text-base font-semibold">{fund.name}</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground">
                               {fund.type === 'admin' ? 'صندوق إداري' : 'صندوق مشروع'}
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className={`text-2xl font-bold ${fund.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className="text-left sm:text-right">
+                          <p className={`text-lg md:text-2xl font-bold ${fund.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {formatCurrency(Math.abs(fund.balance))}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs md:text-sm text-muted-foreground">
                             {fund.balance >= 0 ? 'رصيد موجب' : 'رصيد سالب'}
                           </p>
                         </div>
