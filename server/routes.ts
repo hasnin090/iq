@@ -797,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userRole = req.session.role as string;
       const amount = Number(req.body.amount);
       const type = req.body.type as string;
-      const expenseType = req.body.expenseType as string || null;
+      const expenseType = req.body.expenseType as string || "مصروف عام";
       const description = req.body.description as string;
       const projectId = req.body.projectId ? Number(req.body.projectId) : undefined;
       
@@ -871,8 +871,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // هذه العملية تعني أن المستخدم يقوم بتحويل مبلغ من صندوق المدير إلى صندوق المشروع
           result = await storage.processDeposit(userId, projectId, amount, description);
         } else if (type === "expense") {
-          // عملية صرف من المشروع
-          result = await storage.processWithdrawal(userId, projectId, amount, description);
+          // عملية صرف من المشروع مع نوع المصروف
+          result = await storage.processWithdrawal(userId, projectId, amount, description, expenseType);
         }
       }
       
