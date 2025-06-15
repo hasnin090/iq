@@ -52,7 +52,7 @@ export interface IStorage {
   updateFundBalance(id: number, amount: number): Promise<Fund | undefined>;
   listFunds(): Promise<Fund[]>;
   processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }>;
-  processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }>;
+  processWithdrawal(userId: number, projectId: number, amount: number, description: string, expenseType?: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }>;
   processAdminTransaction(userId: number, type: string, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund }>;
 
   // Documents
@@ -563,7 +563,7 @@ export class MemStorage implements IStorage {
   }
 
   // عملية السحب: يستقطع المبلغ من حساب المشروع
-  async processWithdrawal(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
+  async processWithdrawal(userId: number, projectId: number, amount: number, description: string, expenseType?: string): Promise<{ transaction: Transaction, adminFund?: Fund, projectFund?: Fund }> {
     // التحقق من صلاحية المشروع
     const project = await this.getProject(projectId);
     if (!project) {
@@ -595,9 +595,12 @@ export class MemStorage implements IStorage {
       date: new Date(),
       amount,
       type: "expense",
+      expenseType: expenseType || "مصروف عام",
       description: description || `صرف مبلغ من المشروع: ${project.name}`,
       projectId,
-      createdBy: userId
+      createdBy: userId,
+      fileUrl: null,
+      fileType: null
     });
 
     // إنشاء سجل نشاط
