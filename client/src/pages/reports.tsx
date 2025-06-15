@@ -15,12 +15,12 @@ import { useToast } from '@/hooks/use-toast'
 import type { Transaction, Project, User } from '@/types'
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('ar-EG', {
+  return new Intl.NumberFormat('ar-IQ', {
     style: 'currency',
-    currency: 'EGP',
+    currency: 'IQD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount).replace('ج.م.', '').trim() + ' ج.م';
+  }).format(amount).replace('د.ع.', '').trim() + ' د.ع';
 };
 
 export default function Reports() {

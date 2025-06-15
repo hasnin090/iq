@@ -529,8 +529,7 @@ export default function ArchivePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              
+            <div className="space-y-4">
               {/* البحث النصي */}
               <div className="relative">
                 <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -538,44 +537,46 @@ export default function ArchivePage() {
                   placeholder="البحث في الوصف أو المشروع..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-9"
+                  className="pr-9 h-12 text-sm"
                 />
               </div>
 
-              {/* فلتر نوع المعاملة */}
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="نوع المعاملة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع المعاملات</SelectItem>
-                  <SelectItem value="income">الإيرادات فقط</SelectItem>
-                  <SelectItem value="expense">المصاريف فقط</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* الفلاتر - تخطيط محسن للهاتف */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {/* فلتر نوع المعاملة */}
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className="h-12 text-sm">
+                    <SelectValue placeholder="نوع المعاملة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع المعاملات</SelectItem>
+                    <SelectItem value="income">الإيرادات فقط</SelectItem>
+                    <SelectItem value="expense">المصاريف فقط</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* فلتر المشروع */}
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger>
-                  <SelectValue placeholder="المشروع" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع المشاريع</SelectItem>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {/* فلتر المشروع */}
+                <Select value={selectedProject} onValueChange={setSelectedProject}>
+                  <SelectTrigger className="h-12 text-sm">
+                    <SelectValue placeholder="المشروع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع المشاريع</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {/* فلتر الشهر */}
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger>
-                  <SelectValue placeholder="الشهر" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع الأشهر</SelectItem>
+                {/* فلتر الشهر */}
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="h-12 text-sm">
+                    <SelectValue placeholder="الشهر" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الأشهر</SelectItem>
                   {monthlyGroups.map((group) => {
                     const monthKey = `${group.year}-${new Date(group.transactions[0].date).getMonth()}`;
                     return (
@@ -584,9 +585,11 @@ export default function ArchivePage() {
                       </SelectItem>
                     );
                   })}
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+          </div>
           </CardContent>
         </Card>
 
