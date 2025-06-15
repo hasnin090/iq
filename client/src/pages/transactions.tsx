@@ -192,48 +192,53 @@ export default function Transactions() {
             </h3>
             
             <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
-              <Button
-                variant={isArchiveMode ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsArchiveMode(!isArchiveMode)}
-                className="flex items-center gap-1 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-              >
-                <Archive className="w-4 h-4" />
-                {isArchiveMode ? 'إلغاء الأرشفة' : 'وضع الأرشفة'}
-              </Button>
-              
-              {isArchiveMode && (
-                <div className="flex flex-wrap gap-1">
+              {/* أزرار الأرشفة - مخفية للمستخدمين مشاهدة فقط */}
+              {user?.role !== 'viewer' && (
+                <>
                   <Button
+                    variant={isArchiveMode ? "default" : "outline"}
                     size="sm"
-                    onClick={handleSelectAll}
-                    className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-xs"
+                    onClick={() => setIsArchiveMode(!isArchiveMode)}
+                    className="flex items-center gap-1 hover:bg-orange-50 dark:hover:bg-orange-900/20"
                   >
-                    <CheckSquare className="w-3 h-3" />
-                    تحديد الكل ({selectedTransactions.length})
+                    <Archive className="w-4 h-4" />
+                    {isArchiveMode ? 'إلغاء الأرشفة' : 'وضع الأرشفة'}
                   </Button>
                   
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleUnselectAll}
-                    className="flex items-center gap-1 text-xs"
-                  >
-                    <Square className="w-3 h-3" />
-                    إلغاء التحديد
-                  </Button>
-                  
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleArchive}
-                    disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
-                    className="flex items-center gap-1 text-xs"
-                  >
-                    <Archive className="w-3 h-3" />
-                    أرشفة ({selectedTransactions.length})
-                  </Button>
-                </div>
+                  {isArchiveMode && (
+                    <div className="flex flex-wrap gap-1">
+                      <Button
+                        size="sm"
+                        onClick={handleSelectAll}
+                        className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-xs"
+                      >
+                        <CheckSquare className="w-3 h-3" />
+                        تحديد الكل ({selectedTransactions.length})
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleUnselectAll}
+                        className="flex items-center gap-1 text-xs"
+                      >
+                        <Square className="w-3 h-3" />
+                        إلغاء التحديد
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleArchive}
+                        disabled={selectedTransactions.length === 0 || archiveMutation.isPending}
+                        className="flex items-center gap-1 text-xs"
+                      >
+                        <Archive className="w-3 h-3" />
+                        أرشفة ({selectedTransactions.length})
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
