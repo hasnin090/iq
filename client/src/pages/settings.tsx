@@ -237,36 +237,41 @@ export default function Settings() {
       <h2 className="text-2xl font-bold text-primary-light pb-2 border-b border-neutral-dark border-opacity-20">الإعدادات</h2>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="general">
-        <TabsList className="flex w-full justify-start bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 mb-6 overflow-x-auto">
+        <TabsList className="flex w-full justify-start bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 mb-6 overflow-x-auto min-h-[48px]">
           <TabsTrigger 
             value="general" 
-            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+            className="flex-shrink-0 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            إعدادات عامة
+            <span className="hidden sm:inline">إعدادات عامة</span>
+            <span className="sm:hidden">عام</span>
           </TabsTrigger>
           <TabsTrigger 
             value="financial" 
-            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+            className="flex-shrink-0 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            إعدادات مالية
+            <span className="hidden sm:inline">إعدادات مالية</span>
+            <span className="sm:hidden">مالي</span>
           </TabsTrigger>
           <TabsTrigger 
             value="system" 
-            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+            className="flex-shrink-0 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            إعدادات النظام
+            <span className="hidden sm:inline">إعدادات النظام</span>
+            <span className="sm:hidden">نظام</span>
           </TabsTrigger>
           <TabsTrigger 
             value="backup" 
-            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+            className="flex-shrink-0 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            النسخ الاحتياطي
+            <span className="hidden sm:inline">النسخ الاحتياطي</span>
+            <span className="sm:hidden">نسخ</span>
           </TabsTrigger>
           <TabsTrigger 
             value="security" 
-            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+            className="flex-shrink-0 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            تغيير كلمة المرور
+            <span className="hidden sm:inline">تغيير كلمة المرور</span>
+            <span className="sm:hidden">أمان</span>
           </TabsTrigger>
         </TabsList>
         
