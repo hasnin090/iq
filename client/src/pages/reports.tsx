@@ -320,21 +320,21 @@ export default function Reports() {
           </TabsList>
 
           {/* أدوات الفلترة المحاسبية */}
-          <div className="bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl p-3 md:p-6 border shadow-sm mt-4">
-            <div className="space-y-3">
+          <div className="bg-gradient-to-r from-muted/20 to-muted/10 rounded-lg md:rounded-xl p-2 md:p-6 border shadow-sm mt-4">
+            <div className="space-y-2 md:space-y-3">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Search className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3 h-3 md:w-4 md:h-4" />
                 <Input
                   placeholder="البحث في الوصف أو المبلغ..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10 text-sm bg-background/80 border-border/50 focus:border-primary/50 transition-colors"
+                  className="pr-8 md:pr-10 text-xs md:text-sm bg-background/80 border-border/50 focus:border-primary/50 transition-colors h-8 md:h-10"
                 />
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 <Select value={selectedAccountType} onValueChange={setSelectedAccountType}>
-                  <SelectTrigger className="w-full bg-background/80 border-border/50 text-sm">
+                  <SelectTrigger className="w-full bg-background/80 border-border/50 text-xs md:text-sm h-8 md:h-10">
                     <SelectValue placeholder="نوع الحساب" />
                   </SelectTrigger>
                   <SelectContent>
@@ -346,7 +346,7 @@ export default function Reports() {
                 </Select>
 
                 <Select value={selectedProject} onValueChange={setSelectedProject}>
-                  <SelectTrigger className="w-full bg-background/80 border-border/50 text-sm">
+                  <SelectTrigger className="w-full bg-background/80 border-border/50 text-xs md:text-sm h-8 md:h-10">
                     <SelectValue placeholder="اختر المشروع" />
                   </SelectTrigger>
                   <SelectContent>
@@ -360,7 +360,7 @@ export default function Reports() {
                 </Select>
 
                 <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="w-full sm:col-span-2 lg:col-span-1 bg-background/80 border-border/50 text-sm">
+                  <SelectTrigger className="w-full sm:col-span-2 lg:col-span-1 bg-background/80 border-border/50 text-xs md:text-sm h-8 md:h-10">
                     <SelectValue placeholder="الفترة الزمنية" />
                   </SelectTrigger>
                   <SelectContent>
@@ -372,12 +372,12 @@ export default function Reports() {
                 </Select>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-3 border-t border-border/30">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 md:gap-3 pt-2 md:pt-3 border-t border-border/30">
                 <Button 
                   onClick={exportLedgerToExcel} 
-                  className="btn-primary flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
+                  className="btn-primary flex items-center gap-1 md:gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto text-xs md:text-sm h-8 md:h-10 px-3 md:px-4"
                 >
-                  <FileSpreadsheet className="w-4 h-4" />
+                  <FileSpreadsheet className="w-3 h-3 md:w-4 md:h-4" />
                   تصدير Excel
                 </Button>
               </div>
@@ -418,25 +418,25 @@ export default function Reports() {
 
             {/* جدول تفصيلي للحسابات */}
             <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <BookOpen className="w-6 h-6" />
-                  تفاصيل دفتر الأستاذ
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
+                  <span className="truncate">تفاصيل دفتر الأستاذ</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs md:text-sm">
                   تجميع محاسبي شامل للمعاملات المالية حسب أنواع الحسابات
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2 md:px-6">
                 <div className="table-container mobile-archive-table">
-                  <Table className="w-full">
+                  <Table className="w-full text-xs md:text-sm">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-center">نوع الحساب</TableHead>
-                        <TableHead className="text-center">عدد المعاملات</TableHead>
-                        <TableHead className="text-center">إجمالي المبلغ</TableHead>
-                        <TableHead className="text-center">متوسط المعاملة</TableHead>
-                        <TableHead className="text-center">النسبة من الإجمالي</TableHead>
+                        <TableHead className="text-center text-xs md:text-sm p-2 md:p-4 whitespace-nowrap">نوع الحساب</TableHead>
+                        <TableHead className="text-center text-xs md:text-sm p-2 md:p-4 whitespace-nowrap">عدد المعاملات</TableHead>
+                        <TableHead className="text-center text-xs md:text-sm p-2 md:p-4 whitespace-nowrap">إجمالي المبلغ</TableHead>
+                        <TableHead className="text-center text-xs md:text-sm p-2 md:p-4 whitespace-nowrap hidden sm:table-cell">متوسط المعاملة</TableHead>
+                        <TableHead className="text-center text-xs md:text-sm p-2 md:p-4 whitespace-nowrap">النسبة</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -446,20 +446,26 @@ export default function Reports() {
                           const percentage = ((data.total / stats.totalExpenses) * 100).toFixed(1);
                           return (
                             <TableRow key={accountType} className="hover:bg-muted/50">
-                              <TableCell className="font-medium text-center">
-                                {getAccountTypeName(accountType)}
+                              <TableCell className="font-medium text-center text-xs md:text-sm p-2 md:p-4">
+                                <div className="truncate max-w-[80px] md:max-w-none">
+                                  {getAccountTypeName(accountType)}
+                                </div>
                               </TableCell>
-                              <TableCell className="text-center">
-                                <Badge variant="outline">{data.count}</Badge>
+                              <TableCell className="text-center p-2 md:p-4">
+                                <Badge variant="outline" className="text-xs px-1 py-0.5">{data.count}</Badge>
                               </TableCell>
-                              <TableCell className="text-center font-semibold">
-                                {formatCurrency(data.total)}
+                              <TableCell className="text-center font-semibold text-xs md:text-sm p-2 md:p-4">
+                                <div className="truncate">
+                                  {formatCurrency(data.total)}
+                                </div>
                               </TableCell>
-                              <TableCell className="text-center">
-                                {formatCurrency(data.total / data.count)}
+                              <TableCell className="text-center text-xs md:text-sm p-2 md:p-4 hidden sm:table-cell">
+                                <div className="truncate">
+                                  {formatCurrency(data.total / data.count)}
+                                </div>
                               </TableCell>
-                              <TableCell className="text-center">
-                                <Badge variant="secondary">{percentage}%</Badge>
+                              <TableCell className="text-center p-2 md:p-4">
+                                <Badge variant="secondary" className="text-xs px-1 py-0.5">{percentage}%</Badge>
                               </TableCell>
                             </TableRow>
                           );
