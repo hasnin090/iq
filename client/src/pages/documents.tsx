@@ -249,20 +249,17 @@ export default function Documents() {
   };
   
   return (
-    <>
-      <div className="bg-gradient-to-l from-primary/5 to-transparent p-4 sm:p-6 mb-6 sm:mb-8 rounded-xl border border-primary/10 shadow-sm">
-        <div className="max-w-4xl">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-md">
-              <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-            </div>
-            <h2 className="heading-responsive font-bold text-primary">إدارة المستندات</h2>
-          </div>
-          <p className="text-responsive text-muted-foreground pr-1">إدارة وتنظيم مستندات المشاريع والملفات المهمة بطريقة سهلة وفعالة</p>
+    <div className="w-full max-w-full overflow-x-hidden">
+      <div className="py-6 px-4 pb-mobile-nav-large">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-3">
+            <FileText className="w-8 h-8 text-[hsl(var(--primary))]" />
+            إدارة المستندات
+          </h1>
+          <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
         </div>
-      </div>
-      
-      <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full mb-6 sm:mb-8">
+        
+        <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center mb-5 sm:mb-6">
           {/* محسّن TabsList - مع محاذاة أفضل وتفاعلية أعلى لمختلف أحجام الشاشة */}
           <div className="flex-grow w-full">
@@ -1421,6 +1418,7 @@ export default function Documents() {
           </div>
         </TabsContent>
       </Tabs>
+      
       {/* نافذة منبثقة لرفع مستند جديد */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
         <DialogContent className="max-w-[95%] xs:max-w-[90%] sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto p-3 xs:p-4 sm:p-5 md:p-6 overflow-hidden">
@@ -1501,6 +1499,7 @@ export default function Documents() {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+      </div>
+    </div>
   );
 }
