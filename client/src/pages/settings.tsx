@@ -105,6 +105,49 @@ export default function Settings() {
     mutation.mutate({ key, value });
   };
 
+  // mutations للنسخ الاحتياطي
+  const createBackupMutation = useMutation({
+    mutationFn: () => apiRequest('/api/backup/create', 'POST'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/backup/list'] });
+      toast({
+        title: "تم إنشاء النسخة الاحتياطية",
+        description: "تم إنشاء النسخة الاحتياطية بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في إنشاء النسخة الاحتياطية",
+      });
+    },
+  });
+
+  const createEmergencyBackupMutation = useMutation({
+    mutationFn: (operation: string) => apiRequest('/api/backup/emergency', 'POST', { operation }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/backup/list'] });
+      toast({
+        title: "تم إنشاء النسخة الاحتياطية الطارئة",
+        description: "تم إنشاء النسخة الاحتياطية الطارئة بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في إنشاء النسخة الاحتياطية الطارئة",
+      });
+    },
+  });
+
+  // query لجلب قائمة النسخ الاحتياطية
+  const { data: backupList, isLoading: backupListLoading } = useQuery({
+    queryKey: ['/api/backup/list'],
+    enabled: activeTab === 'backup',
+  });
+
   // دوال النسخ الاحتياطية
   const downloadBackup = async () => {
     try {
@@ -345,13 +388,28 @@ export default function Settings() {
                         </ul>
                       </div>
                     </div>
-                    <Button 
-                      onClick={downloadBackup}
-                      className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      <Download className="ml-2 h-4 w-4" />
-                      تنزيل النسخة الاحتياطية
-                    </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                      <Button 
+                        onClick={downloadBackup}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Download className="ml-2 h-4 w-4" />
+                        تنزيل نسخة احتياطية
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => createBackupMutation.mutate()}
+                        disabled={createBackupMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {createBackupMutation.isPending ? (
+                          <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Database className="ml-2 h-4 w-4" />
+                        )}
+                        إنشاء نسخة احتياطية
+                      </Button>
+                    </div>
                   </div>
 
                   {/* رفع نسخة احتياطية */}
@@ -390,16 +448,82 @@ export default function Settings() {
                     </Button>
                   </div>
 
+                  {/* النسخ الاحتياطية الطارئة */}
+                  <div className="space-y-4 p-4 border border-red-200 rounded-lg bg-gradient-to-r from-red-50 to-pink-50 dark:from-gray-800 dark:to-gray-700">
+                    <div className="flex items-start space-x-3 space-x-reverse">
+                      <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400 mt-1" />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">نسخة احتياطية طارئة</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                          إنشاء نسخة احتياطية فورية قبل عملية حساسة
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={() => createEmergencyBackupMutation.mutate("نسخة احتياطية طارئة يدوية")}
+                      disabled={createEmergencyBackupMutation.isPending}
+                      variant="outline"
+                      className="w-full border-red-300 text-red-700 hover:bg-red-100 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-900/20"
+                    >
+                      {createEmergencyBackupMutation.isPending ? (
+                        <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Shield className="ml-2 h-4 w-4" />
+                      )}
+                      إنشاء نسخة احتياطية طارئة
+                    </Button>
+                  </div>
+
+                  {/* قائمة النسخ الاحتياطية المتوفرة */}
+                  <div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-gray-700">
+                    <div className="flex items-start space-x-3 space-x-reverse">
+                      <FileText className="h-6 w-6 text-gray-600 dark:text-gray-400 mt-1" />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">النسخ الاحتياطية المتوفرة</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                          قائمة بالنسخ الاحتياطية المحفوظة في النظام (يتم إنشاء نسخة تلقائية يومياً في الساعة 2:00 صباحاً)
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {backupListLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+                        <span className="mr-2 text-gray-500">جاري تحميل قائمة النسخ...</span>
+                      </div>
+                    ) : backupList?.backups && backupList.backups.length > 0 ? (
+                      <div className="space-y-2">
+                        {backupList.backups.map((backup: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border">
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900 dark:text-white">{backup.name}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {new Date(backup.date).toLocaleString('ar-SA')} • {backup.size ? `${(backup.size / 1024 / 1024).toFixed(2)} MB` : 'غير محدد'}
+                              </div>
+                            </div>
+                            <Database className="h-4 w-4 text-gray-400" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        لا توجد نسخ احتياطية متوفرة
+                      </div>
+                    )}
+                  </div>
+
                   {/* معلومات إضافية */}
                   <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
                     <FileText className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-800 dark:text-blue-200">
-                      <strong>ملاحظات مهمة:</strong>
+                      <strong>نظام النسخ الاحتياطي التلقائي:</strong>
                       <ul className="mt-2 space-y-1 text-sm">
-                        <li>• يتم حفظ النسخة الاحتياطية بصيغة JSON</li>
-                        <li>• تأكد من حفظ النسخ الاحتياطية في مكان آمن</li>
-                        <li>• ننصح بإنشاء نسخة احتياطية بشكل دوري</li>
-                        <li>• تحقق من صحة ملف النسخة الاحتياطية قبل الاستعادة</li>
+                        <li>• يتم إنشاء نسخة احتياطية تلقائية يومياً في الساعة 2:00 صباحاً</li>
+                        <li>• يتم الاحتفاظ بـ 30 نسخة احتياطية (حوالي شهر)</li>
+                        <li>• النسخ الأقدم يتم حذفها تلقائياً لتوفير المساحة</li>
+                        <li>• يمكن إنشاء نسخ احتياطية يدوية في أي وقت</li>
+                        <li>• النسخ الطارئة مناسبة قبل العمليات الحساسة</li>
                       </ul>
                     </AlertDescription>
                   </Alert>
