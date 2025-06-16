@@ -767,6 +767,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transactions = transactions.filter(t => t.fileUrl && t.fileUrl.trim() !== '');
       }
       
+      // إخفاء معلومات المرفقات للمستخدمين غير المصرح لهم
+      if (userRole !== "admin") {
+        transactions = transactions.map(transaction => {
+          // إذا كان المستخدم ليس منشئ المعاملة، أخف معلومات المرفق
+          if (transaction.createdBy !== userId) {
+            return {
+              ...transaction,
+              fileUrl: null,
+              fileType: null
+            };
+          }
+          return transaction;
+        });
+      }
+      
       return res.status(200).json(transactions);
     } catch (error) {
       console.error("خطأ في استرجاع المعاملات:", error);
@@ -1879,6 +1894,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const type = req.query.type as string | undefined;
       if (type) {
         transactions = transactions.filter(t => t.type === type);
+      }
+      
+      // إخفاء معلومات المرفقات للمستخدمين غير المصرح لهم
+      if (userRole !== "admin") {
+        transactions = transactions.map(transaction => {
+          // إذا كان المستخدم ليس منشئ المعاملة، أخف معلومات المرفق
+          if (transaction.createdBy !== userId) {
+            return {
+              ...transaction,
+              fileUrl: null,
+              fileType: null
+            };
+          }
+          return transaction;
+        });
       }
       
       return res.status(200).json(transactions);
