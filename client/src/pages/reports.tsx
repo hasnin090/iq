@@ -899,13 +899,13 @@ export default function Reports() {
                               {project?.name || 'غير محدد'}
                             </TableCell>
                             <TableCell className="text-sm font-medium">
-                              <span className={transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}>
+                              <span className="text-red-600">
                                 {formatCurrency(Math.abs(transaction.amount))}
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Badge variant={transaction.amount >= 0 ? 'default' : 'destructive'}>
-                                {transaction.amount >= 0 ? 'دخل' : 'مصروف'}
+                              <Badge variant="destructive">
+                                مصروف
                               </Badge>
                             </TableCell>
                           </TableRow>
