@@ -296,16 +296,16 @@ export default function Reports() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 gap-1">
-            <TabsTrigger value="ledger" className="text-xs md:text-sm">دفتر الأستاذ</TabsTrigger>
-            <TabsTrigger value="summary" className="text-xs md:text-sm">ملخص الحسابات</TabsTrigger>
-            <TabsTrigger value="details" className="text-xs md:text-sm">التفاصيل</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+            <TabsTrigger value="ledger" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">دفتر الأستاذ</TabsTrigger>
+            <TabsTrigger value="summary" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">ملخص الحسابات</TabsTrigger>
+            <TabsTrigger value="details" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">التفاصيل</TabsTrigger>
           </TabsList>
 
           {/* أدوات الفلترة المحاسبية */}
-          <div className="bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl p-4 md:p-6 border shadow-sm mt-4">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="relative flex-1">
+          <div className="bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl p-3 md:p-6 border shadow-sm mt-4">
+            <div className="space-y-3">
+              <div className="relative">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
                   placeholder="البحث في الوصف أو المبلغ..."
@@ -315,9 +315,9 @@ export default function Reports() {
                 />
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 <Select value={selectedAccountType} onValueChange={setSelectedAccountType}>
-                  <SelectTrigger className="w-full sm:w-[200px] bg-background/80 border-border/50">
+                  <SelectTrigger className="w-full bg-background/80 border-border/50 text-sm">
                     <SelectValue placeholder="نوع الحساب" />
                   </SelectTrigger>
                   <SelectContent>
@@ -329,7 +329,7 @@ export default function Reports() {
                 </Select>
 
                 <Select value={selectedProject} onValueChange={setSelectedProject}>
-                  <SelectTrigger className="w-full sm:w-[200px] bg-background/80 border-border/50">
+                  <SelectTrigger className="w-full bg-background/80 border-border/50 text-sm">
                     <SelectValue placeholder="اختر المشروع" />
                   </SelectTrigger>
                   <SelectContent>
@@ -343,7 +343,7 @@ export default function Reports() {
                 </Select>
 
                 <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px] bg-background/80 border-border/50">
+                  <SelectTrigger className="w-full sm:col-span-2 lg:col-span-1 bg-background/80 border-border/50 text-sm">
                     <SelectValue placeholder="الفترة الزمنية" />
                   </SelectTrigger>
                   <SelectContent>
@@ -353,10 +353,12 @@ export default function Reports() {
                     <SelectItem value="month">آخر شهر</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
 
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-3 border-t border-border/30">
                 <Button 
                   onClick={exportLedgerToExcel} 
-                  className="btn-primary flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="btn-primary flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                   تصدير Excel
@@ -368,24 +370,24 @@ export default function Reports() {
           {/* تبويب دفتر الأستاذ - العرض المحاسبي */}
           <TabsContent value="ledger" className="space-y-6 animate-fade-in">
             {/* ملخص الحسابات المحاسبية */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {Object.entries(accountSummary).map(([accountType, data]) => (
                 <Card key={accountType} className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg font-bold text-[hsl(var(--primary))] flex items-center gap-2">
-                      <Calculator className="w-5 h-5" />
-                      {getAccountTypeName(accountType)}
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm md:text-lg font-bold text-[hsl(var(--primary))] flex items-center gap-2">
+                      <Calculator className="w-4 h-4 md:w-5 md:h-5" />
+                      <span className="truncate">{getAccountTypeName(accountType)}</span>
                     </CardTitle>
-                    <Badge variant="secondary" className="w-fit">
+                    <Badge variant="secondary" className="w-fit text-xs">
                       {data.count} معاملة
                     </Badge>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-[hsl(var(--foreground))] mb-2">
+                  <CardContent className="pt-0">
+                    <div className="text-lg md:text-2xl font-bold text-[hsl(var(--foreground))] mb-1">
                       {formatCurrency(data.total)}
                     </div>
-                    <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                      متوسط المعاملة: {formatCurrency(data.total / data.count)}
+                    <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
+                      متوسط: {formatCurrency(data.total / data.count)}
                     </div>
                   </CardContent>
                 </Card>
