@@ -1431,7 +1431,7 @@ export default function Documents() {
                             </Badge>
                           </div>
                           <CardTitle className="text-base mt-2 mb-0">
-                            {new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(transaction.amount)}
+                            {new Intl.NumberFormat('ar-IQ').format(transaction.amount)} د.ع
                           </CardTitle>
                           <CardDescription className="text-xs line-clamp-1">
                             {transaction.description}
