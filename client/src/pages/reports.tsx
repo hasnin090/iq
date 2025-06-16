@@ -172,6 +172,20 @@ export default function Reports() {
     });
   }, [transactions, searchQuery, selectedProject, dateFilter, selectedAccountType]);
 
+  // فلترة المعاملات لحساب معين
+  const getTransactionsByAccountType = (accountType: string) => {
+    return filteredTransactions.filter(transaction => {
+      const transactionAccountType = getAccountType(transaction.description || '');
+      return transactionAccountType === accountType;
+    });
+  };
+
+  // فتح حوار المعاملات لنوع حساب معين
+  const openAccountDialog = (accountType: string) => {
+    setDialogAccountType(accountType);
+    setAccountDialogOpen(true);
+  };
+
   // تجميع الحسابات حسب النوع
   const accountSummary = useMemo(() => {
     const summary: Record<string, { transactions: Transaction[], total: number, count: number }> = {};
@@ -375,11 +389,16 @@ export default function Reports() {
             {/* ملخص الحسابات المحاسبية */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {Object.entries(accountSummary).map(([accountType, data]) => (
-                <Card key={accountType} className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                <Card 
+                  key={accountType} 
+                  className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                  onClick={() => openAccountDialog(accountType)}
+                >
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm md:text-lg font-bold text-[hsl(var(--primary))] flex items-center gap-2">
                       <Calculator className="w-4 h-4 md:w-5 md:h-5" />
                       <span className="truncate">{getAccountTypeName(accountType)}</span>
+                      <Eye className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </CardTitle>
                     <Badge variant="secondary" className="w-fit text-xs">
                       {data.count} معاملة
@@ -807,6 +826,105 @@ export default function Reports() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* حوار عرض المعاملات لنوع حساب معين */}
+      <Dialog open={accountDialogOpen} onOpenChange={setAccountDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden w-[95vw] sm:w-full">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
+              معاملات {dialogAccountType ? getAccountTypeName(dialogAccountType) : ''}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-auto max-h-[70vh] sm:max-h-[60vh]">
+            {dialogAccountType && (
+              <div className="space-y-4">
+                {/* إحصائيات سريعة */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">عدد المعاملات</p>
+                    <p className="text-xl font-bold text-primary">
+                      {getTransactionsByAccountType(dialogAccountType).length}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">إجمالي المبلغ</p>
+                    <p className="text-xl font-bold text-primary">
+                      {formatCurrency(
+                        getTransactionsByAccountType(dialogAccountType).reduce(
+                          (sum, t) => sum + Math.abs(t.amount), 0
+                        )
+                      )}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">متوسط المعاملة</p>
+                    <p className="text-xl font-bold text-primary">
+                      {getTransactionsByAccountType(dialogAccountType).length > 0
+                        ? formatCurrency(
+                            getTransactionsByAccountType(dialogAccountType).reduce(
+                              (sum, t) => sum + Math.abs(t.amount), 0
+                            ) / getTransactionsByAccountType(dialogAccountType).length
+                          )
+                        : formatCurrency(0)
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* جدول المعاملات */}
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>التاريخ</TableHead>
+                        <TableHead>الوصف</TableHead>
+                        <TableHead>المشروع</TableHead>
+                        <TableHead>المبلغ</TableHead>
+                        <TableHead>النوع</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getTransactionsByAccountType(dialogAccountType).map((transaction) => {
+                        const project = projects.find(p => p.id === transaction.projectId);
+                        return (
+                          <TableRow key={transaction.id}>
+                            <TableCell className="text-sm">
+                              {format(new Date(transaction.date), 'dd/MM/yyyy', { locale: ar })}
+                            </TableCell>
+                            <TableCell className="text-sm max-w-xs truncate">
+                              {transaction.description}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {project?.name || 'غير محدد'}
+                            </TableCell>
+                            <TableCell className="text-sm font-medium">
+                              <span className={transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                {formatCurrency(Math.abs(transaction.amount))}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={transaction.amount >= 0 ? 'default' : 'destructive'}>
+                                {transaction.amount >= 0 ? 'دخل' : 'مصروف'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {getTransactionsByAccountType(dialogAccountType).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    لا توجد معاملات لهذا النوع من الحسابات
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
