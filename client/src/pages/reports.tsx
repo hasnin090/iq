@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2, Activity, Calculator, FileSpreadsheet } from 'lucide-react'
+import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2, Activity, Calculator, FileSpreadsheet, Eye } from 'lucide-react'
 import { format } from 'date-fns'
 import { ar } from 'date-fns/locale'
 import * as XLSX from 'xlsx'
@@ -126,6 +127,8 @@ export default function Reports() {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [selectedAccountType, setSelectedAccountType] = useState<string>('all');
+  const [dialogAccountType, setDialogAccountType] = useState<string | null>(null);
+  const [accountDialogOpen, setAccountDialogOpen] = useState(false);
 
   // جلب البيانات
   const { data: transactions = [] } = useQuery<Transaction[]>({
