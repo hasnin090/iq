@@ -1172,4 +1172,65 @@ input[type="number"] {
     padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)) !important;
     margin-bottom: 2rem !important;
   }
+
+  /* أنماط التمرير المخصصة للجداول */
+  .scrollable-table {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156 163 175) transparent;
+  }
+
+  .scrollable-table::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollable-table::-webkit-scrollbar-track {
+    background: rgb(243 244 246);
+    border-radius: 4px;
+  }
+
+  .scrollable-table::-webkit-scrollbar-thumb {
+    background: rgb(156 163 175);
+    border-radius: 4px;
+    border: 1px solid rgb(243 244 246);
+  }
+
+  .scrollable-table::-webkit-scrollbar-thumb:hover {
+    background: rgb(107 114 128);
+  }
+
+  .scrollable-table::-webkit-scrollbar-corner {
+    background: rgb(243 244 246);
+  }
+
+  /* أنماط التمرير للوضع المظلم */
+  .dark .scrollable-table::-webkit-scrollbar-track {
+    background: rgb(55 65 81);
+  }
+
+  .dark .scrollable-table::-webkit-scrollbar-thumb {
+    background: rgb(107 114 128);
+    border: 1px solid rgb(55 65 81);
+  }
+
+  .dark .scrollable-table::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175);
+  }
+
+  .dark .scrollable-table::-webkit-scrollbar-corner {
+    background: rgb(55 65 81);
+  }
+
+  /* تحسين ظهور الجدول مع التمرير */
+  .scrollable-table table {
+    position: relative;
+  }
+
+  .scrollable-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: inherit;
+    backdrop-filter: blur(8px);
+  }
 }

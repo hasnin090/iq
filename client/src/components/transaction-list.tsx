@@ -346,9 +346,13 @@ export function TransactionList({
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg max-h-[500px] min-h-[300px] relative scrollable-table" 
+                 style={{ 
+                   scrollbarWidth: 'thin',
+                   scrollbarColor: 'rgb(156 163 175) transparent'
+                 }}>
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-800">
+                <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10 shadow-sm">
                   <tr>
                     {isArchiveMode && onToggleSelection && (
                       <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
