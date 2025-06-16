@@ -505,16 +505,54 @@ export default function Documents() {
                         </Popover>
                       </div>
                       
+                      {/* أزرار سريعة للتصفية */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            const today = new Date();
+                            const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            handleFilterChange({
+                              dateRange: {
+                                from: lastWeek,
+                                to: today,
+                              },
+                            });
+                          }}
+                          className="text-xs h-9"
+                        >
+                          آخر أسبوع
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            const today = new Date();
+                            const lastMonth = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            handleFilterChange({
+                              dateRange: {
+                                from: lastMonth,
+                                to: today,
+                              },
+                            });
+                          }}
+                          className="text-xs h-9"
+                        >
+                          آخر شهر
+                        </Button>
+                      </div>
+                      
                       {/* زر مسح الفلتر */}
-                      {(filter.projectId || filter.fileType || filter.dateRange?.from) && (
+                      {(filter.projectId || filter.fileType || filter.dateRange?.from || filter.searchQuery) && (
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => setFilter({})}
-                          className="w-full mt-2 text-xs h-9"
+                          className="w-full mt-2 text-xs h-9 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
                         >
                           <X className="ml-1.5 h-3.5 w-3.5" />
-                          مسح الفلتر
+                          مسح جميع الفلاتر
                         </Button>
                       )}
                     </div>
@@ -1028,6 +1066,22 @@ export default function Documents() {
                                     >
                                       <Download className="h-3 w-3" />
                                     </Button>
+                                    
+                                    {/* زر الحذف للمديرين فقط */}
+                                    {(user?.role === 'admin' || user?.role === 'manager') && (
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-6 w-6 p-0 rounded-full hover:bg-destructive hover:bg-opacity-10 hover:text-destructive"
+                                        onClick={() => {
+                                          setDocumentToDelete(doc);
+                                          setShowDeleteDialog(true);
+                                        }}
+                                        title="حذف المستند"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
