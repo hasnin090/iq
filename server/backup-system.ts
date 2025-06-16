@@ -1,7 +1,9 @@
 import { db } from './db';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync, existsSync, mkdirSync, cpSync, readdirSync, statSync } from 'fs';
 import path from 'path';
 import { storage } from './storage';
+import { createWriteStream, createReadStream } from 'fs';
+import archiver from 'archiver';
 
 export class BackupSystem {
   private backupDir = path.join(process.cwd(), 'backups');
@@ -14,45 +16,156 @@ export class BackupSystem {
     }
   }
 
-  // إنشاء نسخة احتياطية كاملة
+  // إنشاء نسخة احتياطية كاملة مع المرفقات
   async createFullBackup(): Promise<string> {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `backup-${timestamp}.json`;
-      const filepath = path.join(this.backupDir, filename);
+      const archiveName = `backup-${timestamp}.zip`;
+      const archivePath = path.join(this.backupDir, archiveName);
 
-      // جمع جميع البيانات
-      const backupData = {
-        timestamp: new Date().toISOString(),
-        version: '1.0.0',
-        data: {
-          users: await storage.listUsers(),
-          projects: await storage.listProjects(),
-          transactions: await storage.listTransactions(),
-          documents: await storage.listDocuments(),
-          settings: await storage.listSettings(),
-          funds: await storage.listFunds(),
-          activityLogs: await storage.listActivityLogs()
-        }
-      };
+      // إنشاء أرشيف مضغوط
+      const output = createWriteStream(archivePath);
+      const archive = archiver('zip', { zlib: { level: 9 } });
 
-      // إزالة كلمات المرور من النسخة الاحتياطية لأغراض الأمان
-      backupData.data.users = backupData.data.users.map(user => ({
-        ...user,
-        password: '[ENCRYPTED]'
-      }));
+      return new Promise<string>((resolve, reject) => {
+        output.on('close', () => {
+          console.log(`تم إنشاء نسخة احتياطية مع المرفقات: ${archiveName} (${archive.pointer()} bytes)`);
+          // تنظيف النسخ القديمة
+          this.cleanOldBackups().finally(() => resolve(archiveName));
+        });
 
-      // كتابة الملف
-      writeFileSync(filepath, JSON.stringify(backupData, null, 2));
+        archive.on('error', (err) => {
+          console.error('خطأ في إنشاء الأرشيف:', err);
+          reject(err);
+        });
 
-      // تنظيف النسخ القديمة
-      await this.cleanOldBackups();
+        archive.pipe(output);
 
-      console.log(`تم إنشاء نسخة احتياطية: ${filename}`);
-      return filename;
+        this.createBackupContent(archive).then(() => {
+          archive.finalize();
+        }).catch(reject);
+      });
     } catch (error) {
       console.error('خطأ في إنشاء النسخة الاحتياطية:', error);
       throw error;
+    }
+  }
+
+  // إنشاء محتوى النسخة الاحتياطية
+  private async createBackupContent(archive: archiver.Archiver): Promise<void> {
+    // جمع جميع البيانات
+    const backupData = {
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      data: {
+        users: await storage.listUsers(),
+        projects: await storage.listProjects(),
+        transactions: await storage.listTransactions(),
+        documents: await storage.listDocuments(),
+        settings: await storage.listSettings(),
+        funds: await storage.listFunds(),
+        activityLogs: await storage.listActivityLogs()
+      }
+    };
+
+    // إزالة كلمات المرور من النسخة الاحتياطية لأغراض الأمان
+    backupData.data.users = backupData.data.users.map(user => ({
+      ...user,
+      password: '[ENCRYPTED]'
+    }));
+
+    // إضافة ملف البيانات JSON إلى الأرشيف
+    archive.append(JSON.stringify(backupData, null, 2), { name: 'data.json' });
+
+    // إضافة المرفقات
+    await this.addAttachmentsToArchive(archive, backupData.data.transactions, backupData.data.documents);
+  }
+
+  // إضافة المرفقات إلى الأرشيف
+  private async addAttachmentsToArchive(archive: archiver.Archiver, transactions: any[], documents: any[]): Promise<void> {
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    
+    if (!existsSync(uploadsDir)) {
+      console.log('مجلد uploads غير موجود، سيتم تخطي المرفقات');
+      return;
+    }
+
+    // إنشاء مجموعة من الملفات المطلوب نسخها لتجنب التكرار
+    const filesToBackup = new Set<string>();
+
+    // جمع ملفات المعاملات
+    transactions.forEach(transaction => {
+      if (transaction.fileUrl) {
+        try {
+          // استخراج المسار النسبي من URL
+          const relativeFilePath = this.extractFilePathFromUrl(transaction.fileUrl);
+          if (relativeFilePath) {
+            filesToBackup.add(relativeFilePath);
+          }
+        } catch (error) {
+          console.warn(`فشل في معالجة مرفق المعاملة ${transaction.id}:`, error);
+        }
+      }
+    });
+
+    // جمع ملفات المستندات
+    documents.forEach(document => {
+      if (document.fileUrl) {
+        try {
+          const relativeFilePath = this.extractFilePathFromUrl(document.fileUrl);
+          if (relativeFilePath) {
+            filesToBackup.add(relativeFilePath);
+          }
+        } catch (error) {
+          console.warn(`فشل في معالجة مرفق المستند ${document.id}:`, error);
+        }
+      }
+    });
+
+    // إضافة الملفات إلى الأرشيف
+    let addedFilesCount = 0;
+    for (const relativeFilePath of Array.from(filesToBackup)) {
+      try {
+        const fullFilePath = path.join(uploadsDir, relativeFilePath);
+        
+        if (existsSync(fullFilePath)) {
+          // التأكد من أن الملف قابل للقراءة
+          const stats = statSync(fullFilePath);
+          if (stats.isFile()) {
+            archive.file(fullFilePath, { name: `attachments/${relativeFilePath}` });
+            addedFilesCount++;
+          }
+        } else {
+          console.warn(`الملف غير موجود: ${fullFilePath}`);
+        }
+      } catch (error) {
+        console.warn(`فشل في إضافة الملف ${relativeFilePath} للأرشيف:`, error);
+      }
+    }
+
+    console.log(`تم إضافة ${addedFilesCount} مرفق إلى النسخة الاحتياطية`);
+  }
+
+  // استخراج مسار الملف من URL
+  private extractFilePathFromUrl(fileUrl: string): string | null {
+    try {
+      // إذا كان URL محلي يبدأ بـ /uploads/
+      if (fileUrl.startsWith('/uploads/')) {
+        return fileUrl.replace('/uploads/', '');
+      }
+      
+      // إذا كان URL كامل
+      const url = new URL(fileUrl);
+      const pathname = url.pathname;
+      
+      if (pathname.includes('/uploads/')) {
+        return pathname.split('/uploads/')[1];
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn('فشل في تحليل URL:', fileUrl, error);
+      return null;
     }
   }
 
@@ -62,7 +175,7 @@ export class BackupSystem {
       const fs = await import('fs/promises');
       const files = await fs.readdir(this.backupDir);
       const backupFiles = files
-        .filter(file => file.startsWith('backup-') && file.endsWith('.json'))
+        .filter(file => file.startsWith('backup-') && (file.endsWith('.json') || file.endsWith('.zip')))
         .sort()
         .reverse();
 
@@ -106,58 +219,90 @@ export class BackupSystem {
     console.log('تم تفعيل النسخ الاحتياطي التلقائي (كل 24 ساعة)');
   }
 
-  // إنشاء نسخة احتياطية طوارئ قبل العمليات الحساسة
+  // إنشاء نسخة احتياطية طوارئ قبل العمليات الحساسة (مع المرفقات)
   async createEmergencyBackup(operation: string): Promise<string> {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `emergency-${operation}-${timestamp}.json`;
-      const filepath = path.join(this.backupDir, filename);
+      const archiveName = `emergency-${operation}-${timestamp}.zip`;
+      const archivePath = path.join(this.backupDir, archiveName);
 
-      const backupData = {
-        timestamp: new Date().toISOString(),
-        type: 'emergency',
-        operation: operation,
-        version: '1.0.0',
-        data: {
-          users: await storage.listUsers(),
-          projects: await storage.listProjects(),
-          transactions: await storage.listTransactions(),
-          documents: await storage.listDocuments(),
-          settings: await storage.listSettings(),
-          funds: await storage.listFunds()
-        }
-      };
+      // إنشاء أرشيف مضغوط
+      const output = createWriteStream(archivePath);
+      const archive = archiver('zip', { zlib: { level: 9 } });
 
-      // إزالة كلمات المرور
-      backupData.data.users = backupData.data.users.map(user => ({
-        ...user,
-        password: '[ENCRYPTED]'
-      }));
+      return new Promise<string>((resolve, reject) => {
+        output.on('close', () => {
+          console.log(`تم إنشاء نسخة احتياطية طوارئ مع المرفقات: ${archiveName} (${archive.pointer()} bytes)`);
+          resolve(archiveName);
+        });
 
-      writeFileSync(filepath, JSON.stringify(backupData, null, 2));
-      console.log(`تم إنشاء نسخة احتياطية طوارئ: ${filename}`);
-      return filename;
+        archive.on('error', (err) => {
+          console.error('خطأ في إنشاء الأرشيف الطارئ:', err);
+          reject(err);
+        });
+
+        archive.pipe(output);
+
+        this.createEmergencyBackupContent(archive, operation).then(() => {
+          archive.finalize();
+        }).catch(reject);
+      });
     } catch (error) {
       console.error('خطأ في إنشاء نسخة احتياطية طوارئ:', error);
       throw error;
     }
   }
 
+  // إنشاء محتوى النسخة الاحتياطية الطارئة
+  private async createEmergencyBackupContent(archive: archiver.Archiver, operation: string): Promise<void> {
+    const backupData = {
+      timestamp: new Date().toISOString(),
+      type: 'emergency',
+      operation: operation,
+      version: '1.0.0',
+      data: {
+        users: await storage.listUsers(),
+        projects: await storage.listProjects(),
+        transactions: await storage.listTransactions(),
+        documents: await storage.listDocuments(),
+        settings: await storage.listSettings(),
+        funds: await storage.listFunds()
+      }
+    };
+
+    // إزالة كلمات المرور
+    backupData.data.users = backupData.data.users.map(user => ({
+      ...user,
+      password: '[ENCRYPTED]'
+    }));
+
+    // إضافة ملف البيانات JSON إلى الأرشيف
+    archive.append(JSON.stringify(backupData, null, 2), { name: 'emergency-data.json' });
+
+    // إضافة المرفقات
+    await this.addAttachmentsToArchive(archive, backupData.data.transactions, backupData.data.documents);
+  }
+
   // الحصول على قائمة النسخ الاحتياطية المتاحة
-  async getAvailableBackups(): Promise<Array<{name: string, date: Date, size: number}>> {
+  async getAvailableBackups(): Promise<Array<{name: string, date: Date, size: number, type: string, hasAttachments: boolean}>> {
     try {
       const fs = await import('fs/promises');
       const files = await fs.readdir(this.backupDir);
       const backupFiles = [];
 
       for (const file of files) {
-        if (file.endsWith('.json') && (file.startsWith('backup-') || file.startsWith('emergency-'))) {
+        if ((file.endsWith('.json') || file.endsWith('.zip')) && (file.startsWith('backup-') || file.startsWith('emergency-'))) {
           const filepath = path.join(this.backupDir, file);
           const stats = await fs.stat(filepath);
+          const isZip = file.endsWith('.zip');
+          const isEmergency = file.startsWith('emergency-');
+          
           backupFiles.push({
             name: file,
             date: stats.mtime,
-            size: stats.size
+            size: stats.size,
+            type: isEmergency ? 'emergency' : 'regular',
+            hasAttachments: isZip
           });
         }
       }
