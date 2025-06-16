@@ -25,7 +25,7 @@ const formatCurrency = (amount: number) => {
 };
 
 // أنواع الحسابات المحاسبية
-const ACCOUNT_TYPES = {
+const ACCOUNT_TYPES: Record<string, string> = {
   salaries: 'الرواتب والأجور',
   advances: 'السلف والمقدمات',
   materials: 'المواد والمعدات',
@@ -49,8 +49,23 @@ const ACCOUNT_TYPES = {
   other: 'متفرقات'
 };
 
-// تحديد نوع الحساب بناءً على الوصف
-const getAccountType = (description: string): string => {
+// حالة لتخزين أنواع الحسابات الديناميكية
+let DYNAMIC_ACCOUNT_TYPES: Record<string, string> = {};
+
+// تحديد نوع الحساب بناءً على الوصف أو نوع المصروف المحدد
+const getAccountType = (description: string, expenseType?: string): string => {
+  // إذا كان هناك نوع مصروف محدد، استخدمه مباشرة
+  if (expenseType) {
+    const typeKey = expenseType.toLowerCase().replace(/\s+/g, '_');
+    
+    // إضافة النوع الجديد إلى القائمة الديناميكية إذا لم يكن موجوداً
+    if (!ACCOUNT_TYPES[typeKey] && !DYNAMIC_ACCOUNT_TYPES[typeKey]) {
+      DYNAMIC_ACCOUNT_TYPES[typeKey] = expenseType;
+    }
+    
+    return typeKey;
+  }
+
   const desc = description?.toLowerCase() || '';
   
   if (desc.includes('راتب') || desc.includes('أجر') || desc.includes('مكافأة') || desc.includes('اجور تشغيلية')) {
@@ -96,6 +111,11 @@ const getAccountType = (description: string): string => {
   } else {
     return 'other';
   }
+};
+
+// دالة للحصول على اسم نوع الحساب مع دعم الأنواع الديناميكية
+const getAccountTypeName = (accountType: string): string => {
+  return ACCOUNT_TYPES[accountType] || DYNAMIC_ACCOUNT_TYPES[accountType] || accountType;
 };
 
 export default function Reports() {
@@ -155,7 +175,7 @@ export default function Reports() {
     
     // تجميع المعاملات حسب نوع الحساب
     filteredTransactions.forEach(transaction => {
-      const accountType = getAccountType(transaction.description || '');
+      const accountType = getAccountType(transaction.description || '', (transaction as any).expenseType);
       
       if (!summary[accountType]) {
         summary[accountType] = {
@@ -354,7 +374,7 @@ export default function Reports() {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg font-bold text-[hsl(var(--primary))] flex items-center gap-2">
                       <Calculator className="w-5 h-5" />
-                      {ACCOUNT_TYPES[accountType as keyof typeof ACCOUNT_TYPES] || accountType}
+                      {getAccountTypeName(accountType)}
                     </CardTitle>
                     <Badge variant="secondary" className="w-fit">
                       {data.count} معاملة
@@ -403,7 +423,7 @@ export default function Reports() {
                           return (
                             <TableRow key={accountType} className="hover:bg-muted/50">
                               <TableCell className="font-medium text-center">
-                                {ACCOUNT_TYPES[accountType as keyof typeof ACCOUNT_TYPES] || accountType}
+                                {getAccountTypeName(accountType)}
                               </TableCell>
                               <TableCell className="text-center">
                                 <Badge variant="outline">{data.count}</Badge>
@@ -435,7 +455,7 @@ export default function Reports() {
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Activity className="w-5 h-5 text-[hsl(var(--primary))]" />
-                      {ACCOUNT_TYPES[accountType as keyof typeof ACCOUNT_TYPES] || accountType}
+                      {getAccountTypeName(accountType)}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -659,11 +679,11 @@ export default function Reports() {
                                   {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                                 </Badge>
                                 <div className="text-xs text-muted-foreground lg:hidden mt-1">
-                                  {ACCOUNT_TYPES[getAccountType(transaction.description || '') as keyof typeof ACCOUNT_TYPES]}
+                                  {getAccountTypeName(getAccountType(transaction.description || '', (transaction as any).expenseType))}
                                 </div>
                               </TableCell>
                               <TableCell className="text-xs md:text-sm py-2 md:py-3 hidden lg:table-cell">
-                                {ACCOUNT_TYPES[getAccountType(transaction.description || '') as keyof typeof ACCOUNT_TYPES]}
+                                {getAccountTypeName(getAccountType(transaction.description || '', (transaction as any).expenseType))}
                               </TableCell>
                               <TableCell className={`text-right font-medium text-xs md:text-sm py-2 md:py-3 ${
                                 transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
