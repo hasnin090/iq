@@ -66,6 +66,21 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
               <SelectItem value="مشتريات">مشتريات</SelectItem>
               <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
               <SelectItem value="مصروف عام">مصروف عام</SelectItem>
+              <SelectItem value="وقود">وقود</SelectItem>
+              <SelectItem value="كهرباء">كهرباء</SelectItem>
+              <SelectItem value="ماء">ماء</SelectItem>
+              <SelectItem value="اتصالات">اتصالات</SelectItem>
+              <SelectItem value="صيانة">صيانة</SelectItem>
+              <SelectItem value="تأمين">تأمين</SelectItem>
+              <SelectItem value="ايجار">ايجار</SelectItem>
+              <SelectItem value="نقل">نقل</SelectItem>
+              <SelectItem value="ضرائب">ضرائب</SelectItem>
+              <SelectItem value="رسوم">رسوم</SelectItem>
+              <SelectItem value="تدريب">تدريب</SelectItem>
+              <SelectItem value="قرطاسية">قرطاسية</SelectItem>
+              <SelectItem value="تسويق">تسويق</SelectItem>
+              <SelectItem value="استشارات">استشارات</SelectItem>
+              <SelectItem value="خدمات مالية">خدمات مالية</SelectItem>
             </SelectContent>
           </Select>
           <FormMessage />

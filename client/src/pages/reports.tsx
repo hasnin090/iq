@@ -27,13 +27,24 @@ const formatCurrency = (amount: number) => {
 // أنواع الحسابات المحاسبية
 const ACCOUNT_TYPES = {
   salaries: 'الرواتب والأجور',
-  generalExpenses: 'المصروفات العامة',
-  maintenance: 'الصيانة والإصلاحات',
-  utilities: 'فواتير الخدمات',
+  advances: 'السلف والمقدمات',
   materials: 'المواد والمعدات',
+  fuel: 'الوقود والمحروقات',
+  electricity: 'فواتير الكهرباء',
+  water: 'فواتير المياه',
+  communications: 'الاتصالات والإنترنت',
+  maintenance: 'الصيانة والإصلاحات',
+  insurance: 'التأمين',
+  rent: 'الإيجارات',
   transportation: 'النقل والمواصلات',
-  administrative: 'المصروفات الإدارية',
+  taxes: 'الضرائب والرسوم الحكومية',
+  fees: 'الرسوم والعمولات',
+  training: 'التدريب والتطوير',
+  stationery: 'القرطاسية والمكتبيات',
   marketing: 'التسويق والإعلان',
+  consultancy: 'الاستشارات والخدمات المهنية',
+  financial_services: 'الخدمات المالية والمصرفية',
+  generalExpenses: 'المصروفات العامة',
   revenue: 'الإيرادات',
   other: 'متفرقات'
 };
@@ -42,20 +53,42 @@ const ACCOUNT_TYPES = {
 const getAccountType = (description: string): string => {
   const desc = description?.toLowerCase() || '';
   
-  if (desc.includes('راتب') || desc.includes('أجر') || desc.includes('مكافأة')) {
+  if (desc.includes('راتب') || desc.includes('أجر') || desc.includes('مكافأة') || desc.includes('اجور تشغيلية')) {
     return 'salaries';
-  } else if (desc.includes('كهرباء') || desc.includes('ماء') || desc.includes('هاتف') || desc.includes('إنترنت')) {
-    return 'utilities';
-  } else if (desc.includes('صيانة') || desc.includes('إصلاح') || desc.includes('تصليح')) {
-    return 'maintenance';
-  } else if (desc.includes('مادة') || desc.includes('معدات') || desc.includes('أدوات')) {
+  } else if (desc.includes('سلفة') || desc.includes('سلف')) {
+    return 'advances';
+  } else if (desc.includes('مشتريات') || desc.includes('شراء') || desc.includes('مواد') || desc.includes('معدات') || desc.includes('أدوات')) {
     return 'materials';
-  } else if (desc.includes('نقل') || desc.includes('مواصلات') || desc.includes('بنزين') || desc.includes('وقود')) {
+  } else if (desc.includes('وقود') || desc.includes('بنزين') || desc.includes('ديزل')) {
+    return 'fuel';
+  } else if (desc.includes('كهرباء') || desc.includes('كهربائي')) {
+    return 'electricity';
+  } else if (desc.includes('ماء') || desc.includes('مياه')) {
+    return 'water';
+  } else if (desc.includes('اتصالات') || desc.includes('هاتف') || desc.includes('إنترنت') || desc.includes('انترنت')) {
+    return 'communications';
+  } else if (desc.includes('صيانة') || desc.includes('إصلاح') || desc.includes('تصليح') || desc.includes('اصلاح')) {
+    return 'maintenance';
+  } else if (desc.includes('تأمين') || desc.includes('تامين')) {
+    return 'insurance';
+  } else if (desc.includes('ايجار') || desc.includes('إيجار')) {
+    return 'rent';
+  } else if (desc.includes('نقل') || desc.includes('مواصلات') || desc.includes('توصيل')) {
     return 'transportation';
-  } else if (desc.includes('إيجار') || desc.includes('مكتب') || desc.includes('قرطاسية')) {
-    return 'administrative';
-  } else if (desc.includes('إعلان') || desc.includes('تسويق') || desc.includes('دعاية')) {
+  } else if (desc.includes('ضرائب') || desc.includes('ضريبة')) {
+    return 'taxes';
+  } else if (desc.includes('رسوم') || desc.includes('رسم')) {
+    return 'fees';
+  } else if (desc.includes('تدريب') || desc.includes('دورة') || desc.includes('ورشة')) {
+    return 'training';
+  } else if (desc.includes('قرطاسية') || desc.includes('مكتبية') || desc.includes('ورق')) {
+    return 'stationery';
+  } else if (desc.includes('تسويق') || desc.includes('إعلان') || desc.includes('دعاية') || desc.includes('اعلان')) {
     return 'marketing';
+  } else if (desc.includes('استشارات') || desc.includes('استشارة') || desc.includes('خبرة')) {
+    return 'consultancy';
+  } else if (desc.includes('خدمات مالية') || desc.includes('بنك') || desc.includes('فوائد')) {
+    return 'financial_services';
   } else if (desc.includes('إيراد') || desc.includes('مبيعات') || desc.includes('دخل')) {
     return 'revenue';
   } else if (desc.includes('مصروف عام') || desc.includes('عام')) {
