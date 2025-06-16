@@ -2261,6 +2261,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database status endpoint
+  app.get("/api/database/status", async (req: Request, res: Response) => {
+    try {
+      // Test database connection by running a simple query
+      const startTime = Date.now();
+      const result = await storage.checkTableExists('users');
+      const responseTime = Date.now() - startTime;
+      
+      res.json({
+        connected: true,
+        responseTime,
+        timestamp: new Date().toISOString(),
+        tablesAccessible: result
+      });
+    } catch (error) {
+      console.error("Database connection error:", error);
+      res.status(500).json({
+        connected: false,
+        error: error instanceof Error ? error.message : 'Unknown database error',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

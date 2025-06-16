@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { DatabaseStatus } from "@/components/ui/database-status";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -133,8 +134,9 @@ export const AppHeader = memo(({ onOpenSidebar }: AppHeaderProps) => {
       <MenuToggleButton onClick={onOpenSidebar} />
       <DateDisplay />
       
-      <div className="flex items-center space-x-4 space-x-reverse">
+      <div className="flex items-center space-x-3 space-x-reverse">
         <DateDisplay isMobile />
+        <DatabaseStatus />
         {user && <UserAvatar name={user.name} role={user.role} />}
         
         <ThemeToggle 

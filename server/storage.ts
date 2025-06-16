@@ -12,6 +12,9 @@ import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage';
 
 export interface IStorage {
+  // Database health check
+  checkTableExists(tableName: string): Promise<boolean>;
+  
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
