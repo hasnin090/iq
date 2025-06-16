@@ -7,11 +7,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2, Activity } from 'lucide-react'
+import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2, Activity, Calculator, FileSpreadsheet } from 'lucide-react'
 import { format } from 'date-fns'
 import { ar } from 'date-fns/locale'
 import * as XLSX from 'xlsx'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/use-auth'
 import type { Transaction, Project, User } from '@/types'
 
 const formatCurrency = (amount: number) => {
@@ -23,12 +24,55 @@ const formatCurrency = (amount: number) => {
   }).format(amount).replace('د.ع.', '').trim() + ' د.ع';
 };
 
+// أنواع الحسابات المحاسبية
+const ACCOUNT_TYPES = {
+  salaries: 'الرواتب والأجور',
+  generalExpenses: 'المصروفات العامة',
+  maintenance: 'الصيانة والإصلاحات',
+  utilities: 'فواتير الخدمات',
+  materials: 'المواد والمعدات',
+  transportation: 'النقل والمواصلات',
+  administrative: 'المصروفات الإدارية',
+  marketing: 'التسويق والإعلان',
+  revenue: 'الإيرادات',
+  other: 'متفرقات'
+};
+
+// تحديد نوع الحساب بناءً على الوصف
+const getAccountType = (description: string): string => {
+  const desc = description?.toLowerCase() || '';
+  
+  if (desc.includes('راتب') || desc.includes('أجر') || desc.includes('مكافأة')) {
+    return 'salaries';
+  } else if (desc.includes('كهرباء') || desc.includes('ماء') || desc.includes('هاتف') || desc.includes('إنترنت')) {
+    return 'utilities';
+  } else if (desc.includes('صيانة') || desc.includes('إصلاح') || desc.includes('تصليح')) {
+    return 'maintenance';
+  } else if (desc.includes('مادة') || desc.includes('معدات') || desc.includes('أدوات')) {
+    return 'materials';
+  } else if (desc.includes('نقل') || desc.includes('مواصلات') || desc.includes('بنزين') || desc.includes('وقود')) {
+    return 'transportation';
+  } else if (desc.includes('إيجار') || desc.includes('مكتب') || desc.includes('قرطاسية')) {
+    return 'administrative';
+  } else if (desc.includes('إعلان') || desc.includes('تسويق') || desc.includes('دعاية')) {
+    return 'marketing';
+  } else if (desc.includes('إيراد') || desc.includes('مبيعات') || desc.includes('دخل')) {
+    return 'revenue';
+  } else if (desc.includes('مصروف عام') || desc.includes('عام')) {
+    return 'generalExpenses';
+  } else {
+    return 'other';
+  }
+};
+
 export default function Reports() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('overview');
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('ledger');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState('all');
+  const [selectedAccountType, setSelectedAccountType] = useState<string>('all');
 
   // جلب البيانات
   const { data: transactions = [] } = useQuery<Transaction[]>({
@@ -46,7 +90,7 @@ export default function Reports() {
   // فلترة المعاملات
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
-      const matchesSearch = transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch = (transaction.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                           transaction.amount.toString().includes(searchQuery);
       
       const matchesProject = selectedProject === 'all' || transaction.projectId?.toString() === selectedProject;
@@ -64,10 +108,37 @@ export default function Reports() {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         matchesDate = transactionDate >= monthAgo;
       }
+
+      const accountType = getAccountType(transaction.description || '');
+      const matchesAccountType = selectedAccountType === 'all' || accountType === selectedAccountType;
       
-      return matchesSearch && matchesProject && matchesDate;
+      return matchesSearch && matchesProject && matchesDate && matchesAccountType;
     });
-  }, [transactions, searchQuery, selectedProject, dateFilter]);
+  }, [transactions, searchQuery, selectedProject, dateFilter, selectedAccountType]);
+
+  // تجميع الحسابات حسب النوع
+  const accountSummary = useMemo(() => {
+    const summary: Record<string, { transactions: Transaction[], total: number, count: number }> = {};
+    
+    // تجميع المعاملات حسب نوع الحساب
+    filteredTransactions.forEach(transaction => {
+      const accountType = getAccountType(transaction.description || '');
+      
+      if (!summary[accountType]) {
+        summary[accountType] = {
+          transactions: [],
+          total: 0,
+          count: 0
+        };
+      }
+      
+      summary[accountType].transactions.push(transaction);
+      summary[accountType].total += transaction.amount;
+      summary[accountType].count += 1;
+    });
+    
+    return summary;
+  }, [filteredTransactions]);
 
   // حساب الإحصائيات
   const stats = useMemo(() => {
@@ -89,55 +160,97 @@ export default function Reports() {
     };
   }, [filteredTransactions]);
 
-  // تصدير إلى Excel
-  const exportToExcel = () => {
-    const exportData = filteredTransactions.map(t => {
+  // تصدير دفتر الأستاذ إلى Excel (للمستخدمين بصلاحية العرض فقط)
+  const exportLedgerToExcel = () => {
+    if (!user || user.role !== 'viewer') {
+      toast({
+        title: "غير مصرح",
+        description: "تصدير Excel متاح فقط للمستخدمين بصلاحية العرض",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // إنشاء ورقة ملخص الحسابات
+    const summaryData = Object.entries(accountSummary).map(([type, data]) => ({
+      'نوع الحساب': ACCOUNT_TYPES[type as keyof typeof ACCOUNT_TYPES] || type,
+      'عدد المعاملات': data.count,
+      'إجمالي المبلغ (د.ع)': data.total,
+      'المبلغ مُنسق': formatCurrency(data.total)
+    }));
+
+    // إنشاء ورقة تفاصيل المعاملات
+    const detailsData = filteredTransactions.map(t => {
       const project = projects.find(p => p.id === t.projectId);
+      const accountType = getAccountType(t.description || '');
       return {
         'التاريخ': format(new Date(t.date), 'yyyy/MM/dd', { locale: ar }),
-        'الوصف': t.description,
+        'الوصف': t.description || '',
+        'نوع الحساب': ACCOUNT_TYPES[accountType as keyof typeof ACCOUNT_TYPES] || accountType,
         'المشروع': project?.name || 'الصندوق الرئيسي',
         'النوع': t.type === 'income' ? 'إيراد' : 'مصروف',
-        'نوع المصروف': t.expenseType || '',
-        'المبلغ': t.amount,
-        'المبلغ المنسق': formatCurrency(t.amount)
+        'المبلغ (د.ع)': t.amount,
+        'المبلغ مُنسق': formatCurrency(t.amount)
       };
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'تقرير المعاملات');
     
-    const fileName = `تقرير_المعاملات_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    // إضافة ورقة ملخص الحسابات
+    const summaryWs = XLSX.utils.json_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(workbook, summaryWs, 'ملخص دفتر الأستاذ');
+    
+    // إضافة ورقة تفاصيل المعاملات
+    const detailsWs = XLSX.utils.json_to_sheet(detailsData);
+    XLSX.utils.book_append_sheet(workbook, detailsWs, 'تفاصيل المعاملات');
+    
+    const fileName = `دفتر-الأستاذ-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
     XLSX.writeFile(workbook, fileName);
     
     toast({
-      title: "تم تصدير التقرير",
-      description: `تم تصدير ${filteredTransactions.length} سجل إلى Excel`,
+      title: "تم التصدير بنجاح",
+      description: `تم تصدير دفتر الأستاذ (${Object.keys(accountSummary).length} حساب)`
     });
   };
+
+  // فحص الصلاحيات - دفتر الأستاذ للمديرين فقط
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="w-full max-w-full overflow-x-hidden">
+        <div className="py-4 md:py-6 px-3 md:px-4 pb-mobile-nav-large">
+          <Card className="text-center p-8">
+            <CardContent>
+              <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl font-bold text-muted-foreground mb-2">دفتر الأستاذ العام</h2>
+              <p className="text-muted-foreground">هذا القسم مخصص للمديرين فقط</p>
+              <p className="text-sm text-muted-foreground mt-2">يحتوي على معلومات مالية حساسة وتحليلات شاملة</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
       <div className="py-4 md:py-6 px-3 md:px-4 pb-mobile-nav-large">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-2 md:gap-3">
-            <BookOpen className="text-[hsl(var(--primary))] w-6 h-6 md:w-8 md:h-8" />
+            <Calculator className="text-[hsl(var(--primary))] w-6 h-6 md:w-8 md:h-8" />
             دفتر الأستاذ العام
           </h1>
-          <p className="text-[hsl(var(--muted-foreground))] mt-2 text-sm md:text-base">دفتر شامل لجميع المعاملات المالية والأرصدة - مخصص للمدير فقط</p>
+          <p className="text-[hsl(var(--muted-foreground))] mt-2 text-sm md:text-base">تصنيف محاسبي شامل للحسابات والمعاملات المالية</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
-            <TabsTrigger value="overview" className="text-xs md:text-sm">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="transactions" className="text-xs md:text-sm">المعاملات</TabsTrigger>
-            <TabsTrigger value="projects" className="text-xs md:text-sm">المشاريع</TabsTrigger>
-            <TabsTrigger value="balances" className="text-xs md:text-sm">الأرصدة</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 gap-1">
+            <TabsTrigger value="ledger" className="text-xs md:text-sm">دفتر الأستاذ</TabsTrigger>
+            <TabsTrigger value="summary" className="text-xs md:text-sm">ملخص الحسابات</TabsTrigger>
+            <TabsTrigger value="details" className="text-xs md:text-sm">التفاصيل</TabsTrigger>
           </TabsList>
 
-          {/* أدوات الفلترة المحسنة */}
-          <div className="bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl p-4 md:p-6 border shadow-sm">
+          {/* أدوات الفلترة المحاسبية */}
+          <div className="bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl p-4 md:p-6 border shadow-sm mt-4">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -150,6 +263,18 @@ export default function Reports() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={selectedAccountType} onValueChange={setSelectedAccountType}>
+                  <SelectTrigger className="w-full sm:w-[200px] bg-background/80 border-border/50">
+                    <SelectValue placeholder="نوع الحساب" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع أنواع الحسابات</SelectItem>
+                    {Object.entries(ACCOUNT_TYPES).map(([key, value]) => (
+                      <SelectItem key={key} value={key}>{value}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <Select value={selectedProject} onValueChange={setSelectedProject}>
                   <SelectTrigger className="w-full sm:w-[200px] bg-background/80 border-border/50">
                     <SelectValue placeholder="اختر المشروع" />
@@ -177,10 +302,11 @@ export default function Reports() {
                 </Select>
 
                 <Button 
-                  onClick={exportToExcel} 
+                  onClick={exportLedgerToExcel} 
                   className="btn-primary flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300"
+                  disabled={user.role !== 'viewer'}
                 >
-                  <Download className="w-4 h-4" />
+                  <FileSpreadsheet className="w-4 h-4" />
                   تصدير Excel
                 </Button>
               </div>
