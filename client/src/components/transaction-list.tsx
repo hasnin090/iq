@@ -57,6 +57,7 @@ const transactionFormSchema = z.object({
     required_error: "الرجاء اختيار تاريخ",
   }),
   type: z.string().min(1, "الرجاء اختيار نوع المعاملة"),
+  expenseType: z.string().optional(),
   amount: z.coerce.number().positive("المبلغ يجب أن يكون أكبر من الصفر"),
   description: z.string().min(1, "الرجاء إدخال الوصف"),
   projectId: z.number().nullable().optional(),
@@ -88,6 +89,7 @@ export function TransactionList({
     defaultValues: {
       date: new Date(),
       type: "income",
+      expenseType: "مصروف عام",
       amount: 0,
       description: "",
       projectId: null,
@@ -101,6 +103,7 @@ export function TransactionList({
       form.reset({
         date: new Date(transactionToEdit.date),
         type: type,
+        expenseType: transactionToEdit.expenseType || "مصروف عام",
         amount: transactionToEdit.amount,
         description: transactionToEdit.description || "",
         projectId: transactionToEdit.projectId || null,
@@ -529,6 +532,49 @@ export function TransactionList({
                   </FormItem>
                 )}
               />
+
+              {/* حقل نوع المصروف - يظهر فقط للمصروفات */}
+              {form.watch("type") === "expense" && (
+                <FormField
+                  control={form.control}
+                  name="expenseType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>نوع المصروف</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر نوع المصروف" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="راتب">راتب</SelectItem>
+                          <SelectItem value="سلفة">سلفة</SelectItem>
+                          <SelectItem value="مشتريات">مشتريات</SelectItem>
+                          <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
+                          <SelectItem value="مصروف عام">مصروف عام</SelectItem>
+                          <SelectItem value="وقود">وقود</SelectItem>
+                          <SelectItem value="كهرباء">كهرباء</SelectItem>
+                          <SelectItem value="ماء">ماء</SelectItem>
+                          <SelectItem value="اتصالات">اتصالات</SelectItem>
+                          <SelectItem value="صيانة">صيانة</SelectItem>
+                          <SelectItem value="تأمين">تأمين</SelectItem>
+                          <SelectItem value="ايجار">ايجار</SelectItem>
+                          <SelectItem value="نقل">نقل</SelectItem>
+                          <SelectItem value="ضرائب">ضرائب</SelectItem>
+                          <SelectItem value="رسوم">رسوم</SelectItem>
+                          <SelectItem value="تدريب">تدريب</SelectItem>
+                          <SelectItem value="قرطاسية">قرطاسية</SelectItem>
+                          <SelectItem value="تسويق">تسويق</SelectItem>
+                          <SelectItem value="استشارات">استشارات</SelectItem>
+                          <SelectItem value="خدمات مالية">خدمات مالية</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
