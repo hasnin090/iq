@@ -237,12 +237,37 @@ export default function Settings() {
       <h2 className="text-2xl font-bold text-primary-light pb-2 border-b border-neutral-dark border-opacity-20">الإعدادات</h2>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="general">
-        <TabsList className="grid w-full grid-cols-5 mb-6">
-          <TabsTrigger value="general">إعدادات عامة</TabsTrigger>
-          <TabsTrigger value="financial">إعدادات مالية</TabsTrigger>
-          <TabsTrigger value="system">إعدادات النظام</TabsTrigger>
-          <TabsTrigger value="backup">النسخ الاحتياطي</TabsTrigger>
-          <TabsTrigger value="security">تغيير كلمة المرور</TabsTrigger>
+        <TabsList className="flex w-full justify-start bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-1 mb-6 overflow-x-auto">
+          <TabsTrigger 
+            value="general" 
+            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            إعدادات عامة
+          </TabsTrigger>
+          <TabsTrigger 
+            value="financial" 
+            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            إعدادات مالية
+          </TabsTrigger>
+          <TabsTrigger 
+            value="system" 
+            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            إعدادات النظام
+          </TabsTrigger>
+          <TabsTrigger 
+            value="backup" 
+            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            النسخ الاحتياطي
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security" 
+            className="flex-shrink-0 px-4 py-2 text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            تغيير كلمة المرور
+          </TabsTrigger>
         </TabsList>
         
         {isLoading ? (
