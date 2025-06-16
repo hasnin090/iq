@@ -64,6 +64,7 @@ declare module "express-session" {
     userId: number;
     username: string;
     role: string;
+    lastActivity?: string;
   }
 }
 
@@ -97,14 +98,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Authentication middleware
+  // Authentication middleware with session timeout
   const authenticate = (req: Request, res: Response, next: Function) => {
-    console.log('Auth middleware - Session:', req.session);
     if (!req.session || !req.session.userId) {
-      console.log('Unauthorized request - no valid session');
       return res.status(401).json({ message: "غير مصرح" });
     }
-    console.log('User authenticated with ID:', req.session.userId);
+
+    // فحص انتهاء صلاحية الجلسة (30 دقيقة من عدم النشاط)
+    const now = new Date();
+    const lastActivity = req.session.lastActivity ? new Date(req.session.lastActivity) : now;
+    const thirtyMinutes = 30 * 60 * 1000; // 30 دقيقة بالميلي ثانية
+
+    if (now.getTime() - lastActivity.getTime() > thirtyMinutes) {
+      req.session.destroy((err) => {
+        if (err) console.error('Session destruction error:', err);
+      });
+      return res.status(401).json({ message: "انتهت صلاحية الجلسة" });
+    }
+
+    // تحديث آخر نشاط
+    req.session.lastActivity = now.toISOString();
     next();
   };
 
@@ -144,6 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.userId = user.id;
         req.session.username = user.username;
         req.session.role = user.role;
+        req.session.lastActivity = new Date().toISOString();
         // إضافة علامة للإشارة إلى تعديل الجلسة
         (req.session as any).modified = true;
         

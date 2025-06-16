@@ -53,11 +53,19 @@ export class PgStorage implements IStorage {
   }
   
   async createUser(user: InsertUser): Promise<User> {
+    // تشفير كلمة المرور قبل حفظها
+    if (user.password) {
+      user.password = await this.hashPassword(user.password);
+    }
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    // تشفير كلمة المرور الجديدة إذا تم تحديثها
+    if (userData.password) {
+      userData.password = await this.hashPassword(userData.password);
+    }
     const [updatedUser] = await db.update(users)
       .set(userData)
       .where(eq(users.id, id))
@@ -213,29 +221,32 @@ export class PgStorage implements IStorage {
   
   async validatePassword(storedPassword: string, inputPassword: string): Promise<boolean> {
     try {
-      console.log('PG Storage - Comparing passwords:', { 
-        storedHashLength: storedPassword?.length || 0,
-        inputPasswordLength: inputPassword?.length || 0 
-      });
-      
       if (!storedPassword || !inputPassword) {
-        console.log('Missing password data');
         return false;
       }
       
-      // للتجربة فقط: إذا كانت كلمة المرور "admin123" واسم المستخدم "admin"، نقوم بالموافقة
-      if (inputPassword === 'admin123') {
-        console.log('Using direct admin password validation');
-        return true;
+      // تحقق من قوة كلمة المرور (8 أحرف على الأقل)
+      if (inputPassword.length < 8) {
+        return false;
       }
       
-      // استخدام bcrypt للتحقق من كلمة المرور
+      // استخدام bcrypt للتحقق من كلمة المرور مع مستوى تشفير عالي
       const result = await bcrypt.compare(inputPassword, storedPassword);
-      console.log('Bcrypt comparison result:', result);
       return result;
     } catch (error) {
-      console.error('PG Storage - Password validation error:', error);
+      console.error('Password validation error:', error);
       return false;
+    }
+  }
+
+  // دالة تشفير كلمة المرور بمستوى حماية عالي
+  async hashPassword(password: string): Promise<string> {
+    try {
+      const saltRounds = 12; // مستوى تشفير عالي
+      return await bcrypt.hash(password, saltRounds);
+    } catch (error) {
+      console.error('Password hashing error:', error);
+      throw new Error('فشل في تشفير كلمة المرور');
     }
   }
   
