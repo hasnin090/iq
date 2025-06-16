@@ -304,7 +304,6 @@ export default function Reports() {
                 <Button 
                   onClick={exportLedgerToExcel} 
                   className="btn-primary flex items-center gap-2 whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300"
-                  disabled={user.role !== 'viewer'}
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                   تصدير Excel
@@ -313,7 +312,132 @@ export default function Reports() {
             </div>
           </div>
 
-          <TabsContent value="overview" className="space-y-6 animate-fade-in">
+          {/* تبويب دفتر الأستاذ - العرض المحاسبي */}
+          <TabsContent value="ledger" className="space-y-6 animate-fade-in">
+            {/* ملخص الحسابات المحاسبية */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {Object.entries(accountSummary).map(([accountType, data]) => (
+                <Card key={accountType} className="group relative overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg font-bold text-[hsl(var(--primary))] flex items-center gap-2">
+                      <Calculator className="w-5 h-5" />
+                      {ACCOUNT_TYPES[accountType as keyof typeof ACCOUNT_TYPES] || accountType}
+                    </CardTitle>
+                    <Badge variant="secondary" className="w-fit">
+                      {data.count} معاملة
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-[hsl(var(--foreground))] mb-2">
+                      {formatCurrency(data.total)}
+                    </div>
+                    <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                      متوسط المعاملة: {formatCurrency(data.total / data.count)}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* جدول تفصيلي للحسابات */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <BookOpen className="w-6 h-6" />
+                  تفاصيل دفتر الأستاذ
+                </CardTitle>
+                <CardDescription>
+                  تجميع محاسبي شامل للمعاملات المالية حسب أنواع الحسابات
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="table-container mobile-archive-table">
+                  <Table className="w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-center">نوع الحساب</TableHead>
+                        <TableHead className="text-center">عدد المعاملات</TableHead>
+                        <TableHead className="text-center">إجمالي المبلغ</TableHead>
+                        <TableHead className="text-center">متوسط المعاملة</TableHead>
+                        <TableHead className="text-center">النسبة من الإجمالي</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Object.entries(accountSummary)
+                        .sort(([,a], [,b]) => b.total - a.total)
+                        .map(([accountType, data]) => {
+                          const percentage = ((data.total / stats.totalExpenses) * 100).toFixed(1);
+                          return (
+                            <TableRow key={accountType} className="hover:bg-muted/50">
+                              <TableCell className="font-medium text-center">
+                                {ACCOUNT_TYPES[accountType as keyof typeof ACCOUNT_TYPES] || accountType}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="outline">{data.count}</Badge>
+                              </TableCell>
+                              <TableCell className="text-center font-semibold">
+                                {formatCurrency(data.total)}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {formatCurrency(data.total / data.count)}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="secondary">{percentage}%</Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* تبويب ملخص الحسابات */}
+          <TabsContent value="summary" className="space-y-6 animate-fade-in">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Object.entries(accountSummary).map(([accountType, data]) => (
+                <Card key={accountType} className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-[hsl(var(--primary))]" />
+                      {ACCOUNT_TYPES[accountType as keyof typeof ACCOUNT_TYPES] || accountType}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-[hsl(var(--muted-foreground))]">إجمالي المبلغ</span>
+                        <span className="font-bold text-lg">{formatCurrency(data.total)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-[hsl(var(--muted-foreground))]">عدد المعاملات</span>
+                        <Badge variant="outline">{data.count} معاملة</Badge>
+                      </div>
+                      <div className="pt-2 border-t">
+                        <div className="text-xs text-[hsl(var(--muted-foreground))] mb-2">المعاملات الأخيرة:</div>
+                        {data.transactions.slice(0, 3).map((transaction) => (
+                          <div key={transaction.id} className="text-sm py-1 border-b border-muted/30 last:border-0">
+                            <div className="flex justify-between">
+                              <span className="truncate">{transaction.description}</span>
+                              <span className="font-medium">{formatCurrency(transaction.amount)}</span>
+                            </div>
+                            <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                              {format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* تبويب التفاصيل */}
+          <TabsContent value="details" className="space-y-6 animate-fade-in">
             {/* بطاقات الإحصائيات المحسنة */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               <Card className="group relative overflow-hidden bg-gradient-to-br from-emerald-50/80 to-emerald-100/60 dark:from-emerald-900/20 dark:to-emerald-800/30 border-emerald-200/50 shadow-lg hover:shadow-xl transition-all duration-300 card-hover">
@@ -502,11 +626,11 @@ export default function Reports() {
                                   {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                                 </Badge>
                                 <div className="text-xs text-muted-foreground lg:hidden mt-1">
-                                  {transaction.expenseType || '-'}
+                                  {ACCOUNT_TYPES[getAccountType(transaction.description || '') as keyof typeof ACCOUNT_TYPES]}
                                 </div>
                               </TableCell>
                               <TableCell className="text-xs md:text-sm py-2 md:py-3 hidden lg:table-cell">
-                                {transaction.expenseType || '-'}
+                                {ACCOUNT_TYPES[getAccountType(transaction.description || '') as keyof typeof ACCOUNT_TYPES]}
                               </TableCell>
                               <TableCell className={`text-right font-medium text-xs md:text-sm py-2 md:py-3 ${
                                 transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
