@@ -34,6 +34,7 @@ interface Transaction {
   fileUrl?: string;
   fileType?: string;
   expenseType?: string;
+  createdBy?: number;
 }
 
 interface Project {
@@ -83,6 +84,15 @@ export function TransactionList({
   const [selectedAttachment, setSelectedAttachment] = useState<{url: string; type: string} | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // دالة للتحقق من إمكانية عرض المرفق
+  const canViewAttachment = (transaction: Transaction): boolean => {
+    if (!user) return false;
+    // المدير يستطيع رؤية جميع المرفقات
+    if (user.role === 'admin') return true;
+    // المستخدم يستطيع رؤية مرفقاته فقط
+    return transaction.createdBy === user.id;
+  };
   
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
@@ -306,8 +316,8 @@ export function TransactionList({
                       </div>
                     )}
                     
-                    {/* المرفق */}
-                    {transaction.fileUrl && (
+                    {/* المرفق - يظهر فقط للمنشئ والمدير */}
+                    {transaction.fileUrl && canViewAttachment(transaction) && (
                       <div className="mb-2">
                         <button
                           onClick={() => {
