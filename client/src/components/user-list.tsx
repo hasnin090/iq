@@ -49,7 +49,6 @@ import {
   EyeIcon, 
   EyeOffIcon, 
   InfoIcon, 
-  AtSignIcon, 
   UserIcon, 
   ShieldIcon, 
   LockIcon 
@@ -530,8 +529,6 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
               </div>
               {getRoleBadge(user.role)}
             </div>
-            
-
             
             {/* الصلاحيات */}
             <div className="mb-4">
