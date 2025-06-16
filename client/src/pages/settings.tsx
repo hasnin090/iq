@@ -198,7 +198,7 @@ export default function Settings() {
           <TabsTrigger value="general">إعدادات عامة</TabsTrigger>
           <TabsTrigger value="financial">إعدادات مالية</TabsTrigger>
           <TabsTrigger value="system">إعدادات النظام</TabsTrigger>
-          <TabsTrigger value="backup">النسخ الاحتياطية</TabsTrigger>
+          <TabsTrigger value="backup">النسخ الاحتياطي</TabsTrigger>
           <TabsTrigger value="security">تغيير كلمة المرور</TabsTrigger>
         </TabsList>
         

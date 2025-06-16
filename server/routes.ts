@@ -2188,6 +2188,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // APIs إدارة النسخ الاحتياطي الجديدة
+  
+  // إنشاء نسخة احتياطية يدوية
+  app.post("/api/backup/create", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const backupPath = await backupSystem.createFullBackup();
+      
+      // تسجيل نشاط إنشاء النسخة الاحتياطية
+      await storage.createActivityLog({
+        userId: (req.session as any).userId,
+        action: "backup_create",
+        entityType: "system",
+        entityId: 0,
+        details: "تم إنشاء نسخة احتياطية يدوية"
+      });
+
+      res.json({ 
+        success: true, 
+        message: "تم إنشاء النسخة الاحتياطية بنجاح",
+        backupPath 
+      });
+    } catch (error) {
+      console.error("خطأ في إنشاء النسخة الاحتياطية:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء إنشاء النسخة الاحتياطية" 
+      });
+    }
+  });
+
+  // قائمة النسخ الاحتياطية المتوفرة
+  app.get("/api/backup/list", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const backups = await backupSystem.getAvailableBackups();
+      res.json({ success: true, backups });
+    } catch (error) {
+      console.error("خطأ في جلب قائمة النسخ الاحتياطية:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء جلب قائمة النسخ الاحتياطية" 
+      });
+    }
+  });
+
+  // إنشاء نسخة احتياطية طارئة قبل عملية حساسة
+  app.post("/api/backup/emergency", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { operation } = req.body;
+      const backupPath = await backupSystem.createEmergencyBackup(operation || "عملية إدارية");
+      
+      // تسجيل نشاط إنشاء النسخة الاحتياطية الطارئة
+      await storage.createActivityLog({
+        userId: (req.session as any).userId,
+        action: "backup_emergency",
+        entityType: "system",
+        entityId: 0,
+        details: `تم إنشاء نسخة احتياطية طارئة: ${operation || "عملية إدارية"}`
+      });
+
+      res.json({ 
+        success: true, 
+        message: "تم إنشاء النسخة الاحتياطية الطارئة بنجاح",
+        backupPath 
+      });
+    } catch (error) {
+      console.error("خطأ في إنشاء النسخة الاحتياطية الطارئة:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء إنشاء النسخة الاحتياطية الطارئة" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
