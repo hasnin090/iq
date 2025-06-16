@@ -118,7 +118,9 @@ function AppRoutes() {
               <Route path="/users" component={Users} />
               <Route path="/documents" component={Documents} />
               <Route path="/archive" component={Archive} />
-              <Route path="/reports" component={Reports} />
+              <Route path="/reports">
+                {user?.role === 'admin' ? <Reports /> : <NotFound />}
+              </Route>
               <Route path="/activities" component={Activities} />
               <Route path="/settings" component={Settings} />
               <Route component={NotFound} />

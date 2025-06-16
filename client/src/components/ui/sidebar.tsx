@@ -352,8 +352,8 @@ function CompanyName() {
                 <span className="text-sm sm:text-base">الأرشيف</span>
               </Link>
               
-              {/* قسم التقارير - مخفي للمستخدمين مشاهدة فقط */}
-              {user?.role !== 'viewer' && (
+              {/* قسم التقارير - مخصص للمدير فقط */}
+              {user?.role === 'admin' && (
                 <Link
                   href="/reports"
                   className={`flex items-center space-x-reverse space-x-3 px-3 py-2.5 rounded-xl no-flicker touch-target ${
