@@ -947,6 +947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const transactionSchema = z.object({
         date: z.string().or(z.date()),
         type: z.enum(["income", "expense"]),
+        expenseType: z.string().optional(),
         amount: z.number().positive(),
         description: z.string(),
         projectId: z.number().nullable().optional(),
@@ -982,6 +983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formattedData = {
         date: new Date(transactionData.date.toString()),
         type: transactionData.type,
+        expenseType: transactionData.expenseType,
         amount: transactionData.amount,
         description: transactionData.description,
         projectId: transactionData.projectId === undefined ? null : transactionData.projectId
