@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import session from "express-session";
 import path from "path";
 import pgSession from 'connect-pg-simple';
+import { backupSystem } from "./backup-system";
 
 const app = express();
 app.use(express.json());
@@ -97,5 +98,13 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // تفعيل نظام النسخ الاحتياطي التلقائي
+    try {
+      backupSystem.startAutoBackup();
+      log('Automatic backup system activated');
+    } catch (error) {
+      console.error('Failed to start backup system:', error);
+    }
   });
 })();

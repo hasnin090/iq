@@ -18,6 +18,7 @@ import bcrypt from "bcryptjs";
 import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import { db } from "./db";
+import { backupSystem } from "./backup-system";
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";

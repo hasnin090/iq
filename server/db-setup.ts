@@ -15,8 +15,8 @@ export async function setupDatabase() {
     if (!adminUser) {
       console.log("إنشاء مستخدم المسؤول...");
       
-      // تشفير كلمة المرور
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      // تشفير كلمة المرور بمستوى حماية عالي
+      const hashedPassword = await bcrypt.hash('admin123', 12);
       
       await storage.createUser({
         username: 'admin',
