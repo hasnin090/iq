@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from "@/components/ui/badge";
-import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2, Plus, Upload, X } from 'lucide-react';
+import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2, Plus, Upload, X, Folder, FolderOpen, Paperclip } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Card, 
@@ -251,6 +251,7 @@ export default function Documents() {
   return (
     <div className="w-full max-w-full overflow-x-hidden">
       <div className="py-6 px-4 pb-mobile-nav-large">
+        <div className="container mx-auto max-w-7xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-3">
             <FileText className="w-8 h-8 text-[hsl(var(--primary))]" />
@@ -259,64 +260,70 @@ export default function Documents() {
           <p className="text-[hsl(var(--muted-foreground))] mt-2">إدارة وتنظيم مستندات المشاريع والملفات المهمة</p>
         </div>
         
-        <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center mb-5 sm:mb-6">
-          {/* محسّن TabsList - مع محاذاة أفضل وتفاعلية أعلى لمختلف أحجام الشاشة */}
-          <div className="flex-grow w-full">
-            {/* تحسين شريط التبويب للأجهزة المحمولة: يجعله قابل للتمرير أفقياً بنعومة */}
-            <div className="relative w-full overflow-hidden">
-              <TabsList className="w-full flex overflow-x-auto scrollbar-hide pb-1 no-scrollbar whitespace-nowrap rounded-xl shadow-sm border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+        <div className="bg-card border border-border rounded-xl shadow-sm p-4 sm:p-6 mb-6">
+          <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange} className="w-full">
+            {/* شريط التبويبات المحسن */}
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <h2 className="text-lg font-semibold text-foreground flex items-center">
+                  <Folder className="ml-2 h-5 w-5 text-primary" />
+                  تصنيف المستندات
+                </h2>
+                
+                {user?.role !== 'viewer' && (
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="h-9 px-4 text-sm rounded-lg flex items-center gap-2"
+                    onClick={() => setShowUploadDialog(true)}
+                  >
+                    <Upload className="h-4 w-4" />
+                    رفع مستند جديد
+                  </Button>
+                )}
+              </div>
+              
+              {/* التبويبات بتصميم أنيق ومنظم */}
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-1 bg-muted/30 p-1 rounded-lg h-auto">
                 <TabsTrigger 
                   value="all" 
-                  className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md data-[state=active]:bg-primary/10 transition-all duration-200"
+                  className="flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-primary rounded-md transition-all"
                 >
-                  <FileText className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span>المستندات العامة</span>
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">المستندات العامة</span>
+                  <span className="sm:hidden">عامة</span>
                 </TabsTrigger>
+                
                 <TabsTrigger 
                   value="projects" 
-                  className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md data-[state=active]:bg-primary/10 transition-all duration-200"
+                  className="flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-primary rounded-md transition-all"
                 >
-                  <File className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span>حسب المشروع</span>
+                  <FolderOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">حسب المشروع</span>
+                  <span className="sm:hidden">مشاريع</span>
                 </TabsTrigger>
+                
                 {isManagerOrAdmin && (
                   <TabsTrigger 
                     value="manager" 
-                    className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md data-[state=active]:bg-primary/10 transition-all duration-200"
+                    className="flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-amber-600 rounded-md transition-all col-span-2 lg:col-span-1"
                   >
-                    <Lock className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span>مستندات المدراء</span>
+                    <Lock className="h-4 w-4" />
+                    <span className="hidden sm:inline">مستندات إدارية</span>
+                    <span className="sm:hidden">إدارية</span>
                   </TabsTrigger>
                 )}
+                
                 <TabsTrigger 
                   value="attachments" 
-                  className="flex-shrink-0 flex items-center justify-center text-xs sm:text-sm h-11 md:h-12 px-3 data-[state=active]:shadow-md data-[state=active]:bg-primary/10 transition-all duration-200"
+                  className={`flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-primary rounded-md transition-all ${!isManagerOrAdmin ? 'col-span-2 lg:col-span-2' : 'col-span-2 lg:col-span-1'}`}
                 >
-                  <FileImage className="ml-1 sm:ml-1.5 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span>مرفقات المعاملات</span>
+                  <Paperclip className="h-4 w-4" />
+                  <span className="hidden sm:inline">مرفقات المعاملات</span>
+                  <span className="sm:hidden">مرفقات</span>
                 </TabsTrigger>
               </TabsList>
-              {/* مؤشرات تمرير للأجهزة المحمولة */}
-              <div className="absolute left-0 top-0 h-full w-6 pointer-events-none bg-gradient-to-l from-transparent to-background/30 sm:hidden"></div>
-              <div className="absolute right-0 top-0 h-full w-6 pointer-events-none bg-gradient-to-r from-transparent to-background/30 sm:hidden"></div>
             </div>
-          </div>
-          
-          {/* زر رفع مستند - تصميم محسن - يظهر فقط في تبويب المستندات العامة */}
-          {user?.role !== 'viewer' && activeTab === "all" && (
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="h-10 md:h-11 w-auto min-w-[auto] sm:min-w-[140px] text-xs rounded-xl shadow-sm flex items-center justify-center whitespace-nowrap bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all"
-              onClick={() => setShowUploadDialog(true)}
-            >
-              <Upload className="ml-2 h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="xs:inline font-medium">رفع مستند</span>
-              <span className="xs:hidden font-medium">رفع</span>
-            </Button>
-          )}
-        </div>
         
         {activeTab === "manager" && !isManagerOrAdmin && (
           <Alert variant="destructive" className="mb-4">
@@ -1417,7 +1424,8 @@ export default function Documents() {
             </div>
           </div>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+        </div>
       
       {/* نافذة منبثقة لرفع مستند جديد */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
@@ -1499,6 +1507,7 @@ export default function Documents() {
           </div>
         </DialogContent>
       </Dialog>
+        </div>
       </div>
     </div>
   );
