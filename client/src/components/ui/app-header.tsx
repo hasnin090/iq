@@ -46,18 +46,19 @@ const DateDisplay = memo(({ isMobile = false }: { isMobile?: boolean }) => {
     const date = new Date();
     if (isMobile) {
       return {
-        regular: format(date, dateFormat.regular, { locale: ar }),
-        compact: format(date, dateFormat.compact, { locale: ar })
+        regular: format(date, dateFormat.regular!, { locale: ar }),
+        compact: format(date, dateFormat.compact!, { locale: ar })
       };
     }
-    return format(date, dateFormat.full, { locale: ar });
+    return format(date, dateFormat.full!, { locale: ar });
   }, [isMobile, dateFormat]);
   
   if (isMobile) {
+    const mobileDate = formattedDate as { regular: string; compact: string };
     return (
       <div className="md:hidden text-xs xs:text-sm font-semibold text-blue-600 dark:text-blue-300 transition-colors duration-300">
-        <span className="hidden xs:inline">{formattedDate.regular}</span>
-        <span className="xs:hidden">{formattedDate.compact}</span>
+        <span className="hidden xs:inline">{mobileDate.regular}</span>
+        <span className="xs:hidden">{mobileDate.compact}</span>
       </div>
     );
   }
@@ -66,7 +67,7 @@ const DateDisplay = memo(({ isMobile = false }: { isMobile?: boolean }) => {
     <div className="hidden md:flex flex-col items-center">
       <div className="text-base font-semibold text-blue-600 dark:text-blue-300 transition-colors duration-300">
         <i className="fas fa-calendar-day ml-1.5"></i>
-        <span>{formattedDate}</span>
+        <span>{formattedDate as string}</span>
       </div>
     </div>
   );

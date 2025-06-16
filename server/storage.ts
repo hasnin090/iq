@@ -79,6 +79,11 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  async checkTableExists(tableName: string): Promise<boolean> {
+    // For memory storage, we'll assume tables always exist
+    return true;
+  }
+
   private usersData: Map<number, User>;
   private projectsData: Map<number, Project>;
   private transactionsData: Map<number, Transaction>;
