@@ -41,8 +41,13 @@ export default function Settings() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { data: settings, isLoading } = useQuery<Setting[]>({
+  const { data: settings, isLoading, error } = useQuery<Setting[]>({
     queryKey: ['/api/settings'],
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
   const mutation = useMutation({
@@ -143,9 +148,14 @@ export default function Settings() {
   });
 
   // query لجلب قائمة النسخ الاحتياطية
-  const { data: backupList, isLoading: backupListLoading } = useQuery({
+  const { data: backupList, isLoading: backupListLoading } = useQuery<{backups: any[]}>({
     queryKey: ['/api/backup/list'],
     enabled: activeTab === 'backup',
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // دوال النسخ الاحتياطية
@@ -279,6 +289,16 @@ export default function Settings() {
           <div className="text-center py-20">
             <div className="spinner w-8 h-8 mx-auto"></div>
             <p className="mt-4 text-muted">جاري تحميل البيانات...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <Alert variant="destructive" className="max-w-md mx-auto">
+              <AlertCircle className="h-4 w-4 ml-2" />
+              <AlertTitle>خطأ في تحميل البيانات</AlertTitle>
+              <AlertDescription>
+                تعذر تحميل بيانات الإعدادات. يرجى التأكد من تسجيل الدخول بشكل صحيح.
+              </AlertDescription>
+            </Alert>
           </div>
         ) : (
           <>
@@ -522,7 +542,7 @@ export default function Settings() {
                         <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
                         <span className="mr-2 text-gray-500">جاري تحميل قائمة النسخ...</span>
                       </div>
-                    ) : backupList?.backups && backupList.backups.length > 0 ? (
+                    ) : backupList && backupList.backups && backupList.backups.length > 0 ? (
                       <div className="space-y-2">
                         {backupList.backups.map((backup: any, index: number) => (
                           <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border">
