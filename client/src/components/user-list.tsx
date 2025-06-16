@@ -81,7 +81,6 @@ interface UserListProps {
 // مخطط بيانات تعديل المستخدم
 const userEditSchema = z.object({
   name: z.string().min(3, "الاسم يجب أن يحتوي على الأقل 3 أحرف"),
-  email: z.string().email("البريد الإلكتروني غير صالح"),
   role: z.enum(["admin", "user", "viewer"], {
     required_error: "الصلاحية مطلوبة",
   }),
@@ -114,7 +113,6 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
     resolver: zodResolver(userEditSchema),
     defaultValues: {
       name: user.name,
-      email: user.email,
       role: user.role as "admin" | "user" | "viewer",
       permissions: Array.isArray(user.permissions) ? user.permissions : [],
       password: "",
@@ -159,29 +157,6 @@ function UserEditForm({ user, onSubmit, isLoading }: UserEditFormProps) {
                   className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                   disabled={isLoading}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>البريد الإلكتروني</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    {...field}
-                    type="email"
-                    placeholder="أدخل البريد الإلكتروني"
-                    className="w-full rounded-lg bg-white border border-blue-100 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 pr-10"
-                    disabled={isLoading}
-                  />
-                  <AtSignIcon className="absolute top-2.5 right-3 h-5 w-5 text-slate-400" />
-                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -470,7 +445,6 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
               <tr>
                 <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">اسم المستخدم</th>
                 <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الاسم الكامل</th>
-                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">البريد الإلكتروني</th>
                 <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحية</th>
                 <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحيات</th>
                 <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الإجراءات</th>
@@ -487,9 +461,6 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
                   </td>
                   <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-neutral-light">
                     {user.name}
-                  </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-neutral-light">
-                    {user.email}
                   </td>
                   <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
                     {getRoleBadge(user.role)}
@@ -560,11 +531,7 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
               {getRoleBadge(user.role)}
             </div>
             
-            {/* البريد الإلكتروني */}
-            <div className="mb-3 text-xs sm:text-sm bg-gray-50 dark:bg-gray-900/40 p-2 rounded-lg border border-gray-100 dark:border-gray-700 flex items-center">
-              <AtSignIcon className="h-3.5 w-3.5 ml-1.5 text-blue-400" />
-              <span className="text-gray-700 dark:text-gray-300">{user.email}</span>
-            </div>
+
             
             {/* الصلاحيات */}
             <div className="mb-4">
