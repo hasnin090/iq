@@ -54,6 +54,9 @@ export default function Documents() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [reuploadFile, setReuploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
   const isManagerOrAdmin = user?.role === 'admin' || user?.role === 'manager';
 
@@ -183,6 +186,39 @@ export default function Documents() {
       alert('حدث خطأ أثناء تحديث المرفق');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // حذف المستند
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const response = await fetch(`/api/documents/${documentToDelete.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'فشل في حذف المستند');
+      }
+      
+      // تحديث البيانات
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      
+      // إغلاق الحوار
+      setShowDeleteDialog(false);
+      setDocumentToDelete(null);
+      
+      // إظهار رسالة نجاح
+      alert('تم حذف المستند بنجاح');
+    } catch (error) {
+      console.error('خطأ في حذف المستند:', error);
+      alert(error instanceof Error ? error.message : 'حدث خطأ أثناء حذف المستند');
+    } finally {
+      setIsDeleting(false);
     }
   };
   
@@ -729,36 +765,21 @@ export default function Documents() {
                               <Download className="ml-1 h-3 w-3" />
                               تحميل
                             </Button>
-                            <Button 
-                              size="sm" 
-                              variant="destructive" 
-                              className="text-xs"
-                              onClick={async () => {
-                                if(confirm('هل أنت متأكد من رغبتك في حذف هذا المستند؟')) {
-                                  try {
-                                    // أولاً محاولة حذف الملف من Firebase Storage
-                                    try {
-                                      const { deleteFile } = await import('@/lib/firebase-storage');
-                                      if (doc.fileUrl) {
-                                        await deleteFile(doc.fileUrl);
-                                      }
-                                    } catch (error) {
-                                      console.error("فشل في حذف الملف من التخزين:", error);
-                                    }
-                                    
-                                    // ثم حذف السجل من قاعدة البيانات
-                                    await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
-                                    handleDocumentUpdated();
-                                  } catch (error) {
-                                    alert('حدث خطأ أثناء حذف المستند. يرجى المحاولة مرة أخرى.');
-                                    console.error(error);
-                                  }
-                                }
-                              }}
-                            >
-                              <i className="fas fa-trash-alt ml-1"></i>
-                              حذف
-                            </Button>
+                            {/* زر الحذف فقط لمستندات المشاريع وللمديرين فقط */}
+                            {doc.projectId && (user?.role === 'admin' || user?.role === 'manager') && (
+                              <Button 
+                                size="sm" 
+                                variant="destructive" 
+                                className="text-xs"
+                                onClick={() => {
+                                  setDocumentToDelete(doc);
+                                  setShowDeleteDialog(true);
+                                }}
+                              >
+                                <X className="ml-1 h-3 w-3" />
+                                حذف
+                              </Button>
+                            )}
                           </div>
                           
                           {/* أزرار التفاعل - للشاشات الصغيرة جدًا بتنسيق شبكة */}
@@ -1504,6 +1525,65 @@ export default function Documents() {
                 ) : 'رفع المستند الجديد'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* نافذة تأكيد حذف المستند */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <X className="h-5 w-5" />
+              تأكيد حذف المستند
+            </DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد من رغبتك في حذف هذا المستند؟ لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {documentToDelete && (
+            <div className="py-4">
+              <div className="bg-muted/30 p-3 rounded-lg border">
+                <p className="text-sm font-medium mb-1">{documentToDelete.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  المشروع: {projects?.find(p => p.id === documentToDelete.projectId)?.name || 'غير محدد'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  تاريخ الرفع: {new Date(documentToDelete.uploadDate).toLocaleDateString('ar-SA')}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex gap-2 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDocumentToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              إلغاء
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteDocument}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <div className="spinner w-4 h-4 ml-2"></div>
+                  جاري الحذف...
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 ml-2" />
+                  حذف المستند
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
