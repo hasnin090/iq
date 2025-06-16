@@ -25,27 +25,28 @@ const formatCurrency = (amount: number) => {
   }).format(amount).replace('د.ع.', '').trim() + ' د.ع';
 };
 
-// أنواع الحسابات المحاسبية
+// أنواع الحسابات المحاسبية - متطابقة مع نموذج المعاملات
 const ACCOUNT_TYPES: Record<string, string> = {
-  salaries: 'الرواتب والأجور',
-  advances: 'السلف والمقدمات',
-  materials: 'المواد والمعدات',
-  fuel: 'الوقود والمحروقات',
-  electricity: 'فواتير الكهرباء',
-  water: 'فواتير المياه',
-  communications: 'الاتصالات والإنترنت',
-  maintenance: 'الصيانة والإصلاحات',
-  insurance: 'التأمين',
-  rent: 'الإيجارات',
-  transportation: 'النقل والمواصلات',
-  taxes: 'الضرائب والرسوم الحكومية',
-  fees: 'الرسوم والعمولات',
-  training: 'التدريب والتطوير',
-  stationery: 'القرطاسية والمكتبيات',
-  marketing: 'التسويق والإعلان',
-  consultancy: 'الاستشارات والخدمات المهنية',
-  financial_services: 'الخدمات المالية والمصرفية',
-  generalExpenses: 'المصروفات العامة',
+  راتب: 'راتب',
+  سلفة: 'سلفة', 
+  مشتريات: 'مشتريات',
+  'اجور تشغيلية': 'اجور تشغيلية',
+  'مصروف عام': 'مصروف عام',
+  وقود: 'وقود',
+  كهرباء: 'كهرباء',
+  ماء: 'ماء',
+  اتصالات: 'اتصالات',
+  صيانة: 'صيانة',
+  تأمين: 'تأمين',
+  ايجار: 'ايجار',
+  نقل: 'نقل',
+  ضرائب: 'ضرائب',
+  رسوم: 'رسوم',
+  تدريب: 'تدريب',
+  قرطاسية: 'قرطاسية',
+  تسويق: 'تسويق',
+  استشارات: 'استشارات',
+  'خدمات مالية': 'خدمات مالية',
   revenue: 'الإيرادات',
   other: 'متفرقات'
 };
@@ -56,62 +57,21 @@ let DYNAMIC_ACCOUNT_TYPES: Record<string, string> = {};
 // تحديد نوع الحساب بناءً على الوصف أو نوع المصروف المحدد
 const getAccountType = (description: string, expenseType?: string): string => {
   // إذا كان هناك نوع مصروف محدد، استخدمه مباشرة
-  if (expenseType) {
-    const typeKey = expenseType.toLowerCase().replace(/\s+/g, '_');
-    
-    // إضافة النوع الجديد إلى القائمة الديناميكية إذا لم يكن موجوداً
-    if (!ACCOUNT_TYPES[typeKey] && !DYNAMIC_ACCOUNT_TYPES[typeKey]) {
-      DYNAMIC_ACCOUNT_TYPES[typeKey] = expenseType;
-    }
-    
-    return typeKey;
+  if (expenseType && ACCOUNT_TYPES[expenseType]) {
+    return expenseType;
   }
 
   const desc = description?.toLowerCase() || '';
   
-  if (desc.includes('راتب') || desc.includes('أجر') || desc.includes('مكافأة') || desc.includes('اجور تشغيلية')) {
-    return 'salaries';
-  } else if (desc.includes('سلفة') || desc.includes('سلف')) {
-    return 'advances';
-  } else if (desc.includes('مشتريات') || desc.includes('شراء') || desc.includes('مواد') || desc.includes('معدات') || desc.includes('أدوات')) {
-    return 'materials';
-  } else if (desc.includes('وقود') || desc.includes('بنزين') || desc.includes('ديزل')) {
-    return 'fuel';
-  } else if (desc.includes('كهرباء') || desc.includes('كهربائي')) {
-    return 'electricity';
-  } else if (desc.includes('ماء') || desc.includes('مياه')) {
-    return 'water';
-  } else if (desc.includes('اتصالات') || desc.includes('هاتف') || desc.includes('إنترنت') || desc.includes('انترنت')) {
-    return 'communications';
-  } else if (desc.includes('صيانة') || desc.includes('إصلاح') || desc.includes('تصليح') || desc.includes('اصلاح')) {
-    return 'maintenance';
-  } else if (desc.includes('تأمين') || desc.includes('تامين')) {
-    return 'insurance';
-  } else if (desc.includes('ايجار') || desc.includes('إيجار')) {
-    return 'rent';
-  } else if (desc.includes('نقل') || desc.includes('مواصلات') || desc.includes('توصيل')) {
-    return 'transportation';
-  } else if (desc.includes('ضرائب') || desc.includes('ضريبة')) {
-    return 'taxes';
-  } else if (desc.includes('رسوم') || desc.includes('رسم')) {
-    return 'fees';
-  } else if (desc.includes('تدريب') || desc.includes('دورة') || desc.includes('ورشة')) {
-    return 'training';
-  } else if (desc.includes('قرطاسية') || desc.includes('مكتبية') || desc.includes('ورق')) {
-    return 'stationery';
-  } else if (desc.includes('تسويق') || desc.includes('إعلان') || desc.includes('دعاية') || desc.includes('اعلان')) {
-    return 'marketing';
-  } else if (desc.includes('استشارات') || desc.includes('استشارة') || desc.includes('خبرة')) {
-    return 'consultancy';
-  } else if (desc.includes('خدمات مالية') || desc.includes('بنك') || desc.includes('فوائد')) {
-    return 'financial_services';
-  } else if (desc.includes('إيراد') || desc.includes('مبيعات') || desc.includes('دخل')) {
-    return 'revenue';
-  } else if (desc.includes('مصروف عام') || desc.includes('عام')) {
-    return 'generalExpenses';
-  } else {
-    return 'other';
+  // البحث في الأنواع المحددة مسبقاً
+  for (const [key, value] of Object.entries(ACCOUNT_TYPES)) {
+    if (desc.includes(key.toLowerCase()) || desc.includes(value.toLowerCase())) {
+      return key;
+    }
   }
+
+  // إذا لم يتم العثور على تطابق، نعيد "other"
+  return 'other';
 };
 
 // دالة للحصول على اسم نوع الحساب مع دعم الأنواع الديناميكية
