@@ -382,11 +382,25 @@ export default function LedgerPage() {
         </TabsContent>
 
         <TabsContent value="entries" className="space-y-4">
+          <div className="flex justify-end mb-4">
+            <Button 
+              onClick={() => {
+                // إضافة وظيفة لتصنيف جميع المعاملات غير المصنفة
+                const unclassifiedTransactions = []; // سيتم تحديدها لاحقاً
+                // apiRequest من queryClient لتصنيف المعاملات
+              }}
+              variant="outline"
+              className="mr-2"
+            >
+              تصنيف جميع المعاملات
+            </Button>
+          </div>
+          
           <Card>
             <CardHeader>
               <CardTitle>سجلات دفتر الأستاذ</CardTitle>
               <CardDescription>
-                جميع المدخلات في دفتر الأستاذ العام
+                فقط المعاملات المصنفة تظهر في دفتر الأستاذ
               </CardDescription>
             </CardHeader>
             <CardContent>

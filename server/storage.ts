@@ -708,6 +708,79 @@ export class MemStorage implements IStorage {
       adminFund
     };
   }
+
+  // دالة التصنيف للـ MemStorage (دالة فارغة لأن MemStorage لا يدعم دفتر الأستاذ)
+  async classifyExpenseTransaction(transaction: Transaction, forceClassify: boolean = false): Promise<void> {
+    // MemStorage لا يدعم دفتر الأستاذ، لذا هذه الدالة فارغة
+    console.log(`MemStorage: تم تجاهل تصنيف المعاملة ${transaction.id} - غير مدعوم في MemStorage`);
+  }
+
+  // دعم دفتر الأستاذ الأساسي للـ MemStorage
+  async createLedgerEntry(entry: any): Promise<any> {
+    throw new Error("MemStorage لا يدعم دفتر الأستاذ");
+  }
+
+  async getLedgerEntriesByType(entryType: string): Promise<any[]> {
+    return [];
+  }
+
+  async getLedgerEntriesByProject(projectId: number): Promise<any[]> {
+    return [];
+  }
+
+  async getLedgerEntriesByExpenseType(expenseTypeId: number): Promise<any[]> {
+    return [];
+  }
+
+  async listLedgerEntries(): Promise<any[]> {
+    return [];
+  }
+
+  // دعم أنواع المصروفات الأساسي للـ MemStorage
+  async getExpenseType(id: number): Promise<any> {
+    return undefined;
+  }
+
+  async getExpenseTypeByName(name: string): Promise<any> {
+    return undefined;
+  }
+
+  async createExpenseType(expenseType: any): Promise<any> {
+    throw new Error("MemStorage لا يدعم أنواع المصروفات");
+  }
+
+  async updateExpenseType(id: number, expenseType: any): Promise<any> {
+    return undefined;
+  }
+
+  async listExpenseTypes(): Promise<any[]> {
+    return [];
+  }
+
+  async deleteExpenseType(id: number): Promise<boolean> {
+    return false;
+  }
+
+  // دعم تصنيفات أنواع الحسابات الأساسي للـ MemStorage
+  async getAccountCategory(id: number): Promise<any> {
+    return undefined;
+  }
+
+  async createAccountCategory(category: any): Promise<any> {
+    throw new Error("MemStorage لا يدعم تصنيفات أنواع الحسابات");
+  }
+
+  async updateAccountCategory(id: number, categoryData: any): Promise<any> {
+    return undefined;
+  }
+
+  async listAccountCategories(): Promise<any[]> {
+    return [];
+  }
+
+  async deleteAccountCategory(id: number): Promise<boolean> {
+    return false;
+  }
 }
 
 // تحديد فئة التخزين النشطة
