@@ -7,7 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Check, Loader2, Shield, Key, Download, Upload, Database, FileText, HardDrive, AlertTriangle } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Shield, Key, Download, Upload, Database, FileText, HardDrive, AlertTriangle, Plus, Edit, Trash2, Tag } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { queryClient } from '@/lib/queryClient';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +27,16 @@ interface Setting {
   description?: string;
 }
 
+interface AccountCategory {
+  id: number;
+  name: string;
+  description?: string;
+  active: boolean;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // تعريف مخطط (schema) لتغيير كلمة المرور
 const passwordChangeSchema = z.object({
   currentPassword: z.string().min(1, "كلمة المرور الحالية مطلوبة"),
@@ -33,13 +47,23 @@ const passwordChangeSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// تعريف مخطط (schema) لتصنيفات أنواع الحسابات
+const accountCategorySchema = z.object({
+  name: z.string().min(1, "اسم التصنيف مطلوب"),
+  description: z.string().optional(),
+  active: z.boolean().default(true),
+});
+
 type PasswordChangeValues = z.infer<typeof passwordChangeSchema>;
+type AccountCategoryValues = z.infer<typeof accountCategorySchema>;
 
 export default function Settings() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingCategory, setEditingCategory] = useState<AccountCategory | null>(null);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   
   const { data: settings, isLoading, error } = useQuery<Setting[]>({
     queryKey: ['/api/settings'],
