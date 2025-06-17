@@ -13,6 +13,7 @@ import Archive from "@/pages/archive";
 import Reports from "@/pages/reports";
 import Activities from "@/pages/activities";
 import Settings from "@/pages/settings";
+import Ledger from "@/pages/ledger";
 
 import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";
@@ -122,6 +123,9 @@ function AppRoutes() {
                 {user?.role === 'admin' ? <Reports /> : <NotFound />}
               </Route>
               <Route path="/activities" component={Activities} />
+              <Route path="/ledger">
+                {user?.role === 'admin' ? <Ledger /> : <NotFound />}
+              </Route>
               <Route path="/settings" component={Settings} />
               <Route component={NotFound} />
             </Switch>
