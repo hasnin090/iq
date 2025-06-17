@@ -75,11 +75,12 @@ export default function Settings() {
   });
 
   // Account Categories Query
-  const { data: accountCategories = [], isLoading: categoriesLoading } = useQuery<AccountCategory[]>({
+  const { data: accountCategories = [], isLoading: categoriesLoading, refetch: refetchCategories } = useQuery<AccountCategory[]>({
     queryKey: ['/api/account-categories'],
     retry: 1,
-    refetchOnWindowFocus: false,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000, // 30 seconds for quicker refresh
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds
   });
   
   const mutation = useMutation({
@@ -531,10 +532,25 @@ export default function Settings() {
                           يمكنك إضافة أو تعديل أو حذف تصنيفات أنواع الحسابات
                         </p>
                       </div>
-                      <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary/90">
-                        <Plus className="ml-2 h-4 w-4" />
-                        إضافة تصنيف
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => refetchCategories()} 
+                          variant="outline"
+                          size="sm"
+                          disabled={categoriesLoading}
+                        >
+                          {categoriesLoading ? (
+                            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Database className="ml-2 h-4 w-4" />
+                          )}
+                          تحديث
+                        </Button>
+                        <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary/90">
+                          <Plus className="ml-2 h-4 w-4" />
+                          إضافة تصنيف
+                        </Button>
+                      </div>
                     </div>
 
                     {categoriesLoading ? (
