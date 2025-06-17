@@ -103,6 +103,30 @@ export default function Reports() {
     queryKey: ['/api/users']
   });
 
+  // جلب أنواع المصروفات ودفتر الأستاذ للتصنيف
+  const { data: expenseTypes = [], isLoading: expenseTypesLoading } = useQuery({
+    queryKey: ["/api/expense-types"],
+  });
+
+  const { data: ledgerSummary, isLoading: summaryLoading } = useQuery({
+    queryKey: ["/api/ledger/summary"],
+  });
+
+  // Type for ledger summary data
+  interface LedgerSummary {
+    classified: {
+      total: number;
+      count: number;
+      entries: any[];
+    };
+    miscellaneous: {
+      total: number;
+      count: number;
+      entries: any[];
+    };
+    grandTotal: number;
+  }
+
   // فلترة المعاملات
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
@@ -273,7 +297,8 @@ export default function Reports() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-4 gap-1 h-auto p-1">
+            <TabsTrigger value="classification" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">تصنيف المصروفات</TabsTrigger>
             <TabsTrigger value="ledger" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">دفتر الأستاذ</TabsTrigger>
             <TabsTrigger value="summary" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">ملخص الحسابات</TabsTrigger>
             <TabsTrigger value="details" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">التفاصيل</TabsTrigger>
@@ -343,6 +368,170 @@ export default function Reports() {
               </div>
             </div>
           </div>
+
+          {/* تبويب تصنيف المصروفات */}
+          <TabsContent value="classification" className="space-y-6 animate-fade-in">
+            {summaryLoading ? (
+              <div className="flex items-center justify-center min-h-96">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">جاري تحميل بيانات التصنيف...</p>
+                </div>
+              </div>
+            ) : ledgerSummary ? (
+              <>
+                {/* ملخص التصنيف */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">المصروفات المصنفة</CardTitle>
+                      <TrendingUp className="h-4 w-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        {formatCurrency(ledgerSummary.classified.total)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {ledgerSummary.classified.count} معاملة
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">المصروفات المتفرقة</CardTitle>
+                      <TrendingDown className="h-4 w-4 text-orange-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-orange-600">
+                        {formatCurrency(ledgerSummary.miscellaneous.total)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {ledgerSummary.miscellaneous.count} معاملة
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">إجمالي المصروفات</CardTitle>
+                      <DollarSign className="h-4 w-4 text-blue-600" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {formatCurrency(ledgerSummary.grandTotal)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {ledgerSummary.classified.count + ledgerSummary.miscellaneous.count} معاملة
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* أنواع المصروفات المتاحة */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>أنواع المصروفات المحددة</CardTitle>
+                    <CardDescription>
+                      الأنواع المتاحة للتصنيف التلقائي
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                      {expenseTypes.map((type: any) => (
+                        <div key={type.id} className="flex items-center gap-2 p-2 bg-green-50 rounded">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="font-medium">{type.name}</span>
+                          <Badge variant="default" className="text-xs">نشط</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* عينة من المصروفات المصنفة والمتفرقة */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* المصروفات المصنفة */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-green-600" />
+                        المصروفات المصنفة
+                      </CardTitle>
+                      <CardDescription>
+                        المصروفات التي تم تصنيفها حسب النوع
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {ledgerSummary.classified.entries.slice(0, 5).map((entry: any) => (
+                          <div key={entry.id} className="flex justify-between items-center p-2 bg-green-50 rounded">
+                            <div>
+                              <p className="font-medium text-sm">{entry.description}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(entry.date).toLocaleDateString('ar-IQ')}
+                              </p>
+                            </div>
+                            <div className="text-left">
+                              <p className="font-bold text-green-600 text-sm">{formatCurrency(entry.amount)}</p>
+                            </div>
+                          </div>
+                        ))}
+                        {ledgerSummary.classified.entries.length > 5 && (
+                          <p className="text-sm text-muted-foreground text-center mt-2">
+                            و {ledgerSummary.classified.entries.length - 5} معاملة أخرى...
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* المصروفات المتفرقة */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingDown className="h-5 w-5 text-orange-600" />
+                        المصروفات المتفرقة
+                      </CardTitle>
+                      <CardDescription>
+                        المصروفات غير المصنفة
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {ledgerSummary.miscellaneous.entries.slice(0, 5).map((entry: any) => (
+                          <div key={entry.id} className="flex justify-between items-center p-2 bg-orange-50 rounded">
+                            <div>
+                              <p className="font-medium text-sm">{entry.description}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(entry.date).toLocaleDateString('ar-IQ')}
+                              </p>
+                            </div>
+                            <div className="text-left">
+                              <p className="font-bold text-orange-600 text-sm">{formatCurrency(entry.amount)}</p>
+                            </div>
+                          </div>
+                        ))}
+                        {ledgerSummary.miscellaneous.entries.length > 5 && (
+                          <p className="text-sm text-muted-foreground text-center mt-2">
+                            و {ledgerSummary.miscellaneous.entries.length - 5} معاملة أخرى...
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            ) : (
+              <Card className="text-center p-8">
+                <CardContent>
+                  <Activity className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h2 className="text-xl font-bold text-muted-foreground mb-2">لا توجد بيانات تصنيف</h2>
+                  <p className="text-muted-foreground">يتم إنشاء التصنيف عند إضافة معاملات جديدة</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           {/* تبويب دفتر الأستاذ - العرض المحاسبي */}
           <TabsContent value="ledger" className="space-y-6 animate-fade-in">

@@ -123,9 +123,6 @@ function AppRoutes() {
                 {user?.role === 'admin' ? <Reports /> : <NotFound />}
               </Route>
               <Route path="/activities" component={Activities} />
-              <Route path="/ledger">
-                {user?.role === 'admin' ? <Ledger /> : <NotFound />}
-              </Route>
               <Route path="/settings" component={Settings} />
               <Route component={NotFound} />
             </Switch>

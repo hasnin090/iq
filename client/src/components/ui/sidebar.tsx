@@ -439,20 +439,6 @@ function CompanyName() {
               </div>
               <nav className="p-2.5 space-y-1.5">
                 <Link
-                  href="/ledger"
-                  className={`flex items-center space-x-reverse space-x-3 px-3 py-2.5 rounded-xl no-flicker touch-target ${
-                    location === "/ledger" 
-                      ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                      : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-102"
-                  } transition-all duration-200 transform`}
-                >
-                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/ledger" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                    <i className="fas fa-book"></i>
-                  </div>
-                  <span className="text-sm sm:text-base">دفتر الأستاذ</span>
-                </Link>
-                
-                <Link
                   href="/activities"
                   className={`flex items-center space-x-reverse space-x-3 px-3 py-2.5 rounded-xl no-flicker touch-target ${
                     location === "/activities" 
