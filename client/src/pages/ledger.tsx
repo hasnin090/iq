@@ -363,7 +363,7 @@ export default function LedgerPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenseTypes.map((type: ExpenseType) => (
+                  {(expenseTypes as ExpenseType[]).map((type: ExpenseType) => (
                     <TableRow key={type.id}>
                       <TableCell className="font-medium">{type.name}</TableCell>
                       <TableCell>{type.description || "-"}</TableCell>
@@ -401,7 +401,7 @@ export default function LedgerPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {ledgerEntries.slice(0, 20).map((entry: LedgerEntry) => (
+                  {(ledgerEntries as LedgerEntry[]).slice(0, 20).map((entry: LedgerEntry) => (
                     <TableRow key={entry.id}>
                       <TableCell>{formatDate(entry.date)}</TableCell>
                       <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
@@ -424,9 +424,9 @@ export default function LedgerPage() {
                   ))}
                 </TableBody>
               </Table>
-              {ledgerEntries.length > 20 && (
+              {(ledgerEntries as LedgerEntry[]).length > 20 && (
                 <p className="text-sm text-muted-foreground text-center mt-4">
-                  عرض 20 من أصل {ledgerEntries.length} سجل
+                  عرض 20 من أصل {(ledgerEntries as LedgerEntry[]).length} سجل
                 </p>
               )}
             </CardContent>
