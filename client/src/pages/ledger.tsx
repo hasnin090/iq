@@ -51,7 +51,7 @@ interface LedgerSummary {
     count: number;
     entries: LedgerEntry[];
   };
-  miscellaneous: {
+  general_expense: {
     total: number;
     count: number;
     entries: LedgerEntry[];
@@ -235,15 +235,15 @@ export default function LedgerPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">المصروفات المتفرقة</CardTitle>
+              <CardTitle className="text-sm font-medium">المصروفات العامة</CardTitle>
               <TrendingDown className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                {formatCurrency(ledgerSummary.miscellaneous.total)}
+                {formatCurrency(ledgerSummary.general_expense?.total || 0)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {ledgerSummary.miscellaneous.count} معاملة
+                {ledgerSummary.general_expense?.count || 0} معاملة
               </p>
             </CardContent>
           </Card>
@@ -258,7 +258,7 @@ export default function LedgerPage() {
                 {formatCurrency(ledgerSummary.grandTotal)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {ledgerSummary.classified.count + ledgerSummary.miscellaneous.count} معاملة
+                {ledgerSummary.classified.count + (ledgerSummary.general_expense?.count || 0)} معاملة
               </p>
             </CardContent>
           </Card>
@@ -308,20 +308,20 @@ export default function LedgerPage() {
                 </CardContent>
               </Card>
 
-              {/* المصروفات المتفرقة */}
+              {/* المصروفات العامة */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingDown className="h-5 w-5 text-orange-600" />
-                    المصروفات المتفرقة
+                    المصروفات العامة
                   </CardTitle>
                   <CardDescription>
-                    المصروفات غير المصنفة
+                    المصروفات غير المصنفة حسب النوع
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {ledgerSummary.miscellaneous.entries.slice(0, 5).map((entry) => (
+                    {ledgerSummary.general_expense.entries.slice(0, 5).map((entry) => (
                       <div key={entry.id} className="flex justify-between items-center p-2 bg-orange-50 rounded">
                         <div>
                           <p className="font-medium">{entry.description}</p>

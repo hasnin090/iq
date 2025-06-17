@@ -48,6 +48,7 @@ const ACCOUNT_TYPES: Record<string, string> = {
   استشارات: 'استشارات',
   'خدمات مالية': 'خدمات مالية',
   revenue: 'الإيرادات',
+  general_expense: 'مصروف عام',
   other: 'متفرقات'
 };
 

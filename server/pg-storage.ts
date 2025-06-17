@@ -1139,19 +1139,22 @@ export class PgStorage implements IStorage {
       return;
     }
 
-    let entryType = 'miscellaneous'; // افتراضي: متفرقات
+    let entryType = 'general_expense'; // افتراضي: مصروف عام
     let expenseTypeId = null;
 
     // إذا تم تحديد نوع المصروف، البحث عنه في قاعدة البيانات
     if (transaction.expenseType && transaction.expenseType.trim() !== '') {
       const expenseType = await this.getExpenseTypeByName(transaction.expenseType);
       if (expenseType) {
-        entryType = 'classified'; // مصنف
+        entryType = 'classified'; // مصنف حسب النوع
         expenseTypeId = expenseType.id;
+      } else {
+        // إذا لم يتم العثور على نوع المصروف في قاعدة البيانات، يذهب لمصروف عام
+        entryType = 'general_expense';
       }
     }
 
-    // إنشاء سجل في دفتر الأستاذ
+    // إنشاء سجل في دفتر الأستاذ - تتم العملية دائماً
     await this.createLedgerEntry({
       date: transaction.date,
       transactionId: transaction.id,
@@ -1162,7 +1165,7 @@ export class PgStorage implements IStorage {
       entryType
     });
 
-    console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType}`);
+    console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType} ${expenseTypeId ? `(نوع المصروف: ${expenseTypeId})` : '(مصروف عام)'}`);
   }
 
   // ======== إدارة تصنيفات أنواع الحسابات ========
