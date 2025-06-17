@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 
 interface Setting {
   id: number;
@@ -970,9 +970,9 @@ export default function Settings() {
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
                       <FormLabel>حالة التصنيف</FormLabel>
-                      <FormDescription>
+                      <p className="text-sm text-muted-foreground">
                         تفعيل أو إلغاء تفعيل التصنيف
-                      </FormDescription>
+                      </p>
                     </div>
                     <FormControl>
                       <Switch
