@@ -115,6 +115,29 @@ export const settings = pgTable("settings", {
   description: text("description"),
 });
 
+// جدول أنواع المصروفات لدفتر الأستاذ
+export const expenseTypes = pgTable("expense_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// دفتر الأستاذ - المصروفات المصنفة حسب النوع
+export const ledgerEntries = pgTable("ledger_entries", {
+  id: serial("id").primaryKey(),
+  date: timestamp("date").notNull(),
+  transactionId: integer("transaction_id").notNull().references(() => transactions.id),
+  expenseTypeId: integer("expense_type_id").references(() => expenseTypes.id),
+  amount: integer("amount").notNull(),
+  description: text("description").notNull(),
+  projectId: integer("project_id").references(() => projects.id),
+  entryType: text("entry_type").notNull(), // "classified" أو "miscellaneous" 
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // نوع الصندوق: صندوق المدير أو صندوق مشروع
 export const fundTypeEnum = pgEnum('fund_type', ['admin', 'project']);
 
@@ -195,6 +218,18 @@ export type UserProject = typeof userProjects.$inferSelect;
 
 export type InsertFund = z.infer<typeof insertFundSchema>;
 export type Fund = typeof funds.$inferSelect;
+
+export const insertExpenseTypeSchema = createInsertSchema(expenseTypes)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries)
+  .omit({ id: true, createdAt: true });
+
+export type InsertExpenseType = z.infer<typeof insertExpenseTypeSchema>;
+export type ExpenseType = typeof expenseTypes.$inferSelect;
+
+export type InsertLedgerEntry = z.infer<typeof insertLedgerEntrySchema>;
+export type LedgerEntry = typeof ledgerEntries.$inferSelect;
 
 // Permission types
 export type Permission = keyof typeof PERMISSIONS;

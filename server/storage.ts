@@ -6,7 +6,9 @@ import {
   activityLogs, type ActivityLog, type InsertActivityLog,
   settings, type Setting, type InsertSetting,
   userProjects, type UserProject, type InsertUserProject,
-  funds, type Fund, type InsertFund
+  funds, type Fund, type InsertFund,
+  expenseTypes, type ExpenseType, type InsertExpenseType,
+  ledgerEntries, type LedgerEntry, type InsertLedgerEntry
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage';
@@ -76,6 +78,21 @@ export interface IStorage {
   getSetting(key: string): Promise<Setting | undefined>;
   updateSetting(key: string, value: string): Promise<Setting | undefined>;
   listSettings(): Promise<Setting[]>;
+
+  // Expense Types
+  getExpenseType(id: number): Promise<ExpenseType | undefined>;
+  getExpenseTypeByName(name: string): Promise<ExpenseType | undefined>;
+  createExpenseType(expenseType: InsertExpenseType): Promise<ExpenseType>;
+  updateExpenseType(id: number, expenseType: Partial<ExpenseType>): Promise<ExpenseType | undefined>;
+  listExpenseTypes(): Promise<ExpenseType[]>;
+  deleteExpenseType(id: number): Promise<boolean>;
+
+  // Ledger Entries
+  createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry>;
+  getLedgerEntriesByType(entryType: string): Promise<LedgerEntry[]>;
+  getLedgerEntriesByProject(projectId: number): Promise<LedgerEntry[]>;
+  getLedgerEntriesByExpenseType(expenseTypeId: number): Promise<LedgerEntry[]>;
+  listLedgerEntries(): Promise<LedgerEntry[]>;
 }
 
 export class MemStorage implements IStorage {
