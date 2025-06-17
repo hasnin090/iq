@@ -332,9 +332,9 @@ export default function LedgerPage() {
                         </div>
                       </div>
                     ))}
-                    {ledgerSummary.miscellaneous.entries.length > 5 && (
+                    {ledgerSummary.general_expense.entries.length > 5 && (
                       <p className="text-sm text-muted-foreground text-center mt-2">
-                        و {ledgerSummary.miscellaneous.entries.length - 5} معاملة أخرى...
+                        و {ledgerSummary.general_expense.entries.length - 5} معاملة أخرى...
                       </p>
                     )}
                   </div>

@@ -2360,10 +2360,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ledger/summary", authenticate, async (req: Request, res: Response) => {
     try {
       const classifiedEntries = await storage.getLedgerEntriesByType('classified');
-      const miscellaneousEntries = await storage.getLedgerEntriesByType('miscellaneous');
+      const generalExpenseEntries = await storage.getLedgerEntriesByType('general_expense');
       
       const classifiedTotal = classifiedEntries.reduce((sum, entry) => sum + entry.amount, 0);
-      const miscellaneousTotal = miscellaneousEntries.reduce((sum, entry) => sum + entry.amount, 0);
+      const generalExpenseTotal = generalExpenseEntries.reduce((sum, entry) => sum + entry.amount, 0);
       
       const summary = {
         classified: {
@@ -2371,12 +2371,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           count: classifiedEntries.length,
           entries: classifiedEntries
         },
-        miscellaneous: {
-          total: miscellaneousTotal,
-          count: miscellaneousEntries.length,
-          entries: miscellaneousEntries
+        general_expense: {
+          total: generalExpenseTotal,
+          count: generalExpenseEntries.length,
+          entries: generalExpenseEntries
         },
-        grandTotal: classifiedTotal + miscellaneousTotal
+        grandTotal: classifiedTotal + generalExpenseTotal
       };
       
       return res.status(200).json(summary);
