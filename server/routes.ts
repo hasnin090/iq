@@ -929,6 +929,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // نستمر بإرجاع المعاملة حتى لو فشل رفع الملف
         }
       }
+
+      // تصنيف المعاملة تلقائياً إلى دفتر الأستاذ أو المتفرقات
+      try {
+        await storage.classifyExpenseTransaction(result.transaction);
+      } catch (classifyError) {
+        console.error("خطأ في تصنيف المعاملة:", classifyError);
+        // نستمر بإرجاع المعاملة حتى لو فشل التصنيف
+      }
       
       return res.status(201).json(result.transaction);
     } catch (error: any) {
@@ -2231,6 +2239,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: "حدث خطأ أثناء إنشاء النسخة الاحتياطية الطارئة" 
       });
+    }
+  });
+
+  // ======== أنواع المصروفات ========
+  
+  // جلب جميع أنواع المصروفات
+  app.get("/api/expense-types", authenticate, async (req: Request, res: Response) => {
+    try {
+      const expenseTypes = await storage.listExpenseTypes();
+      return res.status(200).json(expenseTypes);
+    } catch (error) {
+      console.error("خطأ في جلب أنواع المصروفات:", error);
+      return res.status(500).json({ message: "خطأ في جلب أنواع المصروفات" });
+    }
+  });
+
+  // إنشاء نوع مصروف جديد
+  app.post("/api/expense-types", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const expenseType = await storage.createExpenseType(req.body);
+      
+      await storage.createActivityLog({
+        action: "create",
+        entityType: "expense_type",
+        entityId: expenseType.id,
+        details: `إضافة نوع مصروف جديد: ${expenseType.name}`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(201).json(expenseType);
+    } catch (error) {
+      console.error("خطأ في إنشاء نوع المصروف:", error);
+      return res.status(500).json({ message: "خطأ في إنشاء نوع المصروف" });
+    }
+  });
+
+  // تحديث نوع مصروف
+  app.put("/api/expense-types/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedExpenseType = await storage.updateExpenseType(id, req.body);
+      
+      if (updatedExpenseType) {
+        await storage.createActivityLog({
+          action: "update",
+          entityType: "expense_type",
+          entityId: id,
+          details: `تحديث نوع مصروف: ${updatedExpenseType.name}`,
+          userId: req.session.userId as number
+        });
+      }
+      
+      return res.status(200).json(updatedExpenseType);
+    } catch (error) {
+      console.error("خطأ في تحديث نوع المصروف:", error);
+      return res.status(500).json({ message: "خطأ في تحديث نوع المصروف" });
+    }
+  });
+
+  // حذف نوع مصروف
+  app.delete("/api/expense-types/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const expenseType = await storage.getExpenseType(id);
+      
+      if (!expenseType) {
+        return res.status(404).json({ message: "نوع المصروف غير موجود" });
+      }
+      
+      const result = await storage.deleteExpenseType(id);
+      
+      if (result) {
+        await storage.createActivityLog({
+          action: "delete",
+          entityType: "expense_type",
+          entityId: id,
+          details: `حذف نوع مصروف: ${expenseType.name}`,
+          userId: req.session.userId as number
+        });
+      }
+      
+      return res.status(200).json({ success: result });
+    } catch (error) {
+      console.error("خطأ في حذف نوع المصروف:", error);
+      return res.status(500).json({ message: "خطأ في حذف نوع المصروف" });
+    }
+  });
+
+  // ======== دفتر الأستاذ ========
+  
+  // جلب جميع مدخلات دفتر الأستاذ
+  app.get("/api/ledger", authenticate, async (req: Request, res: Response) => {
+    try {
+      const entryType = req.query.type as string;
+      const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
+      const expenseTypeId = req.query.expenseTypeId ? parseInt(req.query.expenseTypeId as string) : undefined;
+      
+      let ledgerEntries;
+      
+      if (entryType) {
+        ledgerEntries = await storage.getLedgerEntriesByType(entryType);
+      } else if (projectId) {
+        ledgerEntries = await storage.getLedgerEntriesByProject(projectId);
+      } else if (expenseTypeId) {
+        ledgerEntries = await storage.getLedgerEntriesByExpenseType(expenseTypeId);
+      } else {
+        ledgerEntries = await storage.listLedgerEntries();
+      }
+      
+      return res.status(200).json(ledgerEntries);
+    } catch (error) {
+      console.error("خطأ في جلب دفتر الأستاذ:", error);
+      return res.status(500).json({ message: "خطأ في جلب دفتر الأستاذ" });
+    }
+  });
+
+  // تقرير المصروفات المصنفة مقابل المتفرقات
+  app.get("/api/ledger/summary", authenticate, async (req: Request, res: Response) => {
+    try {
+      const classifiedEntries = await storage.getLedgerEntriesByType('classified');
+      const miscellaneousEntries = await storage.getLedgerEntriesByType('miscellaneous');
+      
+      const classifiedTotal = classifiedEntries.reduce((sum, entry) => sum + entry.amount, 0);
+      const miscellaneousTotal = miscellaneousEntries.reduce((sum, entry) => sum + entry.amount, 0);
+      
+      const summary = {
+        classified: {
+          total: classifiedTotal,
+          count: classifiedEntries.length,
+          entries: classifiedEntries
+        },
+        miscellaneous: {
+          total: miscellaneousTotal,
+          count: miscellaneousEntries.length,
+          entries: miscellaneousEntries
+        },
+        grandTotal: classifiedTotal + miscellaneousTotal
+      };
+      
+      return res.status(200).json(summary);
+    } catch (error) {
+      console.error("خطأ في جلب ملخص دفتر الأستاذ:", error);
+      return res.status(500).json({ message: "خطأ في جلب ملخص دفتر الأستاذ" });
     }
   });
 

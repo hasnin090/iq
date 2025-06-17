@@ -9,7 +9,9 @@ import {
   activityLogs, ActivityLog, InsertActivityLog,
   settings, Setting, InsertSetting,
   userProjects, UserProject, InsertUserProject,
-  funds, Fund, InsertFund
+  funds, Fund, InsertFund,
+  expenseTypes, ExpenseType, InsertExpenseType,
+  ledgerEntries, LedgerEntry, InsertLedgerEntry
 } from '../shared/schema';
 import { IStorage } from './storage';
 
@@ -1052,7 +1054,116 @@ export class PgStorage implements IStorage {
       throw error; // إعادة إلقاء الخطأ للتعامل معه في الطبقة العليا
     }
   }
+
+  // ======== إدارة أنواع المصروفات ========
+  
+  async getExpenseType(id: number): Promise<ExpenseType | undefined> {
+    const result = await db.select().from(expenseTypes).where(eq(expenseTypes.id, id));
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async getExpenseTypeByName(name: string): Promise<ExpenseType | undefined> {
+    const result = await db.select().from(expenseTypes).where(eq(expenseTypes.name, name));
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async createExpenseType(expenseType: InsertExpenseType): Promise<ExpenseType> {
+    const result = await db.insert(expenseTypes).values(expenseType).returning();
+    return result[0];
+  }
+
+  async updateExpenseType(id: number, expenseTypeData: Partial<ExpenseType>): Promise<ExpenseType | undefined> {
+    const updatedData = {
+      ...expenseTypeData,
+      updatedAt: new Date()
+    };
+    
+    const result = await db.update(expenseTypes)
+      .set(updatedData)
+      .where(eq(expenseTypes.id, id))
+      .returning();
+    
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async listExpenseTypes(): Promise<ExpenseType[]> {
+    return await db.select().from(expenseTypes).where(eq(expenseTypes.isActive, true));
+  }
+
+  async deleteExpenseType(id: number): Promise<boolean> {
+    // soft delete - تعطيل بدلاً من الحذف
+    const result = await db.update(expenseTypes)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(expenseTypes.id, id))
+      .returning();
+    
+    return result.length > 0;
+  }
+
+  // ======== إدارة دفتر الأستاذ ========
+  
+  async createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry> {
+    const result = await db.insert(ledgerEntries).values(entry).returning();
+    return result[0];
+  }
+
+  async getLedgerEntriesByType(entryType: string): Promise<LedgerEntry[]> {
+    return await db.select().from(ledgerEntries)
+      .where(eq(ledgerEntries.entryType, entryType))
+      .orderBy(desc(ledgerEntries.date));
+  }
+
+  async getLedgerEntriesByProject(projectId: number): Promise<LedgerEntry[]> {
+    return await db.select().from(ledgerEntries)
+      .where(eq(ledgerEntries.projectId, projectId))
+      .orderBy(desc(ledgerEntries.date));
+  }
+
+  async getLedgerEntriesByExpenseType(expenseTypeId: number): Promise<LedgerEntry[]> {
+    return await db.select().from(ledgerEntries)
+      .where(eq(ledgerEntries.expenseTypeId, expenseTypeId))
+      .orderBy(desc(ledgerEntries.date));
+  }
+
+  async listLedgerEntries(): Promise<LedgerEntry[]> {
+    return await db.select().from(ledgerEntries)
+      .orderBy(desc(ledgerEntries.date));
+  }
+
+  // ======== دالة مساعدة لتصنيف المصروفات ========
+  
+  async classifyExpenseTransaction(transaction: Transaction): Promise<void> {
+    // التحقق من نوع المعاملة - فقط المصروفات يتم تصنيفها
+    if (transaction.type !== 'expense') {
+      return;
+    }
+
+    let entryType = 'miscellaneous'; // افتراضي: متفرقات
+    let expenseTypeId = null;
+
+    // إذا تم تحديد نوع المصروف، البحث عنه في قاعدة البيانات
+    if (transaction.expenseType && transaction.expenseType.trim() !== '') {
+      const expenseType = await this.getExpenseTypeByName(transaction.expenseType);
+      if (expenseType) {
+        entryType = 'classified'; // مصنف
+        expenseTypeId = expenseType.id;
+      }
+    }
+
+    // إنشاء سجل في دفتر الأستاذ
+    await this.createLedgerEntry({
+      date: transaction.date,
+      transactionId: transaction.id,
+      expenseTypeId,
+      amount: transaction.amount,
+      description: transaction.description,
+      projectId: transaction.projectId,
+      entryType
+    });
+
+    console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType}`);
+  }
 }
 
-// تصدير كائن التخزين للاستخدام في جميع أنحاء التطبيق
+// تصدير كائف التخزين للاستخدام في جميع أنحاء التطبيق
 export const pgStorage = new PgStorage();

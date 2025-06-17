@@ -93,6 +93,9 @@ export interface IStorage {
   getLedgerEntriesByProject(projectId: number): Promise<LedgerEntry[]>;
   getLedgerEntriesByExpenseType(expenseTypeId: number): Promise<LedgerEntry[]>;
   listLedgerEntries(): Promise<LedgerEntry[]>;
+  
+  // Classification
+  classifyExpenseTransaction(transaction: Transaction): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
