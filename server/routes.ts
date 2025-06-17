@@ -867,24 +867,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // عندما يكون النوع "income" - إيراد
           if (projectId) {
             // إذا تم تحديد مشروع مع نوع إيراد، يجب أن يعتبر كمصروف من صندوق المدير
-            try {
-              // نستخدم وظيفة processDeposit لمعالجة إيداع في المشروع
-              // هذه الوظيفة تقوم بخصم المبلغ من صندوق المدير وتسجيله كمصروف
-              // ثم تضيف المبلغ إلى صندوق المشروع وتسجله كإيراد
-              result = await storage.processDeposit(userId, projectId, amount, description);
-              
-              // نقوم بإضافة سجل نشاط إضافي لتوضيح أن هذه العملية تمت من قبل المدير
-              await storage.createActivityLog({
-                action: "create",
-                entityType: "transaction",
-                entityId: result.transaction.id,
-                details: `إيداع في المشروع ${projectId} بقيمة ${amount} من قبل المدير (مصروف من صندوق المدير)`,
-                userId
-              });
-            } catch (error) {
-              console.error("خطأ في إيداع مبلغ في المشروع:", error);
-              throw error;
-            }
+            result = await storage.processDeposit(userId, projectId, amount, description);
           } else {
             // عملية إيراد للصندوق الرئيسي
             result = await storage.processAdminTransaction(userId, type, amount, description);
@@ -924,22 +907,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "خطأ في معالجة العملية" });
       }
       
-      // إذا كان هناك ملف مرفق، نقوم برفعه وتحديث المعاملة
+      // معالجة الملف المرفق بشكل مبسط للحصول على أداء أفضل
       if (req.file) {
         try {
-          // محاولة تحميل الملف إلى Firebase Storage
+          // استخدام التخزين المحلي مباشرة لتسريع العملية
           const storageFolder = `transactions/${result.transaction.id}`;
-          let fileUrl;
-          try {
-            // محاولة استخدام Firebase أولاً
-            fileUrl = await firebaseUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
-            console.log("تم رفع الملف المرفق بنجاح باستخدام Firebase Storage:", fileUrl);
-          } catch (firebaseError: unknown) {
-            // إذا فشل، استخدم التخزين المحلي كخطة بديلة
-            console.warn("فشل استخدام Firebase Storage لرفع المرفق، الرجوع إلى التخزين المحلي:", (firebaseError as Error).message);
-            fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
-            console.log("تم رفع الملف المرفق بنجاح باستخدام التخزين المحلي:", fileUrl);
-          }
+          const fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
           
           // تحديث المعاملة بعنوان URL للملف المرفق
           await storage.updateTransaction(result.transaction.id, { 
