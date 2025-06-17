@@ -56,7 +56,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
           <FormLabel>نوع المصروف</FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
-              <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
+              <SelectTrigger className="flex items-center justify-between px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 font-bold text-center text-[13px]">
                 <SelectValue placeholder="اختر نوع المصروف" />
               </SelectTrigger>
             </FormControl>

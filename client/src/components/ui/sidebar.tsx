@@ -171,10 +171,8 @@ function CompanyName() {
       {/* زخرفة الصفحة */}
       <div className="page-decoration"></div>
       <div className="page-decoration-2"></div>
-
       {/* شريط علوي ثابت */}
       <AppHeader onOpenSidebar={() => setIsOpen(true)} />
-
       {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها في الهواتف */}
       {isOpen && isMobile && (
         <div
@@ -182,9 +180,7 @@ function CompanyName() {
           onClick={() => setIsOpen(false)}
         ></div>
       )}
-
       {/* تم إزالة شريط التنقل السفلي وفقًا لطلب المستخدم */}
-
       <aside
         className={`fixed top-0 right-0 h-full w-[90%] xs:w-[85%] sm:w-80 md:w-72 lg:w-80 bg-white dark:bg-gray-900 border-l border-blue-100 dark:border-gray-700/70 transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto shadow-2xl ${
           isOpen ? "translate-x-0" : "translate-x-full"
@@ -251,7 +247,7 @@ function CompanyName() {
                   <div className="text-[hsl(var(--primary))] dark:text-white font-medium text-base sm:text-lg"><CompanyName /></div>
                   <div className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] dark:text-gray-300 mt-1 flex items-center">
                     <i className="fas fa-circle text-[6px] mr-2 text-[hsl(var(--primary))]"></i>
-                    <span>{user.name}</span>
+                    <span className="font-bold">  {user.name}</span>
                   </div>
                 </div>
               </div>
