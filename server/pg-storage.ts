@@ -1143,18 +1143,24 @@ export class PgStorage implements IStorage {
     let expenseTypeId = null;
     let shouldCreateEntry = forceClassify; // إنشاء السجل فقط إذا كان مطلوباً صراحة
 
-    // إذا تم تحديد نوع المصروف، البحث عنه في قاعدة البيانات
-    if (transaction.expenseType && transaction.expenseType.trim() !== '' && transaction.expenseType !== 'مصروف عام') {
+    // إذا تم تحديد نوع المصروف وليس "مصروف عام"، البحث عنه في قاعدة البيانات
+    if (transaction.expenseType && 
+        transaction.expenseType.trim() !== '' && 
+        transaction.expenseType !== 'مصروف عام') {
       const expenseType = await this.getExpenseTypeByName(transaction.expenseType);
       if (expenseType) {
         entryType = 'classified'; // مصنف حسب النوع
         expenseTypeId = expenseType.id;
         shouldCreateEntry = true; // إنشاء سجل للمصروفات المصنفة
       } else {
-        // إذا لم يتم العثور على نوع المصروف في قاعدة البيانات ولكن تم تحديد نوع
+        // إذا لم يتم العثور على نوع المصروف في قاعدة البيانات
         entryType = 'general_expense';
         shouldCreateEntry = forceClassify; // إنشاء سجل فقط إذا كان مطلوباً
       }
+    } else if (transaction.expenseType === 'مصروف عام' && forceClassify) {
+      // إذا كان "مصروف عام" ومطلوب التصنيف القسري
+      entryType = 'general_expense';
+      shouldCreateEntry = true;
     }
 
     // إنشاء سجل في دفتر الأستاذ فقط إذا كان مطلوباً
