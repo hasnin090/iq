@@ -1164,6 +1164,45 @@ export class PgStorage implements IStorage {
 
     console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType}`);
   }
+
+  // ======== إدارة تصنيفات أنواع الحسابات ========
+  
+  async getAccountCategory(id: number): Promise<AccountCategory | undefined> {
+    const result = await db.select().from(accountCategories).where(eq(accountCategories.id, id));
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async createAccountCategory(category: InsertAccountCategory): Promise<AccountCategory> {
+    const result = await db.insert(accountCategories).values(category).returning();
+    return result[0];
+  }
+
+  async updateAccountCategory(id: number, categoryData: Partial<AccountCategory>): Promise<AccountCategory | undefined> {
+    const updatedData = {
+      ...categoryData,
+      updatedAt: new Date()
+    };
+    
+    const result = await db.update(accountCategories)
+      .set(updatedData)
+      .where(eq(accountCategories.id, id))
+      .returning();
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async listAccountCategories(): Promise<AccountCategory[]> {
+    return await db.select().from(accountCategories).orderBy(desc(accountCategories.createdAt));
+  }
+
+  async deleteAccountCategory(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(accountCategories).where(eq(accountCategories.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('خطأ في حذف تصنيف نوع الحساب:', error);
+      return false;
+    }
+  }
 }
 
 // تصدير كائف التخزين للاستخدام في جميع أنحاء التطبيق

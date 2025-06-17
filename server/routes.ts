@@ -10,6 +10,7 @@ import {
   insertDocumentSchema,
   insertActivityLogSchema,
   insertSettingSchema,
+  insertAccountCategorySchema,
   funds,
   type Transaction
 } from "@shared/schema";
@@ -2382,6 +2383,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في جلب ملخص دفتر الأستاذ:", error);
       return res.status(500).json({ message: "خطأ في جلب ملخص دفتر الأستاذ" });
+    }
+  });
+
+  // ======== تصنيفات أنواع الحسابات ========
+  
+  // جلب جميع تصنيفات أنواع الحسابات
+  app.get("/api/account-categories", authenticate, async (req: Request, res: Response) => {
+    try {
+      const categories = await storage.listAccountCategories();
+      return res.status(200).json(categories);
+    } catch (error) {
+      console.error("خطأ في جلب تصنيفات أنواع الحسابات:", error);
+      return res.status(500).json({ message: "خطأ في جلب تصنيفات أنواع الحسابات" });
+    }
+  });
+
+  // إنشاء تصنيف جديد لنوع الحساب
+  app.post("/api/account-categories", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertAccountCategorySchema.parse({
+        ...req.body,
+        createdBy: req.session.userId
+      });
+      
+      const category = await storage.createAccountCategory(validatedData);
+      
+      await storage.createActivityLog({
+        action: "create",
+        entityType: "account_category",
+        entityId: category.id,
+        details: `إنشاء تصنيف جديد: ${category.name}`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(201).json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "بيانات غير صالحة", errors: error.errors });
+      }
+      console.error("خطأ في إنشاء تصنيف نوع الحساب:", error);
+      return res.status(500).json({ message: "خطأ في إنشاء تصنيف نوع الحساب" });
+    }
+  });
+
+  // تحديث تصنيف نوع الحساب
+  app.put("/api/account-categories/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, active } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ message: "اسم التصنيف مطلوب" });
+      }
+      
+      const updatedCategory = await storage.updateAccountCategory(id, { name, description, active });
+      
+      if (!updatedCategory) {
+        return res.status(404).json({ message: "التصنيف غير موجود" });
+      }
+      
+      await storage.createActivityLog({
+        action: "update",
+        entityType: "account_category",
+        entityId: updatedCategory.id,
+        details: `تحديث تصنيف: ${updatedCategory.name}`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(200).json(updatedCategory);
+    } catch (error) {
+      console.error("خطأ في تحديث تصنيف نوع الحساب:", error);
+      return res.status(500).json({ message: "خطأ في تحديث تصنيف نوع الحساب" });
+    }
+  });
+
+  // حذف تصنيف نوع الحساب
+  app.delete("/api/account-categories/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const category = await storage.getAccountCategory(id);
+      if (!category) {
+        return res.status(404).json({ message: "التصنيف غير موجود" });
+      }
+      
+      const result = await storage.deleteAccountCategory(id);
+      
+      if (result) {
+        await storage.createActivityLog({
+          action: "delete",
+          entityType: "account_category",
+          entityId: id,
+          details: `حذف تصنيف: ${category.name}`,
+          userId: req.session.userId as number
+        });
+      }
+      
+      return res.status(200).json({ success: result });
+    } catch (error) {
+      console.error("خطأ في حذف تصنيف نوع الحساب:", error);
+      return res.status(500).json({ message: "خطأ في حذف تصنيف نوع الحساب" });
     }
   });
 
