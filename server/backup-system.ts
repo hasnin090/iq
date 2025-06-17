@@ -194,29 +194,34 @@ export class BackupSystem {
 
   // جدولة النسخ الاحتياطي التلقائي
   startAutoBackup(): void {
-    // نسخة احتياطية كل 24 ساعة
-    const backupInterval = 24 * 60 * 60 * 1000; // 24 ساعة بالميلي ثانية
+    // نسخة احتياطية كل 12 ساعة (لتقليل الضغط على النظام)
+    const backupInterval = 12 * 60 * 60 * 1000; // 12 ساعة بالميلي ثانية
 
     setInterval(async () => {
       try {
-        await this.createFullBackup();
-        console.log('تم إجراء النسخ الاحتياطي التلقائي بنجاح');
+        // تشغيل النسخ الاحتياطي في الخلفية دون التأثير على الأداء
+        setImmediate(async () => {
+          await this.createFullBackup();
+          console.log('تم إجراء النسخ الاحتياطي التلقائي بنجاح');
+        });
       } catch (error) {
         console.error('فشل في النسخ الاحتياطي التلقائي:', error);
       }
     }, backupInterval);
 
-    // إنشاء أول نسخة احتياطية عند بدء النظام
+    // إنشاء أول نسخة احتياطية عند بدء النظام (مؤجل لتحسين الأداء)
     setTimeout(async () => {
       try {
-        await this.createFullBackup();
-        console.log('تم إنشاء النسخة الاحتياطية الأولى عند بدء النظام');
+        setImmediate(async () => {
+          await this.createFullBackup();
+          console.log('تم إنشاء النسخة الاحتياطية الأولى عند بدء النظام');
+        });
       } catch (error) {
         console.error('فشل في إنشاء النسخة الاحتياطية الأولى:', error);
       }
-    }, 5000); // بعد 5 ثوانِ من بدء النظام
+    }, 30000); // بعد 30 ثانية من بدء النظام (بدلاً من 5 ثوان)
 
-    console.log('تم تفعيل النسخ الاحتياطي التلقائي (كل 24 ساعة)');
+    console.log('تم تفعيل النسخ الاحتياطي التلقائي (كل 12 ساعة)');
   }
 
   // إنشاء نسخة احتياطية طوارئ قبل العمليات الحساسة (مع المرفقات)
