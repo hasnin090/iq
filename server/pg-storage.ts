@@ -11,7 +11,8 @@ import {
   userProjects, UserProject, InsertUserProject,
   funds, Fund, InsertFund,
   expenseTypes, ExpenseType, InsertExpenseType,
-  ledgerEntries, LedgerEntry, InsertLedgerEntry
+  ledgerEntries, LedgerEntry, InsertLedgerEntry,
+  accountCategories, AccountCategory, InsertAccountCategory
 } from '../shared/schema';
 import { IStorage } from './storage';
 

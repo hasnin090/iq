@@ -153,6 +153,17 @@ export const funds = pgTable("funds", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Account Categories table - تصنيفات أنواع الحسابات المخصصة
+export const accountCategories = pgTable("account_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  active: boolean("active").notNull().default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Insertion schemas
 export const insertUserSchema = createInsertSchema(users)
   .omit({ id: true })
@@ -225,11 +236,17 @@ export const insertExpenseTypeSchema = createInsertSchema(expenseTypes)
 export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries)
   .omit({ id: true, createdAt: true });
 
+export const insertAccountCategorySchema = createInsertSchema(accountCategories)
+  .omit({ id: true, createdAt: true, updatedAt: true });
+
 export type InsertExpenseType = z.infer<typeof insertExpenseTypeSchema>;
 export type ExpenseType = typeof expenseTypes.$inferSelect;
 
 export type InsertLedgerEntry = z.infer<typeof insertLedgerEntrySchema>;
 export type LedgerEntry = typeof ledgerEntries.$inferSelect;
+
+export type InsertAccountCategory = z.infer<typeof insertAccountCategorySchema>;
+export type AccountCategory = typeof accountCategories.$inferSelect;
 
 // Permission types
 export type Permission = keyof typeof PERMISSIONS;

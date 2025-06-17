@@ -8,7 +8,8 @@ import {
   userProjects, type UserProject, type InsertUserProject,
   funds, type Fund, type InsertFund,
   expenseTypes, type ExpenseType, type InsertExpenseType,
-  ledgerEntries, type LedgerEntry, type InsertLedgerEntry
+  ledgerEntries, type LedgerEntry, type InsertLedgerEntry,
+  accountCategories, type AccountCategory, type InsertAccountCategory
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage';
@@ -96,6 +97,13 @@ export interface IStorage {
   
   // Classification
   classifyExpenseTransaction(transaction: Transaction): Promise<void>;
+  
+  // Account Categories
+  getAccountCategory(id: number): Promise<AccountCategory | undefined>;
+  createAccountCategory(category: InsertAccountCategory): Promise<AccountCategory>;
+  updateAccountCategory(id: number, category: Partial<AccountCategory>): Promise<AccountCategory | undefined>;
+  listAccountCategories(): Promise<AccountCategory[]>;
+  deleteAccountCategory(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
