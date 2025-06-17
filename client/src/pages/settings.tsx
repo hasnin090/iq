@@ -73,6 +73,14 @@ export default function Settings() {
     refetchOnReconnect: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Account Categories Query
+  const { data: accountCategories = [], isLoading: categoriesLoading } = useQuery<AccountCategory[]>({
+    queryKey: ['/api/account-categories'],
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
   
   const mutation = useMutation({
     mutationFn: ({ key, value }: { key: string; value: string }) => {
@@ -114,6 +122,71 @@ export default function Settings() {
       });
     },
   });
+
+  // Account Categories Mutations
+  const createCategoryMutation = useMutation({
+    mutationFn: (data: AccountCategoryValues) => {
+      return apiRequest('/api/account-categories', 'POST', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
+      setShowCategoryDialog(false);
+      setEditingCategory(null);
+      toast({
+        title: "تم إنشاء التصنيف",
+        description: "تم إنشاء تصنيف الحساب بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في إنشاء التصنيف",
+      });
+    },
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<AccountCategoryValues> }) => {
+      return apiRequest(`/api/account-categories/${id}`, 'PUT', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
+      setShowCategoryDialog(false);
+      setEditingCategory(null);
+      toast({
+        title: "تم تحديث التصنيف",
+        description: "تم تحديث تصنيف الحساب بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في تحديث التصنيف",
+      });
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (id: number) => {
+      return apiRequest(`/api/account-categories/${id}`, 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
+      toast({
+        title: "تم حذف التصنيف",
+        description: "تم حذف تصنيف الحساب بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في حذف التصنيف",
+      });
+    },
+  });
   
   // نموذج تغيير كلمة المرور
   const passwordChangeForm = useForm<PasswordChangeValues>({
@@ -124,11 +197,59 @@ export default function Settings() {
       confirmPassword: "",
     },
   });
+
+  // نموذج تصنيفات أنواع الحسابات
+  const categoryForm = useForm<AccountCategoryValues>({
+    resolver: zodResolver(accountCategorySchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      active: true,
+    },
+  });
   
   // معالج إرسال نموذج تغيير كلمة المرور
   function onPasswordChangeSubmit(values: PasswordChangeValues) {
     passwordChangeMutation.mutate(values);
   }
+
+  // معالج إرسال نموذج تصنيف الحساب
+  function onCategorySubmit(values: AccountCategoryValues) {
+    if (editingCategory) {
+      updateCategoryMutation.mutate({ id: editingCategory.id, data: values });
+    } else {
+      createCategoryMutation.mutate(values);
+    }
+  }
+
+  // فتح حوار إضافة تصنيف جديد
+  const handleAddCategory = () => {
+    setEditingCategory(null);
+    categoryForm.reset({
+      name: '',
+      description: '',
+      active: true,
+    });
+    setShowCategoryDialog(true);
+  };
+
+  // فتح حوار تعديل تصنيف
+  const handleEditCategory = (category: AccountCategory) => {
+    setEditingCategory(category);
+    categoryForm.reset({
+      name: category.name,
+      description: category.description || '',
+      active: category.active,
+    });
+    setShowCategoryDialog(true);
+  };
+
+  // حذف تصنيف
+  const handleDeleteCategory = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف هذا التصنيف؟')) {
+      deleteCategoryMutation.mutate(id);
+    }
+  };
   
   const handleSaveSetting = (key: string, value: string) => {
     mutation.mutate({ key, value });
@@ -363,32 +484,125 @@ export default function Settings() {
             </TabsContent>
             
             <TabsContent value="financial">
-              <Card className="bg-secondary-light">
-                <CardHeader>
-                  <CardTitle>إعدادات مالية</CardTitle>
-                  <CardDescription>
-                    إعدادات خاصة بالنظام المالي مثل العملة
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <SettingField 
-                    settings={settings || []} 
-                    settingKey="currency" 
-                    label="رمز العملة" 
-                    onSave={handleSaveSetting}
-                    isSaving={mutation.isPending}
-                  />
-                  
-                  <SettingField 
-                    settings={settings || []} 
-                    settingKey="taxRate" 
-                    label="نسبة الضريبة (%)" 
-                    type="number"
-                    onSave={handleSaveSetting}
-                    isSaving={mutation.isPending}
-                  />
-                </CardContent>
-              </Card>
+              <div className="space-y-6">
+                <Card className="bg-secondary-light">
+                  <CardHeader>
+                    <CardTitle>إعدادات مالية</CardTitle>
+                    <CardDescription>
+                      إعدادات خاصة بالنظام المالي مثل العملة
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <SettingField 
+                      settings={settings || []} 
+                      settingKey="currency" 
+                      label="رمز العملة" 
+                      onSave={handleSaveSetting}
+                      isSaving={mutation.isPending}
+                    />
+                    
+                    <SettingField 
+                      settings={settings || []} 
+                      settingKey="taxRate" 
+                      label="نسبة الضريبة (%)" 
+                      type="number"
+                      onSave={handleSaveSetting}
+                      isSaving={mutation.isPending}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Account Categories Management */}
+                <Card className="bg-secondary-light">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Tag className="ml-2 h-5 w-5 text-primary-light" />
+                      تصنيفات أنواع الحسابات
+                    </CardTitle>
+                    <CardDescription>
+                      إدارة تصنيفات أنواع الحسابات المستخدمة في تصنيف المصروفات
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-lg font-medium">التصنيفات المتاحة</h3>
+                        <p className="text-sm text-muted-foreground">
+                          يمكنك إضافة أو تعديل أو حذف تصنيفات أنواع الحسابات
+                        </p>
+                      </div>
+                      <Button onClick={handleAddCategory} className="bg-primary hover:bg-primary/90">
+                        <Plus className="ml-2 h-4 w-4" />
+                        إضافة تصنيف
+                      </Button>
+                    </div>
+
+                    {categoriesLoading ? (
+                      <div className="text-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                        <p className="mt-2 text-muted-foreground">جاري تحميل التصنيفات...</p>
+                      </div>
+                    ) : accountCategories.length === 0 ? (
+                      <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                        <Tag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد تصنيفات</h3>
+                        <p className="text-gray-500 mb-4">ابدأ بإضافة تصنيف أول لأنواع الحسابات</p>
+                        <Button onClick={handleAddCategory} variant="outline">
+                          <Plus className="ml-2 h-4 w-4" />
+                          إضافة تصنيف جديد
+                        </Button>
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">اسم التصنيف</TableHead>
+                            <TableHead className="text-right">الوصف</TableHead>
+                            <TableHead className="text-right">الحالة</TableHead>
+                            <TableHead className="text-right">تاريخ الإنشاء</TableHead>
+                            <TableHead className="text-right">الإجراءات</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {accountCategories.map((category) => (
+                            <TableRow key={category.id}>
+                              <TableCell className="font-medium">{category.name}</TableCell>
+                              <TableCell>{category.description || '-'}</TableCell>
+                              <TableCell>
+                                <Badge variant={category.active ? "default" : "secondary"}>
+                                  {category.active ? "نشط" : "غير نشط"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {new Date(category.createdAt).toLocaleDateString('ar-SA')}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEditCategory(category)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteCategory(category.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
             
             <TabsContent value="system">
@@ -703,6 +917,99 @@ export default function Settings() {
           </>
         )}
       </Tabs>
+
+      {/* Account Category Dialog */}
+      <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory ? 'تعديل تصنيف الحساب' : 'إضافة تصنيف جديد'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingCategory 
+                ? 'قم بتعديل بيانات تصنيف الحساب'
+                : 'أدخل بيانات تصنيف الحساب الجديد'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...categoryForm}>
+            <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4">
+              <FormField
+                control={categoryForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم التصنيف</FormLabel>
+                    <FormControl>
+                      <Input placeholder="مثال: كراسي، كتب، قرطاسية" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={categoryForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الوصف (اختياري)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="وصف مختصر للتصنيف" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={categoryForm.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>حالة التصنيف</FormLabel>
+                      <FormDescription>
+                        تفعيل أو إلغاء تفعيل التصنيف
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowCategoryDialog(false)}
+                >
+                  إلغاء
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+                >
+                  {(createCategoryMutation.isPending || updateCategoryMutation.isPending) ? (
+                    <>
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                      {editingCategory ? 'جاري التحديث...' : 'جاري الإضافة...'}
+                    </>
+                  ) : (
+                    editingCategory ? 'تحديث' : 'إضافة'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
