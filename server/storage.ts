@@ -96,7 +96,7 @@ export interface IStorage {
   listLedgerEntries(): Promise<LedgerEntry[]>;
   
   // Classification
-  classifyExpenseTransaction(transaction: Transaction): Promise<void>;
+  classifyExpenseTransaction(transaction: Transaction, forceClassify?: boolean): Promise<void>;
   
   // Account Categories
   getAccountCategory(id: number): Promise<AccountCategory | undefined>;

@@ -1133,7 +1133,7 @@ export class PgStorage implements IStorage {
 
   // ======== دالة مساعدة لتصنيف المصروفات ========
   
-  async classifyExpenseTransaction(transaction: Transaction): Promise<void> {
+  async classifyExpenseTransaction(transaction: Transaction, forceClassify: boolean = false): Promise<void> {
     // التحقق من نوع المعاملة - فقط المصروفات يتم تصنيفها
     if (transaction.type !== 'expense') {
       return;
@@ -1141,31 +1141,38 @@ export class PgStorage implements IStorage {
 
     let entryType = 'general_expense'; // افتراضي: مصروف عام
     let expenseTypeId = null;
+    let shouldCreateEntry = forceClassify; // إنشاء السجل فقط إذا كان مطلوباً صراحة
 
     // إذا تم تحديد نوع المصروف، البحث عنه في قاعدة البيانات
-    if (transaction.expenseType && transaction.expenseType.trim() !== '') {
+    if (transaction.expenseType && transaction.expenseType.trim() !== '' && transaction.expenseType !== 'مصروف عام') {
       const expenseType = await this.getExpenseTypeByName(transaction.expenseType);
       if (expenseType) {
         entryType = 'classified'; // مصنف حسب النوع
         expenseTypeId = expenseType.id;
+        shouldCreateEntry = true; // إنشاء سجل للمصروفات المصنفة
       } else {
-        // إذا لم يتم العثور على نوع المصروف في قاعدة البيانات، يذهب لمصروف عام
+        // إذا لم يتم العثور على نوع المصروف في قاعدة البيانات ولكن تم تحديد نوع
         entryType = 'general_expense';
+        shouldCreateEntry = forceClassify; // إنشاء سجل فقط إذا كان مطلوباً
       }
     }
 
-    // إنشاء سجل في دفتر الأستاذ - تتم العملية دائماً
-    await this.createLedgerEntry({
-      date: transaction.date,
-      transactionId: transaction.id,
-      expenseTypeId,
-      amount: transaction.amount,
-      description: transaction.description,
-      projectId: transaction.projectId,
-      entryType
-    });
+    // إنشاء سجل في دفتر الأستاذ فقط إذا كان مطلوباً
+    if (shouldCreateEntry) {
+      await this.createLedgerEntry({
+        date: transaction.date,
+        transactionId: transaction.id,
+        expenseTypeId,
+        amount: transaction.amount,
+        description: transaction.description,
+        projectId: transaction.projectId,
+        entryType
+      });
 
-    console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType} ${expenseTypeId ? `(نوع المصروف: ${expenseTypeId})` : '(مصروف عام)'}`);
+      console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType} ${expenseTypeId ? `(نوع المصروف: ${expenseTypeId})` : '(مصروف عام)'}`);
+    } else {
+      console.log(`لم يتم تصنيف المعاملة ${transaction.id} - لا يوجد نوع مصروف محدد`);
+    }
   }
 
   // ======== إدارة تصنيفات أنواع الحسابات ========

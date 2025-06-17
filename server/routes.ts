@@ -931,9 +931,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // تصنيف المعاملة تلقائياً إلى دفتر الأستاذ أو المتفرقات
+      // تصنيف المعاملة تلقائياً فقط إذا تم تحديد نوع المصروف
       try {
-        await storage.classifyExpenseTransaction(result.transaction);
+        await storage.classifyExpenseTransaction(result.transaction, false);
       } catch (classifyError) {
         console.error("خطأ في تصنيف المعاملة:", classifyError);
         // نستمر بإرجاع المعاملة حتى لو فشل التصنيف
@@ -2353,6 +2353,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في جلب دفتر الأستاذ:", error);
       return res.status(500).json({ message: "خطأ في جلب دفتر الأستاذ" });
+    }
+  });
+
+  // تصنيف المعاملات يدوياً إلى دفتر الأستاذ
+  app.post("/api/ledger/classify", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { transactionIds, forceAll } = req.body;
+      
+      if (!transactionIds || !Array.isArray(transactionIds)) {
+        return res.status(400).json({ message: "معرفات المعاملات مطلوبة" });
+      }
+      
+      let classifiedCount = 0;
+      let skippedCount = 0;
+      
+      for (const transactionId of transactionIds) {
+        try {
+          const transaction = await storage.getTransaction(transactionId);
+          if (!transaction) {
+            skippedCount++;
+            continue;
+          }
+          
+          // تصنيف المعاملة مع إجبار إنشاء السجل إذا طُلب ذلك
+          await storage.classifyExpenseTransaction(transaction, forceAll || false);
+          classifiedCount++;
+        } catch (error) {
+          console.error(`خطأ في تصنيف المعاملة ${transactionId}:`, error);
+          skippedCount++;
+        }
+      }
+      
+      await storage.createActivityLog({
+        action: "update",
+        entityType: "ledger",
+        entityId: 0,
+        details: `تصنيف يدوي لـ ${classifiedCount} معاملة إلى دفتر الأستاذ`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(200).json({
+        message: `تم تصنيف ${classifiedCount} معاملة، تم تخطي ${skippedCount} معاملة`,
+        classified: classifiedCount,
+        skipped: skippedCount
+      });
+    } catch (error) {
+      console.error("خطأ في التصنيف اليدوي:", error);
+      return res.status(500).json({ message: "خطأ في التصنيف اليدوي" });
     }
   });
 
