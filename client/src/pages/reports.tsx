@@ -55,24 +55,21 @@ const ACCOUNT_TYPES: Record<string, string> = {
 // حالة لتخزين أنواع الحسابات الديناميكية
 let DYNAMIC_ACCOUNT_TYPES: Record<string, string> = {};
 
-// تحديد نوع الحساب بناءً على الوصف أو نوع المصروف المحدد
-const getAccountType = (description: string, expenseType?: string): string => {
-  // إذا كان هناك نوع مصروف محدد، استخدمه مباشرة
-  if (expenseType && ACCOUNT_TYPES[expenseType]) {
-    return expenseType;
-  }
-
-  const desc = description?.toLowerCase() || '';
+// تحديد نوع الحساب بناءً على نوع المصروف المحدد في دفتر الأستاذ فقط
+const getAccountType = (transactionId: number, expenseTypes: any[], ledgerEntries: any[]): string => {
+  // البحث عن سجل في دفتر الأستاذ لهذه المعاملة
+  const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transactionId);
   
-  // البحث في الأنواع المحددة مسبقاً
-  for (const [key, value] of Object.entries(ACCOUNT_TYPES)) {
-    if (desc.includes(key.toLowerCase()) || desc.includes(value.toLowerCase())) {
-      return key;
+  if (ledgerEntry && ledgerEntry.expenseTypeId) {
+    // البحث عن نوع المصروف في قائمة الأنواع
+    const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
+    if (expenseType) {
+      return expenseType.name;
     }
   }
-
-  // إذا لم يتم العثور على تطابق، نعيد "other"
-  return 'other';
+  
+  // إذا لم يتم تصنيف المعاملة في دفتر الأستاذ، لا تعرضها في التقارير
+  return 'unclassified';
 };
 
 // دالة للحصول على اسم نوع الحساب مع دعم الأنواع الديناميكية
@@ -105,6 +102,13 @@ export default function Reports() {
   });
 
   // جلب أنواع المصروفات ودفتر الأستاذ للتصنيف
+  const { data: expenseTypes = [] } = useQuery({
+    queryKey: ["/api/expense-types"],
+  });
+
+  const { data: ledgerEntries = [] } = useQuery({
+    queryKey: ["/api/ledger"],
+  });
 
 
   // فلترة المعاملات
@@ -129,17 +133,17 @@ export default function Reports() {
         matchesDate = transactionDate >= monthAgo;
       }
 
-      const accountType = getAccountType(transaction.description || '');
+      const accountType = getAccountType(transaction.id, expenseTypes, ledgerEntries);
       const matchesAccountType = selectedAccountType === 'all' || accountType === selectedAccountType;
       
       return matchesSearch && matchesProject && matchesDate && matchesAccountType;
     });
-  }, [transactions, searchQuery, selectedProject, dateFilter, selectedAccountType]);
+  }, [transactions, searchQuery, selectedProject, dateFilter, selectedAccountType, expenseTypes, ledgerEntries]);
 
   // فلترة المعاملات لحساب معين
   const getTransactionsByAccountType = (accountType: string) => {
     return filteredTransactions.filter(transaction => {
-      const transactionAccountType = getAccountType(transaction.description || '');
+      const transactionAccountType = getAccountType(transaction.id, expenseTypes as any[], ledgerEntries as any[]);
       return transactionAccountType === accountType;
     });
   };
