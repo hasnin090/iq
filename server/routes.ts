@@ -988,8 +988,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const existingEntry = existingEntries.find(entry => entry.transactionId === updatedTransaction.id);
             
             if (!existingEntry) {
-              // البحث عن نوع المصروف
-              const expenseType = await storage.getExpenseTypeByName(formattedData.expenseType);
+              // البحث عن نوع المصروف أو إنشاؤه إذا لم يكن موجوداً
+              let expenseType = await storage.getExpenseTypeByName(formattedData.expenseType);
+              
+              if (!expenseType) {
+                // إنشاء نوع المصروف تلقائياً إذا لم يكن موجوداً
+                expenseType = await storage.createExpenseType({
+                  name: formattedData.expenseType,
+                  description: `نوع مصروف تم إنشاؤه تلقائياً: ${formattedData.expenseType}`,
+                  isActive: true
+                });
+                console.log(`تم إنشاء نوع مصروف جديد تلقائياً: ${formattedData.expenseType}`);
+              }
               
               if (expenseType) {
                 // إنشاء سجل في دفتر الأستاذ
@@ -1006,10 +1016,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 console.log(`تم إنشاء سجل دفتر الأستاذ للمعاملة ${updatedTransaction.id} مع نوع المصروف ${expenseType.name}`);
               }
             } else {
-              console.log(`سجل دفتر الأستاذ موجود بالفعل للمعاملة ${updatedTransaction.id}`);
+              // إذا كان السجل موجوداً، تحديث نوع المصروف إذا تغير
+              let expenseType = await storage.getExpenseTypeByName(formattedData.expenseType);
+              
+              if (!expenseType) {
+                // إنشاء نوع المصروف تلقائياً إذا لم يكن موجوداً
+                expenseType = await storage.createExpenseType({
+                  name: formattedData.expenseType,
+                  description: `نوع مصروف تم إنشاؤه تلقائياً: ${formattedData.expenseType}`,
+                  isActive: true
+                });
+                console.log(`تم إنشاء نوع مصروف جديد تلقائياً: ${formattedData.expenseType}`);
+              }
+              
+              if (expenseType && existingEntry.expenseTypeId !== expenseType.id) {
+                // تحديث سجل دفتر الأستاذ بنوع المصروف الجديد
+                await storage.updateLedgerEntry(existingEntry.id, {
+                  expenseTypeId: expenseType.id,
+                  amount: updatedTransaction.amount,
+                  description: updatedTransaction.description || '',
+                  date: new Date(formattedData.date)
+                });
+                console.log(`تم تحديث سجل دفتر الأستاذ للمعاملة ${updatedTransaction.id} بنوع المصروف ${expenseType.name}`);
+              }
             }
           } catch (ledgerError) {
-            console.error("خطأ في إنشاء سجل دفتر الأستاذ:", ledgerError);
+            console.error("خطأ في إنشاء/تحديث سجل دفتر الأستاذ:", ledgerError);
             // لا نرمي خطأ هنا لأن تحديث المعاملة نجح
           }
         }

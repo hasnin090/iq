@@ -90,6 +90,7 @@ export interface IStorage {
 
   // Ledger Entries
   createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry>;
+  updateLedgerEntry(id: number, entry: Partial<LedgerEntry>): Promise<LedgerEntry | undefined>;
   getLedgerEntriesByType(entryType: string): Promise<LedgerEntry[]>;
   getLedgerEntriesByProject(projectId: number): Promise<LedgerEntry[]>;
   getLedgerEntriesByExpenseType(expenseTypeId: number): Promise<LedgerEntry[]>;
