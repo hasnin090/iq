@@ -61,9 +61,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (storedUser) {
           try {
             foundUser = JSON.parse(storedUser);
-            console.log('Found stored user data:', foundUser);
           } catch (err) {
-            console.error('Failed to parse stored user data:', err);
+            // تجاهل أخطاء تحليل البيانات المحفوظة
           }
         }
         

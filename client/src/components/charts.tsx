@@ -30,9 +30,7 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
       
       setIsAdmin(userIsAdmin);
       setCanViewIncome(userCanViewIncome);
-      console.log("Charts - User role from localStorage:", user.role, "canViewIncome:", userCanViewIncome);
     } catch (e) {
-      console.error("Charts - Error parsing user data:", e);
       setIsAdmin(false);
       setCanViewIncome(false);
     }

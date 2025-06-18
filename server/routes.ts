@@ -1087,12 +1087,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // محاولة استخدام Firebase أولاً
         fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
-        console.log("تم رفع الملف المرفق الجديد بنجاح باستخدام Firebase Storage:", fileUrl);
-      } catch (firebaseError: unknown) {
-        // إذا فشل، استخدم التخزين المحلي كخطة بديلة
-        console.warn("فشل استخدام Firebase Storage لرفع المرفق الجديد، الرجوع إلى التخزين المحلي:", (firebaseError as Error).message);
-        fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
-        console.log("تم رفع الملف المرفق الجديد بنجاح باستخدام التخزين المحلي:", fileUrl);
+      } catch (uploadError) {
+        console.error("خطأ في رفع الملف:", uploadError);
+        return res.status(500).json({ message: "خطأ في رفع الملف" });
       }
       
       // تحديث المعاملة بعنوان URL للملف المرفق الجديد
@@ -1285,12 +1282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // محاولة استخدام Firebase أولاً
           fileUrl = await localUpload(file.path, `${storageFolder}/${file.filename}`);
-          console.log("تم رفع الملف بنجاح باستخدام Firebase Storage:", fileUrl);
-        } catch (firebaseError: unknown) {
-          // إذا فشل، استخدم التخزين المحلي كخطة بديلة
-          console.warn("فشل استخدام Firebase Storage، الرجوع إلى التخزين المحلي:", (firebaseError as Error).message);
-          fileUrl = await localUpload(file.path, `${storageFolder}/${file.filename}`);
-          console.log("تم رفع الملف بنجاح باستخدام التخزين المحلي:", fileUrl);
+          } catch (uploadError) {
+          console.error("خطأ في رفع الملف:", uploadError);
+          return res.status(500).json({ message: "خطأ في رفع الملف" });
         }
         
         // تحديث مسار الملف بعنوان URL من Firebase
@@ -1394,12 +1388,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // محاولة استخدام Firebase Storage أولاً للحذف
           try {
             await localDelete(document.fileUrl);
-            console.log("تم حذف الملف بنجاح من Firebase Storage");
-          } catch (firebaseError: unknown) {
-            // إذا فشل، نحاول استخدام التخزين المحلي
-            console.warn("فشل حذف الملف من Firebase Storage، محاولة الحذف من التخزين المحلي:", (firebaseError as Error).message);
-            await localDelete(document.fileUrl);
-            console.log("تم حذف الملف بنجاح من التخزين المحلي");
+            } catch (deleteError) {
+            console.error("خطأ في حذف الملف:", deleteError);
           }
         } catch (fileError) {
           console.error(`خطأ في حذف الملف المرتبط بالمستند: ${fileError}`);
