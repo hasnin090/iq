@@ -278,12 +278,12 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
         } catch (error) {
           // إيقاف محاكاة التقدم في حالة حدوث خطأ
           stopSimulation();
-          console.error("خطأ أثناء رفع الملف:", error);
+
           throw error;
         }
       } catch (error) {
         // إعادة تعيين شريط التقدم في حالة وجود خطأ
-        console.error("خطأ أثناء عملية التحميل:", error);
+
         setUploadProgress(0);
         throw error;
       }
