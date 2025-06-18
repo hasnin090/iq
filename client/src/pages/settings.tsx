@@ -354,6 +354,44 @@ export default function Settings() {
       deleteCategoryMutation.mutate(id);
     }
   };
+
+  // معالج إرسال نموذج نوع المصروف
+  function onExpenseTypeSubmit(values: ExpenseTypeValues) {
+    if (editingExpenseType) {
+      updateExpenseTypeMutation.mutate({ id: editingExpenseType.id, data: values });
+    } else {
+      createExpenseTypeMutation.mutate(values);
+    }
+  }
+
+  // فتح حوار إضافة نوع مصروف جديد
+  const handleAddExpenseType = () => {
+    setEditingExpenseType(null);
+    expenseTypeForm.reset({
+      name: '',
+      description: '',
+      isActive: true,
+    });
+    setShowExpenseTypeDialog(true);
+  };
+
+  // فتح حوار تعديل نوع مصروف
+  const handleEditExpenseType = (expenseType: ExpenseType) => {
+    setEditingExpenseType(expenseType);
+    expenseTypeForm.reset({
+      name: expenseType.name,
+      description: expenseType.description || '',
+      isActive: expenseType.isActive,
+    });
+    setShowExpenseTypeDialog(true);
+  };
+
+  // حذف نوع مصروف
+  const handleDeleteExpenseType = (id: number) => {
+    if (confirm('هل أنت متأكد من حذف نوع المصروف هذا؟')) {
+      deleteExpenseTypeMutation.mutate(id);
+    }
+  };
   
   const handleSaveSetting = (key: string, value: string) => {
     mutation.mutate({ key, value });
@@ -524,6 +562,13 @@ export default function Settings() {
           >
             <span className="hidden sm:inline">النسخ الاحتياطي</span>
             <span className="sm:hidden">نسخ</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="expense-types" 
+            className="flex-shrink-0 px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <span className="hidden sm:inline">أنواع المصاريف</span>
+            <span className="sm:hidden">مصاريف</span>
           </TabsTrigger>
           <TabsTrigger 
             value="security" 
@@ -938,6 +983,90 @@ export default function Settings() {
               </Card>
             </TabsContent>
             
+            <TabsContent value="expense-types">
+              <Card className="bg-secondary-light">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Tag className="h-5 w-5" />
+                      أنواع المصاريف
+                    </CardTitle>
+                    <CardDescription>
+                      إدارة أنواع المصاريف المتاحة في النظام
+                    </CardDescription>
+                  </div>
+                  <Button 
+                    onClick={handleAddExpenseType}
+                    className="px-4 py-2 bg-gradient-to-r from-primary to-primary-light text-white font-medium rounded-lg hover:shadow-lg transition-all"
+                  >
+                    <Plus className="ml-2 h-4 w-4" />
+                    إضافة نوع مصروف
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {expenseTypesLoading ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                      <p className="text-muted-foreground">جاري تحميل أنواع المصاريف...</p>
+                    </div>
+                  ) : (
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>اسم نوع المصروف</TableHead>
+                            <TableHead>الوصف</TableHead>
+                            <TableHead>الحالة</TableHead>
+                            <TableHead className="text-left">العمليات</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {expenseTypes.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                لا توجد أنواع مصاريف مضافة
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            expenseTypes.map((expenseType) => (
+                              <TableRow key={expenseType.id}>
+                                <TableCell className="font-medium">{expenseType.name}</TableCell>
+                                <TableCell>{expenseType.description || '-'}</TableCell>
+                                <TableCell>
+                                  <Badge variant={expenseType.isActive ? "default" : "secondary"}>
+                                    {expenseType.isActive ? 'نشط' : 'غير نشط'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEditExpenseType(expenseType)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteExpenseType(expenseType.id)}
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
             <TabsContent value="security">
               <Card className="bg-secondary-light">
                 <CardHeader>
@@ -1122,6 +1251,99 @@ export default function Settings() {
                     </>
                   ) : (
                     editingCategory ? 'تحديث' : 'إضافة'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expense Type Dialog */}
+      <Dialog open={showExpenseTypeDialog} onOpenChange={setShowExpenseTypeDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingExpenseType ? 'تعديل نوع المصروف' : 'إضافة نوع مصروف جديد'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingExpenseType 
+                ? 'قم بتعديل بيانات نوع المصروف'
+                : 'أدخل بيانات نوع المصروف الجديد'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...expenseTypeForm}>
+            <form onSubmit={expenseTypeForm.handleSubmit(onExpenseTypeSubmit)} className="space-y-4">
+              <FormField
+                control={expenseTypeForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم نوع المصروف</FormLabel>
+                    <FormControl>
+                      <Input placeholder="مثال: مصاريف إدارية" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={expenseTypeForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الوصف (اختياري)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="وصف مختصر لنوع المصروف" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={expenseTypeForm.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>حالة نوع المصروف</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        تفعيل أو إلغاء تفعيل نوع المصروف
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowExpenseTypeDialog(false)}
+                >
+                  إلغاء
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createExpenseTypeMutation.isPending || updateExpenseTypeMutation.isPending}
+                >
+                  {(createExpenseTypeMutation.isPending || updateExpenseTypeMutation.isPending) ? (
+                    <>
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                      {editingExpenseType ? 'جاري التحديث...' : 'جاري الإضافة...'}
+                    </>
+                  ) : (
+                    editingExpenseType ? 'تحديث' : 'إضافة'
                   )}
                 </Button>
               </DialogFooter>
