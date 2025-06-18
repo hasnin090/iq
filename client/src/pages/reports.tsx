@@ -57,6 +57,11 @@ let DYNAMIC_ACCOUNT_TYPES: Record<string, string> = {};
 
 // تحديد نوع الحساب بناءً على نوع المصروف المحدد في دفتر الأستاذ فقط
 const getAccountType = (transactionId: number, expenseTypes: any[], ledgerEntries: any[]): string => {
+  // التأكد من وجود البيانات
+  if (!expenseTypes || !ledgerEntries || !Array.isArray(expenseTypes) || !Array.isArray(ledgerEntries)) {
+    return 'unclassified';
+  }
+  
   // البحث عن سجل في دفتر الأستاذ لهذه المعاملة
   const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transactionId);
   
@@ -111,9 +116,15 @@ export default function Reports() {
   });
 
 
-  // فلترة المعاملات
+  // فلترة المعاملات - فقط العمليات المصنفة في دفتر الأستاذ
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(transaction => {
+    // تصفية المعاملات للاحتفاظ فقط بالمصنفة في دفتر الأستاذ
+    const classifiedTransactions = transactions.filter(transaction => {
+      if (!Array.isArray(ledgerEntries)) return false;
+      return ledgerEntries.some((entry: any) => entry.transactionId === transaction.id && entry.expenseTypeId);
+    });
+
+    return classifiedTransactions.filter(transaction => {
       const matchesSearch = (transaction.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                           transaction.amount.toString().includes(searchQuery);
       
@@ -133,7 +144,18 @@ export default function Reports() {
         matchesDate = transactionDate >= monthAgo;
       }
 
-      const accountType = getAccountType(transaction.id, expenseTypes, ledgerEntries);
+      // البحث عن نوع المصروف من دفتر الأستاذ
+      let accountType = 'unclassified';
+      if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
+        const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
+        if (ledgerEntry && ledgerEntry.expenseTypeId) {
+          const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
+          if (expenseType) {
+            accountType = expenseType.name;
+          }
+        }
+      }
+      
       const matchesAccountType = selectedAccountType === 'all' || accountType === selectedAccountType;
       
       return matchesSearch && matchesProject && matchesDate && matchesAccountType;
@@ -143,7 +165,17 @@ export default function Reports() {
   // فلترة المعاملات لحساب معين
   const getTransactionsByAccountType = (accountType: string) => {
     return filteredTransactions.filter(transaction => {
-      const transactionAccountType = getAccountType(transaction.id, expenseTypes as any[], ledgerEntries as any[]);
+      // البحث عن نوع المصروف من دفتر الأستاذ
+      let transactionAccountType = 'unclassified';
+      if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
+        const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
+        if (ledgerEntry && ledgerEntry.expenseTypeId) {
+          const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
+          if (expenseType) {
+            transactionAccountType = expenseType.name;
+          }
+        }
+      }
       return transactionAccountType === accountType;
     });
   };
@@ -160,7 +192,17 @@ export default function Reports() {
     
     // تجميع المعاملات حسب نوع الحساب
     filteredTransactions.forEach(transaction => {
-      const accountType = getAccountType(transaction.description || '', (transaction as any).expenseType);
+      // البحث عن نوع المصروف من دفتر الأستاذ
+      let accountType = 'unclassified';
+      if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
+        const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
+        if (ledgerEntry && ledgerEntry.expenseTypeId) {
+          const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
+          if (expenseType) {
+            accountType = expenseType.name;
+          }
+        }
+      }
       
       if (!summary[accountType]) {
         summary[accountType] = {
@@ -176,7 +218,7 @@ export default function Reports() {
     });
     
     return summary;
-  }, [filteredTransactions]);
+  }, [filteredTransactions, expenseTypes, ledgerEntries]);
 
   // حساب الإحصائيات
   const stats = useMemo(() => {
@@ -679,11 +721,35 @@ export default function Reports() {
                                   {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                                 </Badge>
                                 <div className="text-xs text-muted-foreground lg:hidden mt-1">
-                                  {getAccountTypeName(getAccountType(transaction.description || '', (transaction as any).expenseType))}
+                                  {(() => {
+                                    let accountType = 'غير مصنف';
+                                    if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
+                                      const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
+                                      if (ledgerEntry && ledgerEntry.expenseTypeId) {
+                                        const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
+                                        if (expenseType) {
+                                          accountType = expenseType.name;
+                                        }
+                                      }
+                                    }
+                                    return getAccountTypeName(accountType);
+                                  })()}
                                 </div>
                               </TableCell>
                               <TableCell className="text-xs md:text-sm py-2 md:py-3 hidden lg:table-cell">
-                                {getAccountTypeName(getAccountType(transaction.description || '', (transaction as any).expenseType))}
+                                {(() => {
+                                  let accountType = 'غير مصنف';
+                                  if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
+                                    const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
+                                    if (ledgerEntry && ledgerEntry.expenseTypeId) {
+                                      const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
+                                      if (expenseType) {
+                                        accountType = expenseType.name;
+                                      }
+                                    }
+                                  }
+                                  return getAccountTypeName(accountType);
+                                })()}
                               </TableCell>
                               <TableCell className={`text-right font-medium text-xs md:text-sm py-2 md:py-3 ${
                                 transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
