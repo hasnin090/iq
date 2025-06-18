@@ -37,6 +37,15 @@ interface AccountCategory {
   updatedAt: string;
 }
 
+interface ExpenseType {
+  id: number;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // تعريف مخطط (schema) لتغيير كلمة المرور
 const passwordChangeSchema = z.object({
   currentPassword: z.string().min(1, "كلمة المرور الحالية مطلوبة"),
@@ -54,8 +63,16 @@ const accountCategorySchema = z.object({
   active: z.boolean().default(true),
 });
 
+// تعريف مخطط (schema) لأنواع المصاريف
+const expenseTypeSchema = z.object({
+  name: z.string().min(1, "اسم نوع المصروف مطلوب"),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
 type PasswordChangeValues = z.infer<typeof passwordChangeSchema>;
 type AccountCategoryValues = z.infer<typeof accountCategorySchema>;
+type ExpenseTypeValues = z.infer<typeof expenseTypeSchema>;
 
 export default function Settings() {
   const { user } = useAuth();
@@ -64,6 +81,8 @@ export default function Settings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingCategory, setEditingCategory] = useState<AccountCategory | null>(null);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [editingExpenseType, setEditingExpenseType] = useState<ExpenseType | null>(null);
+  const [showExpenseTypeDialog, setShowExpenseTypeDialog] = useState(false);
   
   const { data: settings, isLoading, error } = useQuery<Setting[]>({
     queryKey: ['/api/settings'],
@@ -81,6 +100,15 @@ export default function Settings() {
     refetchOnWindowFocus: true,
     staleTime: 30 * 1000, // 30 seconds for quicker refresh
     refetchInterval: 30 * 1000, // Refetch every 30 seconds
+  });
+
+  // Expense Types Query
+  const { data: expenseTypes = [], isLoading: expenseTypesLoading, refetch: refetchExpenseTypes } = useQuery<ExpenseType[]>({
+    queryKey: ['/api/expense-types'],
+    retry: 1,
+    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
   });
   
   const mutation = useMutation({
@@ -188,6 +216,71 @@ export default function Settings() {
       });
     },
   });
+
+  // Expense Types Mutations
+  const createExpenseTypeMutation = useMutation({
+    mutationFn: (data: ExpenseTypeValues) => {
+      return apiRequest('/api/expense-types', 'POST', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
+      setShowExpenseTypeDialog(false);
+      setEditingExpenseType(null);
+      toast({
+        title: "تم إنشاء نوع المصروف",
+        description: "تم إنشاء نوع المصروف بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في إنشاء نوع المصروف",
+      });
+    },
+  });
+
+  const updateExpenseTypeMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<ExpenseTypeValues> }) => {
+      return apiRequest(`/api/expense-types/${id}`, 'PUT', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
+      setShowExpenseTypeDialog(false);
+      setEditingExpenseType(null);
+      toast({
+        title: "تم تحديث نوع المصروف",
+        description: "تم تحديث نوع المصروف بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في تحديث نوع المصروف",
+      });
+    },
+  });
+
+  const deleteExpenseTypeMutation = useMutation({
+    mutationFn: (id: number) => {
+      return apiRequest(`/api/expense-types/${id}`, 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
+      toast({
+        title: "تم حذف نوع المصروف",
+        description: "تم حذف نوع المصروف بنجاح",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "فشل في حذف نوع المصروف",
+      });
+    },
+  });
   
   // نموذج تغيير كلمة المرور
   const passwordChangeForm = useForm<PasswordChangeValues>({
@@ -206,6 +299,16 @@ export default function Settings() {
       name: '',
       description: '',
       active: true,
+    },
+  });
+
+  // نموذج أنواع المصاريف
+  const expenseTypeForm = useForm<ExpenseTypeValues>({
+    resolver: zodResolver(expenseTypeSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      isActive: true,
     },
   });
   
