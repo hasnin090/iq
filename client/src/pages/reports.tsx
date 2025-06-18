@@ -262,7 +262,17 @@ export default function Reports() {
     // إنشاء ورقة تفاصيل المعاملات
     const detailsData = filteredTransactions.map(t => {
       const project = projects.find(p => p.id === t.projectId);
-      const accountType = getAccountType(t.description || '');
+      // البحث عن نوع المصروف من دفتر الأستاذ
+      let accountType = 'غير مصنف';
+      if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
+        const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === t.id);
+        if (ledgerEntry && ledgerEntry.expenseTypeId) {
+          const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
+          if (expenseType) {
+            accountType = expenseType.name;
+          }
+        }
+      }
       return {
         'التاريخ': format(new Date(t.date), 'yyyy/MM/dd', { locale: ar }),
         'الوصف': t.description || '',
