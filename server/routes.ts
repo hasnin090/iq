@@ -931,13 +931,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // تصنيف المعاملة تلقائياً فقط إذا تم تحديد نوع المصروف
-      try {
-        await storage.classifyExpenseTransaction(result.transaction, false);
-      } catch (classifyError) {
-        console.error("خطأ في تصنيف المعاملة:", classifyError);
-        // نستمر بإرجاع المعاملة حتى لو فشل التصنيف
-      }
+      // لا يتم تصنيف المعاملة تلقائياً - يجب على المستخدم تحديد نوع المصروف يدوياً
+      // التصنيف يحدث فقط عند الذهاب لصفحة الإعدادات واختيار "تصنيف جميع المعاملات"
       
       return res.status(201).json(result.transaction);
     } catch (error: any) {
