@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,6 +129,34 @@ export default function LedgerPage() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ar-IQ');
   };
+
+  // تجميع العمليات حسب نوع المصروف
+  const groupedEntries = useMemo(() => {
+    if (!ledgerEntries || !expenseTypes) return {};
+    
+    const grouped: { [key: string]: { expenseType: ExpenseType; entries: LedgerEntry[] } } = {};
+    
+    (ledgerEntries as LedgerEntry[]).forEach((entry: LedgerEntry) => {
+      if (entry.expenseTypeId) {
+        const expenseType = (expenseTypes as ExpenseType[]).find(
+          (type: ExpenseType) => type.id === entry.expenseTypeId
+        );
+        
+        if (expenseType) {
+          const key = expenseType.name;
+          if (!grouped[key]) {
+            grouped[key] = {
+              expenseType,
+              entries: []
+            };
+          }
+          grouped[key].entries.push(entry);
+        }
+      }
+    });
+    
+    return grouped;
+  }, [ledgerEntries, expenseTypes]);
 
   if (expenseTypesLoading || summaryLoading) {
     return (
@@ -396,55 +424,71 @@ export default function LedgerPage() {
             </Button>
           </div>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>سجلات دفتر الأستاذ</CardTitle>
-              <CardDescription>
-                فقط المعاملات المصنفة تظهر في دفتر الأستاذ
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>التاريخ</TableHead>
-                    <TableHead>الوصف</TableHead>
-                    <TableHead>النوع</TableHead>
-                    <TableHead>المبلغ</TableHead>
-                    <TableHead>التصنيف</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(ledgerEntries as LedgerEntry[]).slice(0, 20).map((entry: LedgerEntry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell>{formatDate(entry.date)}</TableCell>
-                      <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
-                      <TableCell>
-                        {entry.expenseTypeId ? (
-                          <Badge variant="default">محدد</Badge>
-                        ) : (
-                          <Badge variant="secondary">غير محدد</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-mono">{formatCurrency(entry.amount)}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={entry.entryType === "classified" ? "default" : "secondary"}
-                        >
-                          {entry.entryType === "classified" ? "مصنف" : "متفرق"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {(ledgerEntries as LedgerEntry[]).length > 20 && (
-                <p className="text-sm text-muted-foreground text-center mt-4">
-                  عرض 20 من أصل {(ledgerEntries as LedgerEntry[]).length} سجل
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          {/* عرض العمليات مبوبة حسب نوع المصروف */}
+          {Object.keys(groupedEntries).length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>دفتر الأستاذ العام</CardTitle>
+                <CardDescription>
+                  لا توجد عمليات مصنفة في دفتر الأستاذ
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-muted-foreground">
+                    سيتم عرض العمليات هنا بعد تصنيفها حسب نوع المصروف
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(groupedEntries).map(([expenseTypeName, { expenseType, entries }]) => (
+                <Card key={expenseTypeName}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Badge variant="default">{expenseTypeName}</Badge>
+                      <span className="text-sm text-muted-foreground">
+                        ({entries.length} عملية - {formatCurrency(entries.reduce((sum, entry) => sum + entry.amount, 0))})
+                      </span>
+                    </CardTitle>
+                    <CardDescription>
+                      {expenseType.description || 'عمليات مصنفة تحت هذا النوع'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>التاريخ</TableHead>
+                          <TableHead>الوصف</TableHead>
+                          <TableHead>المبلغ</TableHead>
+                          <TableHead>المشروع</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {entries.map((entry: LedgerEntry) => (
+                          <TableRow key={entry.id}>
+                            <TableCell>{formatDate(entry.date)}</TableCell>
+                            <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
+                            <TableCell className="font-mono">{formatCurrency(entry.amount)}</TableCell>
+                            <TableCell>
+                              {entry.projectId ? (
+                                <Badge variant="outline">مشروع #{entry.projectId}</Badge>
+                              ) : (
+                                <span className="text-muted-foreground">عام</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
