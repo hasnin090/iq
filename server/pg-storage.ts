@@ -1,5 +1,5 @@
 import { db } from './db';
-import { eq, and, or, desc } from 'drizzle-orm';
+import { eq, and, or, desc, not, isNull } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { 
   users, User, InsertUser,
@@ -1127,7 +1127,10 @@ export class PgStorage implements IStorage {
   }
 
   async listLedgerEntries(): Promise<LedgerEntry[]> {
+    // فقط جلب السجلات التي تحتوي على تصنيف نوع المصروف (expenseTypeId)
+    // هذا يضمن أن العمليات تظهر في دفتر الأستاذ فقط بعد تحديد نوع المصروف يدوياً
     return await db.select().from(ledgerEntries)
+      .where(not(isNull(ledgerEntries.expenseTypeId)))
       .orderBy(desc(ledgerEntries.date));
   }
 
