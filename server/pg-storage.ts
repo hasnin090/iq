@@ -1109,15 +1109,24 @@ export class PgStorage implements IStorage {
   }
 
   async getLedgerEntriesByType(entryType: string): Promise<LedgerEntry[]> {
-    return await db.select().from(ledgerEntries)
+    // فقط جلب السجلات التي تحتوي على تصنيف نوع المصروف (expenseTypeId محدد وليس null)
+    // وتطابق نوع الإدخال المطلوب
+    const allEntries = await db.select().from(ledgerEntries)
       .where(eq(ledgerEntries.entryType, entryType))
       .orderBy(desc(ledgerEntries.date));
+    
+    // تصفية السجلات للاحتفاظ فقط بالسجلات التي تحتوي على expenseTypeId
+    return allEntries.filter(entry => entry.expenseTypeId !== null);
   }
 
   async getLedgerEntriesByProject(projectId: number): Promise<LedgerEntry[]> {
-    return await db.select().from(ledgerEntries)
+    // فقط جلب السجلات التي تحتوي على تصنيف نوع المصروف وتنتمي للمشروع المحدد
+    const allEntries = await db.select().from(ledgerEntries)
       .where(eq(ledgerEntries.projectId, projectId))
       .orderBy(desc(ledgerEntries.date));
+    
+    // تصفية السجلات للاحتفاظ فقط بالسجلات التي تحتوي على expenseTypeId
+    return allEntries.filter(entry => entry.expenseTypeId !== null);
   }
 
   async getLedgerEntriesByExpenseType(expenseTypeId: number): Promise<LedgerEntry[]> {
