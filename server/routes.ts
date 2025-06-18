@@ -2389,7 +2389,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         try {
           // البحث عن نوع المصروف
-          const expenseType = await storage.getExpenseTypeByName(transaction.expenseType!);
+          const expenseTypeName = transaction.expenseType;
+          if (!expenseTypeName) continue;
+          
+          const expenseType = await storage.getExpenseTypeByName(expenseTypeName);
           
           if (expenseType) {
             // إضافة سجل إلى دفتر الأستاذ
