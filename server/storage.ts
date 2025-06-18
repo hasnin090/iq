@@ -721,6 +721,10 @@ export class MemStorage implements IStorage {
     throw new Error("MemStorage لا يدعم دفتر الأستاذ");
   }
 
+  async updateLedgerEntry(id: number, entry: any): Promise<any> {
+    throw new Error("MemStorage لا يدعم تحديث دفتر الأستاذ");
+  }
+
   async getLedgerEntriesByType(entryType: string): Promise<any[]> {
     return [];
   }

@@ -1108,6 +1108,14 @@ export class PgStorage implements IStorage {
     return result[0];
   }
 
+  async updateLedgerEntry(id: number, entry: Partial<LedgerEntry>): Promise<LedgerEntry | undefined> {
+    const result = await db.update(ledgerEntries)
+      .set(entry)
+      .where(eq(ledgerEntries.id, id))
+      .returning();
+    return result.length > 0 ? result[0] : undefined;
+  }
+
   async getLedgerEntriesByType(entryType: string): Promise<LedgerEntry[]> {
     // فقط جلب السجلات التي تحتوي على تصنيف نوع المصروف (expenseTypeId محدد وليس null)
     // وتطابق نوع الإدخال المطلوب
