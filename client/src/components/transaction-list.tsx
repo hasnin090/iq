@@ -191,8 +191,7 @@ export function TransactionList({
   };
 
   // Add useEffect to track state changes
-  console.log('Current selectedAttachment:', selectedAttachment);
-  console.log('Current attachmentDialogOpen:', attachmentDialogOpen);
+
 
   const getProjectName = (projectId: number | undefined) => {
     if (!projectId) return "بدون مشروع";
