@@ -106,20 +106,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "غير مصرح" });
     }
 
-    // فحص انتهاء صلاحية الجلسة (30 دقيقة من عدم النشاط)
-    const now = new Date();
-    const lastActivity = req.session.lastActivity ? new Date(req.session.lastActivity) : now;
-    const thirtyMinutes = 30 * 60 * 1000; // 30 دقيقة بالميلي ثانية
-
-    if (now.getTime() - lastActivity.getTime() > thirtyMinutes) {
-      req.session.destroy((err) => {
-        if (err) console.error('Session destruction error:', err);
-      });
-      return res.status(401).json({ message: "انتهت صلاحية الجلسة" });
-    }
-
-    // تحديث آخر نشاط
-    req.session.lastActivity = now.toISOString();
+    // تحديث آخر نشاط بدون فحص انتهاء الصلاحية
+    req.session.lastActivity = new Date().toISOString();
     next();
   };
 
