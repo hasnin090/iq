@@ -25,8 +25,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-// استيراد وظائف Firebase Storage والتخزين المحلي كنسخة احتياطية
-import { uploadFile as firebaseUpload, deleteFile as firebaseDelete } from "./firebase-utils-new"; 
+// استيراد وظائف التخزين المحلي
 import { uploadFile as localUpload, deleteFile as localDelete } from "./firebase-utils";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -93,10 +92,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   }));
   
-  // تسجيل معلومات الجلسة للتصحيح
+  // middleware للجلسة (تم إزالة التسجيل المفرط لتحسين الأداء)
   app.use((req, res, next) => {
-    console.log('Session ID:', req.sessionID);
-    console.log('Session data:', req.session);
     next();
   });
 
