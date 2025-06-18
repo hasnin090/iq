@@ -410,7 +410,39 @@ export default function LedgerPage() {
         </TabsContent>
 
         <TabsContent value="entries" className="space-y-4">
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-4 gap-2">
+            <Button 
+              onClick={async () => {
+                try {
+                  const response = await fetch("/api/ledger/migrate-classified", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({})
+                  });
+                  
+                  if (response.ok) {
+                    const result = await response.json();
+                    toast({
+                      title: "نجح الترحيل",
+                      description: `تم إضافة ${result.summary.added} عملية إلى دفتر الأستاذ`,
+                    });
+                    queryClient.invalidateQueries({ queryKey: ["/api/ledger"] });
+                  } else {
+                    throw new Error("فشل في الترحيل");
+                  }
+                } catch (error) {
+                  toast({
+                    title: "خطأ",
+                    description: "فشل في ترحيل المعاملات المصنفة",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              variant="default"
+              className="mr-2"
+            >
+              ترحيل المعاملات المصنفة
+            </Button>
             <Button 
               onClick={() => {
                 // إضافة وظيفة لتصنيف جميع المعاملات غير المصنفة

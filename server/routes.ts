@@ -2356,6 +2356,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ترحيل المعاملات المصنفة تلقائياً إلى دفتر الأستاذ
+  app.post("/api/ledger/migrate-classified", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log('بدء ترحيل المعاملات المصنفة إلى دفتر الأستاذ...');
+      
+      // جلب جميع المعاملات
+      const allTransactions = await storage.listTransactions();
+      
+      // تصفية المعاملات التي لها نوع مصروف محدد
+      const classifiedTransactions = allTransactions.filter(t => 
+        t.expenseType && 
+        t.expenseType !== 'مصروف عام' && 
+        t.expenseType.trim() !== ''
+      );
+      
+      // جلب السجلات الموجودة في دفتر الأستاذ لتجنب التكرار
+      const existingEntries = await storage.listLedgerEntries();
+      const existingTransactionIds = new Set(existingEntries.map(entry => entry.transactionId));
+      
+      let addedCount = 0;
+      let skippedCount = 0;
+      let notFoundCount = 0;
+      const errors: string[] = [];
+      
+      for (const transaction of classifiedTransactions) {
+        // تجاهل المعاملات الموجودة بالفعل في دفتر الأستاذ
+        if (existingTransactionIds.has(transaction.id)) {
+          skippedCount++;
+          continue;
+        }
+        
+        try {
+          // البحث عن نوع المصروف
+          const expenseType = await storage.getExpenseTypeByName(transaction.expenseType!);
+          
+          if (expenseType) {
+            // إضافة سجل إلى دفتر الأستاذ
+            await storage.createLedgerEntry({
+              date: new Date(transaction.date),
+              transactionId: transaction.id,
+              expenseTypeId: expenseType.id,
+              amount: transaction.amount,
+              description: transaction.description || '',
+              projectId: transaction.projectId,
+              entryType: 'classified'
+            });
+            
+            addedCount++;
+            console.log(`تمت إضافة المعاملة ${transaction.id} إلى دفتر الأستاذ مع نوع المصروف: ${expenseType.name}`);
+          } else {
+            notFoundCount++;
+            errors.push(`لم يتم العثور على نوع المصروف "${transaction.expenseType}" للمعاملة ${transaction.id}`);
+          }
+        } catch (error) {
+          errors.push(`خطأ في معالجة المعاملة ${transaction.id}: ${error}`);
+        }
+      }
+      
+      return res.status(200).json({
+        message: 'تم إنهاء عملية ترحيل المعاملات',
+        summary: {
+          totalClassified: classifiedTransactions.length,
+          added: addedCount,
+          skipped: skippedCount,
+          notFound: notFoundCount,
+          errors: errors.length
+        },
+        errors: errors
+      });
+      
+    } catch (error) {
+      console.error("خطأ في ترحيل المعاملات:", error);
+      return res.status(500).json({ message: "خطأ في ترحيل المعاملات" });
+    }
+  });
+
   // تصنيف المعاملات يدوياً إلى دفتر الأستاذ
   app.post("/api/ledger/classify", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
