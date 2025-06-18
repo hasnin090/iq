@@ -980,6 +980,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedTransaction = await storage.updateTransaction(id, formattedData);
       
       if (updatedTransaction) {
+        // إذا تم تحديد نوع مصروف، أضف سجل إلى دفتر الأستاذ
+        if (formattedData.expenseType && formattedData.expenseType !== 'مصروف عام') {
+          try {
+            // التحقق من عدم وجود سجل سابق لنفس المعاملة
+            const existingEntries = await storage.listLedgerEntries();
+            const existingEntry = existingEntries.find(entry => entry.transactionId === updatedTransaction.id);
+            
+            if (!existingEntry) {
+              // البحث عن نوع المصروف
+              const expenseType = await storage.getExpenseTypeByName(formattedData.expenseType);
+              
+              if (expenseType) {
+                // إنشاء سجل في دفتر الأستاذ
+                await storage.createLedgerEntry({
+                  date: new Date(formattedData.date),
+                  transactionId: updatedTransaction.id,
+                  expenseTypeId: expenseType.id,
+                  amount: updatedTransaction.amount,
+                  description: updatedTransaction.description || '',
+                  projectId: updatedTransaction.projectId,
+                  entryType: 'classified'
+                });
+                
+                console.log(`تم إنشاء سجل دفتر الأستاذ للمعاملة ${updatedTransaction.id} مع نوع المصروف ${expenseType.name}`);
+              }
+            } else {
+              console.log(`سجل دفتر الأستاذ موجود بالفعل للمعاملة ${updatedTransaction.id}`);
+            }
+          } catch (ledgerError) {
+            console.error("خطأ في إنشاء سجل دفتر الأستاذ:", ledgerError);
+            // لا نرمي خطأ هنا لأن تحديث المعاملة نجح
+          }
+        }
+        
         await storage.createActivityLog({
           action: "update",
           entityType: "transaction",
