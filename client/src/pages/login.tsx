@@ -78,27 +78,16 @@ export default function Login() {
           }
         });
         
-        console.log('Session check response:', sessionCheckResponse.status);
-        
-        if (sessionCheckResponse.ok) {
-          console.log('Session is valid, proceeding with redirect');
-        } else {
-          console.warn('Session is not valid but continuing with fallback');
-        }
       } catch (sessionError) {
-        console.error('Session check failed:', sessionError);
+        // تجاهل أخطاء فحص الجلسة
       }
       
       // إعادة تحميل الصفحة للانتقال إلى الصفحة الرئيسية (لوحة التحكم)
-      // استخدام window.location.assign لإعادة توجيه أكثر موثوقية
-      // وإضافة معلمة إضافية لضمان إعادة تحميل الصفحة
-      console.log('توجيه إلى لوحة التحكم...');
       setTimeout(() => {
         window.location.assign('/?auth=' + new Date().getTime());
       }, 1000);
       
     } catch (error) {
-      console.error('Login submit error:', error);
       setShakeAnimation(true);
       setTimeout(() => setShakeAnimation(false), 500);
     } finally {
