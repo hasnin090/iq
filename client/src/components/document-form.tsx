@@ -219,7 +219,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
         }
         formData.append('isManagerDocument', isManagerDocument.toString());
         
-        console.log("معلومات الملف - الاسم:", file.name, "الحجم:", file.size, "النوع:", file.type);
+
         
         // محاكاة تقدم التحميل
         const simulateProgress = () => {
@@ -243,7 +243,7 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
         
         try {
           // استخدام Fetch API بدلاً من Firebase Storage مباشرة
-          console.log("بدء رفع الملف إلى الخادم...");
+
           
           const response = await fetch('/api/upload-document', {
             method: 'POST',
@@ -264,11 +264,11 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
           
           // الحصول على البيانات الناتجة
           const result = await response.json();
-          console.log("تم رفع الملف بنجاح:", result);
+
           
           // تحديث التقدم إلى 100% للتأكد من اكتمال العملية
           setUploadProgress(100);
-          console.log("اكتمل رفع المستند بنجاح");
+
           
           // مهلة قصيرة للتأكد من أن المستخدم يرى نسبة التقدم 100%
           await new Promise(resolve => setTimeout(resolve, 500));

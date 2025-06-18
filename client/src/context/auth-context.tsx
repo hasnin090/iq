@@ -78,21 +78,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           if (response.ok) {
             const userData = await response.json();
-            console.log('Server session data:', userData);
+
             setUser(userData);
             // تحديث البيانات المخزنة محلياً
             localStorage.setItem('auth_user', JSON.stringify(userData));
             return;
           } else {
-            console.log('No active server session:', response.status);
           }
         } catch (serverError) {
-          console.error('Error checking server session:', serverError);
+          // تجاهل أخطاء الاتصال بالخادم
         }
         
         // استخدام البيانات المخزنة محلياً إذا لم تنجح محاولة الخادم
         if (foundUser) {
-          console.log('Using locally stored user data as fallback');
           setUser(foundUser);
           
           // محاولة إعادة تفعيل الجلسة باستخدام البيانات المخزنة
@@ -109,16 +107,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
               }),
               credentials: 'include'
             });
-            console.log('Session restored from local storage data');
           } catch (e) {
-            console.log('Failed to restore session, continuing with local data:', e);
+            // مواصلة استخدام البيانات المحلية حتى لو فشلت محاولة تجديد الجلسة
           }
         } else {
-          console.log('No active session found');
           setUser(null);
         }
       } catch (error) {
-        console.error('Session check error:', error);
         setUser(null);
       } finally {
         setIsLoading(false);

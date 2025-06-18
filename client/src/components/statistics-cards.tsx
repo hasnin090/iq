@@ -33,9 +33,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
       
       setIsAdmin(userIsAdmin);
       setCanViewIncome(userCanViewIncome);
-      console.log("StatisticsCards - User role from localStorage:", user.role, "canViewIncome:", userCanViewIncome);
     } catch (e) {
-      console.error("StatisticsCards - Error parsing user data:", e);
       setIsAdmin(false);
       setCanViewIncome(false);
     }
