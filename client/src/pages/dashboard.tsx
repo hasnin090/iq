@@ -268,21 +268,25 @@ export default function Dashboard() {
               
               {/* Desktop Table */}
               <div className="hidden lg:block overflow-hidden rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                <table className="w-full table-fixed divide-y divide-gray-200/50 dark:divide-gray-700/50">
                   <thead className={`${
                     displayMode === 'admin' 
                       ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20' 
                       : 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20'
                   }`}>
                     <tr>
-                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">التاريخ</th>
-                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">الوصف</th>
+                      <th className={`px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider ${
+                        displayMode === 'projects' ? 'w-24' : 'w-32'
+                      }`}>التاريخ</th>
+                      <th className={`px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider ${
+                        displayMode === 'projects' ? 'w-48' : 'w-64'
+                      }`}>الوصف</th>
                       {displayMode === 'projects' && (
-                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المشروع</th>
+                        <th className="w-32 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المشروع</th>
                       )}
-                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">النوع</th>
-                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
-                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المرفقات</th>
+                      <th className="w-24 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">النوع</th>
+                      <th className="w-32 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
+                      <th className="w-24 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المرفقات</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200/30 dark:divide-gray-700/30">
@@ -296,21 +300,23 @@ export default function Dashboard() {
                               : 'hover:from-emerald-50/50 hover:to-green-50/50 dark:hover:from-emerald-900/20 dark:hover:to-green-900/20'
                           }`}
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 font-medium">
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
                             {formatDate(transaction.date)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 font-medium max-w-xs">
-                            {transaction.description}
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
+                            <div className="truncate" title={transaction.description}>
+                              {transaction.description}
+                            </div>
                           </td>
                           {displayMode === 'projects' && (
                             <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-xs font-medium">
+                              <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-medium truncate block">
                                 {getProjectName(transaction.projectId)}
                               </span>
                             </td>
                           )}
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-3 py-1 inline-flex text-sm font-bold rounded-lg shadow-sm ${
+                          <td className="px-6 py-4 text-center">
+                            <span className={`px-2 py-1 inline-flex text-xs font-bold rounded shadow-sm ${
                               transaction.type === 'income' 
                                 ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white' 
                                 : 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
@@ -318,28 +324,28 @@ export default function Dashboard() {
                               {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-base font-bold">
-                            <span className={`${
+                          <td className="px-6 py-4 text-sm font-bold text-center">
+                            <div className={`truncate ${
                               transaction.type === 'income' 
                                 ? 'text-emerald-600 dark:text-emerald-400' 
                                 : 'text-red-600 dark:text-red-400'
-                            }`}>
+                            }`} title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(Math.abs(transaction.amount))}`}>
                               {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
-                            </span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="px-6 py-4 text-center">
                             {transaction.fileUrl ? (
                               <button 
                                 onClick={() => window.open(transaction.fileUrl, '_blank')}
-                                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:scale-105 flex items-center gap-1"
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded text-xs font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-sm hover:scale-105"
+                                title="عرض المرفق"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                 </svg>
-                                <span>عرض</span>
                               </button>
                             ) : (
-                              <span className="text-gray-400 dark:text-gray-500 text-center block">-</span>
+                              <span className="text-gray-400 dark:text-gray-500">-</span>
                             )}
                           </td>
                         </tr>
