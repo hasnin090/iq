@@ -51,7 +51,7 @@ interface ExpenseType {
 }
 
 // Component for expense type field
-function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }) {
+function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }): JSX.Element | null {
   const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
     queryKey: ['/api/expense-types'],
     staleTime: 30 * 1000, // 30 seconds
@@ -75,7 +75,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
             <SelectContent>
               <SelectItem value="مصروف عام">مصروف عام</SelectItem>
               {expenseTypes
-                .filter(type => type.isActive)
+                .filter(type => type.isActive && type.name !== "مصروف عام")
                 .map(type => (
                   <SelectItem key={type.id} value={type.name}>
                     {type.name}

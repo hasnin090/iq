@@ -572,7 +572,7 @@ export function TransactionList({
                         <SelectContent>
                           <SelectItem value="مصروف عام">مصروف عام</SelectItem>
                           {expenseTypes
-                            .filter(type => type.isActive)
+                            .filter(type => type.isActive && type.name !== "مصروف عام")
                             .map(type => (
                               <SelectItem key={type.id} value={type.name}>
                                 {type.name}
