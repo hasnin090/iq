@@ -75,8 +75,8 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
             <SelectContent>
               <SelectItem value="مصروف عام">مصروف عام</SelectItem>
               {expenseTypes
-                .filter((type: any) => type.isActive)
-                .map((type: any) => (
+                .filter(type => type.isActive)
+                .map(type => (
                   <SelectItem key={type.id} value={type.name}>
                     {type.name}
                   </SelectItem>
