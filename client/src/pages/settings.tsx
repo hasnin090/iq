@@ -473,7 +473,7 @@ export default function Settings() {
               value="general" 
               className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
             >
-              <SettingsIcon className="h-5 w-5 mb-1" />
+              <SettingsIcon className="h-4 w-4 mb-1" />
               <span className="text-center leading-tight">عام</span>
             </TabsTrigger>
             
@@ -481,15 +481,15 @@ export default function Settings() {
               value="financial" 
               className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
             >
-              <Building className="h-5 w-5 mb-1" />
-              <span className="text-center leading-tight">مالي</span>
+              <Building className="h-4 w-4 mb-1" />
+              <span className="text-center leading-tight">تصنيفات</span>
             </TabsTrigger>
             
             <TabsTrigger 
               value="expense-types" 
               className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
             >
-              <Tag className="h-5 w-5 mb-1" />
+              <Tag className="h-4 w-4 mb-1" />
               <span className="text-center leading-tight">مصاريف</span>
             </TabsTrigger>
             
@@ -497,7 +497,7 @@ export default function Settings() {
               value="system" 
               className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
             >
-              <Database className="h-5 w-5 mb-1" />
+              <Database className="h-4 w-4 mb-1" />
               <span className="text-center leading-tight">نظام</span>
             </TabsTrigger>
             
@@ -505,7 +505,7 @@ export default function Settings() {
               value="backup" 
               className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
             >
-              <HardDrive className="h-5 w-5 mb-1" />
+              <HardDrive className="h-4 w-4 mb-1" />
               <span className="text-center leading-tight">نسخ</span>
             </TabsTrigger>
             
@@ -513,7 +513,7 @@ export default function Settings() {
               value="security" 
               className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
             >
-              <Shield className="h-5 w-5 mb-1" />
+              <Shield className="h-4 w-4 mb-1" />
               <span className="text-center leading-tight">أمان</span>
             </TabsTrigger>
           </TabsList>
@@ -572,7 +572,7 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Financial Settings */}
+        {/* Account Categories Settings */}
         <TabsContent value="financial" className="space-y-6">
           <Card>
             <CardHeader>
