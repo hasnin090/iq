@@ -476,14 +476,7 @@ export default function Settings() {
               <SettingsIcon className="h-4 w-4 mb-1" />
               <span className="text-center leading-tight">عام</span>
             </TabsTrigger>
-            
-            <TabsTrigger 
-              value="financial" 
-              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-            >
-              <Building className="h-4 w-4 mb-1" />
-              <span className="text-center leading-tight">تصنيفات</span>
-            </TabsTrigger>
+
             
             <TabsTrigger 
               value="expense-types" 
@@ -572,134 +565,7 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Account Categories Settings */}
-        <TabsContent value="financial" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                تصنيفات الحسابات
-              </CardTitle>
-              <CardDescription>
-                إدارة تصنيفات الحسابات المختلفة في النظام
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">التصنيفات الحالية</h3>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => {
-                      setEditingCategory(null);
-                      categoryForm.reset();
-                    }}>
-                      <Plus className="h-4 w-4 ml-2" />
-                      إضافة تصنيف جديد
-                    </Button>
-                  </DialogTrigger>
-                  
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingCategory ? 'تعديل التصنيف' : 'إضافة تصنيف جديد'}
-                      </DialogTitle>
-                    </DialogHeader>
-                    
-                    <Form {...categoryForm}>
-                      <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4">
-                        <FormField
-                          control={categoryForm.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>اسم التصنيف</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={categoryForm.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>الوصف (اختياري)</FormLabel>
-                              <FormControl>
-                                <Textarea {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <DialogFooter>
-                          <Button 
-                            type="submit" 
-                            disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
-                          >
-                            {(createCategoryMutation.isPending || updateCategoryMutation.isPending) && (
-                              <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                            )}
-                            {editingCategory ? 'تحديث' : 'إضافة'}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>الاسم</TableHead>
-                      <TableHead>الوصف</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>الإجراءات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {accountCategories.map((category) => (
-                      <TableRow key={category.id}>
-                        <TableCell className="font-medium">{category.name}</TableCell>
-                        <TableCell>{category.description || '-'}</TableCell>
-                        <TableCell>
-                          <Badge variant={category.active ? "default" : "secondary"}>
-                            {category.active ? 'نشط' : 'غير نشط'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditCategory(category)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => deleteCategoryMutation.mutate(category.id)}
-                              disabled={deleteCategoryMutation.isPending}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
 
         {/* Expense Types */}
         <TabsContent value="expense-types" className="space-y-6">
