@@ -467,43 +467,57 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4" />
-            <span className="hidden sm:inline">إعدادات عامة</span>
-            <span className="sm:hidden">عام</span>
-          </TabsTrigger>
-          
-          <TabsTrigger value="financial" className="flex items-center gap-2">
-            <Building className="h-4 w-4" />
-            <span className="hidden sm:inline">إعدادات مالية</span>
-            <span className="sm:hidden">مالي</span>
-          </TabsTrigger>
-          
-          <TabsTrigger value="expense-types" className="flex items-center gap-2">
-            <Tag className="h-4 w-4" />
-            <span className="hidden sm:inline">أنواع المصاريف</span>
-            <span className="sm:hidden">مصاريف</span>
-          </TabsTrigger>
-          
-          <TabsTrigger value="system" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            <span className="hidden sm:inline">النظام</span>
-            <span className="sm:hidden">نظام</span>
-          </TabsTrigger>
-          
-          <TabsTrigger value="backup" className="flex items-center gap-2">
-            <HardDrive className="h-4 w-4" />
-            <span className="hidden sm:inline">النسخ الاحتياطي</span>
-            <span className="sm:hidden">نسخ</span>
-          </TabsTrigger>
-          
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">الأمان</span>
-            <span className="sm:hidden">أمان</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <TabsList className="flex w-max min-w-full h-auto p-2 bg-muted rounded-lg gap-2">
+            <TabsTrigger 
+              value="general" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <SettingsIcon className="h-5 w-5 mb-1" />
+              <span className="text-center leading-tight">عام</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="financial" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Building className="h-5 w-5 mb-1" />
+              <span className="text-center leading-tight">مالي</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="expense-types" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Tag className="h-5 w-5 mb-1" />
+              <span className="text-center leading-tight">مصاريف</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="system" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Database className="h-5 w-5 mb-1" />
+              <span className="text-center leading-tight">نظام</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="backup" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <HardDrive className="h-5 w-5 mb-1" />
+              <span className="text-center leading-tight">نسخ</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="security" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Shield className="h-5 w-5 mb-1" />
+              <span className="text-center leading-tight">أمان</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {isLoading && (
           <div className="text-center py-20">
