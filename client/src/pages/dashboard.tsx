@@ -49,8 +49,6 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
-  // إضافة متغير لتتبع نوع العرض: 'admin' للصندوق الرئيسي و 'projects' للمشاريع
-  // تحديد القيمة الافتراضية كـ 'admin' للعرض المبدئي لصندوق المدير
   const [displayMode, setDisplayMode] = useState<'admin' | 'projects'>('admin');
   
   useEffect(() => {
@@ -62,9 +60,6 @@ export default function Dashboard() {
       const isAdminUser = user.role === 'admin';
       
       setIsAdmin(isAdminUser);
-      
-      // للمستخدمين العاديين، اجعل العرض الافتراضي هو المشاريع دائمًا
-      // للمدراء، اجعل العرض الافتراضي هو صندوق المدير
       const mode = isAdminUser ? 'admin' : 'projects';
       setDisplayMode(mode);
     } catch (e) {
@@ -92,25 +87,19 @@ export default function Dashboard() {
     });
   };
 
-  // دالة للحصول على المعاملات المفلترة حسب وضع العرض
   const getFilteredTransactions = () => {
     if (!stats?.recentTransactions) return [];
     
     let filteredTransactions;
     
     if (displayMode === 'admin') {
-      // عرض معاملات الصندوق الرئيسي فقط (بدون معرف مشروع أو projectId = null)
       filteredTransactions = stats.recentTransactions.filter(t => t.projectId === null || t.projectId === undefined);
     } else {
-      // عرض معاملات المشاريع فقط (مع وجود معرف المشروع)
-      // بدون إظهار إيرادات المدير في قسم المشاريع
       filteredTransactions = stats.recentTransactions.filter(t => 
-        // المعاملات المرتبطة بمشروع محدد فقط
         (t.projectId !== null && t.projectId !== undefined)
       );
     }
     
-    // للمشاهدين: إخفاء المعاملات من نوع الإيرادات
     const userString = localStorage.getItem("auth_user");
     if (userString) {
       try {
@@ -126,336 +115,321 @@ export default function Dashboard() {
     return filteredTransactions;
   };
 
-  // المعاملات المفلترة
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="space-y-6 sm:space-y-8 p-responsive fade-in max-w-[1800px] mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-center pb-4 gap-3 sm:gap-4 border-b border-[hsl(var(--border))]">
-        <h2 className="heading-responsive font-bold text-[hsl(var(--primary))] slide-in-right">لوحة التحكم</h2>
-        
-        <div className="flex items-center gap-4">
-          {/* زر التبديل بين العروض - يظهر فقط للمديرين */}
-          {isAdmin ? (
-            <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm p-1 flex items-center">
-              <button
-                onClick={() => setDisplayMode('admin')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-all duration-300 ${
-                  displayMode === 'admin'
-                    ? 'bg-blue-100 text-blue-700 shadow-sm'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                الصندوق الرئيسي
-              </button>
-              <button
-                onClick={() => setDisplayMode('projects')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-all duration-300 ${
-                  displayMode === 'projects'
-                    ? 'bg-green-100 text-green-700 shadow-sm'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="7" height="9" x="3" y="3" rx="1" />
-                  <rect width="7" height="5" x="14" y="3" rx="1" />
-                  <rect width="7" height="9" x="14" y="12" rx="1" />
-                  <rect width="7" height="5" x="3" y="16" rx="1" />
-                </svg>
-                المشاريع
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+      {/* Professional Header with Glass Effect */}
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+            {/* Logo and Title Section */}
+            <div className="flex items-center space-x-6 rtl:space-x-reverse">
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-all duration-300">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+                  لوحة التحكم
+                </h1>
+                <p className="text-gray-600 dark:text-gray-300 mt-1 text-lg">نظرة شاملة على الأداء المالي والتشغيلي</p>
+              </div>
             </div>
-          ) : (
-            // للمستخدمين العاديين نعرض فقط عنوان المشاريع بدون أزرار تبديل
-            <div className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="7" height="9" x="3" y="3" rx="1" />
-                <rect width="7" height="5" x="14" y="3" rx="1" />
-                <rect width="7" height="9" x="14" y="12" rx="1" />
-                <rect width="7" height="5" x="3" y="16" rx="1" />
-              </svg>
-              المشاريع
-            </div>
-          )}
+            
+            {/* Controls Section */}
+            <div className="flex items-center gap-6">
+              {/* Mode Toggle for Admins */}
+              {isAdmin && (
+                <div className="bg-white/70 dark:bg-gray-700/70 backdrop-blur-lg rounded-2xl shadow-xl p-2 flex items-center border border-gray-200/50 dark:border-gray-600/50">
+                  <button
+                    onClick={() => setDisplayMode('admin')}
+                    className={`px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
+                      displayMode === 'admin'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    الصندوق الرئيسي
+                  </button>
+                  <button
+                    onClick={() => setDisplayMode('projects')}
+                    className={`px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 transform hover:scale-105 ${
+                      displayMode === 'projects'
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    المشاريع
+                  </button>
+                </div>
+              )}
 
-          <span className="bg-[hsl(var(--primary))/10] text-[hsl(var(--primary))] text-xs px-3 py-1.5 rounded-full font-medium shadow-sm zoom-in">
-            {new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </span>
+              {/* Date Display */}
+              <div className="bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 text-white px-6 py-3 rounded-2xl shadow-xl">
+                <div className="text-center">
+                  <div className="text-sm font-medium opacity-90">اليوم</div>
+                  <div className="text-lg font-bold">
+                    {new Date().toLocaleDateString('ar-SA', { 
+                      weekday: 'short', 
+                      day: 'numeric', 
+                      month: 'short'
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
-      {statsLoading ? (
-        <div className="text-center py-20">
-          <div className="spinner w-10 h-10 mx-auto border-4 border-[hsl(var(--primary))/30] border-t-[hsl(var(--primary))]"></div>
-          <p className="mt-4 text-[hsl(var(--muted-foreground))] animate-pulse">جاري تحميل البيانات...</p>
-        </div>
-      ) : (
-        <>
-          {/* Stats Cards */}
-          <div className="slide-in-up" style={{animationDelay: '0.1s'}}>
-            <StatisticsCards 
-              income={displayMode === 'admin' ? stats?.adminTotalIncome || 0 : stats?.projectTotalIncome || 0} 
-              expenses={displayMode === 'admin' ? stats?.adminTotalExpenses || 0 : stats?.projectTotalExpenses || 0} 
-              profit={displayMode === 'admin' ? stats?.adminNetProfit || 0 : stats?.projectNetProfit || 0}
-              adminFundBalance={stats?.adminFundBalance || 0}
-              displayMode={displayMode}
-            />
+      {/* Main Content with Enhanced Spacing */}
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {statsLoading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="relative w-24 h-24 mx-auto mb-8">
+                <div className="absolute inset-0 border-4 border-blue-200 rounded-full animate-ping"></div>
+                <div className="relative w-full h-full border-4 border-t-blue-600 border-r-purple-600 border-b-indigo-600 border-l-pink-600 rounded-full animate-spin"></div>
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">جاري تحميل البيانات</h3>
+              <p className="text-gray-500 dark:text-gray-400">يرجى الانتظار قليلاً...</p>
+            </div>
           </div>
-          
-          {/* Charts Section */}
-          <div className="slide-in-up" style={{animationDelay: '0.2s'}}>
-            <Charts 
-              income={displayMode === 'admin' ? stats?.adminTotalIncome || 0 : stats?.projectTotalIncome || 0} 
-              expenses={displayMode === 'admin' ? stats?.adminTotalExpenses || 0 : stats?.projectTotalExpenses || 0} 
-              profit={displayMode === 'admin' ? stats?.adminNetProfit || 0 : stats?.projectNetProfit || 0}
-              displayMode={displayMode}
-            />
-          </div>
-          
-          {/* لا نعرض أرصدة المشاريع بناءً على طلب المستخدم */}
-          
-          {/* Recent Transactions */}
-          <div className="card mt-8 slide-in-up" style={{animationDelay: '0.4s'}}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className={`text-lg font-bold ${
-                displayMode === 'admin' 
-                  ? 'text-blue-700 dark:text-blue-400'
-                  : 'text-green-700 dark:text-green-400'
-              }`}>
-                {displayMode === 'admin' 
-                  ? 'آخر عمليات الصندوق الرئيسي'
-                  : 'آخر عمليات المشاريع'
-                }
-              </h3>
-              <Link href="/transactions" className="action-button-secondary text-sm flex items-center btn-hover-effect py-1.5 px-3">
-                عرض الكل
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="m9 18 6-6-6-6"/></svg>
-              </Link>
+        ) : (
+          <div className="space-y-8">
+            {/* Enhanced Statistics Cards */}
+            <div className="transform hover:scale-[1.02] transition-all duration-500">
+              <StatisticsCards 
+                income={displayMode === 'admin' ? stats?.adminTotalIncome || 0 : stats?.projectTotalIncome || 0} 
+                expenses={displayMode === 'admin' ? stats?.adminTotalExpenses || 0 : stats?.projectTotalExpenses || 0} 
+                profit={displayMode === 'admin' ? stats?.adminNetProfit || 0 : stats?.projectNetProfit || 0}
+                adminFundBalance={stats?.adminFundBalance || 0}
+                displayMode={displayMode}
+              />
             </div>
             
-            {/* جدول للشاشات الكبيرة */}
-            <div className="hidden md:block responsive-table-container">
-              <table className="responsive-table">
-                <thead className={`${
-                  displayMode === 'admin' 
-                    ? 'bg-blue-50 dark:bg-blue-900/20' 
-                    : 'bg-green-50 dark:bg-green-900/20'
-                }`}>
-                  <tr>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">التاريخ</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">الوصف</th>
-                    {displayMode === 'projects' && (
-                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">المشروع</th>
-                    )}
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">النوع</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">المبلغ</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-[hsl(var(--primary))] uppercase tracking-wider">المرفقات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[hsl(var(--border))]">
-                  {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction, index) => (
-                      <tr 
-                        key={transaction.id} 
-                        className={`hover:bg-slate-50 dark:hover:bg-gray-700 transition-all duration-150 slide-in-right ${
-                          displayMode === 'admin' 
-                            ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20' 
-                            : 'hover:bg-green-50 dark:hover:bg-green-900/20'
-                        }`}
-                        style={{animationDelay: `${0.05 * (index + 1)}s`}}
-                      >
-                        <td className="px-4 py-3 whitespace-nowrap text-sm">
-                          <div className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 text-[hsl(var(--muted-foreground))]">
-                              <circle cx="12" cy="12" r="10"/>
-                              <polyline points="12 6 12 12 16 14"/>
-                            </svg>
+            {/* Enhanced Charts Section */}
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8 transform hover:scale-[1.01] transition-all duration-500">
+              <Charts 
+                income={displayMode === 'admin' ? stats?.adminTotalIncome || 0 : stats?.projectTotalIncome || 0} 
+                expenses={displayMode === 'admin' ? stats?.adminTotalExpenses || 0 : stats?.projectTotalExpenses || 0} 
+                profit={displayMode === 'admin' ? stats?.adminNetProfit || 0 : stats?.projectNetProfit || 0}
+                displayMode={displayMode}
+              />
+            </div>
+            
+            {/* Enhanced Recent Transactions */}
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8 transform hover:scale-[1.01] transition-all duration-500">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div>
+                  <h3 className={`text-3xl font-bold bg-gradient-to-r ${
+                    displayMode === 'admin' 
+                      ? 'from-blue-600 to-indigo-700 dark:from-blue-400 dark:to-indigo-500'
+                      : 'from-green-600 to-emerald-700 dark:from-green-400 dark:to-emerald-500'
+                  } bg-clip-text text-transparent mb-2`}>
+                    {displayMode === 'admin' 
+                      ? 'آخر عمليات الصندوق الرئيسي'
+                      : 'آخر عمليات المشاريع'
+                    }
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">عرض أحدث 10 معاملات مالية</p>
+                </div>
+                <Link 
+                  href="/transactions" 
+                  className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-700 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-800 text-white px-6 py-3 rounded-2xl font-semibold shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                >
+                  <span>عرض جميع المعاملات</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-hidden rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                  <thead className={`${
+                    displayMode === 'admin' 
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30' 
+                      : 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30'
+                  }`}>
+                    <tr>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">التاريخ</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">الوصف</th>
+                      {displayMode === 'projects' && (
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المشروع</th>
+                      )}
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">النوع</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المرفقات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200/30 dark:divide-gray-700/30">
+                    {filteredTransactions.length > 0 ? (
+                      filteredTransactions.slice(0, 10).map((transaction, index) => (
+                        <tr 
+                          key={transaction.id} 
+                          className={`hover:bg-gradient-to-r transition-all duration-300 transform hover:scale-[1.02] ${
+                            displayMode === 'admin' 
+                              ? 'hover:from-blue-50/50 hover:to-indigo-50/50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20' 
+                              : 'hover:from-green-50/50 hover:to-emerald-50/50 dark:hover:from-green-900/20 dark:hover:to-emerald-900/20'
+                          }`}
+                        >
+                          <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 font-medium">
                             {formatDate(transaction.date)}
+                          </td>
+                          <td className="px-6 py-5 text-sm text-gray-900 dark:text-gray-100 max-w-xs truncate">
+                            {transaction.description}
+                          </td>
+                          {displayMode === 'projects' && (
+                            <td className="px-6 py-5 text-sm text-gray-700 dark:text-gray-300">
+                              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-xs font-medium">
+                                {getProjectName(transaction.projectId)}
+                              </span>
+                            </td>
+                          )}
+                          <td className="px-6 py-5 whitespace-nowrap">
+                            <span className={`px-4 py-2 inline-flex text-sm leading-5 font-bold rounded-full shadow-lg ${
+                              transaction.type === 'income' 
+                                ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' 
+                                : 'bg-gradient-to-r from-red-400 to-pink-500 text-white'
+                            }`}>
+                              {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5 whitespace-nowrap text-lg font-bold">
+                            <span className={`${
+                              transaction.type === 'income' 
+                                ? 'text-green-600 dark:text-green-400' 
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5 whitespace-nowrap text-sm">
+                            {transaction.fileUrl ? (
+                              <button 
+                                onClick={() => window.open(transaction.fileUrl, '_blank')}
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg transform hover:scale-105 flex items-center gap-1"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                <span>عرض</span>
+                              </button>
+                            ) : (
+                              <span className="text-gray-400 dark:text-gray-500 text-center block">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={displayMode === 'projects' ? 6 : 5} className="px-6 py-16 text-center">
+                          <div className="flex flex-col items-center">
+                            <svg className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <h4 className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-2">لا توجد معاملات</h4>
+                            <p className="text-gray-400 dark:text-gray-500">
+                              {displayMode === 'admin' 
+                                ? 'لا توجد معاملات حديثة في الصندوق الرئيسي'
+                                : 'لا توجد معاملات حديثة للمشاريع'
+                              }
+                            </p>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm">
-                          {transaction.description}
-                        </td>
-                        {displayMode === 'projects' && (
-                          <td className="px-4 py-3 text-sm">
-                            <div className="flex items-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 text-[hsl(var(--muted-foreground))]">
-                                <path d="M2 17V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/>
-                                <path d="M6 12h4"/>
-                                <path d="M6 8h4"/>
-                                <path d="M6 16h4"/>
-                              </svg>
-                              {getProjectName(transaction.projectId)}
-                            </div>
-                          </td>
-                        )}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm ${
-                            transaction.type === 'income' 
-                              ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
-                              : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                          }`}>
-                            {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
-                          </span>
-                        </td>
-                        <td className={`px-4 py-3 whitespace-nowrap text-sm ${
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Mobile Cards */}
+              <div className="lg:hidden space-y-4">
+                {filteredTransactions.length > 0 ? (
+                  filteredTransactions.slice(0, 8).map((transaction, index) => (
+                    <div 
+                      key={transaction.id} 
+                      className={`bg-gradient-to-r p-6 rounded-2xl shadow-xl border transform hover:scale-105 transition-all duration-300 ${
+                        displayMode === 'admin' 
+                          ? 'from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200/50 dark:border-blue-700/50' 
+                          : 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200/50 dark:border-green-700/50'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-1">{transaction.description}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(transaction.date)}</p>
+                          {displayMode === 'projects' && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              المشروع: {getProjectName(transaction.projectId)}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                          transaction.type === 'income' 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                        }`}>
+                          {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className={`text-2xl font-bold ${
                           transaction.type === 'income' 
                             ? 'text-green-600 dark:text-green-400' 
                             : 'text-red-600 dark:text-red-400'
-                        } font-bold`}>
-                          <div className="flex items-center justify-end">
-                            {transaction.type === 'income' ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                                <polyline points="18 15 12 9 6 15"/>
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                                <polyline points="6 9 12 15 18 9"/>
-                              </svg>
-                            )}
-                            {transaction.type === 'income' ? '+' : '-'}
-                            {formatCurrency(Math.abs(transaction.amount))}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {transaction.fileUrl ? (
-                            <button 
-                              onClick={() => window.open(transaction.fileUrl, '_blank')}
-                              className="text-[hsl(var(--primary))] hover:underline focus:outline-none flex items-center"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 text-[hsl(var(--primary))]">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                              </svg>
-                              عرض المرفق
-                            </button>
-                          ) : (
-                            <span className="text-[hsl(var(--muted-foreground))] text-xs">لا يوجد</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={displayMode === 'projects' ? 6 : 5} className="px-4 py-8 text-center text-[hsl(var(--muted-foreground))]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-[hsl(var(--muted))]">
-                          <rect width="18" height="18" x="3" y="3" rx="2" />
-                          <path d="M3 9h18" />
-                          <path d="M9 21V9" />
-                        </svg>
-                        {displayMode === 'admin' 
-                          ? 'لا توجد معاملات حديثة في الصندوق الرئيسي'
-                          : 'لا توجد معاملات حديثة للمشاريع'
-                        }
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* بطاقات للشاشات الصغيرة */}
-            <div className="md:hidden space-y-4">
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((transaction, index) => (
-                  <div 
-                    key={transaction.id} 
-                    className={`bg-white dark:bg-gray-800 shadow-sm border rounded-xl p-4 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 zoom-in ${
-                      displayMode === 'admin' 
-                        ? 'border-blue-100 dark:border-blue-900/30' 
-                        : 'border-green-100 dark:border-green-900/30'
-                    }`}
-                    style={{animationDelay: `${0.1 * (index + 1)}s`}}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-sm dark:text-gray-200">{transaction.description}</h4>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        transaction.type === 'income' 
-                          ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
-                          : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                      } shadow-sm`}>
-                        {transaction.type === 'income' ? 'ايراد' : 'مصروف'}
-                      </span>
-                    </div>
-                    <div className="text-xs text-[hsl(var(--muted-foreground))]">
-                      {displayMode === 'projects' && (
-                        <p className="mb-1 flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                            <path d="M2 17V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/>
-                            <path d="M12 12h4"/>
-                            <path d="M12 8h4"/>
-                            <path d="M12 16h4"/>
-                            <path d="M6 12h2"/>
-                            <path d="M6 8h2"/>
-                            <path d="M6 16h2"/>
-                          </svg>
-                          المشروع: {getProjectName(transaction.projectId)}
-                        </p>
-                      )}
-                      <p className="mb-1 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <circle cx="12" cy="12" r="10"/>
-                          <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                        التاريخ: {formatDate(transaction.date)}
-                      </p>
-                      
-                      {/* عرض المرفق إذا وجد */}
-                      {transaction.fileUrl && (
-                        <div className="flex items-center mt-2 mb-1">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 text-[hsl(var(--primary))]">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                          </svg>
+                        }`}>
+                          {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                        </span>
+                        
+                        {transaction.fileUrl && (
                           <button 
                             onClick={() => window.open(transaction.fileUrl, '_blank')}
-                            className="text-[hsl(var(--primary))] hover:underline focus:outline-none"
+                            className="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-300 flex items-center gap-1"
                           >
-                            عرض المرفق
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            <span className="text-xs">مرفق</span>
                           </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                    <div className={`mt-3 text-sm font-bold flex items-center justify-end ${
-                      transaction.type === 'income' 
-                        ? 'text-green-600 dark:text-green-400' 
-                        : 'text-red-600 dark:text-red-400'
-                    }`}>
-                      {transaction.type === 'income' ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <polyline points="18 15 12 9 6 15"/>
-                        </svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                      )}
-                      {transaction.type === 'income' ? '+' : '-'}
-                      {formatCurrency(Math.abs(transaction.amount))}
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-16">
+                    <svg className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h4 className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-2">لا توجد معاملات</h4>
+                    <p className="text-gray-400 dark:text-gray-500">
+                      {displayMode === 'admin' 
+                        ? 'لا توجد معاملات حديثة في الصندوق الرئيسي'
+                        : 'لا توجد معاملات حديثة للمشاريع'
+                      }
+                    </p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-sm text-[hsl(var(--muted-foreground))]">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-[hsl(var(--muted))]">
-                    <rect width="18" height="18" x="3" y="3" rx="2" />
-                    <path d="M3 9h18" />
-                    <path d="M9 21V9" />
-                  </svg>
-                  {displayMode === 'admin' 
-                    ? 'لا توجد معاملات حديثة في الصندوق الرئيسي'
-                    : 'لا توجد معاملات حديثة للمشاريع'
-                  }
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }
