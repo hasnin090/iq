@@ -43,8 +43,20 @@ const ACCEPTED_FILE_TYPES = [
 
 const ACCEPTED_FILE_EXTENSIONS = ".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.doc,.docx,.txt,.rtf,.xls,.xlsx,.zip,.rar";
 
+interface ExpenseType {
+  id: number;
+  name: string;
+  description?: string;
+  isActive: boolean;
+}
+
 // Component for expense type field
 function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }) {
+  const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
+    queryKey: ['/api/expense-types'],
+    staleTime: 30 * 1000, // 30 seconds
+  });
+
   if (transactionType !== "expense") return null;
   
   return (
@@ -61,26 +73,14 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="راتب">راتب</SelectItem>
-              <SelectItem value="سلفة">سلفة</SelectItem>
-              <SelectItem value="مشتريات">مشتريات</SelectItem>
-              <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
               <SelectItem value="مصروف عام">مصروف عام</SelectItem>
-              <SelectItem value="وقود">وقود</SelectItem>
-              <SelectItem value="كهرباء">كهرباء</SelectItem>
-              <SelectItem value="ماء">ماء</SelectItem>
-              <SelectItem value="اتصالات">اتصالات</SelectItem>
-              <SelectItem value="صيانة">صيانة</SelectItem>
-              <SelectItem value="تأمين">تأمين</SelectItem>
-              <SelectItem value="ايجار">ايجار</SelectItem>
-              <SelectItem value="نقل">نقل</SelectItem>
-              <SelectItem value="ضرائب">ضرائب</SelectItem>
-              <SelectItem value="رسوم">رسوم</SelectItem>
-              <SelectItem value="تدريب">تدريب</SelectItem>
-              <SelectItem value="قرطاسية">قرطاسية</SelectItem>
-              <SelectItem value="تسويق">تسويق</SelectItem>
-              <SelectItem value="استشارات">استشارات</SelectItem>
-              <SelectItem value="خدمات مالية">خدمات مالية</SelectItem>
+              {expenseTypes
+                .filter((type: any) => type.isActive)
+                .map((type: any) => (
+                  <SelectItem key={type.id} value={type.name}>
+                    {type.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           <FormMessage />
