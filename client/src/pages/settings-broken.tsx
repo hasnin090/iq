@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,8 +13,10 @@ import { AlertCircle, Check, Loader2, Shield, Download, Upload, Database, HardDr
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { apiRequest } from '@/lib/queryClient';
 import { Textarea } from '@/components/ui/textarea';
 
 // Schema definitions
@@ -64,11 +66,6 @@ interface ExpenseType {
   updatedAt: string;
 }
 
-interface DatabaseStatus {
-  connected: boolean;
-  responseTime: number;
-}
-
 type PasswordChangeValues = z.infer<typeof passwordChangeSchema>;
 type AccountCategoryValues = z.infer<typeof accountCategorySchema>;
 type ExpenseTypeValues = z.infer<typeof expenseTypeSchema>;
@@ -94,22 +91,22 @@ export default function Settings() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
 
   // Data fetching
-  const { data: settings = [], isLoading } = useQuery<Setting[]>({
+  const { data: settings = [], isLoading } = useQuery({
     queryKey: ['/api/settings'],
     enabled: !!user && user.role === 'admin'
   });
 
-  const { data: dbStatus } = useQuery<DatabaseStatus>({
+  const { data: dbStatus } = useQuery({
     queryKey: ['/api/database/status'],
     enabled: !!user && user.role === 'admin'
   });
 
-  const { data: accountCategories = [] } = useQuery<AccountCategory[]>({
+  const { data: accountCategories = [] } = useQuery({
     queryKey: ['/api/account-categories'],
     enabled: !!user && user.role === 'admin'
   });
 
-  const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
+  const { data: expenseTypes = [] } = useQuery({
     queryKey: ['/api/expense-types'],
     enabled: !!user && user.role === 'admin'
   });
@@ -140,31 +137,15 @@ export default function Settings() {
     },
   });
 
-  // API helper function
-  const makeApiCall = async (url: string, options: RequestInit = {}) => {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'حدث خطأ غير متوقع' }));
-      throw new Error(error.message || 'حدث خطأ في العملية');
-    }
-    
-    return response.json();
-  };
-
   // Mutations
   const updateSettingMutation = useMutation({
-    mutationFn: ({ key, value }: { key: string; value: string }) =>
-      makeApiCall(`/api/settings/${key}`, {
+    mutationFn: ({ key, value }: { key: string; value: string }) => {
+      return fetch(`/api/settings/${key}`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value })
-      }),
+      }).then(res => res.json());
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
       toast({
@@ -172,21 +153,23 @@ export default function Settings() {
         description: "تم حفظ الإعداد بنجاح",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: error.message,
+        description: error.message || "فشل في حفظ الإعداد",
       });
     },
   });
 
   const changePasswordMutation = useMutation({
-    mutationFn: (data: PasswordChangeValues) =>
-      makeApiCall('/api/auth/change-password', {
+    mutationFn: (data: PasswordChangeValues) => {
+      return fetch('/api/auth/change-password', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-      }),
+      }).then(res => res.json());
+    },
     onSuccess: () => {
       passwordForm.reset();
       toast({
@@ -194,18 +177,18 @@ export default function Settings() {
         description: "تم تغيير كلمة المرور بنجاح",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: error.message,
+        description: error.message || "فشل في تغيير كلمة المرور",
       });
     },
   });
 
   const createCategoryMutation = useMutation({
-    mutationFn: (data: AccountCategoryValues) =>
-      makeApiCall('/api/account-categories', {
+    mutationFn: (data: AccountCategoryValues) => 
+      apiRequest('/api/account-categories', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -219,18 +202,18 @@ export default function Settings() {
         description: "تم إنشاء التصنيف بنجاح",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: error.message,
+        description: error.message || "فشل في إنشاء التصنيف",
       });
     },
   });
 
   const updateCategoryMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: AccountCategoryValues }) =>
-      makeApiCall(`/api/account-categories/${id}`, {
+      apiRequest(`/api/account-categories/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -244,18 +227,11 @@ export default function Settings() {
         description: "تم تحديث التصنيف بنجاح",
       });
     },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
   });
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (id: number) =>
-      makeApiCall(`/api/account-categories/${id}`, { method: 'DELETE' }),
+      apiRequest(`/api/account-categories/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
       toast({
@@ -263,18 +239,11 @@ export default function Settings() {
         description: "تم حذف التصنيف بنجاح",
       });
     },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
   });
 
   const createExpenseTypeMutation = useMutation({
     mutationFn: (data: ExpenseTypeValues) =>
-      makeApiCall('/api/expense-types', {
+      apiRequest('/api/expense-types', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -288,18 +257,11 @@ export default function Settings() {
         description: "تم إنشاء نوع المصروف بنجاح",
       });
     },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
   });
 
   const updateExpenseTypeMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ExpenseTypeValues }) =>
-      makeApiCall(`/api/expense-types/${id}`, {
+      apiRequest(`/api/expense-types/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -313,18 +275,11 @@ export default function Settings() {
         description: "تم تحديث نوع المصروف بنجاح",
       });
     },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
   });
 
   const deleteExpenseTypeMutation = useMutation({
     mutationFn: (id: number) =>
-      makeApiCall(`/api/expense-types/${id}`, { method: 'DELETE' }),
+      apiRequest(`/api/expense-types/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
       toast({
@@ -332,28 +287,14 @@ export default function Settings() {
         description: "تم حذف نوع المصروف بنجاح",
       });
     },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
   });
 
   const backupMutation = useMutation({
-    mutationFn: () => makeApiCall('/api/backup', { method: 'POST' }),
+    mutationFn: () => apiRequest('/api/backup', { method: 'POST' }),
     onSuccess: () => {
       toast({
         title: "تم",
         description: "تم إنشاء النسخة الاحتياطية بنجاح",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
       });
     },
   });
@@ -415,7 +356,7 @@ export default function Settings() {
         const content = e.target?.result as string;
         const backupData = JSON.parse(content);
         
-        await makeApiCall('/api/restore', {
+        await apiRequest('/api/restore', {
           method: 'POST',
           body: JSON.stringify(backupData),
         });
@@ -689,7 +630,7 @@ export default function Settings() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {accountCategories.map((category) => (
+                        {accountCategories.map((category: AccountCategory) => (
                           <TableRow key={category.id}>
                             <TableCell className="font-medium">{category.name}</TableCell>
                             <TableCell>{category.description || '-'}</TableCell>
@@ -818,7 +759,7 @@ export default function Settings() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {expenseTypes.map((expenseType) => (
+                        {expenseTypes.map((expenseType: ExpenseType) => (
                           <TableRow key={expenseType.id}>
                             <TableCell className="font-medium">{expenseType.name}</TableCell>
                             <TableCell>{expenseType.description || '-'}</TableCell>

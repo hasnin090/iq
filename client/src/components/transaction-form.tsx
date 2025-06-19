@@ -51,7 +51,7 @@ interface ExpenseType {
 }
 
 // Component for expense type field
-function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }): React.ReactNode {
+function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }): JSX.Element | null {
   const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
     queryKey: ['/api/expense-types'],
     staleTime: 30 * 1000, // 30 seconds
