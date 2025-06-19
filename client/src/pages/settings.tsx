@@ -87,7 +87,6 @@ export default function Settings() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState("general");
   const [editingCategory, setEditingCategory] = useState<AccountCategory | null>(null);
   const [editingExpenseType, setEditingExpenseType] = useState<ExpenseType | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -444,123 +443,83 @@ export default function Settings() {
   // Check if user is admin
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900">
-        <div className="container mx-auto px-4 py-12 max-w-4xl">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>غير مصرح</AlertTitle>
-            <AlertDescription>
-              ليس لديك صلاحيات كافية للوصول إلى هذه الصفحة. يرجى التواصل مع مدير النظام.
-            </AlertDescription>
-          </Alert>
-        </div>
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>غير مصرح</AlertTitle>
+          <AlertDescription>
+            ليس لديك صلاحيات كافية للوصول إلى هذه الصفحة. يرجى التواصل مع مدير النظام.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-blue-600 rounded-2xl mb-4">
-            <SettingsIcon className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent mb-3">
-            إعدادات النظام
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-            إدارة شاملة ومتقدمة لجميع إعدادات النظام والحسابات والأمان
-          </p>
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-blue-600 rounded-2xl mb-4">
+          <SettingsIcon className="h-8 w-8 text-white" />
         </div>
+        <h1 className="text-3xl font-bold mb-2">إعدادات النظام</h1>
+        <p className="text-muted-foreground">إدارة شاملة لجميع إعدادات النظام والحسابات والأمان</p>
+      </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          {/* Navigation Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <TabsTrigger 
-              value="general" 
-              className="group h-auto p-0 bg-transparent border-0 data-[state=active]:bg-transparent"
-            >
-              <Card className="w-full h-24 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group-data-[state=active]:ring-2 group-data-[state=active]:ring-primary group-data-[state=active]:bg-primary/5">
-                <CardContent className="flex flex-col items-center justify-center h-full p-4">
-                  <SettingsIcon className="h-6 w-6 text-primary mb-2" />
-                  <span className="text-xs font-medium text-center">إعدادات عامة</span>
-                </CardContent>
-              </Card>
-            </TabsTrigger>
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <SettingsIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">إعدادات عامة</span>
+            <span className="sm:hidden">عام</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="financial" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            <span className="hidden sm:inline">إعدادات مالية</span>
+            <span className="sm:hidden">مالي</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="expense-types" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            <span className="hidden sm:inline">أنواع المصاريف</span>
+            <span className="sm:hidden">مصاريف</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="system" className="flex items-center gap-2">
+            <Database className="h-4 w-4" />
+            <span className="hidden sm:inline">النظام</span>
+            <span className="sm:hidden">نظام</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="backup" className="flex items-center gap-2">
+            <HardDrive className="h-4 w-4" />
+            <span className="hidden sm:inline">النسخ الاحتياطي</span>
+            <span className="sm:hidden">نسخ</span>
+          </TabsTrigger>
+          
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">الأمان</span>
+            <span className="sm:hidden">أمان</span>
+          </TabsTrigger>
+        </TabsList>
 
-            <TabsTrigger 
-              value="financial" 
-              className="group h-auto p-0 bg-transparent border-0 data-[state=active]:bg-transparent"
-            >
-              <Card className="w-full h-24 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group-data-[state=active]:ring-2 group-data-[state=active]:ring-primary group-data-[state=active]:bg-primary/5">
-                <CardContent className="flex flex-col items-center justify-center h-full p-4">
-                  <Building className="h-6 w-6 text-orange-500 mb-2" />
-                  <span className="text-xs font-medium text-center">إعدادات مالية</span>
-                </CardContent>
-              </Card>
-            </TabsTrigger>
-
-            <TabsTrigger 
-              value="expense-types" 
-              className="group h-auto p-0 bg-transparent border-0 data-[state=active]:bg-transparent"
-            >
-              <Card className="w-full h-24 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group-data-[state=active]:ring-2 group-data-[state=active]:ring-primary group-data-[state=active]:bg-primary/5">
-                <CardContent className="flex flex-col items-center justify-center h-full p-4">
-                  <Tag className="h-6 w-6 text-green-500 mb-2" />
-                  <span className="text-xs font-medium text-center">أنواع المصاريف</span>
-                </CardContent>
-              </Card>
-            </TabsTrigger>
-
-            <TabsTrigger 
-              value="system" 
-              className="group h-auto p-0 bg-transparent border-0 data-[state=active]:bg-transparent"
-            >
-              <Card className="w-full h-24 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group-data-[state=active]:ring-2 group-data-[state=active]:ring-primary group-data-[state=active]:bg-primary/5">
-                <CardContent className="flex flex-col items-center justify-center h-full p-4">
-                  <Database className="h-6 w-6 text-blue-500 mb-2" />
-                  <span className="text-xs font-medium text-center">النظام</span>
-                </CardContent>
-              </Card>
-            </TabsTrigger>
-
-            <TabsTrigger 
-              value="backup" 
-              className="group h-auto p-0 bg-transparent border-0 data-[state=active]:bg-transparent"
-            >
-              <Card className="w-full h-24 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group-data-[state=active]:ring-2 group-data-[state=active]:ring-primary group-data-[state=active]:bg-primary/5">
-                <CardContent className="flex flex-col items-center justify-center h-full p-4">
-                  <HardDrive className="h-6 w-6 text-purple-500 mb-2" />
-                  <span className="text-xs font-medium text-center">النسخ الاحتياطي</span>
-                </CardContent>
-              </Card>
-            </TabsTrigger>
-
-            <TabsTrigger 
-              value="security" 
-              className="group h-auto p-0 bg-transparent border-0 data-[state=active]:bg-transparent"
-            >
-              <Card className="w-full h-24 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group-data-[state=active]:ring-2 group-data-[state=active]:ring-primary group-data-[state=active]:bg-primary/5">
-                <CardContent className="flex flex-col items-center justify-center h-full p-4">
-                  <Shield className="h-6 w-6 text-red-500 mb-2" />
-                  <span className="text-xs font-medium text-center">الأمان</span>
-                </CardContent>
-              </Card>
-            </TabsTrigger>
+        {isLoading && (
+          <div className="text-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">جاري تحميل البيانات...</p>
           </div>
+        )}
 
-          {/* Content Area */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border min-h-[600px] p-6">
-            {isLoading && (
-              <div className="text-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">جاري تحميل البيانات...</p>
-              </div>
-            )}
-
-            {/* General Settings */}
-            <TabsContent value="general" className="space-y-6">
+        {/* General Settings */}
+        <TabsContent value="general" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>الإعدادات العامة</CardTitle>
+              <CardDescription>إعدادات الشركة والمعلومات الأساسية</CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
                 <SettingField
                   settings={settings}
@@ -595,431 +554,431 @@ export default function Settings() {
                   isSaving={updateSettingMutation.isPending}
                 />
               </div>
-            </TabsContent>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            {/* Financial Settings */}
-            <TabsContent value="financial" className="space-y-6">
-              <Card className="p-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
-                    تصنيفات الحسابات
-                  </CardTitle>
-                  <CardDescription>
-                    إدارة تصنيفات الحسابات المختلفة في النظام
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">التصنيفات الحالية</h3>
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button onClick={() => {
-                          setEditingCategory(null);
-                          categoryForm.reset();
-                        }}>
-                          <Plus className="h-4 w-4 ml-2" />
-                          إضافة تصنيف جديد
-                        </Button>
-                      </DialogTrigger>
-                      
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            {editingCategory ? 'تعديل التصنيف' : 'إضافة تصنيف جديد'}
-                          </DialogTitle>
-                        </DialogHeader>
-                        
-                        <Form {...categoryForm}>
-                          <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4">
-                            <FormField
-                              control={categoryForm.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>اسم التصنيف</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={categoryForm.control}
-                              name="description"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>الوصف (اختياري)</FormLabel>
-                                  <FormControl>
-                                    <Textarea {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <DialogFooter>
-                              <Button 
-                                type="submit" 
-                                disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
-                              >
-                                {(createCategoryMutation.isPending || updateCategoryMutation.isPending) && (
-                                  <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                                )}
-                                {editingCategory ? 'تحديث' : 'إضافة'}
-                              </Button>
-                            </DialogFooter>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>الاسم</TableHead>
-                          <TableHead>الوصف</TableHead>
-                          <TableHead>الحالة</TableHead>
-                          <TableHead>الإجراءات</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {accountCategories.map((category) => (
-                          <TableRow key={category.id}>
-                            <TableCell className="font-medium">{category.name}</TableCell>
-                            <TableCell>{category.description || '-'}</TableCell>
-                            <TableCell>
-                              <Badge variant={category.active ? "default" : "secondary"}>
-                                {category.active ? 'نشط' : 'غير نشط'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEditCategory(category)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => deleteCategoryMutation.mutate(category.id)}
-                                  disabled={deleteCategoryMutation.isPending}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Expense Types */}
-            <TabsContent value="expense-types" className="space-y-6">
-              <Card className="p-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tag className="h-5 w-5" />
-                    أنواع المصاريف
-                  </CardTitle>
-                  <CardDescription>
-                    إدارة أنواع المصاريف المختلفة للتصنيف التلقائي للمعاملات
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">الأنواع الحالية</h3>
-                    <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button onClick={() => {
-                          setEditingExpenseType(null);
-                          expenseTypeForm.reset();
-                        }}>
-                          <Plus className="h-4 w-4 ml-2" />
-                          إضافة نوع جديد
-                        </Button>
-                      </DialogTrigger>
-                      
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            {editingExpenseType ? 'تعديل نوع المصروف' : 'إضافة نوع مصروف جديد'}
-                          </DialogTitle>
-                        </DialogHeader>
-                        
-                        <Form {...expenseTypeForm}>
-                          <form onSubmit={expenseTypeForm.handleSubmit(onExpenseTypeSubmit)} className="space-y-4">
-                            <FormField
-                              control={expenseTypeForm.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>اسم النوع</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={expenseTypeForm.control}
-                              name="description"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>الوصف (اختياري)</FormLabel>
-                                  <FormControl>
-                                    <Textarea {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <DialogFooter>
-                              <Button 
-                                type="submit" 
-                                disabled={createExpenseTypeMutation.isPending || updateExpenseTypeMutation.isPending}
-                              >
-                                {(createExpenseTypeMutation.isPending || updateExpenseTypeMutation.isPending) && (
-                                  <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                                )}
-                                {editingExpenseType ? 'تحديث' : 'إضافة'}
-                              </Button>
-                            </DialogFooter>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>الاسم</TableHead>
-                          <TableHead>الوصف</TableHead>
-                          <TableHead>الحالة</TableHead>
-                          <TableHead>الإجراءات</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {expenseTypes.map((expenseType) => (
-                          <TableRow key={expenseType.id}>
-                            <TableCell className="font-medium">{expenseType.name}</TableCell>
-                            <TableCell>{expenseType.description || '-'}</TableCell>
-                            <TableCell>
-                              <Badge variant={expenseType.isActive ? "default" : "secondary"}>
-                                {expenseType.isActive ? 'نشط' : 'غير نشط'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEditExpenseType(expenseType)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => deleteExpenseTypeMutation.mutate(expenseType.id)}
-                                  disabled={deleteExpenseTypeMutation.isPending}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* System Settings */}
-            <TabsContent value="system" className="space-y-6">
-              <Card className="p-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5" />
-                    حالة النظام
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {dbStatus && (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
-                        <span>حالة قاعدة البيانات</span>
-                        <Badge variant={dbStatus.connected ? "default" : "destructive"}>
-                          {dbStatus.connected ? 'متصلة' : 'غير متصلة'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
-                        <span>وقت الاستجابة</span>
-                        <Badge variant="outline">
-                          {dbStatus.responseTime}ms
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Backup Settings */}
-            <TabsContent value="backup" className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card className="p-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-600">
-                      <Download className="h-5 w-5" />
-                      إنشاء نسخة احتياطية
-                    </CardTitle>
-                    <CardDescription>
-                      إنشاء نسخة احتياطية من جميع بيانات النظام
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <Button 
-                      onClick={handleCreateBackup}
-                      disabled={backupMutation.isPending}
-                      className="w-full"
-                    >
-                      {backupMutation.isPending && (
-                        <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                      )}
-                      <Download className="h-4 w-4 ml-2" />
-                      إنشاء نسخة احتياطية
+        {/* Financial Settings */}
+        <TabsContent value="financial" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                تصنيفات الحسابات
+              </CardTitle>
+              <CardDescription>
+                إدارة تصنيفات الحسابات المختلفة في النظام
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">التصنيفات الحالية</h3>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingCategory(null);
+                      categoryForm.reset();
+                    }}>
+                      <Plus className="h-4 w-4 ml-2" />
+                      إضافة تصنيف جديد
                     </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card className="p-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-orange-600">
-                      <Upload className="h-5 w-5" />
-                      استعادة نسخة احتياطية
-                    </CardTitle>
-                    <CardDescription>
-                      استعادة البيانات من نسخة احتياطية سابقة
-                    </CardDescription>
-                  </CardHeader>
+                  </DialogTrigger>
                   
-                  <CardContent>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleRestoreBackup}
-                      accept=".json"
-                      className="hidden"
-                    />
-                    <Button 
-                      onClick={openFileDialog}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Upload className="h-4 w-4 ml-2" />
-                      اختيار ملف للاستعادة
-                    </Button>
-                  </CardContent>
-                </Card>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingCategory ? 'تعديل التصنيف' : 'إضافة تصنيف جديد'}
+                      </DialogTitle>
+                    </DialogHeader>
+                    
+                    <Form {...categoryForm}>
+                      <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4">
+                        <FormField
+                          control={categoryForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>اسم التصنيف</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={categoryForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>الوصف (اختياري)</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <DialogFooter>
+                          <Button 
+                            type="submit" 
+                            disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+                          >
+                            {(createCategoryMutation.isPending || updateCategoryMutation.isPending) && (
+                              <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                            )}
+                            {editingCategory ? 'تحديث' : 'إضافة'}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
               </div>
-            </TabsContent>
+              
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>الاسم</TableHead>
+                      <TableHead>الوصف</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {accountCategories.map((category) => (
+                      <TableRow key={category.id}>
+                        <TableCell className="font-medium">{category.name}</TableCell>
+                        <TableCell>{category.description || '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant={category.active ? "default" : "secondary"}>
+                            {category.active ? 'نشط' : 'غير نشط'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditCategory(category)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteCategoryMutation.mutate(category.id)}
+                              disabled={deleteCategoryMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            {/* Security Settings */}
-            <TabsContent value="security" className="space-y-6">
-              <Card className="p-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    تغيير كلمة المرور
-                  </CardTitle>
-                  <CardDescription>
-                    تحديث كلمة مرور حساب المدير
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent>
-                  <Form {...passwordForm}>
-                    <form onSubmit={passwordForm.handleSubmit(onPasswordChangeSubmit)} className="space-y-4 max-w-md">
-                      <FormField
-                        control={passwordForm.control}
-                        name="currentPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>كلمة المرور الحالية</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={passwordForm.control}
-                        name="newPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>كلمة المرور الجديدة</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={passwordForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>تأكيد كلمة المرور الجديدة</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button type="submit" disabled={changePasswordMutation.isPending}>
-                        {changePasswordMutation.isPending && (
-                          <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                        )}
-                        تغيير كلمة المرور
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
+        {/* Expense Types */}
+        <TabsContent value="expense-types" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Tag className="h-5 w-5" />
+                أنواع المصاريف
+              </CardTitle>
+              <CardDescription>
+                إدارة أنواع المصاريف المختلفة للتصنيف التلقائي للمعاملات
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">الأنواع الحالية</h3>
+                <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingExpenseType(null);
+                      expenseTypeForm.reset();
+                    }}>
+                      <Plus className="h-4 w-4 ml-2" />
+                      إضافة نوع جديد
+                    </Button>
+                  </DialogTrigger>
+                  
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingExpenseType ? 'تعديل نوع المصروف' : 'إضافة نوع مصروف جديد'}
+                      </DialogTitle>
+                    </DialogHeader>
+                    
+                    <Form {...expenseTypeForm}>
+                      <form onSubmit={expenseTypeForm.handleSubmit(onExpenseTypeSubmit)} className="space-y-4">
+                        <FormField
+                          control={expenseTypeForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>اسم النوع</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={expenseTypeForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>الوصف (اختياري)</FormLabel>
+                              <FormControl>
+                                <Textarea {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <DialogFooter>
+                          <Button 
+                            type="submit" 
+                            disabled={createExpenseTypeMutation.isPending || updateExpenseTypeMutation.isPending}
+                          >
+                            {(createExpenseTypeMutation.isPending || updateExpenseTypeMutation.isPending) && (
+                              <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                            )}
+                            {editingExpenseType ? 'تحديث' : 'إضافة'}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>الاسم</TableHead>
+                      <TableHead>الوصف</TableHead>
+                      <TableHead>الحالة</TableHead>
+                      <TableHead>الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expenseTypes.map((expenseType) => (
+                      <TableRow key={expenseType.id}>
+                        <TableCell className="font-medium">{expenseType.name}</TableCell>
+                        <TableCell>{expenseType.description || '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant={expenseType.isActive ? "default" : "secondary"}>
+                            {expenseType.isActive ? 'نشط' : 'غير نشط'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditExpenseType(expenseType)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteExpenseTypeMutation.mutate(expenseType.id)}
+                              disabled={deleteExpenseTypeMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* System Settings */}
+        <TabsContent value="system" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                حالة النظام
+              </CardTitle>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              {dbStatus && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                    <span>حالة قاعدة البيانات</span>
+                    <Badge variant={dbStatus.connected ? "default" : "destructive"}>
+                      {dbStatus.connected ? 'متصلة' : 'غير متصلة'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                    <span>وقت الاستجابة</span>
+                    <Badge variant="outline">
+                      {dbStatus.responseTime}ms
+                    </Badge>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Backup Settings */}
+        <TabsContent value="backup" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-600">
+                  <Download className="h-5 w-5" />
+                  إنشاء نسخة احتياطية
+                </CardTitle>
+                <CardDescription>
+                  إنشاء نسخة احتياطية من جميع بيانات النظام
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <Button 
+                  onClick={handleCreateBackup}
+                  disabled={backupMutation.isPending}
+                  className="w-full"
+                >
+                  {backupMutation.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                  )}
+                  <Download className="h-4 w-4 ml-2" />
+                  إنشاء نسخة احتياطية
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-orange-600">
+                  <Upload className="h-5 w-5" />
+                  استعادة نسخة احتياطية
+                </CardTitle>
+                <CardDescription>
+                  استعادة البيانات من نسخة احتياطية سابقة
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleRestoreBackup}
+                  accept=".json"
+                  className="hidden"
+                />
+                <Button 
+                  onClick={openFileDialog}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Upload className="h-4 w-4 ml-2" />
+                  اختيار ملف للاستعادة
+                </Button>
+              </CardContent>
+            </Card>
           </div>
-        </Tabs>
-      </div>
+        </TabsContent>
+
+        {/* Security Settings */}
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                تغيير كلمة المرور
+              </CardTitle>
+              <CardDescription>
+                تحديث كلمة مرور حساب المدير
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(onPasswordChangeSubmit)} className="space-y-4 max-w-md">
+                  <FormField
+                    control={passwordForm.control}
+                    name="currentPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>كلمة المرور الحالية</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={passwordForm.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>كلمة المرور الجديدة</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={passwordForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>تأكيد كلمة المرور الجديدة</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button type="submit" disabled={changePasswordMutation.isPending}>
+                    {changePasswordMutation.isPending && (
+                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                    )}
+                    تغيير كلمة المرور
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
