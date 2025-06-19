@@ -156,6 +156,9 @@ export function TransactionList({
         description: "تم تحديث المعاملة المالية بنجاح.",
       });
       onTransactionUpdated();
+      // إضافة تحديث cache لدفتر الأستاذ
+      queryClient.invalidateQueries({ queryKey: ['/api/ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ledger/summary'] });
       setEditDialogOpen(false);
       setTransactionToEdit(null);
     },
