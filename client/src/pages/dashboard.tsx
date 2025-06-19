@@ -124,28 +124,20 @@ export default function Dashboard() {
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
             {/* Logo and Title Section */}
-            <div className="flex items-center space-x-8 rtl:space-x-reverse">
+            <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <div className="relative group">
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 via-blue-600 to-purple-700 rounded-3xl flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                  <svg className="w-10 h-10 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 21l4-7 4 7M3 7l18 0M8 7l0-4M16 7l0-4" />
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 via-blue-600 to-purple-700 rounded-2xl flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                  <svg className="w-7 h-7 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-3 border-white shadow-lg animate-pulse flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full border-2 border-white shadow-md"></div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-md animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-5xl lg:text-6xl font-black bg-gradient-to-r from-slate-900 via-blue-700 to-purple-700 dark:from-slate-100 dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent drop-shadow-sm">
+                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-700 to-purple-700 dark:from-slate-100 dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent">
                   لوحة التحكم
                 </h1>
-                <p className="text-gray-700 dark:text-gray-200 mt-2 text-xl font-medium">نظرة شاملة على الأداء المالي والتشغيلي</p>
-                <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                  <span>النظام متصل</span>
-                </div>
+                <p className="text-gray-600 dark:text-gray-300 mt-1 text-base font-medium">نظرة شاملة على الأداء المالي</p>
               </div>
             </div>
             
@@ -153,30 +145,30 @@ export default function Dashboard() {
             <div className="flex items-center gap-6">
               {/* Mode Toggle for Admins */}
               {isAdmin && (
-                <div className="bg-white/80 dark:bg-gray-700/80 backdrop-blur-lg rounded-3xl shadow-2xl p-3 flex items-center border border-gray-200/50 dark:border-gray-600/50 gap-2">
+                <div className="bg-white/80 dark:bg-gray-700/80 backdrop-blur-lg rounded-xl shadow-lg p-1 flex items-center border border-gray-200/50 dark:border-gray-600/50">
                   <button
                     onClick={() => setDisplayMode('admin')}
-                    className={`px-6 py-4 rounded-2xl text-base font-bold flex items-center gap-3 transition-all duration-300 transform hover:scale-105 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${
                       displayMode === 'admin'
-                        ? 'bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white shadow-2xl scale-105'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
                     }`}
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     الصندوق الرئيسي
                   </button>
                   <button
                     onClick={() => setDisplayMode('projects')}
-                    className={`px-6 py-4 rounded-2xl text-base font-bold flex items-center gap-3 transition-all duration-300 transform hover:scale-105 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${
                       displayMode === 'projects'
-                        ? 'bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 text-white shadow-2xl scale-105'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200'
+                        ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
                     }`}
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                     المشاريع
                   </button>
@@ -184,18 +176,15 @@ export default function Dashboard() {
               )}
 
               {/* Date Display */}
-              <div className="bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 text-white px-8 py-4 rounded-3xl shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <div className="bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 text-white px-4 py-2 rounded-lg shadow-lg">
                 <div className="text-center">
-                  <div className="text-lg font-bold opacity-95 mb-1">اليوم</div>
-                  <div className="text-2xl font-black">
+                  <div className="text-sm font-medium opacity-90">اليوم</div>
+                  <div className="text-lg font-bold">
                     {new Date().toLocaleDateString('ar-SA', { 
                       weekday: 'short', 
                       day: 'numeric', 
                       month: 'short'
                     })}
-                  </div>
-                  <div className="text-sm opacity-80 mt-1">
-                    {new Date().getFullYear()}
                   </div>
                 </div>
               </div>
@@ -252,33 +241,27 @@ export default function Dashboard() {
             
             {/* Enhanced Recent Transactions */}
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8 transform hover:scale-[1.01] transition-all duration-500">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                  <h3 className={`text-4xl lg:text-5xl font-black bg-gradient-to-r ${
+                  <h3 className={`text-2xl lg:text-3xl font-bold bg-gradient-to-r ${
                     displayMode === 'admin' 
-                      ? 'from-blue-600 via-indigo-700 to-purple-700 dark:from-blue-400 dark:via-indigo-500 dark:to-purple-500'
-                      : 'from-emerald-600 via-green-700 to-teal-700 dark:from-emerald-400 dark:via-green-500 dark:to-teal-500'
-                  } bg-clip-text text-transparent mb-3 drop-shadow-sm`}>
+                      ? 'from-blue-600 to-indigo-700 dark:from-blue-400 dark:to-indigo-500'
+                      : 'from-emerald-600 to-green-700 dark:from-emerald-400 dark:to-green-500'
+                  } bg-clip-text text-transparent mb-2`}>
                     {displayMode === 'admin' 
                       ? 'آخر عمليات الصندوق الرئيسي'
                       : 'آخر عمليات المشاريع'
                     }
                   </h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-xl font-medium">عرض أحدث 10 معاملات مالية</p>
-                  <div className="flex items-center mt-2 text-base text-gray-500 dark:text-gray-400">
-                    <div className={`w-3 h-3 rounded-full mr-2 ${
-                      displayMode === 'admin' ? 'bg-blue-500' : 'bg-green-500'
-                    } animate-pulse`}></div>
-                    <span>تحديث تلقائي</span>
-                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-base">عرض أحدث 10 معاملات مالية</p>
                 </div>
                 <Link 
                   href="/transactions" 
-                  className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-700 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-800 text-white px-8 py-4 rounded-3xl text-lg font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3"
+                  className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-700 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-800 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
                 >
-                  <span>عرض جميع المعاملات</span>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  <span>عرض الكل</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
               </div>
@@ -288,18 +271,18 @@ export default function Dashboard() {
                 <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
                   <thead className={`${
                     displayMode === 'admin' 
-                      ? 'bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900/40 dark:via-indigo-900/40 dark:to-purple-900/40' 
-                      : 'bg-gradient-to-r from-emerald-100 via-green-100 to-teal-100 dark:from-emerald-900/40 dark:via-green-900/40 dark:to-teal-900/40'
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20' 
+                      : 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20'
                   }`}>
                     <tr>
-                      <th className="px-8 py-6 text-right text-lg font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">التاريخ</th>
-                      <th className="px-8 py-6 text-right text-lg font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">الوصف</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">التاريخ</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">الوصف</th>
                       {displayMode === 'projects' && (
-                        <th className="px-8 py-6 text-right text-lg font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">المشروع</th>
+                        <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المشروع</th>
                       )}
-                      <th className="px-8 py-6 text-right text-lg font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">النوع</th>
-                      <th className="px-8 py-6 text-right text-lg font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">المبلغ</th>
-                      <th className="px-8 py-6 text-right text-lg font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">المرفقات</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">النوع</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
+                      <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المرفقات</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200/30 dark:divide-gray-700/30">
@@ -307,35 +290,35 @@ export default function Dashboard() {
                       filteredTransactions.slice(0, 10).map((transaction, index) => (
                         <tr 
                           key={transaction.id} 
-                          className={`hover:bg-gradient-to-r transition-all duration-300 transform hover:scale-[1.01] ${
+                          className={`hover:bg-gradient-to-r transition-all duration-200 ${
                             displayMode === 'admin' 
-                              ? 'hover:from-blue-50/70 hover:to-indigo-50/70 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30' 
-                              : 'hover:from-emerald-50/70 hover:to-green-50/70 dark:hover:from-emerald-900/30 dark:hover:to-green-900/30'
+                              ? 'hover:from-blue-50/50 hover:to-indigo-50/50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20' 
+                              : 'hover:from-emerald-50/50 hover:to-green-50/50 dark:hover:from-emerald-900/20 dark:hover:to-green-900/20'
                           }`}
                         >
-                          <td className="px-8 py-6 whitespace-nowrap text-base text-gray-900 dark:text-gray-100 font-bold">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 font-medium">
                             {formatDate(transaction.date)}
                           </td>
-                          <td className="px-8 py-6 text-base text-gray-900 dark:text-gray-100 font-semibold max-w-xs">
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 font-medium max-w-xs">
                             {transaction.description}
                           </td>
                           {displayMode === 'projects' && (
-                            <td className="px-8 py-6 text-base text-gray-700 dark:text-gray-300">
-                              <span className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 px-4 py-2 rounded-2xl text-sm font-bold">
+                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                              <span className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-xs font-medium">
                                 {getProjectName(transaction.projectId)}
                               </span>
                             </td>
                           )}
-                          <td className="px-8 py-6 whitespace-nowrap">
-                            <span className={`px-6 py-3 inline-flex text-lg leading-5 font-black rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 ${
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-3 py-1 inline-flex text-sm font-bold rounded-lg shadow-sm ${
                               transaction.type === 'income' 
-                                ? 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white' 
-                                : 'bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white'
+                                ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white' 
+                                : 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
                             }`}>
                               {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                             </span>
                           </td>
-                          <td className="px-8 py-6 whitespace-nowrap text-xl font-black">
+                          <td className="px-6 py-4 whitespace-nowrap text-base font-bold">
                             <span className={`${
                               transaction.type === 'income' 
                                 ? 'text-emerald-600 dark:text-emerald-400' 
@@ -344,19 +327,19 @@ export default function Dashboard() {
                               {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
                             </span>
                           </td>
-                          <td className="px-8 py-6 whitespace-nowrap text-base">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {transaction.fileUrl ? (
                               <button 
                                 onClick={() => window.open(transaction.fileUrl, '_blank')}
-                                className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 text-white px-4 py-3 rounded-2xl text-base font-bold hover:from-blue-600 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-xl transform hover:scale-105 flex items-center gap-2"
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:scale-105 flex items-center gap-1"
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                 </svg>
                                 <span>عرض</span>
                               </button>
                             ) : (
-                              <span className="text-gray-500 dark:text-gray-400 text-lg font-medium text-center block">-</span>
+                              <span className="text-gray-400 dark:text-gray-500 text-center block">-</span>
                             )}
                           </td>
                         </tr>
@@ -395,17 +378,17 @@ export default function Dashboard() {
                           : 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200/50 dark:border-green-700/50'
                       }`}
                     >
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
-                          <h4 className="font-black text-xl text-gray-900 dark:text-gray-100 mb-2">{transaction.description}</h4>
-                          <p className="text-base text-gray-700 dark:text-gray-300 font-semibold">{formatDate(transaction.date)}</p>
+                          <h4 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-1">{transaction.description}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(transaction.date)}</p>
                           {displayMode === 'projects' && (
-                            <p className="text-base text-gray-600 dark:text-gray-400 mt-2 font-medium">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                               المشروع: {getProjectName(transaction.projectId)}
                             </p>
                           )}
                         </div>
-                        <span className={`px-4 py-2 text-base font-black rounded-2xl shadow-lg ${
+                        <span className={`px-3 py-1 text-sm font-bold rounded-lg shadow-sm ${
                           transaction.type === 'income' 
                             ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white' 
                             : 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
@@ -415,7 +398,7 @@ export default function Dashboard() {
                       </div>
                       
                       <div className="flex justify-between items-center">
-                        <span className={`text-3xl font-black ${
+                        <span className={`text-xl font-bold ${
                           transaction.type === 'income' 
                             ? 'text-emerald-600 dark:text-emerald-400' 
                             : 'text-red-600 dark:text-red-400'
@@ -426,10 +409,10 @@ export default function Dashboard() {
                         {transaction.fileUrl && (
                           <button 
                             onClick={() => window.open(transaction.fileUrl, '_blank')}
-                            className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 text-white px-4 py-3 rounded-2xl text-base font-bold hover:from-blue-600 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-xl transform hover:scale-105 flex items-center gap-2"
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:scale-105 flex items-center gap-1"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                             </svg>
                             <span>مرفق</span>
                           </button>
