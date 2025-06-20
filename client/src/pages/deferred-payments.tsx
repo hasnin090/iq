@@ -180,20 +180,20 @@ export default function DeferredPayments() {
               إضافة دفعة مؤجلة
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>إضافة دفعة مؤجلة جديدة</DialogTitle>
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="pb-3">
+              <DialogTitle className="text-lg">إضافة دفعة مؤجلة جديدة</DialogTitle>
             </DialogHeader>
             <Form {...addForm}>
-              <form onSubmit={addForm.handleSubmit((data) => addPaymentMutation.mutate(data))} className="space-y-4">
+              <form onSubmit={addForm.handleSubmit((data) => addPaymentMutation.mutate(data))} className="space-y-3">
                 <FormField
                   control={addForm.control}
                   name="beneficiaryName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>اسم المستفيد</FormLabel>
+                      <FormLabel className="text-sm font-medium">اسم المستفيد</FormLabel>
                       <FormControl>
-                        <Input placeholder="أدخل اسم المستفيد" {...field} />
+                        <Input placeholder="أدخل اسم المستفيد" {...field} className="h-9" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -205,13 +205,14 @@ export default function DeferredPayments() {
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المبلغ الإجمالي</FormLabel>
+                      <FormLabel className="text-sm font-medium">المبلغ الإجمالي</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
                           placeholder="أدخل المبلغ الإجمالي"
                           {...field}
                           onChange={(e) => field.onChange(Number(e.target.value))}
+                          className="h-9"
                         />
                       </FormControl>
                       <FormMessage />
@@ -224,10 +225,10 @@ export default function DeferredPayments() {
                   name="projectId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>المشروع (اختياري)</FormLabel>
+                      <FormLabel className="text-sm font-medium">المشروع (اختياري)</FormLabel>
                       <Select onValueChange={(value) => field.onChange(Number(value))}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9">
                             <SelectValue placeholder="اختر المشروع" />
                           </SelectTrigger>
                         </FormControl>
@@ -249,9 +250,13 @@ export default function DeferredPayments() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>الوصف (اختياري)</FormLabel>
+                      <FormLabel className="text-sm font-medium">الوصف (اختياري)</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="وصف إضافي للدفعة" {...field} />
+                        <Textarea 
+                          placeholder="وصف إضافي للدفعة" 
+                          {...field} 
+                          className="min-h-[60px] resize-none"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -263,20 +268,29 @@ export default function DeferredPayments() {
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>تاريخ الاستحقاق (اختياري)</FormLabel>
+                      <FormLabel className="text-sm font-medium">تاريخ الاستحقاق (اختياري)</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="date" {...field} className="h-9" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" disabled={addPaymentMutation.isPending} className="flex-1">
+                <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:gap-2">
+                  <Button 
+                    type="submit" 
+                    disabled={addPaymentMutation.isPending} 
+                    className="w-full sm:flex-1 order-1"
+                  >
                     {addPaymentMutation.isPending ? "جاري الإضافة..." : "إضافة"}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsAddDialogOpen(false)}
+                    className="w-full sm:w-auto order-2"
+                  >
                     إلغاء
                   </Button>
                 </div>
@@ -364,7 +378,7 @@ export default function DeferredPayments() {
                     
                     {payment.dueDate && (
                       <p className="text-sm text-gray-600">
-                        الاستحقاق: {formatDate(payment.dueDate)}
+                        الاستحقاق: {formatDate(new Date(payment.dueDate))}
                       </p>
                     )}
                     
@@ -434,9 +448,9 @@ export default function DeferredPayments() {
 
       {/* Pay Installment Dialog */}
       <Dialog open={isPayDialogOpen} onOpenChange={setIsPayDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>دفع مبلغ - {selectedPayment?.beneficiaryName}</DialogTitle>
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pb-3">
+            <DialogTitle className="text-lg">دفع مبلغ - {selectedPayment?.beneficiaryName}</DialogTitle>
           </DialogHeader>
           {selectedPayment && (
             <div className="space-y-4">
