@@ -9,7 +9,8 @@ import {
   funds, type Fund, type InsertFund,
   expenseTypes, type ExpenseType, type InsertExpenseType,
   ledgerEntries, type LedgerEntry, type InsertLedgerEntry,
-  accountCategories, type AccountCategory, type InsertAccountCategory
+  accountCategories, type AccountCategory, type InsertAccountCategory,
+  deferredPayments, type DeferredPayment, type InsertDeferredPayment
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage';
@@ -105,6 +106,14 @@ export interface IStorage {
   updateAccountCategory(id: number, category: Partial<AccountCategory>): Promise<AccountCategory | undefined>;
   listAccountCategories(): Promise<AccountCategory[]>;
   deleteAccountCategory(id: number): Promise<boolean>;
+
+  // Deferred Payments
+  getDeferredPayment(id: number): Promise<DeferredPayment | undefined>;
+  createDeferredPayment(payment: InsertDeferredPayment): Promise<DeferredPayment>;
+  updateDeferredPayment(id: number, payment: Partial<DeferredPayment>): Promise<DeferredPayment | undefined>;
+  listDeferredPayments(): Promise<DeferredPayment[]>;
+  deleteDeferredPayment(id: number): Promise<boolean>;
+  payDeferredPaymentInstallment(id: number, amount: number, userId: number): Promise<{ payment: DeferredPayment; transaction?: Transaction }>;
 }
 
 export class MemStorage implements IStorage {

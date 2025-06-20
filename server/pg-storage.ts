@@ -12,7 +12,8 @@ import {
   funds, Fund, InsertFund,
   expenseTypes, ExpenseType, InsertExpenseType,
   ledgerEntries, LedgerEntry, InsertLedgerEntry,
-  accountCategories, AccountCategory, InsertAccountCategory
+  accountCategories, AccountCategory, InsertAccountCategory,
+  deferredPayments, DeferredPayment, InsertDeferredPayment
 } from '../shared/schema';
 import { IStorage } from './storage';
 
@@ -1239,6 +1240,144 @@ export class PgStorage implements IStorage {
     } catch (error) {
       console.error('خطأ في حذف تصنيف نوع الحساب:', error);
       return false;
+    }
+  }
+
+  // ======== إدارة الدفعات المؤجلة ========
+  
+  async getDeferredPayment(id: number): Promise<DeferredPayment | undefined> {
+    const result = await db.select().from(deferredPayments).where(eq(deferredPayments.id, id));
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async createDeferredPayment(payment: InsertDeferredPayment): Promise<DeferredPayment> {
+    const paymentData = {
+      ...payment,
+      remainingAmount: payment.totalAmount, // المبلغ المتبقي = المبلغ الإجمالي في البداية
+      paidAmount: 0 // المبلغ المدفوع = 0 في البداية
+    };
+    
+    const result = await db.insert(deferredPayments).values(paymentData).returning();
+    
+    // إنشاء سجل نشاط
+    await this.createActivityLog({
+      action: "create",
+      entityType: "deferred_payment",
+      entityId: result[0].id,
+      details: `إنشاء دفعة مؤجلة: ${result[0].beneficiaryName} - ${result[0].totalAmount}`,
+      userId: payment.userId
+    });
+    
+    return result[0];
+  }
+
+  async updateDeferredPayment(id: number, paymentData: Partial<DeferredPayment>): Promise<DeferredPayment | undefined> {
+    const updatedData = {
+      ...paymentData,
+      updatedAt: new Date()
+    };
+    
+    const result = await db.update(deferredPayments)
+      .set(updatedData)
+      .where(eq(deferredPayments.id, id))
+      .returning();
+      
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async listDeferredPayments(): Promise<DeferredPayment[]> {
+    return await db.select().from(deferredPayments).orderBy(desc(deferredPayments.createdAt));
+  }
+
+  async deleteDeferredPayment(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(deferredPayments).where(eq(deferredPayments.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('خطأ في حذف الدفعة المؤجلة:', error);
+      return false;
+    }
+  }
+
+  async payDeferredPaymentInstallment(id: number, amount: number, userId: number): Promise<{ payment: DeferredPayment; transaction?: Transaction }> {
+    try {
+      // 1. جلب الدفعة المؤجلة الحالية
+      const payment = await this.getDeferredPayment(id);
+      if (!payment) {
+        throw new Error('الدفعة المؤجلة غير موجودة');
+      }
+
+      if (payment.status === 'completed') {
+        throw new Error('الدفعة مكتملة بالفعل');
+      }
+
+      if (amount <= 0) {
+        throw new Error('مبلغ الدفعة يجب أن يكون أكبر من الصفر');
+      }
+
+      if (amount > payment.remainingAmount) {
+        throw new Error('مبلغ الدفعة أكبر من المبلغ المتبقي');
+      }
+
+      // 2. حساب القيم الجديدة
+      const newPaidAmount = payment.paidAmount + amount;
+      const newRemainingAmount = payment.totalAmount - newPaidAmount;
+      const isCompleted = newRemainingAmount <= 0;
+
+      // 3. تحديث الدفعة المؤجلة
+      const updatedPayment = await this.updateDeferredPayment(id, {
+        paidAmount: newPaidAmount,
+        remainingAmount: newRemainingAmount,
+        status: isCompleted ? 'completed' : 'pending',
+        completedAt: isCompleted ? new Date() : null
+      });
+
+      if (!updatedPayment) {
+        throw new Error('فشل في تحديث الدفعة المؤجلة');
+      }
+
+      let transaction: Transaction | undefined;
+
+      // 4. إنشاء معاملة مصروف عند الإكمال
+      if (isCompleted) {
+        transaction = await this.createTransaction({
+          date: new Date(),
+          amount: payment.totalAmount,
+          type: "expense",
+          expenseType: "دفعة مؤجلة مكتملة",
+          description: `استيفاء مستحقات ${payment.beneficiaryName}`,
+          projectId: payment.projectId,
+          createdBy: userId,
+          fileUrl: null,
+          fileType: null
+        });
+
+        // إنشاء سجل نشاط للإكمال
+        await this.createActivityLog({
+          action: "complete",
+          entityType: "deferred_payment",
+          entityId: payment.id,
+          details: `اكتمال دفعة مؤجلة: ${payment.beneficiaryName} - ${payment.totalAmount}`,
+          userId
+        });
+      } else {
+        // إنشاء سجل نشاط للدفعة الجزئية
+        await this.createActivityLog({
+          action: "update",
+          entityType: "deferred_payment",
+          entityId: payment.id,
+          details: `دفعة جزئية: ${payment.beneficiaryName} - ${amount} (المتبقي: ${newRemainingAmount})`,
+          userId
+        });
+      }
+
+      return {
+        payment: updatedPayment,
+        transaction
+      };
+    } catch (error) {
+      console.error('خطأ في دفع القسط:', error);
+      throw error;
     }
   }
 }

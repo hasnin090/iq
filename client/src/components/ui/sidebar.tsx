@@ -21,8 +21,16 @@ interface Project {
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAccountsOpen, setIsAccountsOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
+
+  // فتح قسم الحسابات تلقائياً عند زيارة إحدى صفحاته
+  useEffect(() => {
+    if (location === "/transactions" || location === "/deferred-payments") {
+      setIsAccountsOpen(true);
+    }
+  }, [location]);
 
 // مكون لعرض اسم الشركة أو اسم المشروع النشط
 function CompanyName() {
@@ -289,19 +297,58 @@ function CompanyName() {
                 <span className="text-sm sm:text-base">لوحة التحكم</span>
               </Link>
               
-              <Link
-                href="/transactions"
-                className={`flex items-center space-x-reverse space-x-3 px-3 py-2.5 rounded-xl no-flicker touch-target ${
-                  location === "/transactions" 
-                    ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
-                    : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-102"
-                } transition-all duration-200 transform`}
-              >
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/transactions" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
-                  <i className="fas fa-wallet"></i>
+              {/* قسم الحسابات القابل للطي */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => setIsAccountsOpen(!isAccountsOpen)}
+                  className={`w-full flex items-center justify-between space-x-reverse space-x-3 px-3 py-2.5 rounded-xl no-flicker touch-target ${
+                    (location === "/transactions" || location === "/deferred-payments")
+                      ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                      : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-102"
+                  } transition-all duration-200 transform`}
+                >
+                  <div className="flex items-center space-x-reverse space-x-3">
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${(location === "/transactions" || location === "/deferred-payments") ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                      <i className="fas fa-wallet"></i>
+                    </div>
+                    <span className="text-sm sm:text-base">الحسابات</span>
+                  </div>
+                  <i className={`fas fa-chevron-${isAccountsOpen ? 'up' : 'down'} text-xs transition-transform duration-200`}></i>
+                </button>
+                
+                {/* القائمة الفرعية */}
+                <div className={`overflow-hidden transition-all duration-300 ${isAccountsOpen ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="mr-4 space-y-1">
+                    <Link
+                      href="/transactions"
+                      className={`flex items-center space-x-reverse space-x-2 px-3 py-2 rounded-lg no-flicker touch-target ${
+                        location === "/transactions" 
+                          ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] font-medium border-r-2 border-[hsl(var(--primary))]" 
+                          : "text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-600"
+                      } transition-all duration-200`}
+                    >
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center bg-blue-100 dark:bg-gray-600">
+                        <i className="fas fa-coins text-xs"></i>
+                      </div>
+                      <span className="text-sm">العمليات النقدية</span>
+                    </Link>
+                    
+                    <Link
+                      href="/deferred-payments"
+                      className={`flex items-center space-x-reverse space-x-2 px-3 py-2 rounded-lg no-flicker touch-target ${
+                        location === "/deferred-payments" 
+                          ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] font-medium border-r-2 border-[hsl(var(--primary))]" 
+                          : "text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-600"
+                      } transition-all duration-200`}
+                    >
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center bg-orange-100 dark:bg-gray-600">
+                        <i className="fas fa-clock text-xs"></i>
+                      </div>
+                      <span className="text-sm">الدفعات المؤجلة</span>
+                    </Link>
+                  </div>
                 </div>
-                <span className="text-sm sm:text-base">الحسابات</span>
-              </Link>
+              </div>
               
               {/* قسم المشاريع - مخفي للمستخدمين مشاهدة فقط */}
               {user?.role !== 'viewer' && (
