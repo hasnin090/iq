@@ -1,4 +1,4 @@
-import { initializeApp, FirebaseApp, getApps } from "firebase/app";
+import { initializeApp, FirebaseApp, getApps, FirebaseOptions } from "firebase/app";
 import { 
   getAuth, 
   signInWithRedirect, 
@@ -22,7 +22,7 @@ const checkRequiredEnvs = () => {
   
   for (const key of requiredKeys) {
     if (!import.meta.env[key]) {
-      console.error(`مفتاح Firebase مفقود: ${key}`);
+      console.log(`Firebase مُعطل - النظام يعمل محلياً بدون Firebase`);
       return false;
     }
   }
@@ -30,20 +30,12 @@ const checkRequiredEnvs = () => {
   return true;
 };
 
-// تكوين Firebase باستخدام المتغيرات البيئية أو التكوين المُحدث
-const firebaseConfig = (() => {
-  // استخدام التكوين المحدث إذا لم تكن المتغيرات البيئية متوفرة
+// تكوين Firebase - تعطيل Firebase عند عدم وجود مفاتيح صالحة
+const firebaseConfig: FirebaseOptions | null = (() => {
+  // التحقق من وجود مفاتيح صالحة
   if (!checkRequiredEnvs()) {
-    console.log("استخدام تكوين Firebase المحدث");
-    return {
-      apiKey: "AIzaSyBLJb_pYS00-9VMPE9nnH5WyTKv18UGlcA",
-      authDomain: "grokapp-5e120.firebaseapp.com",
-      projectId: "grokapp-5e120",
-      storageBucket: "grokapp-5e120.firebasestorage.app",
-      messagingSenderId: "846888480997",
-      appId: "1:846888480997:web:d5b48758b6b47fa67b640c",
-      measurementId: "G-0D2ESJQVYQ"
-    };
+    console.log("Firebase غير مُفعل - لا توجد مفاتيح API صالحة");
+    return null;
   }
   
   return {
@@ -52,6 +44,7 @@ const firebaseConfig = (() => {
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
   };
 })();
 
@@ -63,36 +56,8 @@ let analytics: Analytics;
 let db: Firestore;
 let googleProvider: GoogleAuthProvider;
 
-try {
-  // التحقق مما إذا كان التطبيق مهيأ بالفعل لتجنب التهيئة المزدوجة
-  if (getApps().length === 0) {
-    // تهيئة تطبيق Firebase إذا لم يكن مهيأ بالفعل
-    app = initializeApp(firebaseConfig);
-    console.log("Firebase initialized successfully");
-  } else {
-    // استخدام التطبيق المهيأ بالفعل
-    app = getApps()[0];
-    console.log("Using existing Firebase app");
-  }
-
-  // الحصول على خدمة المصادقة
-  auth = getAuth(app);
-
-  // الحصول على خدمة التخزين
-  storage = getStorage(app);
-
-  // الحصول على خدمة التحليلات
-  analytics = getAnalytics(app);
-
-  // الحصول على خدمة Firestore
-  db = getFirestore(app);
-
-  // إنشاء مزود المصادقة لجوجل
-  googleProvider = new GoogleAuthProvider();
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-  throw new Error("Firebase initialization failed");
-}
+// تعطيل Firebase بالكامل للتشغيل المحلي
+console.log("النظام يعمل بالتخزين المحلي - Firebase معطل");
 
 // وظيفة تسجيل الدخول بواسطة جوجل
 export const signInWithGoogle = (): Promise<never> | void => {
