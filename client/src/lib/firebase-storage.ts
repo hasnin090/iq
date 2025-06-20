@@ -188,6 +188,56 @@ export class FirebaseStorageService {
 
 export const firebaseStorage = new FirebaseStorageService();
 
+// File deletion utility for Firebase Storage
+export const deleteFile = async (fileUrl: string): Promise<boolean> => {
+  try {
+    if (!fileUrl) {
+      console.warn('deleteFile called without file URL');
+      return false;
+    }
+    
+    // For Firebase Storage integration, implement deletion logic
+    // This is a placeholder that matches the server-side interface
+    console.log(`File deletion requested for: ${fileUrl}`);
+    
+    // In a full Firebase implementation, you would use:
+    // import { deleteObject, ref } from 'firebase/storage';
+    // import { storage } from './firebase';
+    // const fileRef = ref(storage, fileUrl);
+    // await deleteObject(fileRef);
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    return false;
+  }
+};
+
+// File upload utility for Firebase Storage
+export const uploadFile = async (
+  file: File | Buffer | string,
+  destination: string,
+  contentType?: string,
+  metadata?: any
+): Promise<string> => {
+  try {
+    // For Firebase Storage integration, implement upload logic
+    console.log(`File upload requested to: ${destination}`);
+    
+    // In a full Firebase implementation, you would use:
+    // import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
+    // import { storage } from './firebase';
+    // const fileRef = ref(storage, destination);
+    // const uploadResult = await uploadBytes(fileRef, file, { contentType, ...metadata });
+    // return await getDownloadURL(uploadResult.ref);
+    
+    return `/uploads/${destination}`;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw new Error(`Failed to upload file: ${error}`);
+  }
+};
+
 // Utility functions for file handling
 export const getFileType = (fileType: string): string => {
   return fileType.split('/')[0] || 'unknown';
