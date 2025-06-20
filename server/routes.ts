@@ -11,6 +11,7 @@ import {
   insertActivityLogSchema,
   insertSettingSchema,
   insertAccountCategorySchema,
+  insertDeferredPaymentSchema,
   funds,
   type Transaction
 } from "@shared/schema";
@@ -2667,6 +2668,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error instanceof Error ? error.message : 'Unknown database error',
         timestamp: new Date().toISOString()
       });
+    }
+  });
+
+  // ======== الدفعات المؤجلة ========
+  
+  // جلب جميع الدفعات المؤجلة
+  app.get("/api/deferred-payments", authenticate, async (req: Request, res: Response) => {
+    try {
+      const payments = await storage.listDeferredPayments();
+      return res.status(200).json(payments);
+    } catch (error) {
+      console.error("خطأ في جلب الدفعات المؤجلة:", error);
+      return res.status(500).json({ message: "خطأ في جلب الدفعات المؤجلة" });
+    }
+  });
+
+  // إنشاء دفعة مؤجلة جديدة
+  app.post("/api/deferred-payments", authenticate, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertDeferredPaymentSchema.parse({
+        ...req.body,
+        userId: req.session.userId
+      });
+      
+      const payment = await storage.createDeferredPayment(validatedData);
+      
+      return res.status(201).json(payment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "بيانات غير صالحة", errors: error.errors });
+      }
+      console.error("خطأ في إنشاء الدفعة المؤجلة:", error);
+      return res.status(500).json({ message: "خطأ في إنشاء الدفعة المؤجلة" });
+    }
+  });
+
+  // تسجيل دفعة جزئية
+  app.post("/api/deferred-payments/:id/pay", authenticate, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { amount } = req.body;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "مبلغ الدفعة مطلوب ويجب أن يكون أكبر من الصفر" });
+      }
+      
+      const result = await storage.payDeferredPaymentInstallment(id, amount, req.session.userId as number);
+      
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error("خطأ في تسجيل الدفعة:", error);
+      return res.status(500).json({ message: error instanceof Error ? error.message : "خطأ في تسجيل الدفعة" });
+    }
+  });
+
+  // جلب دفعة مؤجلة محددة
+  app.get("/api/deferred-payments/:id", authenticate, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const payment = await storage.getDeferredPayment(id);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "الدفعة المؤجلة غير موجودة" });
+      }
+      
+      return res.status(200).json(payment);
+    } catch (error) {
+      console.error("خطأ في جلب الدفعة المؤجلة:", error);
+      return res.status(500).json({ message: "خطأ في جلب الدفعة المؤجلة" });
+    }
+  });
+
+  // تحديث دفعة مؤجلة
+  app.put("/api/deferred-payments/:id", authenticate, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedPayment = await storage.updateDeferredPayment(id, req.body);
+      
+      if (!updatedPayment) {
+        return res.status(404).json({ message: "الدفعة المؤجلة غير موجودة" });
+      }
+      
+      await storage.createActivityLog({
+        action: "update",
+        entityType: "deferred_payment",
+        entityId: id,
+        details: `تحديث دفعة مؤجلة: ${updatedPayment.beneficiaryName}`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(200).json(updatedPayment);
+    } catch (error) {
+      console.error("خطأ في تحديث الدفعة المؤجلة:", error);
+      return res.status(500).json({ message: "خطأ في تحديث الدفعة المؤجلة" });
+    }
+  });
+
+  // حذف دفعة مؤجلة
+  app.delete("/api/deferred-payments/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const payment = await storage.getDeferredPayment(id);
+      if (!payment) {
+        return res.status(404).json({ message: "الدفعة المؤجلة غير موجودة" });
+      }
+      
+      const result = await storage.deleteDeferredPayment(id);
+      
+      if (result) {
+        await storage.createActivityLog({
+          action: "delete",
+          entityType: "deferred_payment",
+          entityId: id,
+          details: `حذف دفعة مؤجلة: ${payment.beneficiaryName}`,
+          userId: req.session.userId as number
+        });
+      }
+      
+      return res.status(200).json({ success: result });
+    } catch (error) {
+      console.error("خطأ في حذف الدفعة المؤجلة:", error);
+      return res.status(500).json({ message: "خطأ في حذف الدفعة المؤجلة" });
     }
   });
 
