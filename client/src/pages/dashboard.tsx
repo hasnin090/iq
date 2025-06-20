@@ -176,7 +176,7 @@ export default function Dashboard() {
               )}
 
               {/* Date Display */}
-              <div className="bg-gradient-to-r from-violet-500 via-purple-600 to-fuchsia-600 text-white px-4 py-2 rounded-lg shadow-lg">
+              <div className="from-violet-500 via-purple-600 to-fuchsia-600 px-4 py-2 rounded-lg shadow-lg text-[#ffffff] bg-[#00000000] text-[13px] font-light">
                 <div className="text-center">
                   <div className="text-sm font-medium opacity-90">اليوم</div>
                   <div className="text-lg font-bold">
@@ -192,7 +192,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      
       {/* Main Content with Enhanced Spacing */}
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
