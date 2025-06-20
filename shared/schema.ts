@@ -248,6 +248,33 @@ export type LedgerEntry = typeof ledgerEntries.$inferSelect;
 export type InsertAccountCategory = z.infer<typeof insertAccountCategorySchema>;
 export type AccountCategory = typeof accountCategories.$inferSelect;
 
+// Deferred Payments table - الدفعات المؤجلة
+export const deferredPayments = pgTable("deferred_payments", {
+  id: serial("id").primaryKey(),
+  beneficiaryName: text("beneficiary_name").notNull(), // اسم المستفيد
+  totalAmount: integer("total_amount").notNull(), // المبلغ الإجمالي
+  paidAmount: integer("paid_amount").notNull().default(0), // المبلغ المدفوع
+  remainingAmount: integer("remaining_amount").notNull(), // المبلغ المتبقي
+  projectId: integer("project_id").references(() => projects.id),
+  userId: integer("user_id").references(() => users.id).notNull(), // من أنشأ الدفعة
+  status: text("status").notNull().default("pending"), // pending, completed
+  description: text("description"), // وصف إضافي
+  dueDate: timestamp("due_date"), // تاريخ الاستحقاق
+  completedAt: timestamp("completed_at"), // تاريخ الإكمال
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertDeferredPaymentSchema = createInsertSchema(deferredPayments)
+  .omit({ id: true, paidAmount: true, remainingAmount: true, status: true, completedAt: true, createdAt: true, updatedAt: true })
+  .extend({
+    totalAmount: z.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
+    beneficiaryName: z.string().min(1, "اسم المستفيد مطلوب"),
+  });
+
+export type InsertDeferredPayment = z.infer<typeof insertDeferredPaymentSchema>;
+export type DeferredPayment = typeof deferredPayments.$inferSelect;
+
 // Permission types
 export type Permission = keyof typeof PERMISSIONS;
 export type Role = keyof typeof ROLES;

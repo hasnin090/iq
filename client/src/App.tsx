@@ -14,6 +14,7 @@ import Reports from "@/pages/reports";
 import Activities from "@/pages/activities";
 import Settings from "@/pages/settings";
 import Ledger from "@/pages/ledger";
+import DeferredPayments from "@/pages/deferred-payments";
 
 import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";
@@ -124,6 +125,7 @@ function AppRoutes() {
               </Route>
               <Route path="/activities" component={Activities} />
               <Route path="/settings" component={Settings} />
+              <Route path="/deferred-payments" component={DeferredPayments} />
               <Route component={NotFound} />
             </Switch>
           </div>
