@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { DeferredPayment, Project } from "@/../../shared/schema";
+import type { DeferredPayment, Project } from "@shared/schema";
 
 const addPaymentSchema = z.object({
   beneficiaryName: z.string().min(1, "اسم المستفيد مطلوب"),
@@ -37,11 +37,11 @@ export default function DeferredPayments() {
   const [selectedPayment, setSelectedPayment] = useState<DeferredPayment | null>(null);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
-  const { data: payments = [], isLoading } = useQuery({
+  const { data: payments = [], isLoading } = useQuery<DeferredPayment[]>({
     queryKey: ["/api/deferred-payments"],
   });
 
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
   });
 
