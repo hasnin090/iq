@@ -378,7 +378,7 @@ export default function DeferredPayments() {
                     
                     {payment.dueDate && (
                       <p className="text-sm text-gray-600">
-                        الاستحقاق: {formatDate(new Date(payment.dueDate))}
+                        الاستحقاق: {formatDate(String(payment.dueDate))}
                       </p>
                     )}
                     
@@ -421,7 +421,7 @@ export default function DeferredPayments() {
                   )}
                   {payment.completedAt && (
                     <p className="text-sm text-gray-600">
-                      تم الإكمال: {formatDate(payment.completedAt)}
+                      تم الإكمال: {formatDate(String(payment.completedAt))}
                     </p>
                   )}
                 </CardContent>
@@ -485,11 +485,20 @@ export default function DeferredPayments() {
                     )}
                   />
                   
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" disabled={payInstallmentMutation.isPending} className="flex-1">
+                  <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:gap-2">
+                    <Button 
+                      type="submit" 
+                      disabled={payInstallmentMutation.isPending} 
+                      className="w-full sm:flex-1 order-1"
+                    >
                       {payInstallmentMutation.isPending ? "جاري التسجيل..." : "تسجيل الدفعة"}
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => setIsPayDialogOpen(false)}>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsPayDialogOpen(false)}
+                      className="w-full sm:w-auto order-2"
+                    >
                       إلغاء
                     </Button>
                   </div>
