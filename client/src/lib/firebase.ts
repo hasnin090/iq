@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getAnalytics, Analytics } from "firebase/analytics";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 // التحقق من وجود مفاتيح Firebase في متغيرات البيئة
 const checkRequiredEnvs = () => {
@@ -59,6 +60,7 @@ let app: FirebaseApp;
 let auth: Auth;
 let storage: FirebaseStorage;
 let analytics: Analytics;
+let db: Firestore;
 let googleProvider: GoogleAuthProvider;
 
 try {
@@ -82,6 +84,9 @@ try {
   // الحصول على خدمة التحليلات
   analytics = getAnalytics(app);
 
+  // الحصول على خدمة Firestore
+  db = getFirestore(app);
+
   // إنشاء مزود المصادقة لجوجل
   googleProvider = new GoogleAuthProvider();
 } catch (error) {
@@ -100,4 +105,4 @@ export const signInWithGoogle = (): Promise<never> | void => {
 };
 
 // تصدير الكائنات المطلوبة
-export { app, auth, storage };
+export { app, auth, storage, analytics, db };
