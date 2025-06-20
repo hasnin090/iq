@@ -9,6 +9,7 @@ import {
   Auth
 } from "firebase/auth";
 import { getStorage, FirebaseStorage } from "firebase/storage";
+import { getAnalytics, Analytics } from "firebase/analytics";
 
 // التحقق من وجود مفاتيح Firebase في متغيرات البيئة
 const checkRequiredEnvs = () => {
@@ -28,10 +29,20 @@ const checkRequiredEnvs = () => {
   return true;
 };
 
-// تكوين Firebase باستخدام المتغيرات البيئية
+// تكوين Firebase باستخدام المتغيرات البيئية أو التكوين المُحدث
 const firebaseConfig = (() => {
+  // استخدام التكوين المحدث إذا لم تكن المتغيرات البيئية متوفرة
   if (!checkRequiredEnvs()) {
-    console.error("بعض مفاتيح Firebase مفقودة. استخدام التكوين الاحتياطي للتطوير فقط.");
+    console.log("استخدام تكوين Firebase المحدث");
+    return {
+      apiKey: "AIzaSyBLJb_pYS00-9VMPE9nnH5WyTKv18UGlcA",
+      authDomain: "grokapp-5e120.firebaseapp.com",
+      projectId: "grokapp-5e120",
+      storageBucket: "grokapp-5e120.firebasestorage.app",
+      messagingSenderId: "846888480997",
+      appId: "1:846888480997:web:d5b48758b6b47fa67b640c",
+      measurementId: "G-0D2ESJQVYQ"
+    };
   }
   
   return {
@@ -47,6 +58,7 @@ const firebaseConfig = (() => {
 let app: FirebaseApp;
 let auth: Auth;
 let storage: FirebaseStorage;
+let analytics: Analytics;
 let googleProvider: GoogleAuthProvider;
 
 try {
@@ -66,6 +78,9 @@ try {
 
   // الحصول على خدمة التخزين
   storage = getStorage(app);
+
+  // الحصول على خدمة التحليلات
+  analytics = getAnalytics(app);
 
   // إنشاء مزود المصادقة لجوجل
   googleProvider = new GoogleAuthProvider();
