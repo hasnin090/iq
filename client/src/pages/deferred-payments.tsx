@@ -296,7 +296,7 @@ export default function DeferredPayments() {
                     <FormItem>
                       <FormLabel className="text-sm font-medium">المشروع (اختياري)</FormLabel>
                       <Select 
-                        value={field.value?.toString() || "none"} 
+                        value={field.value ? field.value.toString() : "none"} 
                         onValueChange={(value) => field.onChange(value === "none" ? undefined : Number(value))}
                       >
                         <FormControl>
