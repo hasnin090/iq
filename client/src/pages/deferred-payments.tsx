@@ -43,6 +43,9 @@ const addPaymentSchema = z.object({
   projectId: z.number().optional(),
   description: z.string().optional(),
   dueDate: z.string().optional(),
+  installments: z.number().min(1, "عدد الأقساط يجب أن يكون على الأقل 1").default(1),
+  paymentFrequency: z.enum(["monthly", "quarterly", "yearly"]).default("monthly"),
+  notes: z.string().optional(),
 });
 
 type AddPaymentFormData = z.infer<typeof addPaymentSchema>;
@@ -58,6 +61,8 @@ export default function DeferredPayments() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<DeferredPayment | null>(null);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
+  const [isInstallmentDialogOpen, setIsInstallmentDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { data: payments = [], isLoading } = useQuery<DeferredPayment[]>({
     queryKey: ["/api/deferred-payments", filter],
@@ -75,6 +80,9 @@ export default function DeferredPayments() {
       projectId: undefined,
       description: "",
       dueDate: "",
+      installments: 1,
+      paymentFrequency: "monthly",
+      notes: "",
     },
   });
 
@@ -350,6 +358,70 @@ export default function DeferredPayments() {
                   )}
                 />
 
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={addForm.control}
+                    name="installments"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">عدد الأقساط</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            max="60" 
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            className="h-9" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={addForm.control}
+                    name="paymentFrequency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">دورية الدفع</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="monthly">شهري</SelectItem>
+                            <SelectItem value="quarterly">ربع سنوي</SelectItem>
+                            <SelectItem value="yearly">سنوي</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={addForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">ملاحظات (اختياري)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="ملاحظات إضافية حول الدفعة المؤجلة" 
+                          {...field} 
+                          className="min-h-[60px] resize-none"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:gap-2">
                   <Button 
                     type="submit" 
@@ -545,17 +617,40 @@ export default function DeferredPayments() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {payment.status === 'pending' && (
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedPayment(payment);
-                                  setIsPayDialogOpen(true);
-                                }}
-                              >
-                                <CreditCard className="w-4 h-4 ml-1" />
-                                دفع
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPayment(payment);
+                                    setIsPayDialogOpen(true);
+                                  }}
+                                >
+                                  <CreditCard className="w-4 h-4 ml-1" />
+                                  دفع
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedPayment(payment);
+                                    setIsInstallmentDialogOpen(true);
+                                  }}
+                                >
+                                  <Calendar className="w-4 h-4 ml-1" />
+                                  الأقساط
+                                </Button>
+                              </>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedPayment(payment);
+                                setIsEditDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -625,6 +720,124 @@ export default function DeferredPayments() {
                   </div>
                 </form>
               </Form>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Installment Plan Dialog */}
+      <Dialog open={isInstallmentDialogOpen} onOpenChange={setIsInstallmentDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pb-3">
+            <DialogTitle className="text-lg">خطة الأقساط - {selectedPayment?.beneficiaryName}</DialogTitle>
+          </DialogHeader>
+          {selectedPayment && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">المبلغ الإجمالي</p>
+                  <p className="text-xl font-bold text-blue-600">
+                    {formatCurrency(selectedPayment.totalAmount)}
+                  </p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600">المدفوع</p>
+                  <p className="text-xl font-bold text-green-600">
+                    {formatCurrency(selectedPayment.paidAmount)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="border rounded-lg">
+                <div className="bg-gray-50 px-4 py-3 border-b">
+                  <h3 className="font-medium">جدول الأقساط المقترح</h3>
+                </div>
+                <div className="p-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">القسط</TableHead>
+                        <TableHead className="text-right">المبلغ</TableHead>
+                        <TableHead className="text-right">تاريخ الاستحقاق</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {generateInstallmentPlan(selectedPayment).map((installment, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{formatCurrency(installment.amount)}</TableCell>
+                          <TableCell>{installment.dueDate}</TableCell>
+                          <TableCell>
+                            <Badge variant={installment.status === 'paid' ? 'default' : 'secondary'}>
+                              {installment.status === 'paid' ? 'مدفوع' : 'معلق'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={() => setIsInstallmentDialogOpen(false)}>
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Payment Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pb-3">
+            <DialogTitle className="text-lg">تعديل الدفعة المؤجلة</DialogTitle>
+          </DialogHeader>
+          {selectedPayment && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">اسم المستفيد</label>
+                  <Input 
+                    value={selectedPayment.beneficiaryName} 
+                    disabled 
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">المبلغ الإجمالي</label>
+                  <Input 
+                    value={formatCurrency(selectedPayment.totalAmount)} 
+                    disabled 
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">الوصف</label>
+                <Textarea 
+                  value={selectedPayment.description || ''} 
+                  disabled 
+                  className="mt-1 min-h-[60px]"
+                />
+              </div>
+
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h4 className="font-medium text-yellow-800 mb-2">ملاحظة</h4>
+                <p className="text-sm text-yellow-700">
+                  لتعديل تفاصيل الدفعة المؤجلة، يرجى التواصل مع المسؤول المالي أو استخدام نظام إدارة أكثر تقدماً.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  إغلاق
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
