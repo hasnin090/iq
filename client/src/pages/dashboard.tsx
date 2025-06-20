@@ -179,7 +179,7 @@ export default function Dashboard() {
               <div className="from-violet-500 via-purple-600 to-fuchsia-600 px-4 py-2 rounded-lg shadow-lg text-[#ffffff] bg-[#00000000] text-[13px] font-light">
                 <div className="text-center">
                   <div className="text-sm font-medium opacity-90">اليوم</div>
-                  <div className="text-lg font-bold">
+                  <div className="font-medium text-[12px]">
                     {new Date().toLocaleDateString('ar-SA', { 
                       weekday: 'short', 
                       day: 'numeric', 
