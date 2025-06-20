@@ -260,6 +260,9 @@ export const deferredPayments = pgTable("deferred_payments", {
   status: text("status").notNull().default("pending"), // pending, completed
   description: text("description"), // وصف إضافي
   dueDate: timestamp("due_date"), // تاريخ الاستحقاق
+  installments: integer("installments").notNull().default(1), // عدد الأقساط
+  paymentFrequency: text("payment_frequency").notNull().default("monthly"), // monthly, quarterly, yearly
+  notes: text("notes"), // ملاحظات إضافية
   completedAt: timestamp("completed_at"), // تاريخ الإكمال
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

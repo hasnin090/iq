@@ -176,6 +176,46 @@ export default function DeferredPayments() {
     return project?.name || "مشروع غير معروف";
   };
 
+  const generateInstallmentPlan = (payment: DeferredPayment) => {
+    const installments = [];
+    const installmentCount = payment.installments || 1;
+    const installmentAmount = payment.totalAmount / installmentCount;
+    const startDate = payment.dueDate ? new Date(payment.dueDate) : new Date();
+    
+    for (let i = 0; i < installmentCount; i++) {
+      const dueDate = new Date(startDate);
+      
+      // Calculate due date based on payment frequency
+      switch (payment.paymentFrequency) {
+        case 'monthly':
+          dueDate.setMonth(dueDate.getMonth() + i);
+          break;
+        case 'quarterly':
+          dueDate.setMonth(dueDate.getMonth() + (i * 3));
+          break;
+        case 'yearly':
+          dueDate.setFullYear(dueDate.getFullYear() + i);
+          break;
+        default:
+          dueDate.setMonth(dueDate.getMonth() + i);
+      }
+      
+      // Determine if this installment is paid based on total paid amount
+      const totalPaidSoFar = payment.paidAmount;
+      const installmentsPaid = Math.floor(totalPaidSoFar / installmentAmount);
+      const status = i < installmentsPaid ? 'paid' : 'pending';
+      
+      installments.push({
+        number: i + 1,
+        amount: installmentAmount,
+        dueDate: dueDate.toLocaleDateString('ar-SA'),
+        status
+      });
+    }
+    
+    return installments;
+  };
+
   // Filter payments based on current filters
   const filteredPayments = useMemo(() => {
     let filtered = payments;
