@@ -45,6 +45,8 @@ const addPaymentSchema = z.object({
   dueDate: z.string().optional(),
 });
 
+type AddPaymentFormData = z.infer<typeof addPaymentSchema>;
+
 const payInstallmentSchema = z.object({
   amount: z.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
 });
@@ -65,11 +67,12 @@ export default function DeferredPayments() {
     queryKey: ["/api/projects"],
   });
 
-  const addForm = useForm({
+  const addForm = useForm<AddPaymentFormData>({
     resolver: zodResolver(addPaymentSchema),
     defaultValues: {
       beneficiaryName: "",
       totalAmount: 0,
+      projectId: undefined,
       description: "",
       dueDate: "",
     },
@@ -292,13 +295,17 @@ export default function DeferredPayments() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium">المشروع (اختياري)</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(Number(value))}>
+                      <Select 
+                        value={field.value?.toString() || "none"} 
+                        onValueChange={(value) => field.onChange(value === "none" ? undefined : Number(value))}
+                      >
                         <FormControl>
                           <SelectTrigger className="h-9">
                             <SelectValue placeholder="اختر المشروع" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">بدون مشروع</SelectItem>
                           {projects.map((project: Project) => (
                             <SelectItem key={project.id} value={project.id.toString()}>
                               {project.name}
@@ -431,14 +438,14 @@ export default function DeferredPayments() {
             <div className="space-y-2">
               <label className="text-sm font-medium">المشروع</label>
               <Select
-                value={filter.projectId?.toString() || ""}
-                onValueChange={(value) => setFilter({ ...filter, projectId: value ? Number(value) : undefined })}
+                value={filter.projectId?.toString() || "all"}
+                onValueChange={(value) => setFilter({ ...filter, projectId: value === "all" ? undefined : Number(value) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="جميع المشاريع" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع المشاريع</SelectItem>
+                  <SelectItem value="all">جميع المشاريع</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id.toString()}>
                       {project.name}
@@ -451,14 +458,14 @@ export default function DeferredPayments() {
             <div className="space-y-2">
               <label className="text-sm font-medium">الحالة</label>
               <Select
-                value={filter.status || ""}
-                onValueChange={(value) => setFilter({ ...filter, status: value || undefined })}
+                value={filter.status || "all"}
+                onValueChange={(value) => setFilter({ ...filter, status: value === "all" ? undefined : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="جميع الحالات" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع الحالات</SelectItem>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
                   <SelectItem value="pending">معلقة</SelectItem>
                   <SelectItem value="completed">مكتملة</SelectItem>
                 </SelectContent>
