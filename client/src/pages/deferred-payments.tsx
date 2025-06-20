@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Plus, DollarSign, Calendar, User } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { 
+  Plus, 
+  DollarSign, 
+  Calendar, 
+  User, 
+  Search, 
+  Filter, 
+  CreditCard, 
+  CheckCircle, 
+  Clock,
+  Edit,
+  Trash2
+} from "lucide-react";
 import type { DeferredPayment, Project } from "@shared/schema";
+
+interface Filter {
+  projectId?: number;
+  status?: string;
+  searchQuery?: string;
+}
 
 const addPaymentSchema = z.object({
   beneficiaryName: z.string().min(1, "اسم المستفيد مطلوب"),
@@ -33,12 +52,13 @@ const payInstallmentSchema = z.object({
 export default function DeferredPayments() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [filter, setFilter] = useState<Filter>({});
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<DeferredPayment | null>(null);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
   const { data: payments = [], isLoading } = useQuery<DeferredPayment[]>({
-    queryKey: ["/api/deferred-payments"],
+    queryKey: ["/api/deferred-payments", filter],
   });
 
   const { data: projects = [] } = useQuery<Project[]>({
@@ -50,7 +70,6 @@ export default function DeferredPayments() {
     defaultValues: {
       beneficiaryName: "",
       totalAmount: 0,
-      projectId: undefined,
       description: "",
       dueDate: "",
     },
@@ -75,6 +94,7 @@ export default function DeferredPayments() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deferred-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       setIsAddDialogOpen(false);
       addForm.reset();
       toast({
@@ -131,6 +151,7 @@ export default function DeferredPayments() {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('ar-SA');
   };
 
@@ -144,21 +165,66 @@ export default function DeferredPayments() {
     return project?.name || "مشروع غير معروف";
   };
 
-  const pendingPayments = payments.filter((p: DeferredPayment) => p.status === 'pending');
-  const completedPayments = payments.filter((p: DeferredPayment) => p.status === 'completed');
+  // Filter payments based on current filters
+  const filteredPayments = useMemo(() => {
+    let filtered = payments;
 
-  const totalPending = pendingPayments.reduce((sum: number, p: DeferredPayment) => sum + p.remainingAmount, 0);
+    if (filter.projectId) {
+      filtered = filtered.filter(p => p.projectId === filter.projectId);
+    }
+
+    if (filter.status) {
+      if (filter.status === 'pending') {
+        filtered = filtered.filter(p => p.status === 'pending');
+      } else if (filter.status === 'completed') {
+        filtered = filtered.filter(p => p.status === 'completed');
+      }
+    }
+
+    if (filter.searchQuery) {
+      const query = filter.searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.beneficiaryName.toLowerCase().includes(query) ||
+        (p.description && p.description.toLowerCase().includes(query))
+      );
+    }
+
+    return filtered;
+  }, [payments, filter]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const totalPayments = payments.length;
+    const pendingPayments = payments.filter(p => p.status === 'pending').length;
+    const completedPayments = payments.filter(p => p.status === 'completed').length;
+    const totalAmount = payments.reduce((sum, p) => sum + p.totalAmount, 0);
+    const paidAmount = payments.reduce((sum, p) => sum + p.paidAmount, 0);
+    const remainingAmount = payments.reduce((sum, p) => sum + p.remainingAmount, 0);
+
+    return {
+      totalPayments,
+      pendingPayments,
+      completedPayments,
+      totalAmount,
+      paidAmount,
+      remainingAmount,
+    };
+  }, [payments]);
 
   if (isLoading) {
     return (
       <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -300,15 +366,15 @@ export default function DeferredPayments() {
         </Dialog>
       </div>
 
-      {/* Stats */}
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2 space-x-reverse">
-              <DollarSign className="w-8 h-8 text-red-500" />
+              <DollarSign className="w-8 h-8 text-blue-500" />
               <div>
-                <p className="text-2xl font-bold text-red-600">{formatCurrency(totalPending)}</p>
-                <p className="text-sm text-gray-600">إجمالي المستحقات</p>
+                <p className="text-2xl font-bold text-blue-600">{formatCurrency(stats.totalAmount)}</p>
+                <p className="text-sm text-gray-600">إجمالي المبالغ</p>
               </div>
             </div>
           </CardContent>
@@ -317,10 +383,10 @@ export default function DeferredPayments() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2 space-x-reverse">
-              <User className="w-8 h-8 text-blue-500" />
+              <CheckCircle className="w-8 h-8 text-green-500" />
               <div>
-                <p className="text-2xl font-bold text-blue-600">{pendingPayments.length}</p>
-                <p className="text-sm text-gray-600">دفعات معلقة</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.paidAmount)}</p>
+                <p className="text-sm text-gray-600">المبالغ المدفوعة</p>
               </div>
             </div>
           </CardContent>
@@ -329,122 +395,171 @@ export default function DeferredPayments() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2 space-x-reverse">
-              <Calendar className="w-8 h-8 text-green-500" />
+              <Clock className="w-8 h-8 text-red-500" />
               <div>
-                <p className="text-2xl font-bold text-green-600">{completedPayments.length}</p>
-                <p className="text-sm text-gray-600">دفعات مكتملة</p>
+                <p className="text-2xl font-bold text-red-600">{formatCurrency(stats.remainingAmount)}</p>
+                <p className="text-sm text-gray-600">المبالغ المتبقية</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Pending Payments */}
-      {pendingPayments.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">الدفعات المعلقة</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingPayments.map((payment: DeferredPayment) => {
-              const progress = getProgressPercentage(payment.paidAmount, payment.totalAmount);
-              return (
-                <Card key={payment.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-start">
-                      <span>{payment.beneficiaryName}</span>
-                      <Badge variant="secondary">{progress}%</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>المدفوع: {formatCurrency(payment.paidAmount)}</span>
-                        <span>الإجمالي: {formatCurrency(payment.totalAmount)}</span>
-                      </div>
-                      <Progress value={progress} className="h-2" />
-                      <p className="text-sm text-gray-600 mt-1">
-                        المتبقي: {formatCurrency(payment.remainingAmount)}
-                      </p>
-                    </div>
-                    
-                    {payment.projectId && (
-                      <p className="text-sm text-gray-600">
-                        المشروع: {getProjectName(payment.projectId)}
-                      </p>
-                    )}
-                    
-                    {payment.description && (
-                      <p className="text-sm text-gray-600">{payment.description}</p>
-                    )}
-                    
-                    {payment.dueDate && (
-                      <p className="text-sm text-gray-600">
-                        الاستحقاق: {formatDate(String(payment.dueDate))}
-                      </p>
-                    )}
-                    
-                    <Button 
-                      className="w-full"
-                      onClick={() => {
-                        setSelectedPayment(payment);
-                        setIsPayDialogOpen(true);
-                      }}
-                    >
-                      دفع مبلغ
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            البحث والتصفية
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">البحث</label>
+              <div className="relative">
+                <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="ابحث في الدفعات..."
+                  value={filter.searchQuery || ""}
+                  onChange={(e) => setFilter({ ...filter, searchQuery: e.target.value })}
+                  className="pr-10"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">المشروع</label>
+              <Select
+                value={filter.projectId?.toString() || ""}
+                onValueChange={(value) => setFilter({ ...filter, projectId: value ? Number(value) : undefined })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="جميع المشاريع" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">جميع المشاريع</SelectItem>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id.toString()}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">الحالة</label>
+              <Select
+                value={filter.status || ""}
+                onValueChange={(value) => setFilter({ ...filter, status: value || undefined })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="جميع الحالات" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">جميع الحالات</SelectItem>
+                  <SelectItem value="pending">معلقة</SelectItem>
+                  <SelectItem value="completed">مكتملة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
-      {/* Completed Payments */}
-      {completedPayments.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">الدفعات المكتملة</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedPayments.map((payment: DeferredPayment) => (
-              <Card key={payment.id} className="border-green-200 bg-green-50">
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-start">
-                    <span>{payment.beneficiaryName}</span>
-                    <Badge className="bg-green-100 text-green-800">مكتمل</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-sm">المبلغ: {formatCurrency(payment.totalAmount)}</p>
-                  {payment.projectId && (
-                    <p className="text-sm text-gray-600">
-                      المشروع: {getProjectName(payment.projectId)}
-                    </p>
-                  )}
-                  {payment.completedAt && (
-                    <p className="text-sm text-gray-600">
-                      تم الإكمال: {formatDate(String(payment.completedAt))}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {payments.length === 0 && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد دفعات مؤجلة</h3>
-            <p className="text-gray-600 mb-4">ابدأ بإضافة دفعة مؤجلة جديدة</p>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة دفعة مؤجلة
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Payments Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>جدول الدفعات المؤجلة</span>
+            <Badge variant="secondary">{filteredPayments.length} دفعة</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredPayments.length === 0 ? (
+            <div className="text-center py-12">
+              <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد دفعات مؤجلة</h3>
+              <p className="text-gray-600 mb-4">ابدأ بإضافة دفعة مؤجلة جديدة</p>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة دفعة مؤجلة
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">المستفيد</TableHead>
+                    <TableHead className="text-right">المبلغ الإجمالي</TableHead>
+                    <TableHead className="text-right">المدفوع</TableHead>
+                    <TableHead className="text-right">المتبقي</TableHead>
+                    <TableHead className="text-right">التقدم</TableHead>
+                    <TableHead className="text-right">المشروع</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">تاريخ الاستحقاق</TableHead>
+                    <TableHead className="text-right">الإجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPayments.map((payment: DeferredPayment) => {
+                    const progress = getProgressPercentage(payment.paidAmount, payment.totalAmount);
+                    return (
+                      <TableRow key={payment.id}>
+                        <TableCell className="font-medium">{payment.beneficiaryName}</TableCell>
+                        <TableCell>{formatCurrency(payment.totalAmount)}</TableCell>
+                        <TableCell>{formatCurrency(payment.paidAmount)}</TableCell>
+                        <TableCell>{formatCurrency(payment.remainingAmount)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${progress}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm">{progress}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getProjectName(payment.projectId)}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={payment.status === 'completed' ? 'default' : 'secondary'}
+                            className={payment.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
+                          >
+                            {payment.status === 'completed' ? 'مكتملة' : 'معلقة'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {payment.dueDate ? formatDate(String(payment.dueDate)) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {payment.status === 'pending' && (
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedPayment(payment);
+                                  setIsPayDialogOpen(true);
+                                }}
+                              >
+                                <CreditCard className="w-4 h-4 ml-1" />
+                                دفع
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Pay Installment Dialog */}
       <Dialog open={isPayDialogOpen} onOpenChange={setIsPayDialogOpen}>
@@ -470,12 +585,11 @@ export default function DeferredPayments() {
                     name="amount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>المبلغ المراد دفعه</FormLabel>
+                        <FormLabel>مبلغ الدفعة</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             type="number"
-                            placeholder="أدخل المبلغ"
-                            max={selectedPayment.remainingAmount}
+                            placeholder="أدخل مبلغ الدفعة"
                             {...field}
                             onChange={(e) => field.onChange(Number(e.target.value))}
                           />
