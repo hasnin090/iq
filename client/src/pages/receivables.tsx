@@ -14,8 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { 
   Plus, 
   Search, 
@@ -70,8 +69,6 @@ export default function Receivables() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState<string>("all");
-  const [selectedReceivable, setSelectedReceivable] = useState<DeferredPayment | null>(null);
-  const [paymentsDialogOpen, setPaymentsDialogOpen] = useState(false);
 
   const { data: receivables = [], isLoading } = useQuery<DeferredPayment[]>({
     queryKey: ["/api/deferred-payments"],
@@ -79,12 +76,6 @@ export default function Receivables() {
 
   const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
-  });
-
-  // Fetch payment history for selected receivable
-  const { data: paymentHistory = [] } = useQuery<any[]>({
-    queryKey: ["/api/ledger/deferred-payments", selectedReceivable?.id],
-    enabled: !!selectedReceivable?.id,
   });
 
   const mainForm = useForm<FormData>({
@@ -646,158 +637,14 @@ export default function Receivables() {
                   </div>
                 )}
 
-                {/* Payments Button */}
-                <div className="mt-4 pt-3 border-t border-gray-200">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedReceivable(receivable);
-                      setPaymentsDialogOpen(true);
-                    }}
-                    className="w-full"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    عرض تفاصيل الدفعات
-                  </Button>
-                </div>
+
               </CardContent>
             </Card>
           ))
         )}
       </div>
 
-      {/* Payments Dialog */}
-      <Dialog open={paymentsDialogOpen} onOpenChange={setPaymentsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              تفاصيل دفعات المستحق: {selectedReceivable?.beneficiaryName}
-            </DialogTitle>
-            <DialogDescription>
-              عرض تفصيلي لجميع الدفعات المسددة لهذا المستحق مع التواريخ والمبالغ والمشاريع المرتبطة
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedReceivable && (
-            <div className="space-y-6">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-green-600" />
-                    <span className="text-sm font-medium text-green-800">إجمالي المستحق</span>
-                  </div>
-                  <p className="text-2xl font-bold text-green-900 mt-1">
-                    {selectedReceivable.totalAmount.toLocaleString()} دينار عراقي
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-800">إجمالي المدفوع</span>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-900 mt-1">
-                    {selectedReceivable.paidAmount.toLocaleString()} دينار عراقي
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-orange-600" />
-                    <span className="text-sm font-medium text-orange-800">المبلغ المتبقي</span>
-                  </div>
-                  <p className="text-2xl font-bold text-orange-900 mt-1">
-                    {(selectedReceivable.totalAmount - selectedReceivable.paidAmount).toLocaleString()} دينار عراقي
-                  </p>
-                </div>
-              </div>
 
-              {/* Payment History Table */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    سجل الدفعات
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(paymentHistory as any[]).length === 0 ? (
-                    <div className="text-center py-8">
-                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">لا توجد دفعات مسجلة لهذا المستحق</p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-right">التاريخ</TableHead>
-                          <TableHead className="text-right">المبلغ</TableHead>
-                          <TableHead className="text-right">الوصف</TableHead>
-                          <TableHead className="text-right">المشروع</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {(paymentHistory as any[]).map((payment: any, index: number) => (
-                          <TableRow key={payment.id || index}>
-                            <TableCell className="font-medium">
-                              {new Date(payment.date).toLocaleDateString('ar-EG')}
-                            </TableCell>
-                            <TableCell className="font-mono text-right">
-                              <span className="text-green-600 font-semibold">
-                                {payment.amount.toLocaleString()} دينار عراقي
-                              </span>
-                            </TableCell>
-                            <TableCell>{payment.description || 'دفعة'}</TableCell>
-                            <TableCell>
-                              {payment.projectId 
-                                ? projects.find((p: Project) => p.id === payment.projectId)?.name || `مشروع ${payment.projectId}`
-                                : 'غير محدد'
-                              }
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Additional Information */}
-              {(selectedReceivable.description || selectedReceivable.notes) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>معلومات إضافية</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {selectedReceivable.description && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">الوصف:</label>
-                        <p className="text-gray-900 mt-1">{selectedReceivable.description}</p>
-                      </div>
-                    )}
-                    {selectedReceivable.notes && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">ملاحظات:</label>
-                        <p className="text-gray-900 mt-1">{selectedReceivable.notes}</p>
-                      </div>
-                    )}
-                    {selectedReceivable.dueDate && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">تاريخ الاستحقاق:</label>
-                        <p className="text-gray-900 mt-1">
-                          {new Date(selectedReceivable.dueDate).toLocaleDateString('ar-EG')}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
