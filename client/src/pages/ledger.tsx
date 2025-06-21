@@ -383,14 +383,14 @@ export default function LedgerPage() {
             <div className="text-center">جاري التحميل...</div>
           ) : (
             <div className="space-y-4">
-              {deferredPayments.length === 0 ? (
+              {(deferredPayments as any[]).length === 0 ? (
                 <Card>
                   <CardContent className="text-center py-8">
                     <p className="text-muted-foreground">لا توجد دفعات آجلة مسجلة حتى الآن</p>
                   </CardContent>
                 </Card>
               ) : (
-                deferredPayments.map((beneficiary: any) => (
+                (deferredPayments as any[]).map((beneficiary: any) => (
                   <Card key={beneficiary.beneficiaryName}>
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
