@@ -115,6 +115,11 @@ export default function Reports() {
     queryKey: ["/api/ledger"],
   });
 
+  // جلب بيانات الدفعات المستحقة
+  const { data: deferredPayments = [] } = useQuery({
+    queryKey: ["/api/deferred-payments"],
+  });
+
 
   // فلترة المعاملات - فقط العمليات المصنفة في دفتر الأستاذ
   const filteredTransactions = useMemo(() => {
@@ -422,9 +427,17 @@ export default function Reports() {
                       <span className="truncate">{getAccountTypeName(accountType)}</span>
                       <Eye className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </CardTitle>
-                    <Badge variant="secondary" className="w-fit text-xs">
-                      {data.count} معاملة
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="w-fit text-xs">
+                        {data.count} معاملة
+                      </Badge>
+                      {/* إضافة عدد الدفعات المستحقة لحساب السلف */}
+                      {(accountType === 'سلف' || accountType === 'سلفة') && (deferredPayments as any[]).length > 0 && (
+                        <Badge variant="outline" className="w-fit text-xs text-orange-600 border-orange-300">
+                          {(deferredPayments as any[]).length} مستحق
+                        </Badge>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="text-lg md:text-2xl font-bold text-[hsl(var(--foreground))] mb-1">
@@ -433,6 +446,14 @@ export default function Reports() {
                     <div className="text-xs md:text-sm text-[hsl(var(--muted-foreground))]">
                       متوسط: {formatCurrency(data.total / data.count)}
                     </div>
+                    {/* إضافة معلومات الدفعات المستحقة لحساب السلف */}
+                    {(accountType === 'سلف' || accountType === 'سلفة') && (deferredPayments as any[]).length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-muted/30">
+                        <div className="text-xs text-orange-600 font-medium">
+                          دفعات مستحقة: {formatCurrency((deferredPayments as any[]).reduce((sum: number, payment: any) => sum + (payment.totalAmount - payment.paidAmount), 0))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -520,6 +541,44 @@ export default function Reports() {
                         <span className="text-sm text-[hsl(var(--muted-foreground))]">عدد المعاملات</span>
                         <Badge variant="outline">{data.count} معاملة</Badge>
                       </div>
+                      
+                      {/* إضافة قسم الدفعات المستحقة لحساب السلف */}
+                      {(accountType === 'سلف' || accountType === 'سلفة') && (
+                        <div className="pt-3 border-t">
+                          <div className="text-xs text-[hsl(var(--muted-foreground))] mb-3 font-semibold">الدفعات المستحقة:</div>
+                          {(deferredPayments as any[]).length === 0 ? (
+                            <div className="text-xs text-[hsl(var(--muted-foreground))] text-center py-2">
+                              لا توجد دفعات مستحقة
+                            </div>
+                          ) : (
+                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                              {(deferredPayments as any[]).map((payment: any) => (
+                                <div key={payment.id} className="text-sm p-2 bg-muted/30 rounded border">
+                                  <div className="flex justify-between items-center">
+                                    <span className="font-medium text-[hsl(var(--primary))]">{payment.beneficiaryName}</span>
+                                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                                      {projects.find((p: any) => p.id === payment.projectId)?.name || 'عام'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-xs mt-1">
+                                    <span>إجمالي: {formatCurrency(payment.totalAmount)}</span>
+                                    <span className="text-green-600">مدفوع: {formatCurrency(payment.paidAmount)}</span>
+                                  </div>
+                                  <div className="text-xs text-orange-600 mt-1">
+                                    متبقي: {formatCurrency(payment.totalAmount - payment.paidAmount)}
+                                  </div>
+                                  {payment.dueDate && (
+                                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
+                                      الاستحقاق: {new Date(payment.dueDate).toLocaleDateString('ar-EG')}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="pt-2 border-t">
                         <div className="text-xs text-[hsl(var(--muted-foreground))] mb-2">المعاملات الأخيرة:</div>
                         {data.transactions.slice(0, 3).map((transaction) => (
@@ -924,8 +983,87 @@ export default function Reports() {
                   </div>
                 </div>
 
+                {/* قسم الدفعات المستحقة لحساب السلف */}
+                {(dialogAccountType === 'سلف' || dialogAccountType === 'سلفة') && (deferredPayments as any[]).length > 0 && (
+                  <div className="border rounded-lg overflow-hidden mb-6">
+                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/30 p-4 border-b">
+                      <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
+                        الدفعات المستحقة - مصنفة حسب المستفيد
+                      </h3>
+                      <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                        إجمالي المبلغ المتبقي: {formatCurrency((deferredPayments as any[]).reduce((sum: number, payment: any) => sum + (payment.totalAmount - payment.paidAmount), 0))}
+                      </p>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      {(deferredPayments as any[]).map((payment: any) => (
+                        <div key={payment.id} className="border rounded-lg p-4 bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-semibold text-lg text-primary">{payment.beneficiaryName}</h4>
+                            <Badge variant="outline" className="text-orange-600 border-orange-300">
+                              {projects.find((p: any) => p.id === payment.projectId)?.name || 'عام'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                            <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                              <p className="text-sm text-blue-600 dark:text-blue-400">إجمالي المستحق</p>
+                              <p className="text-lg font-bold text-blue-800 dark:text-blue-200">
+                                {formatCurrency(payment.totalAmount)}
+                              </p>
+                            </div>
+                            <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                              <p className="text-sm text-green-600 dark:text-green-400">المدفوع</p>
+                              <p className="text-lg font-bold text-green-800 dark:text-green-200">
+                                {formatCurrency(payment.paidAmount)}
+                              </p>
+                            </div>
+                            <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded">
+                              <p className="text-sm text-orange-600 dark:text-orange-400">المتبقي</p>
+                              <p className="text-lg font-bold text-orange-800 dark:text-orange-200">
+                                {formatCurrency(payment.totalAmount - payment.paidAmount)}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {payment.description && (
+                            <div className="mb-2">
+                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">الوصف: </span>
+                              <span className="text-sm text-gray-800 dark:text-gray-200">{payment.description}</span>
+                            </div>
+                          )}
+                          
+                          {payment.dueDate && (
+                            <div className="mb-2">
+                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">تاريخ الاستحقاق: </span>
+                              <span className="text-sm text-gray-800 dark:text-gray-200">
+                                {new Date(payment.dueDate).toLocaleDateString('ar-EG')}
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
+                            <div 
+                              className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${Math.min((payment.paidAmount / payment.totalAmount) * 100, 100)}%` }}
+                            ></div>
+                          </div>
+                          <p className="text-xs text-center text-gray-600 dark:text-gray-400 mt-1">
+                            تقدم السداد: {Math.round((payment.paidAmount / payment.totalAmount) * 100)}%
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* جدول المعاملات */}
                 <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 border-b">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                      معاملات {getAccountTypeName(dialogAccountType)}
+                    </h3>
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
