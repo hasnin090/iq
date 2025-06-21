@@ -125,16 +125,19 @@ export const expenseTypes = pgTable("expense_types", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// دفتر الأستاذ - المصروفات المصنفة حسب النوع
+// دفتر الأستاذ - المصروفات المصنفة حسب النوع والمستحقات
 export const ledgerEntries = pgTable("ledger_entries", {
   id: serial("id").primaryKey(),
   date: timestamp("date").notNull(),
-  transactionId: integer("transaction_id").notNull().references(() => transactions.id),
+  transactionId: integer("transaction_id").references(() => transactions.id), // اختياري للمستحقات
   expenseTypeId: integer("expense_type_id").references(() => expenseTypes.id),
   amount: integer("amount").notNull(),
   description: text("description").notNull(),
   projectId: integer("project_id").references(() => projects.id),
-  entryType: text("entry_type").notNull(), // "classified" أو "miscellaneous" 
+  entryType: text("entry_type").notNull(), // "classified", "miscellaneous", "receivable", "receivable_payment", "receivable_completed"
+  referenceType: text("reference_type"), // "transaction", "deferred_payment"
+  referenceId: integer("reference_id"), // معرف المرجع (transaction.id أو deferred_payment.id)
+  createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -234,7 +237,10 @@ export const insertExpenseTypeSchema = createInsertSchema(expenseTypes)
   .omit({ id: true, createdAt: true, updatedAt: true });
 
 export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries)
-  .omit({ id: true, createdAt: true });
+  .omit({ id: true, createdAt: true })
+  .extend({
+    transactionId: z.number().optional(),
+  });
 
 export const insertAccountCategorySchema = createInsertSchema(accountCategories)
   .omit({ id: true, createdAt: true, updatedAt: true });
