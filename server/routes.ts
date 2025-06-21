@@ -21,6 +21,12 @@ import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import { db } from "./db";
 import { backupSystem } from "./backup-system";
+import { 
+  initializeBackupDatabase, 
+  checkDatabasesHealth, 
+  switchDatabase, 
+  syncDatabaseToBackup 
+} from './backup-db';
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";

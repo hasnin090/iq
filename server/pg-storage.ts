@@ -1,4 +1,5 @@
 import { db } from './db';
+import { getActiveDatabase, checkDatabasesHealth, markPrimaryDatabaseAsFailed } from './backup-db';
 import { eq, and, or, desc } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { 
@@ -22,6 +23,19 @@ import { IStorage } from './storage';
  * تنفذ واجهة IStorage المحددة سابقًا
  */
 export class PgStorage implements IStorage {
+  // دالة للحصول على قاعدة البيانات النشطة (الرئيسية أو الاحتياطية)
+  private async getDatabase() {
+    try {
+      // محاولة استخدام قاعدة البيانات الرئيسية أولاً
+      await db.select().from(users).limit(1);
+      return db;
+    } catch (error) {
+      console.warn('فشل في الاتصال بقاعدة البيانات الرئيسية، التبديل إلى الاحتياطية');
+      markPrimaryDatabaseAsFailed();
+      return getActiveDatabase();
+    }
+  }
+
   // دالة مساعدة للتحقق من وجود جدول في قاعدة البيانات
   async checkTableExists(tableName: string): Promise<boolean> {
     try {
