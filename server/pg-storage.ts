@@ -1344,10 +1344,15 @@ export class PgStorage implements IStorage {
         payment.projectId!,
         amount,
         `دفعة مستحق: ${payment.beneficiaryName} - قسط ${amount}`,
-        "مستحقات"
+        "دفعات آجلة"
       );
 
       resultTransaction = withdrawalResult.transaction;
+
+      // 5. تصنيف المعاملة في دفتر الأستاذ
+      if (resultTransaction) {
+        await this.classifyExpenseTransaction(resultTransaction, true);
+      }
 
       // 5. إنشاء سجل نشاط
       if (isCompleted) {

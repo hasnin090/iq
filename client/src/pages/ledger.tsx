@@ -87,6 +87,11 @@ export default function LedgerPage() {
     queryKey: ["/api/ledger"],
   });
 
+  // جلب الدفعات الآجلة
+  const { data: deferredPayments = [], isLoading: deferredLoading } = useQuery({
+    queryKey: ["/api/ledger/deferred-payments"],
+  });
+
   // إضافة نوع مصروف جديد
   const createExpenseTypeMutation = useMutation({
     mutationFn: (data: ExpenseTypeForm) => 

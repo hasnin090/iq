@@ -2546,6 +2546,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // جلب الدفعات الآجلة مع تجميعها حسب المستفيد
+  app.get("/api/ledger/deferred-payments", authenticate, async (req: Request, res: Response) => {
+    try {
+      // جلب نوع المصروف للدفعات الآجلة
+      const deferredExpenseType = await storage.getExpenseTypeByName('دفعات آجلة');
+      if (!deferredExpenseType) {
+        return res.status(200).json([]);
+      }
+
+      // جلب السجلات المتعلقة بالدفعات الآجلة
+      const deferredEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
+      
+      // تجميع السجلات حسب المستفيد (استخراج اسم المستفيد من الوصف)
+      const groupedEntries: { [key: string]: any[] } = {};
+      
+      deferredEntries.forEach(entry => {
+        // استخراج اسم المستفيد من الوصف (دفعة مستحق: اسم المستفيد - قسط...)
+        const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/);
+        const beneficiaryName = match ? match[1] : 'غير محدد';
+        
+        if (!groupedEntries[beneficiaryName]) {
+          groupedEntries[beneficiaryName] = [];
+        }
+        groupedEntries[beneficiaryName].push(entry);
+      });
+
+      // تحويل إلى تنسيق مناسب للعرض
+      const result = Object.keys(groupedEntries).map(beneficiaryName => ({
+        beneficiaryName,
+        totalAmount: groupedEntries[beneficiaryName].reduce((sum, entry) => sum + entry.amount, 0),
+        paymentsCount: groupedEntries[beneficiaryName].length,
+        entries: groupedEntries[beneficiaryName].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      }));
+
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error("خطأ في جلب الدفعات الآجلة:", error);
+      return res.status(500).json({ message: "خطأ في جلب الدفعات الآجلة" });
+    }
+  });
+
   // ======== تصنيفات أنواع الحسابات ========
   
   // جلب جميع تصنيفات أنواع الحسابات
