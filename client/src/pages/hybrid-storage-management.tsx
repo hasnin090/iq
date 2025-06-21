@@ -121,9 +121,7 @@ export default function HybridStorageManagement() {
   const initializeSupabase = async () => {
     setIsLoading(true);
     try {
-      const response = await apiRequest('/api/supabase/init', {
-        method: 'POST'
-      });
+      const response = await apiRequest('/api/supabase/init', 'POST');
       
       if (response.success) {
         toast({
@@ -146,11 +144,7 @@ export default function HybridStorageManagement() {
   const setPreferredProvider = async (provider: string) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest('/api/storage/set-preferred', {
-        method: 'POST',
-        body: JSON.stringify({ provider }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const response = await apiRequest('/api/storage/set-preferred', 'POST', { provider });
       
       if (response.success) {
         toast({

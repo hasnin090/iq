@@ -131,6 +131,9 @@ function AppRoutes() {
               <Route path="/database-management">
                 {user?.role === 'admin' ? <DatabaseManagement /> : <NotFound />}
               </Route>
+              <Route path="/hybrid-storage">
+                {user?.role === 'admin' ? <HybridStorageManagement /> : <NotFound />}
+              </Route>
               <Route component={NotFound} />
             </Switch>
           </div>
