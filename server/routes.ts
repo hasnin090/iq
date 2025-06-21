@@ -27,6 +27,15 @@ import {
   switchDatabase, 
   syncDatabaseToBackup 
 } from './backup-db';
+import {
+  initializeSupabase,
+  checkSupabaseHealth,
+  syncToSupabase,
+  migrateFilesToSupabase,
+  updateFileUrlsToSupabase,
+  uploadToSupabase,
+  deleteFromSupabase
+} from './supabase-db';
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -3015,6 +3024,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: "حدث خطأ أثناء مزامنة البيانات" 
+      });
+    }
+  });
+
+  // ======== إدارة Supabase ========
+  
+  // فحص حالة Supabase
+  app.get("/api/supabase/health", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const health = await checkSupabaseHealth();
+      res.json({ 
+        success: true, 
+        health,
+        message: `Supabase متاح: عميل=${health.client}, قاعدة بيانات=${health.database}, تخزين=${health.storage}`
+      });
+    } catch (error) {
+      console.error("خطأ في فحص حالة Supabase:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء فحص حالة Supabase" 
+      });
+    }
+  });
+
+  // تهيئة Supabase
+  app.post("/api/supabase/init", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const success = await initializeSupabase();
+      
+      if (success) {
+        await storage.createActivityLog({
+          userId: req.session.userId as number,
+          action: "supabase_init",
+          entityType: "system",
+          entityId: 0,
+          details: "تم تهيئة Supabase"
+        });
+        
+        res.json({ 
+          success: true, 
+          message: "تم تهيئة Supabase بنجاح" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "فشل في تهيئة Supabase - تحقق من متغيرات البيئة" 
+        });
+      }
+    } catch (error) {
+      console.error("خطأ في تهيئة Supabase:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء تهيئة Supabase" 
+      });
+    }
+  });
+
+  // مزامنة البيانات إلى Supabase
+  app.post("/api/supabase/sync-data", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const success = await syncToSupabase();
+      
+      if (success) {
+        await storage.createActivityLog({
+          userId: req.session.userId as number,
+          action: "supabase_sync",
+          entityType: "system",
+          entityId: 0,
+          details: "تم مزامنة البيانات إلى Supabase"
+        });
+        
+        res.json({ 
+          success: true, 
+          message: "تم مزامنة البيانات إلى Supabase بنجاح" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "فشل في مزامنة البيانات" 
+        });
+      }
+    } catch (error) {
+      console.error("خطأ في مزامنة البيانات إلى Supabase:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء مزامنة البيانات" 
+      });
+    }
+  });
+
+  // نقل الملفات إلى Supabase
+  app.post("/api/supabase/migrate-files", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const results = await migrateFilesToSupabase();
+      
+      await storage.createActivityLog({
+        userId: req.session.userId as number,
+        action: "supabase_migrate_files",
+        entityType: "system",
+        entityId: 0,
+        details: `نقل الملفات إلى Supabase - نجح: ${results.success}, فشل: ${results.failed}`
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `تم نقل الملفات - نجح: ${results.success}, فشل: ${results.failed}`,
+        results
+      });
+    } catch (error) {
+      console.error("خطأ في نقل الملفات إلى Supabase:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء نقل الملفات" 
+      });
+    }
+  });
+
+  // تحديث روابط الملفات لتشير إلى Supabase
+  app.post("/api/supabase/update-file-urls", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const success = await updateFileUrlsToSupabase();
+      
+      if (success) {
+        await storage.createActivityLog({
+          userId: req.session.userId as number,
+          action: "supabase_update_urls",
+          entityType: "system",
+          entityId: 0,
+          details: "تم تحديث روابط الملفات لتشير إلى Supabase"
+        });
+        
+        res.json({ 
+          success: true, 
+          message: "تم تحديث روابط الملفات بنجاح" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "فشل في تحديث روابط الملفات" 
+        });
+      }
+    } catch (error) {
+      console.error("خطأ في تحديث روابط الملفات:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء تحديث روابط الملفات" 
       });
     }
   });

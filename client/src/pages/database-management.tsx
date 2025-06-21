@@ -16,14 +16,23 @@ import {
   RefreshCw, 
   Shield,
   ArrowRightLeft,
-  Sync,
-  AlertCircle
+  RotateCw,
+  AlertCircle,
+  Cloud,
+  Upload,
+  Download
 } from 'lucide-react';
 
 interface DatabaseHealth {
   primary: boolean;
   backup: boolean;
   active: 'primary' | 'backup' | 'none';
+}
+
+interface SupabaseHealth {
+  client: boolean;
+  database: boolean;
+  storage: boolean;
 }
 
 export default function DatabaseManagement() {
@@ -54,6 +63,12 @@ export default function DatabaseManagement() {
   const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
     queryKey: ['/api/database/health'],
     refetchInterval: 30000, // تحديث كل 30 ثانية
+  });
+
+  // جلب حالة Supabase
+  const { data: supabaseData, isLoading: supabaseLoading, refetch: refetchSupabase } = useQuery({
+    queryKey: ['/api/supabase/health'],
+    refetchInterval: 30000,
   });
 
   // تهيئة قاعدة البيانات الاحتياطية
@@ -137,6 +152,107 @@ export default function DatabaseManagement() {
   });
 
   const health: DatabaseHealth = healthData?.health || { primary: false, backup: false, active: 'none' };
+  const supabaseHealth: SupabaseHealth = supabaseData?.health || { client: false, database: false, storage: false };
+
+  // Supabase mutations
+  const initSupabaseMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/supabase/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('فشل في تهيئة Supabase');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم بنجاح",
+        description: "تم تهيئة Supabase",
+      });
+      refetchSupabase();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "فشل في تهيئة Supabase",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const syncToSupabaseMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/supabase/sync-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('فشل في مزامنة البيانات');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تمت المزامنة",
+        description: "تم مزامنة البيانات إلى Supabase بنجاح",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في المزامنة",
+        description: error.message || "فشل في مزامنة البيانات",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const migrateFilesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/supabase/migrate-files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('فشل في نقل الملفات');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "تم نقل الملفات",
+        description: `نجح: ${data.results?.success || 0}, فشل: ${data.results?.failed || 0}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في نقل الملفات",
+        description: error.message || "فشل في نقل الملفات",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateUrlsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/supabase/update-file-urls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) throw new Error('فشل في تحديث الروابط');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث روابط الملفات بنجاح",
+      });
+      // إعادة تحميل البيانات
+      queryClient.invalidateQueries();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في التحديث",
+        description: error.message || "فشل في تحديث الروابط",
+        variant: "destructive",
+      });
+    },
+  });
 
   const getStatusIcon = (isHealthy: boolean) => {
     return isHealthy ? (
