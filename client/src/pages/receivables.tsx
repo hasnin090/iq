@@ -43,7 +43,6 @@ export default function Receivables() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState<string>("all");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedReceivable, setSelectedReceivable] = useState<DeferredPayment | null>(null);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
@@ -91,7 +90,6 @@ export default function Receivables() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deferred-payments"] });
-      setIsAddDialogOpen(false);
       addForm.reset();
       toast({
         title: "تم بنجاح",
@@ -200,25 +198,23 @@ export default function Receivables() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">المستحقات</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">تسجيل المستحقات للأشخاص والموردين</p>
-        </div>
-        
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-              <Plus className="w-4 h-4 ml-2" />
-              تسجيل مستحق جديد
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>تسجيل مستحق جديد</DialogTitle>
-            </DialogHeader>
-            <Form {...addForm}>
-              <form onSubmit={addForm.handleSubmit((data) => addReceivableMutation.mutate(data))} className="space-y-4">
+      <div className="text-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">المستحقات</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">تسجيل المستحقات للأشخاص والموردين</p>
+      </div>
+
+      {/* Add Receivable Form */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            تسجيل مستحق جديد
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...addForm}>
+            <form onSubmit={addForm.handleSubmit((data) => addReceivableMutation.mutate(data))} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={addForm.control}
                   name="beneficiaryName"
@@ -283,24 +279,6 @@ export default function Receivables() {
 
                 <FormField
                   control={addForm.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الوصف (اختياري)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="وصف طبيعة المستحق أو العمل المطلوب" 
-                          {...field} 
-                          className="min-h-[60px] resize-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addForm.control}
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem>
@@ -312,28 +290,47 @@ export default function Receivables() {
                     </FormItem>
                   )}
                 />
+              </div>
 
-                <div className="flex gap-2 pt-4">
-                  <Button 
-                    type="submit" 
-                    disabled={addReceivableMutation.isPending} 
-                    className="flex-1"
-                  >
-                    {addReceivableMutation.isPending ? "جاري الإضافة..." : "إضافة"}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsAddDialogOpen(false)}
-                  >
-                    إلغاء
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <FormField
+                control={addForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الوصف (اختياري)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="وصف طبيعة المستحق أو العمل المطلوب" 
+                        {...field} 
+                        className="min-h-[60px] resize-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-2 pt-2">
+                <Button 
+                  type="submit" 
+                  disabled={addReceivableMutation.isPending} 
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                >
+                  <Plus className="w-4 h-4 ml-2" />
+                  {addReceivableMutation.isPending ? "جاري الإضافة..." : "إضافة المستحق"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => addForm.reset()}
+                >
+                  مسح الحقول
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card>
@@ -373,11 +370,7 @@ export default function Receivables() {
             <CardContent className="text-center py-12">
               <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد مستحقات مسجلة</h3>
-              <p className="text-gray-600 mb-4">ابدأ بإضافة مستحق جديد</p>
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="w-4 h-4 ml-2" />
-                تسجيل مستحق جديد
-              </Button>
+              <p className="text-gray-600 mb-4">استخدم النموذج أعلاه لإضافة مستحق جديد</p>
             </CardContent>
           </Card>
         ) : (
