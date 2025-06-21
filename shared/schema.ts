@@ -274,6 +274,7 @@ export const insertDeferredPaymentSchema = createInsertSchema(deferredPayments)
     totalAmount: z.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
     beneficiaryName: z.string().min(1, "اسم المستفيد مطلوب"),
     remainingAmount: z.number().optional(),
+    dueDate: z.union([z.string(), z.date()]).optional().nullable(),
   });
 
 export type InsertDeferredPayment = z.infer<typeof insertDeferredPaymentSchema>;
