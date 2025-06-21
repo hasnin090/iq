@@ -286,20 +286,20 @@ export default function DeferredPayments() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">الدفعات المؤجلة</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">إدارة المستحقات والأقساط</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">المستحقات</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">تسجيل المستحقات للأشخاص والموردين</p>
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
               <Plus className="w-4 h-4 ml-2" />
-              إضافة دفعة مؤجلة
+              تسجيل مستحق جديد
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader className="pb-3">
-              <DialogTitle className="text-lg">إضافة دفعة مؤجلة جديدة</DialogTitle>
+              <DialogTitle className="text-lg">تسجيل مستحق جديد</DialogTitle>
             </DialogHeader>
             <Form {...addForm}>
               <form onSubmit={addForm.handleSubmit((data) => addPaymentMutation.mutate(data))} className="space-y-3">
@@ -322,11 +322,11 @@ export default function DeferredPayments() {
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium">المبلغ الإجمالي</FormLabel>
+                      <FormLabel className="text-sm font-medium">المبلغ المستحق</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
-                          placeholder="أدخل المبلغ الإجمالي"
+                          placeholder="أدخل المبلغ المستحق"
                           {...field}
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           className="h-9"
@@ -398,69 +398,7 @@ export default function DeferredPayments() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={addForm.control}
-                    name="installments"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">عدد الأقساط</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="1" 
-                            max="60" 
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                            className="h-9" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
-                  <FormField
-                    control={addForm.control}
-                    name="paymentFrequency"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">دورية الدفع</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="monthly">شهري</SelectItem>
-                            <SelectItem value="quarterly">ربع سنوي</SelectItem>
-                            <SelectItem value="yearly">سنوي</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={addForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">ملاحظات (اختياري)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="ملاحظات إضافية حول الدفعة المؤجلة" 
-                          {...field} 
-                          className="min-h-[60px] resize-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:gap-2">
                   <Button 
@@ -485,44 +423,7 @@ export default function DeferredPayments() {
         </Dialog>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <DollarSign className="w-8 h-8 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold text-blue-600">{formatCurrency(stats.totalAmount)}</p>
-                <p className="text-sm text-gray-600">إجمالي المبالغ</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-              <div>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.paidAmount)}</p>
-                <p className="text-sm text-gray-600">المبالغ المدفوعة</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <Clock className="w-8 h-8 text-red-500" />
-              <div>
-                <p className="text-2xl font-bold text-red-600">{formatCurrency(stats.remainingAmount)}</p>
-                <p className="text-sm text-gray-600">المبالغ المتبقية</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
 
       {/* Filters */}
       <Card>
@@ -587,23 +488,23 @@ export default function DeferredPayments() {
         </CardContent>
       </Card>
 
-      {/* Payments Table */}
+      {/* المستحقات */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>جدول الدفعات المؤجلة</span>
-            <Badge variant="secondary">{filteredPayments.length} دفعة</Badge>
+            <span>قائمة المستحقات</span>
+            <Badge variant="secondary">{filteredPayments.length} مستحق</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {filteredPayments.length === 0 ? (
             <div className="text-center py-12">
-              <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد دفعات مؤجلة</h3>
-              <p className="text-gray-600 mb-4">ابدأ بإضافة دفعة مؤجلة جديدة</p>
+              <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد مستحقات مسجلة</h3>
+              <p className="text-gray-600 mb-4">ابدأ بإضافة مستحق جديد</p>
               <Button onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className="w-4 h-4 ml-2" />
-                إضافة دفعة مؤجلة
+                تسجيل مستحق جديد
               </Button>
             </div>
           ) : (
