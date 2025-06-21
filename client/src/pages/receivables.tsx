@@ -24,19 +24,35 @@ import {
 } from "lucide-react";
 import type { DeferredPayment, Project } from "@shared/schema";
 
-const addReceivableSchema = z.object({
-  beneficiaryName: z.string().min(1, "اسم المستفيد مطلوب"),
-  totalAmount: z.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
+const formSchema = z.object({
+  operationType: z.enum(["new_receivable", "payment"], {
+    required_error: "يجب تحديد نوع العملية"
+  }),
+  // Fields for new receivable
+  beneficiaryName: z.string().optional(),
+  totalAmount: z.number().optional(),
   projectId: z.number().optional(),
   description: z.string().optional(),
   dueDate: z.string().optional(),
+  initialPayment: z.number().optional(),
+  // Fields for payment
+  receivableId: z.number().optional(),
+  paymentAmount: z.number().optional(),
+  paymentNotes: z.string().optional()
+}).refine((data) => {
+  if (data.operationType === "new_receivable") {
+    return data.beneficiaryName && data.beneficiaryName.length > 0 && 
+           data.totalAmount && data.totalAmount > 0;
+  }
+  if (data.operationType === "payment") {
+    return data.receivableId && data.paymentAmount && data.paymentAmount > 0;
+  }
+  return false;
+}, {
+  message: "البيانات المطلوبة غير مكتملة"
 });
 
-type AddReceivableFormData = z.infer<typeof addReceivableSchema>;
-
-const paymentSchema = z.object({
-  amount: z.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
-});
+type FormData = z.infer<typeof formSchema>;
 
 export default function Receivables() {
   const { user } = useAuth();
@@ -54,23 +70,22 @@ export default function Receivables() {
     queryKey: ["/api/projects"],
   });
 
-  const addForm = useForm<AddReceivableFormData>({
-    resolver: zodResolver(addReceivableSchema),
+  const mainForm = useForm<FormData>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
+      operationType: "new_receivable",
       beneficiaryName: "",
       totalAmount: 0,
       projectId: undefined,
       description: "",
       dueDate: "",
-    },
+      initialPayment: 0,
+      paymentAmount: 0,
+      paymentNotes: ""
+    }
   });
 
-  const payForm = useForm({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: {
-      amount: 0,
-    },
-  });
+  const operationType = mainForm.watch("operationType");
 
   const addReceivableMutation = useMutation({
     mutationFn: async (data: any) => {
