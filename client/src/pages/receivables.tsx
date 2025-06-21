@@ -590,20 +590,20 @@ export default function Receivables() {
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-green-500" />
                     <span className="text-sm text-gray-600">المستحق:</span>
-                    <span className="font-medium">{receivable.totalAmount.toLocaleString()} ج.م</span>
+                    <span className="font-medium">{receivable.totalAmount.toLocaleString()} دينار عراقي</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-blue-500" />
                     <span className="text-sm text-gray-600">المدفوع:</span>
-                    <span className="font-medium">{receivable.paidAmount.toLocaleString()} ج.م</span>
+                    <span className="font-medium">{receivable.paidAmount.toLocaleString()} دينار عراقي</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-orange-500" />
                     <span className="text-sm text-gray-600">المتبقي:</span>
                     <span className="font-medium">
-                      {(receivable.totalAmount - receivable.paidAmount).toLocaleString()} ج.م
+                      {(receivable.totalAmount - receivable.paidAmount).toLocaleString()} دينار عراقي
                     </span>
                   </div>
                 </div>
