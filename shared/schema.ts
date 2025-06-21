@@ -269,10 +269,11 @@ export const deferredPayments = pgTable("deferred_payments", {
 });
 
 export const insertDeferredPaymentSchema = createInsertSchema(deferredPayments)
-  .omit({ id: true, paidAmount: true, remainingAmount: true, status: true, completedAt: true, createdAt: true, updatedAt: true })
+  .omit({ id: true, paidAmount: true, status: true, completedAt: true, createdAt: true, updatedAt: true })
   .extend({
     totalAmount: z.number().positive("المبلغ يجب أن يكون أكبر من صفر"),
     beneficiaryName: z.string().min(1, "اسم المستفيد مطلوب"),
+    remainingAmount: z.number().optional(),
   });
 
 export type InsertDeferredPayment = z.infer<typeof insertDeferredPaymentSchema>;

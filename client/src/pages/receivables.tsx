@@ -105,6 +105,7 @@ export default function Receivables() {
           body: JSON.stringify({
             beneficiaryName: data.beneficiaryName,
             totalAmount: data.totalAmount,
+            remainingAmount: data.totalAmount,
             projectId: data.projectId,
             description: data.description,
             dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,

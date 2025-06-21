@@ -2689,7 +2689,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertDeferredPaymentSchema.parse({
         ...req.body,
-        userId: req.session.userId
+        userId: req.session.userId,
+        remainingAmount: req.body.remainingAmount || req.body.totalAmount
       });
       
       const payment = await storage.createDeferredPayment(validatedData);
@@ -2697,6 +2698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(201).json(payment);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation error:", error.errors);
         return res.status(400).json({ message: "بيانات غير صالحة", errors: error.errors });
       }
       console.error("خطأ في إنشاء الدفعة المؤجلة:", error);
