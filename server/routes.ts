@@ -36,6 +36,13 @@ import {
   uploadToSupabase,
   deleteFromSupabase
 } from './supabase-db';
+import {
+  initializeFirebase,
+  checkFirebaseHealth,
+  uploadToFirebase,
+  deleteFromFirebase
+} from './firebase-storage';
+import { storageManager } from './storage-manager';
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
