@@ -405,7 +405,7 @@ export default function HybridStorageManagement() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Sync className="h-5 w-5" />
+                <RefreshCw className="h-5 w-5" />
                 <span>مزامنة الملفات</span>
               </CardTitle>
               <CardDescription>
