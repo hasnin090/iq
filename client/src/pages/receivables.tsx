@@ -101,6 +101,7 @@ export default function Receivables() {
         const response = await fetch("/api/deferred-payments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             beneficiaryName: data.beneficiaryName,
             totalAmount: data.totalAmount,
@@ -121,6 +122,7 @@ export default function Receivables() {
           const paymentResponse = await fetch(`/api/deferred-payments/${newReceivable.id}/pay`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
               amount: data.initialPayment,
               userId: user?.id,
@@ -136,6 +138,7 @@ export default function Receivables() {
         const response = await fetch(`/api/deferred-payments/${data.receivableId}/pay`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             amount: data.paymentAmount,
             userId: user?.id,
@@ -179,6 +182,7 @@ export default function Receivables() {
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/deferred-payments/${id}`, {
         method: "DELETE",
+        credentials: "include",
       });
       if (!response.ok) throw new Error("فشل في حذف المستحق");
       return response.json();
