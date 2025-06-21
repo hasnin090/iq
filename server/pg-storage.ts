@@ -1338,30 +1338,27 @@ export class PgStorage implements IStorage {
 
       let resultTransaction: Transaction | undefined;
 
-      // 4. إنشاء معاملة مصروف عند الإكمال
-      if (isCompleted) {
-        resultTransaction = await this.createTransaction({
-          date: new Date(),
-          amount: payment.totalAmount,
-          type: "expense",
-          expenseType: "مستحقات مكتملة",
-          description: `استيفاء مستحقات ${payment.beneficiaryName} - إجمالي ${payment.totalAmount}`,
-          projectId: payment.projectId,
-          createdBy: userId,
-          fileUrl: null,
-          fileType: null
-        });
+      // 4. معالجة الدفعة - خصم المبلغ من صندوق المشروع
+      const withdrawalResult = await this.processWithdrawal(
+        userId,
+        payment.projectId!,
+        amount,
+        `دفعة مستحق: ${payment.beneficiaryName} - قسط ${amount}`,
+        "مستحقات"
+      );
 
-        // إنشاء سجل نشاط للإكمال
+      resultTransaction = withdrawalResult.transaction;
+
+      // 5. إنشاء سجل نشاط
+      if (isCompleted) {
         await this.createActivityLog({
           action: "complete",
           entityType: "deferred_payment",
           entityId: payment.id,
-          details: `اكتمال دفعة مؤجلة: ${payment.beneficiaryName} - ${payment.totalAmount}`,
+          details: `اكتمال دفعة مؤجلة: ${payment.beneficiaryName} - إجمالي ${payment.totalAmount}`,
           userId
         });
       } else {
-        // إنشاء سجل نشاط للدفعة الجزئية
         await this.createActivityLog({
           action: "update",
           entityType: "deferred_payment",

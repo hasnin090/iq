@@ -2687,11 +2687,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // إنشاء دفعة مؤجلة جديدة
   app.post("/api/deferred-payments", authenticate, async (req: Request, res: Response) => {
     try {
+      const { dueDate, ...bodyData } = req.body;
       const requestData = {
-        ...req.body,
+        ...bodyData,
         userId: req.session.userId,
         remainingAmount: req.body.remainingAmount || req.body.totalAmount,
-        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null
+        dueDate: dueDate ? new Date(dueDate) : null
       };
       
       const validatedData = insertDeferredPaymentSchema.parse(requestData);
