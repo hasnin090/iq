@@ -3181,5 +3181,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== إدارة Firebase ========
+  
+  // فحص حالة Firebase
+  app.get("/api/firebase/health", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const health = await checkFirebaseHealth();
+      res.json({ 
+        success: true, 
+        health,
+        message: `Firebase متاح: مبدئي=${health.initialized}, مصادقة=${health.auth}, تخزين=${health.storage}`
+      });
+    } catch (error) {
+      console.error("خطأ في فحص حالة Firebase:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء فحص حالة Firebase" 
+      });
+    }
+  });
+
+  // تهيئة Firebase
+  app.post("/api/firebase/init", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const success = await initializeFirebase();
+      
+      if (success) {
+        await storage.createActivityLog({
+          userId: req.session.userId as number,
+          action: "firebase_init",
+          entityType: "system",
+          entityId: 0,
+          details: "تم تهيئة Firebase"
+        });
+        
+        res.json({ 
+          success: true, 
+          message: "تم تهيئة Firebase بنجاح" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "فشل في تهيئة Firebase - تحقق من متغيرات البيئة" 
+        });
+      }
+    } catch (error) {
+      console.error("خطأ في تهيئة Firebase:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء تهيئة Firebase" 
+      });
+    }
+  });
+
+  // ======== مدير التخزين الهجين ========
+  
+  // فحص حالة جميع مزودي التخزين
+  app.get("/api/storage/status", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const status = await storageManager.getStorageStatus();
+      res.json({ 
+        success: true, 
+        status,
+        message: `التخزين الأساسي: ${status.preferred}, المتاح: ${status.available.join(', ')}`
+      });
+    } catch (error) {
+      console.error("خطأ في فحص حالة التخزين:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء فحص حالة التخزين" 
+      });
+    }
+  });
+
+  // تغيير مزود التخزين المفضل
+  app.post("/api/storage/set-preferred", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { provider } = req.body;
+      
+      if (!provider || !['local', 'firebase', 'supabase'].includes(provider)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "مزود التخزين غير صالح" 
+        });
+      }
+
+      storageManager.setPreferredProvider(provider);
+      
+      await storage.createActivityLog({
+        userId: req.session.userId as number,
+        action: "storage_provider_change",
+        entityType: "system",
+        entityId: 0,
+        details: `تم تغيير مزود التخزين المفضل إلى: ${provider}`
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `تم تغيير مزود التخزين المفضل إلى: ${provider}` 
+      });
+    } catch (error) {
+      console.error("خطأ في تغيير مزود التخزين:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء تغيير مزود التخزين" 
+      });
+    }
+  });
+
+  // مزامنة ملف عبر مزودات متعددة
+  app.post("/api/storage/sync-file", authenticate, authorize(["admin"]), upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "لم يتم تحديد ملف" 
+        });
+      }
+
+      const { targetProviders } = req.body;
+      const providers = targetProviders ? JSON.parse(targetProviders) : ['local', 'firebase', 'supabase'];
+      
+      const results = await storageManager.syncFileAcrossProviders(
+        req.file.buffer,
+        req.file.originalname,
+        providers,
+        req.file.mimetype
+      );
+      
+      const successfulUploads = Object.entries(results)
+        .filter(([_, result]) => result.success)
+        .map(([provider, _]) => provider);
+
+      await storage.createActivityLog({
+        userId: req.session.userId as number,
+        action: "file_sync",
+        entityType: "system",
+        entityId: 0,
+        details: `تمت مزامنة الملف ${req.file.originalname} عبر: ${successfulUploads.join(', ')}`
+      });
+      
+      res.json({ 
+        success: true, 
+        results,
+        message: `تمت مزامنة الملف عبر ${successfulUploads.length} مزود من أصل ${providers.length}` 
+      });
+    } catch (error) {
+      console.error("خطأ في مزامنة الملف:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء مزامنة الملف" 
+      });
+    }
+  });
+
   return httpServer;
 }

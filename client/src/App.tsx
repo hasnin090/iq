@@ -16,6 +16,7 @@ import Settings from "@/pages/settings";
 import Ledger from "@/pages/ledger";
 import Receivables from "@/pages/receivables";
 import DatabaseManagement from "@/pages/database-management";
+import HybridStorageManagement from "@/pages/hybrid-storage-management";
 
 import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";
