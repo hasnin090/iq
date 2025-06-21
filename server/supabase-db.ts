@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import * as schema from '@shared/schema';
 
 // متغيرات البيئة لـ Supabase
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yieyqusnciiithjtlgod.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SUPABASE_DATABASE_URL = process.env.SUPABASE_DATABASE_URL;
