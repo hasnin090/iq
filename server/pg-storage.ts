@@ -1259,18 +1259,6 @@ export class PgStorage implements IStorage {
     
     const result = await db.insert(deferredPayments).values(paymentData).returning();
     
-    // إنشاء قيد في دفتر الأستاذ لتسجيل المستحق الجديد
-    await this.createLedgerEntry({
-      entryType: 'receivable',
-      amount: result[0].totalAmount,
-      description: `مستحق جديد: ${result[0].beneficiaryName}`,
-      referenceType: 'deferred_payment',
-      referenceId: result[0].id,
-      projectId: result[0].projectId,
-      createdBy: result[0].userId,
-      date: new Date()
-    });
-    
     // إنشاء سجل نشاط
     await this.createActivityLog({
       action: "create",
@@ -1348,44 +1336,20 @@ export class PgStorage implements IStorage {
         throw new Error('فشل في تحديث الدفعة المؤجلة');
       }
 
-      let transaction: Transaction | undefined;
+      let resultTransaction: Transaction | undefined;
 
-      // 4. تسجيل الدفعة في دفتر الأستاذ
-      await this.createLedgerEntry({
-        entryType: 'receivable_payment',
-        amount: amount,
-        description: `دفعة من ${payment.beneficiaryName} - قسط ${amount}`,
-        referenceType: 'deferred_payment',
-        referenceId: payment.id,
-        projectId: payment.projectId,
-        createdBy: userId,
-        date: new Date()
-      });
-
-      // 5. إنشاء معاملة مصروف عند الإكمال
+      // 4. إنشاء معاملة مصروف عند الإكمال
       if (isCompleted) {
-        transaction = await this.createTransaction({
+        resultTransaction = await this.createTransaction({
           date: new Date(),
           amount: payment.totalAmount,
           type: "expense",
-          expenseType: "دفعة مؤجلة مكتملة",
-          description: `استيفاء مستحقات ${payment.beneficiaryName}`,
+          expenseType: "مستحقات مكتملة",
+          description: `استيفاء مستحقات ${payment.beneficiaryName} - إجمالي ${payment.totalAmount}`,
           projectId: payment.projectId,
           createdBy: userId,
           fileUrl: null,
           fileType: null
-        });
-
-        // تحديث قيد دفتر الأستاذ للمستحق ليصبح مكتملاً
-        await this.createLedgerEntry({
-          entryType: 'receivable_completed',
-          amount: payment.totalAmount,
-          description: `اكتمال مستحق: ${payment.beneficiaryName}`,
-          referenceType: 'deferred_payment',
-          referenceId: payment.id,
-          projectId: payment.projectId,
-          createdBy: userId,
-          date: new Date()
         });
 
         // إنشاء سجل نشاط للإكمال
@@ -1409,7 +1373,7 @@ export class PgStorage implements IStorage {
 
       return {
         payment: updatedPayment,
-        transaction
+        transaction: resultTransaction
       };
     } catch (error) {
       console.error('خطأ في دفع القسط:', error);
