@@ -337,6 +337,158 @@ export default function DatabaseManagement() {
             </CardContent>
           </Card>
 
+          {/* Supabase */}
+          <Card className="shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Cloud className="w-5 h-5 text-purple-600" />
+                Supabase
+              </CardTitle>
+              <CardDescription>التخزين السحابي والنسخ الاحتياطي</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">العميل:</span>
+                  {getStatusBadge(supabaseHealth.client)}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">قاعدة البيانات:</span>
+                  {getStatusBadge(supabaseHealth.database)}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">التخزين:</span>
+                  {getStatusBadge(supabaseHealth.storage)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* حالة النظام العامة */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
+          <Card className="shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+                حالة النظام
+              </CardTitle>
+              <CardDescription>الوضع العام للنظام</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">قاعدة البيانات النشطة:</span>
+                  <Badge variant={
+                    health.active === 'primary' ? "default" : 
+                    health.active === 'backup' ? "destructive" : 
+                    "secondary"
+                  }>
+                    {health.active === 'primary' ? 'الرئيسية' : 
+                     health.active === 'backup' ? 'الاحتياطية' : 
+                     'لا توجد'}
+                  </Badge>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchHealth()}
+                  disabled={healthLoading}
+                  className="w-full"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${healthLoading ? 'animate-spin' : ''}`} />
+                  تحديث الحالة
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Cloud className="w-5 h-5 text-purple-600" />
+                حالة Supabase
+              </CardTitle>
+              <CardDescription>خدمات Supabase المتاحة</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="text-center">
+                  <div className="flex justify-center space-x-2 mb-2">
+                    {getStatusIcon(supabaseHealth.client && supabaseHealth.storage)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {supabaseHealth.client && supabaseHealth.storage ? 
+                      'Supabase متاح ويعمل' : 
+                      'Supabase غير متاح أو يحتاج إعداد'}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchSupabase()}
+                  disabled={supabaseLoading}
+                  className="w-full"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${supabaseLoading ? 'animate-spin' : ''}`} />
+                  تحديث حالة Supabase
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+          {/* قاعدة البيانات الرئيسية */}
+          <Card className="shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Server className="w-5 h-5 text-blue-600" />
+                قاعدة البيانات الرئيسية
+              </CardTitle>
+              <CardDescription>القاعدة الأساسية للنظام</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-muted-foreground">الحالة:</span>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(health.primary)}
+                  {getStatusBadge(health.primary)}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">نشطة:</span>
+                <Badge variant={health.active === 'primary' ? "default" : "secondary"}>
+                  {health.active === 'primary' ? "نعم" : "لا"}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* قاعدة البيانات الاحتياطية */}
+          <Card className="shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Shield className="w-5 h-5 text-green-600" />
+                قاعدة البيانات الاحتياطية
+              </CardTitle>
+              <CardDescription>النسخة الاحتياطية للطوارئ</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-muted-foreground">الحالة:</span>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(health.backup)}
+                  {getStatusBadge(health.backup)}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">نشطة:</span>
+                <Badge variant={health.active === 'backup' ? "default" : "secondary"}>
+                  {health.active === 'backup' ? "نعم" : "لا"}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* حالة النظام العامة */}
           <Card className="shadow-lg">
             <CardHeader className="pb-3">
@@ -395,14 +547,14 @@ export default function DatabaseManagement() {
           </Alert>
         )}
 
-        {/* أدوات الإدارة */}
-        <Card className="shadow-lg">
+        {/* أدوات إدارة قواعد البيانات المحلية */}
+        <Card className="shadow-lg mb-6">
           <CardHeader>
-            <CardTitle className="text-xl">أدوات الإدارة</CardTitle>
-            <CardDescription>إدارة والتحكم في قواعد البيانات</CardDescription>
+            <CardTitle className="text-xl">أدوات إدارة قواعد البيانات المحلية</CardTitle>
+            <CardDescription>إدارة والتحكم في قواعد البيانات الرئيسية والاحتياطية</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* تهيئة قاعدة البيانات الاحتياطية */}
               <div className="space-y-3">
                 <h3 className="font-semibold text-sm">تهيئة الاحتياطية</h3>
@@ -457,7 +609,7 @@ export default function DatabaseManagement() {
               </div>
 
               {/* مزامنة البيانات */}
-              <div className="space-y-3 md:col-span-2 lg:col-span-1">
+              <div className="space-y-3">
                 <h3 className="font-semibold text-sm">مزامنة البيانات</h3>
                 <p className="text-xs text-muted-foreground">
                   نسخ البيانات من الرئيسية للاحتياطية
@@ -469,11 +621,105 @@ export default function DatabaseManagement() {
                   className="w-full"
                   size="sm"
                 >
-                  <Sync className="w-4 h-4 mr-2" />
+                  <RotateCw className="w-4 h-4 mr-2" />
                   {syncDatabaseMutation.isPending ? 'جاري المزامنة...' : 'مزامنة الآن'}
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* أدوات إدارة Supabase */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Cloud className="w-6 h-6 text-purple-600" />
+              أدوات إدارة Supabase
+            </CardTitle>
+            <CardDescription>إدارة التخزين السحابي ونقل الملفات إلى Supabase</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* تهيئة Supabase */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm">تهيئة Supabase</h3>
+                <p className="text-xs text-muted-foreground">
+                  إعداد الاتصال مع خدمات Supabase
+                </p>
+                <Button
+                  onClick={() => initSupabaseMutation.mutate()}
+                  disabled={initSupabaseMutation.isPending}
+                  className="w-full"
+                  size="sm"
+                >
+                  <Cloud className="w-4 h-4 mr-2" />
+                  {initSupabaseMutation.isPending ? 'جاري التهيئة...' : 'تهيئة Supabase'}
+                </Button>
+              </div>
+
+              {/* مزامنة البيانات إلى Supabase */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm">مزامنة البيانات</h3>
+                <p className="text-xs text-muted-foreground">
+                  نسخ جميع البيانات إلى قاعدة بيانات Supabase
+                </p>
+                <Button
+                  onClick={() => syncToSupabaseMutation.mutate()}
+                  disabled={syncToSupabaseMutation.isPending || !supabaseHealth.database}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {syncToSupabaseMutation.isPending ? 'جاري المزامنة...' : 'مزامنة البيانات'}
+                </Button>
+              </div>
+
+              {/* نقل الملفات */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm">نقل الملفات</h3>
+                <p className="text-xs text-muted-foreground">
+                  رفع جميع الملفات المحلية إلى تخزين Supabase
+                </p>
+                <Button
+                  onClick={() => migrateFilesMutation.mutate()}
+                  disabled={migrateFilesMutation.isPending || !supabaseHealth.storage}
+                  variant="secondary"
+                  className="w-full"
+                  size="sm"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {migrateFilesMutation.isPending ? 'جاري النقل...' : 'نقل الملفات'}
+                </Button>
+              </div>
+
+              {/* تحديث الروابط */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm">تحديث الروابط</h3>
+                <p className="text-xs text-muted-foreground">
+                  تحديث روابط الملفات لتشير إلى Supabase
+                </p>
+                <Button
+                  onClick={() => updateUrlsMutation.mutate()}
+                  disabled={updateUrlsMutation.isPending || !supabaseHealth.storage}
+                  variant="destructive"
+                  className="w-full"
+                  size="sm"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {updateUrlsMutation.isPending ? 'جاري التحديث...' : 'تحديث الروابط'}
+                </Button>
+              </div>
+            </div>
+
+            {/* تحذير مهم */}
+            <Alert className="mt-6 border-amber-200 bg-amber-50">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                <strong>مهم:</strong> تأكد من إعداد متغيرات البيئة الخاصة بـ Supabase قبل استخدام هذه الأدوات. 
+                يُنصح بعمل نسخة احتياطية محلية قبل نقل الملفات.
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
 
