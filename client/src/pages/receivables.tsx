@@ -82,7 +82,7 @@ export default function Receivables() {
   });
 
   // Fetch payment history for selected receivable
-  const { data: paymentHistory = [] } = useQuery({
+  const { data: paymentHistory = [] } = useQuery<any[]>({
     queryKey: ["/api/ledger/deferred-payments", selectedReceivable?.id],
     enabled: !!selectedReceivable?.id,
   });
@@ -720,7 +720,7 @@ export default function Receivables() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {paymentHistory.length === 0 ? (
+                  {(paymentHistory as any[]).length === 0 ? (
                     <div className="text-center py-8">
                       <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600">لا توجد دفعات مسجلة لهذا المستحق</p>
@@ -737,7 +737,7 @@ export default function Receivables() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paymentHistory.map((payment: any, index: number) => (
+                        {(paymentHistory as any[]).map((payment: any, index: number) => (
                           <TableRow key={payment.id || index}>
                             <TableCell className="font-medium">
                               {new Date(payment.date).toLocaleDateString('ar-EG')}

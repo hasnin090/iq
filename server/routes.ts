@@ -2587,6 +2587,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // جلب سجل الدفعات لمستحق معين
+  app.get("/api/ledger/deferred-payments/:receivableId", authenticate, async (req: Request, res: Response) => {
+    try {
+      const receivableId = parseInt(req.params.receivableId);
+      if (isNaN(receivableId)) {
+        return res.status(400).json({ message: "معرف المستحق غير صحيح" });
+      }
+
+      // جلب المستحق أولاً للتأكد من وجوده
+      const receivable = await storage.getDeferredPayment(receivableId);
+      if (!receivable) {
+        return res.status(404).json({ message: "المستحق غير موجود" });
+      }
+
+      // جلب نوع المصروف للدفعات الآجلة
+      const deferredExpenseType = await storage.getExpenseTypeByName('دفعات آجلة');
+      if (!deferredExpenseType) {
+        return res.status(200).json([]);
+      }
+
+      // جلب جميع السجلات للدفعات الآجلة
+      const allDeferredEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
+      
+      // تصفية السجلات الخاصة بهذا المستحق بناءً على اسم المستفيد في الوصف
+      const receivableEntries = allDeferredEntries.filter(entry => {
+        const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/);
+        const beneficiaryName = match ? match[1] : '';
+        return beneficiaryName === receivable.beneficiaryName;
+      });
+
+      // ترتيب السجلات حسب التاريخ (الأحدث أولاً)
+      const sortedEntries = receivableEntries.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      return res.status(200).json(sortedEntries);
+    } catch (error) {
+      console.error("خطأ في جلب سجل الدفعات:", error);
+      return res.status(500).json({ message: "خطأ في جلب سجل الدفعات" });
+    }
+  });
+
   // ======== تصنيفات أنواع الحسابات ========
   
   // جلب جميع تصنيفات أنواع الحسابات
