@@ -291,12 +291,24 @@ export default function Receivables() {
                         <FormItem>
                           <FormLabel>المبلغ المستحق الكلي</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="أدخل المبلغ المستحق الكلي"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
+                            <div className="relative">
+                              <Input 
+                                type="number" 
+                                placeholder="0"
+                                min="1"
+                                step="1"
+                                className="pl-12 text-right font-mono"
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(value === "" ? "" : Number(value));
+                                }}
+                              />
+                              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400 pointer-events-none">
+                                د.ع
+                              </div>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -372,12 +384,24 @@ export default function Receivables() {
                       <FormItem>
                         <FormLabel>الدفعة الأولى (اختياري)</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="أدخل مبلغ الدفعة الأولى إن وجدت"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
+                          <div className="relative">
+                            <Input 
+                              type="number" 
+                              placeholder="0"
+                              min="0"
+                              step="1"
+                              className="pl-12 text-right font-mono"
+                              {...field}
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(value === "" ? "" : Number(value));
+                              }}
+                            />
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400 pointer-events-none">
+                              د.ع
+                            </div>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -427,12 +451,24 @@ export default function Receivables() {
                         <FormItem>
                           <FormLabel>مبلغ الدفعة</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="أدخل مبلغ الدفعة"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
+                            <div className="relative">
+                              <Input 
+                                type="number" 
+                                placeholder="0"
+                                min="1"
+                                step="1"
+                                className="pl-12 text-right font-mono"
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(value === "" ? "" : Number(value));
+                                }}
+                              />
+                              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400 pointer-events-none">
+                                د.ع
+                              </div>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
