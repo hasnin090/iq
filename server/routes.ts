@@ -2890,5 +2890,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // ======== إدارة قواعد البيانات الاحتياطية ========
+  
+  // فحص حالة قواعد البيانات
+  app.get("/api/database/health", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const health = await checkDatabasesHealth();
+      res.json({ 
+        success: true, 
+        health,
+        message: `قاعدة البيانات النشطة: ${health.active === 'primary' ? 'الرئيسية' : health.active === 'backup' ? 'الاحتياطية' : 'لا توجد'}`
+      });
+    } catch (error) {
+      console.error("خطأ في فحص حالة قواعد البيانات:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء فحص حالة قواعد البيانات" 
+      });
+    }
+  });
+
+  // تهيئة قاعدة البيانات الاحتياطية
+  app.post("/api/database/init-backup", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const success = await initializeBackupDatabase();
+      
+      if (success) {
+        await storage.createActivityLog({
+          userId: req.session.userId as number,
+          action: "database_backup_init",
+          entityType: "system",
+          entityId: 0,
+          details: "تم تهيئة قاعدة البيانات الاحتياطية"
+        });
+        
+        res.json({ 
+          success: true, 
+          message: "تم تهيئة قاعدة البيانات الاحتياطية بنجاح" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "فشل في تهيئة قاعدة البيانات الاحتياطية" 
+        });
+      }
+    } catch (error) {
+      console.error("خطأ في تهيئة قاعدة البيانات الاحتياطية:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء تهيئة قاعدة البيانات الاحتياطية" 
+      });
+    }
+  });
+
+  // التبديل بين قواعد البيانات
+  app.post("/api/database/switch", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { target } = req.body;
+      
+      if (!target || (target !== 'primary' && target !== 'backup')) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "يجب تحديد قاعدة البيانات المستهدفة (primary أو backup)" 
+        });
+      }
+      
+      const success = await switchDatabase(target);
+      
+      if (success) {
+        await storage.createActivityLog({
+          userId: req.session.userId as number,
+          action: "database_switch",
+          entityType: "system",
+          entityId: 0,
+          details: `تم التبديل إلى قاعدة البيانات ${target === 'primary' ? 'الرئيسية' : 'الاحتياطية'}`
+        });
+        
+        res.json({ 
+          success: true, 
+          message: `تم التبديل إلى قاعدة البيانات ${target === 'primary' ? 'الرئيسية' : 'الاحتياطية'} بنجاح`,
+          activeDatabase: target
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: `فشل في التبديل إلى قاعدة البيانات ${target}` 
+        });
+      }
+    } catch (error) {
+      console.error("خطأ في التبديل بين قواعد البيانات:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء التبديل بين قواعد البيانات" 
+      });
+    }
+  });
+
+  // مزامنة البيانات إلى قاعدة البيانات الاحتياطية
+  app.post("/api/database/sync", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const success = await syncDatabaseToBackup();
+      
+      if (success) {
+        await storage.createActivityLog({
+          userId: req.session.userId as number,
+          action: "database_sync",
+          entityType: "system",
+          entityId: 0,
+          details: "تم مزامنة البيانات إلى قاعدة البيانات الاحتياطية"
+        });
+        
+        res.json({ 
+          success: true, 
+          message: "تم مزامنة البيانات إلى قاعدة البيانات الاحتياطية بنجاح" 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "فشل في مزامنة البيانات" 
+        });
+      }
+    } catch (error) {
+      console.error("خطأ في مزامنة البيانات:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "حدث خطأ أثناء مزامنة البيانات" 
+      });
+    }
+  });
+
   return httpServer;
 }
