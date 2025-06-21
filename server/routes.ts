@@ -31,7 +31,7 @@ import {
   initializeSupabase,
   checkSupabaseHealth,
   syncToSupabase,
-  migrateFilesToSupabase,
+  copyFilesToSupabase,
   updateFileUrlsToSupabase,
   uploadToSupabase,
   deleteFromSupabase
@@ -3121,22 +3121,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // نقل الملفات إلى Supabase
+  // نسخ الملفات إلى Supabase
   app.post("/api/supabase/migrate-files", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      const results = await migrateFilesToSupabase();
+      const results = await copyFilesToSupabase();
       
       await storage.createActivityLog({
         userId: req.session.userId as number,
-        action: "supabase_migrate_files",
+        action: "supabase_copy_files",
         entityType: "system",
         entityId: 0,
-        details: `نقل الملفات إلى Supabase - نجح: ${results.success}, فشل: ${results.failed}`
+        details: `نسخ الملفات إلى Supabase - نجح: ${results.success}, فشل: ${results.failed}`
       });
       
       res.json({ 
         success: true, 
-        message: `تم نقل الملفات - نجح: ${results.success}, فشل: ${results.failed}`,
+        message: `تم نسخ الملفات - نجح: ${results.success}, فشل: ${results.failed}`,
         results
       });
     } catch (error) {

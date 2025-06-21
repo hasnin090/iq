@@ -2,6 +2,8 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@shared/schema';
+import fs from 'fs';
+import path from 'path';
 
 // متغيرات البيئة لـ Supabase
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yieyqusnciiithjtlgod.supabase.co';
@@ -222,8 +224,8 @@ export async function syncToSupabase(): Promise<boolean> {
   }
 }
 
-// نقل الملفات المحلية إلى Supabase
-export async function migrateFilesToSupabase(): Promise<{
+// نسخ الملفات المحلية إلى Supabase (الاحتفاظ بالنسخة الأصلية)
+export async function copyFilesToSupabase(): Promise<{
   success: number;
   failed: number;
   errors: string[];
@@ -232,8 +234,7 @@ export async function migrateFilesToSupabase(): Promise<{
     throw new Error('عميل Supabase غير متاح');
   }
 
-  const fs = require('fs');
-  const path = require('path');
+  // استخدام fs و path المستوردين مسبقاً
   
   const results = {
     success: 0,
