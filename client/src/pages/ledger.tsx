@@ -88,7 +88,7 @@ export default function LedgerPage() {
   });
 
   // جلب الدفعات الآجلة
-  const { data: deferredPayments = [], isLoading: deferredLoading } = useQuery({
+  const { data: deferredPayments = [], isLoading: deferredLoading } = useQuery<any[]>({
     queryKey: ["/api/ledger/deferred-payments"],
   });
 
@@ -301,6 +301,7 @@ export default function LedgerPage() {
       <Tabs defaultValue="summary" className="space-y-4">
         <TabsList>
           <TabsTrigger value="summary">الملخص</TabsTrigger>
+          <TabsTrigger value="deferred">دفعات آجلة</TabsTrigger>
           <TabsTrigger value="expense-types">أنواع المصروفات</TabsTrigger>
           <TabsTrigger value="entries">دفتر الأستاذ</TabsTrigger>
         </TabsList>
@@ -373,6 +374,64 @@ export default function LedgerPage() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="deferred" className="space-y-4">
+          {deferredLoading ? (
+            <div className="text-center">جاري التحميل...</div>
+          ) : (
+            <div className="space-y-4">
+              {deferredPayments.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-8">
+                    <p className="text-muted-foreground">لا توجد دفعات آجلة مسجلة حتى الآن</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                deferredPayments.map((beneficiary: any) => (
+                  <Card key={beneficiary.beneficiaryName}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span>{beneficiary.beneficiaryName}</span>
+                        <Badge variant="outline">
+                          {beneficiary.paymentsCount} دفعة
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        إجمالي المدفوع: {beneficiary.totalAmount.toLocaleString()} د.ع
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>التاريخ</TableHead>
+                            <TableHead>الوصف</TableHead>
+                            <TableHead>المبلغ</TableHead>
+                            <TableHead>المشروع</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {beneficiary.entries.map((entry: any) => (
+                            <TableRow key={entry.id}>
+                              <TableCell>{formatDate(entry.date)}</TableCell>
+                              <TableCell>{entry.description}</TableCell>
+                              <TableCell className="font-mono text-right">
+                                {entry.amount.toLocaleString()} د.ع
+                              </TableCell>
+                              <TableCell>
+                                {entry.projectId ? `مشروع ${entry.projectId}` : "غير محدد"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           )}
         </TabsContent>

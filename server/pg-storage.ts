@@ -1253,11 +1253,12 @@ export class PgStorage implements IStorage {
   async createDeferredPayment(payment: InsertDeferredPayment): Promise<DeferredPayment> {
     const paymentData = {
       ...payment,
+      dueDate: payment.dueDate ? (typeof payment.dueDate === 'string' ? new Date(payment.dueDate) : payment.dueDate) : null,
       remainingAmount: payment.totalAmount, // المبلغ المتبقي = المبلغ الإجمالي في البداية
       paidAmount: 0 // المبلغ المدفوع = 0 في البداية
     };
     
-    const result = await db.insert(deferredPayments).values(paymentData).returning();
+    const result = await db.insert(deferredPayments).values([paymentData]).returning();
     
     // إنشاء سجل نشاط
     await this.createActivityLog({
