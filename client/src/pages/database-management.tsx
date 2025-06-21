@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,6 @@ export default function DatabaseManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
 
   // التحقق من صلاحيات المدير
   if (!user || user.role !== 'admin') {
@@ -62,7 +61,7 @@ export default function DatabaseManagement() {
   // جلب حالة قواعد البيانات
   const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
     queryKey: ['/api/database/health'],
-    refetchInterval: 30000, // تحديث كل 30 ثانية
+    refetchInterval: 30000,
   });
 
   // جلب حالة Supabase
@@ -114,7 +113,6 @@ export default function DatabaseManagement() {
         description: data.message,
       });
       refetchHealth();
-      // إعادة تحميل جميع البيانات
       queryClient.invalidateQueries();
     },
     onError: (error: any) => {
@@ -242,7 +240,6 @@ export default function DatabaseManagement() {
         title: "تم التحديث",
         description: "تم تحديث روابط الملفات بنجاح",
       });
-      // إعادة تحميل البيانات
       queryClient.invalidateQueries();
     },
     onError: (error: any) => {
@@ -279,7 +276,7 @@ export default function DatabaseManagement() {
             إدارة قواعد البيانات
           </h1>
           <p className="text-[hsl(var(--muted-foreground))] mt-2 text-sm md:text-base">
-            مراقبة والتحكم في قواعد البيانات الرئيسية والاحتياطية
+            مراقبة والتحكم في قواعد البيانات الرئيسية والاحتياطية ونظام Supabase
           </p>
         </div>
 
@@ -364,188 +361,6 @@ export default function DatabaseManagement() {
             </CardContent>
           </Card>
         </div>
-
-        {/* حالة النظام العامة */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                حالة النظام
-              </CardTitle>
-              <CardDescription>الوضع العام للنظام</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">قاعدة البيانات النشطة:</span>
-                  <Badge variant={
-                    health.active === 'primary' ? "default" : 
-                    health.active === 'backup' ? "destructive" : 
-                    "secondary"
-                  }>
-                    {health.active === 'primary' ? 'الرئيسية' : 
-                     health.active === 'backup' ? 'الاحتياطية' : 
-                     'لا توجد'}
-                  </Badge>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetchHealth()}
-                  disabled={healthLoading}
-                  className="w-full"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${healthLoading ? 'animate-spin' : ''}`} />
-                  تحديث الحالة
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Cloud className="w-5 h-5 text-purple-600" />
-                حالة Supabase
-              </CardTitle>
-              <CardDescription>خدمات Supabase المتاحة</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="text-center">
-                  <div className="flex justify-center space-x-2 mb-2">
-                    {getStatusIcon(supabaseHealth.client && supabaseHealth.storage)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {supabaseHealth.client && supabaseHealth.storage ? 
-                      'Supabase متاح ويعمل' : 
-                      'Supabase غير متاح أو يحتاج إعداد'}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetchSupabase()}
-                  disabled={supabaseLoading}
-                  className="w-full"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${supabaseLoading ? 'animate-spin' : ''}`} />
-                  تحديث حالة Supabase
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-          {/* قاعدة البيانات الرئيسية */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Server className="w-5 h-5 text-blue-600" />
-                قاعدة البيانات الرئيسية
-              </CardTitle>
-              <CardDescription>القاعدة الأساسية للنظام</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">الحالة:</span>
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(health.primary)}
-                  {getStatusBadge(health.primary)}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">نشطة:</span>
-                <Badge variant={health.active === 'primary' ? "default" : "secondary"}>
-                  {health.active === 'primary' ? "نعم" : "لا"}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* قاعدة البيانات الاحتياطية */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="w-5 h-5 text-green-600" />
-                قاعدة البيانات الاحتياطية
-              </CardTitle>
-              <CardDescription>النسخة الاحتياطية للطوارئ</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">الحالة:</span>
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(health.backup)}
-                  {getStatusBadge(health.backup)}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">نشطة:</span>
-                <Badge variant={health.active === 'backup' ? "default" : "secondary"}>
-                  {health.active === 'backup' ? "نعم" : "لا"}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* حالة النظام العامة */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                حالة النظام
-              </CardTitle>
-              <CardDescription>الوضع العام للنظام</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">قاعدة البيانات النشطة:</span>
-                  <Badge variant={
-                    health.active === 'primary' ? "default" : 
-                    health.active === 'backup' ? "destructive" : 
-                    "secondary"
-                  }>
-                    {health.active === 'primary' ? 'الرئيسية' : 
-                     health.active === 'backup' ? 'الاحتياطية' : 
-                     'لا توجد'}
-                  </Badge>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetchHealth()}
-                  disabled={healthLoading}
-                  className="w-full"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${healthLoading ? 'animate-spin' : ''}`} />
-                  تحديث الحالة
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* تحذيرات النظام */}
-        {health.active === 'backup' && (
-          <Alert className="mb-6 border-orange-200 bg-orange-50">
-            <AlertCircle className="h-4 w-4 text-orange-600" />
-            <AlertDescription className="text-orange-800">
-              <strong>تحذير:</strong> النظام يعمل حالياً على قاعدة البيانات الاحتياطية. 
-              يُنصح بإصلاح قاعدة البيانات الرئيسية والعودة إليها في أقرب وقت ممكن.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {health.active === 'none' && (
-          <Alert className="mb-6 border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              <strong>خطأ حرج:</strong> لا توجد قاعدة بيانات متاحة. يرجى التحقق من إعدادات الاتصال فوراً.
-            </AlertDescription>
-          </Alert>
-        )}
 
         {/* أدوات إدارة قواعد البيانات المحلية */}
         <Card className="shadow-lg mb-6">
@@ -720,44 +535,6 @@ export default function DatabaseManagement() {
                 يُنصح بعمل نسخة احتياطية محلية قبل نقل الملفات.
               </AlertDescription>
             </Alert>
-          </CardContent>
-        </Card>
-
-        {/* معلومات إضافية */}
-        <Card className="shadow-lg mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">معلومات مهمة</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 text-sm">
-              <div>
-                <h4 className="font-semibold mb-2">قاعدة البيانات الرئيسية:</h4>
-                <p className="text-muted-foreground">
-                  هي قاعدة البيانات الأساسية التي يعمل عليها النظام في الحالة العادية. 
-                  تحتوي على جميع البيانات المباشرة والحديثة.
-                </p>
-              </div>
-              
-              <Separator />
-              
-              <div>
-                <h4 className="font-semibold mb-2">قاعدة البيانات الاحتياطية:</h4>
-                <p className="text-muted-foreground">
-                  هي نسخة احتياطية منفصلة تُستخدم في حالة فشل قاعدة البيانات الرئيسية. 
-                  يمكن التبديل إليها تلقائياً أو يدوياً لضمان استمرارية العمل.
-                </p>
-              </div>
-              
-              <Separator />
-              
-              <div>
-                <h4 className="font-semibold mb-2">المزامنة:</h4>
-                <p className="text-muted-foreground">
-                  يُنصح بتشغيل المزامنة بانتظام لضمان أن قاعدة البيانات الاحتياطية 
-                  تحتوي على أحدث البيانات في حالة الحاجة للتبديل.
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
