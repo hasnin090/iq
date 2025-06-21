@@ -682,14 +682,14 @@ export default function Receivables() {
           {selectedReceivable && (
             <div className="space-y-6">
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-5 h-5 text-green-600" />
                     <span className="text-sm font-medium text-green-800">إجمالي المستحق</span>
                   </div>
                   <p className="text-2xl font-bold text-green-900 mt-1">
-                    {selectedReceivable.totalAmount.toLocaleString()} د.ع
+                    {selectedReceivable.totalAmount.toLocaleString()} دينار عراقي
                   </p>
                 </div>
                 
@@ -699,7 +699,7 @@ export default function Receivables() {
                     <span className="text-sm font-medium text-blue-800">إجمالي المدفوع</span>
                   </div>
                   <p className="text-2xl font-bold text-blue-900 mt-1">
-                    {selectedReceivable.paidAmount.toLocaleString()} د.ع
+                    {selectedReceivable.paidAmount.toLocaleString()} دينار عراقي
                   </p>
                 </div>
                 
@@ -709,56 +709,18 @@ export default function Receivables() {
                     <span className="text-sm font-medium text-orange-800">المبلغ المتبقي</span>
                   </div>
                   <p className="text-2xl font-bold text-orange-900 mt-1">
-                    {(selectedReceivable.totalAmount - selectedReceivable.paidAmount).toLocaleString()} د.ع
+                    {(selectedReceivable.totalAmount - selectedReceivable.paidAmount).toLocaleString()} دينار عراقي
                   </p>
-                </div>
-
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-800">إحصائيات الدفع</span>
-                  </div>
-                  <div className="mt-2 space-y-1">
-                    <p className="text-lg font-bold text-purple-900">
-                      {(paymentHistory as any[]).length} دفعة مسددة
-                    </p>
-                    {(paymentHistory as any[]).length > 0 && (
-                      <>
-                        <p className="text-xs text-purple-600">
-                          متوسط الدفعة: {Math.round(selectedReceivable.paidAmount / (paymentHistory as any[]).length).toLocaleString()} د.ع
-                        </p>
-                        <p className="text-xs text-purple-600">
-                          نسبة التسديد: {Math.round((selectedReceivable.paidAmount / selectedReceivable.totalAmount) * 100)}%
-                        </p>
-                      </>
-                    )}
-                  </div>
                 </div>
               </div>
 
               {/* Payment History Table */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5" />
-                      سجل الدفعات التفصيلي
-                    </div>
-                    {selectedReceivable.createdAt && (
-                      <div className="text-sm text-gray-500">
-                        تاريخ إنشاء المستحق: {new Date(selectedReceivable.createdAt).toLocaleDateString('ar-EG', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </div>
-                    )}
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    سجل الدفعات
                   </CardTitle>
-                  {(paymentHistory as any[]).length > 0 && (
-                    <div className="text-sm text-gray-600 mt-2">
-                      عرض {(paymentHistory as any[]).length} دفعة مرتبة من الأحدث إلى الأقدم
-                    </div>
-                  )}
                 </CardHeader>
                 <CardContent>
                   {(paymentHistory as any[]).length === 0 ? (
@@ -770,98 +732,32 @@ export default function Receivables() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-right">رقم الدفعة</TableHead>
-                          <TableHead className="text-right">التاريخ والوقت</TableHead>
-                          <TableHead className="text-right">المبلغ المدفوع</TableHead>
-                          <TableHead className="text-right">تفاصيل الدفعة</TableHead>
+                          <TableHead className="text-right">التاريخ</TableHead>
+                          <TableHead className="text-right">المبلغ</TableHead>
+                          <TableHead className="text-right">الوصف</TableHead>
                           <TableHead className="text-right">المشروع</TableHead>
-                          <TableHead className="text-right">حالة الدفعة</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {(paymentHistory as any[]).map((payment: any, index: number) => {
-                          const paymentDate = new Date(payment.date);
-                          const paymentNumber = index + 1;
-                          
-                          return (
-                            <TableRow key={payment.id || index} className="hover:bg-gray-50">
-                              <TableCell className="font-medium text-center">
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                  الدفعة رقم {paymentNumber}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                <div className="space-y-1">
-                                  <div className="text-sm font-semibold text-gray-900">
-                                    {paymentDate.toLocaleDateString('ar-EG', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric'
-                                    })}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    الساعة {paymentDate.toLocaleTimeString('ar-EG', {
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                      hour12: true
-                                    })}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="space-y-1">
-                                  <div className="text-lg font-bold text-green-600">
-                                    {payment.amount.toLocaleString()} د.ع
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    ({(payment.amount / 1000).toFixed(1)} ألف دينار)
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="space-y-1">
-                                  <div className="font-medium text-gray-900">
-                                    {payment.description || `دفعة رقم ${paymentNumber} لـ ${selectedReceivable?.beneficiaryName}`}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    تم التسديد من الصندوق النقدي
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="text-sm">
-                                  {payment.projectId 
-                                    ? (
-                                      <div className="space-y-1">
-                                        <div className="font-medium text-blue-600">
-                                          {projects.find((p: Project) => p.id === payment.projectId)?.name || `مشروع ${payment.projectId}`}
-                                        </div>
-                                        <div className="text-xs text-gray-500">
-                                          معرف المشروع: {payment.projectId}
-                                        </div>
-                                      </div>
-                                    )
-                                    : (
-                                      <span className="text-gray-500 text-sm">
-                                        الصندوق العام
-                                      </span>
-                                    )
-                                  }
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="space-y-2">
-                                  <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                                    ✓ مكتملة
-                                  </Badge>
-                                  <div className="text-xs text-gray-500">
-                                    تم في {paymentDate.toLocaleDateString('ar-EG')}
-                                  </div>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
+                        {(paymentHistory as any[]).map((payment: any, index: number) => (
+                          <TableRow key={payment.id || index}>
+                            <TableCell className="font-medium">
+                              {new Date(payment.date).toLocaleDateString('ar-EG')}
+                            </TableCell>
+                            <TableCell className="font-mono text-right">
+                              <span className="text-green-600 font-semibold">
+                                {payment.amount.toLocaleString()} دينار عراقي
+                              </span>
+                            </TableCell>
+                            <TableCell>{payment.description || 'دفعة'}</TableCell>
+                            <TableCell>
+                              {payment.projectId 
+                                ? projects.find((p: Project) => p.id === payment.projectId)?.name || `مشروع ${payment.projectId}`
+                                : 'غير محدد'
+                              }
+                            </TableCell>
+                          </TableRow>
+                        ))}
                       </TableBody>
                     </Table>
                   )}
