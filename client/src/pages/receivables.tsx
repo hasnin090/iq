@@ -1,27 +1,36 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  User, 
+  Calendar, 
+  DollarSign, 
+  FileText, 
+  Building2,
+  CreditCard,
+  Trash2
+} from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
-  Plus, 
-  User, 
-  Search, 
-  CreditCard, 
-  Trash2,
-  Calendar
-} from "lucide-react";
+import { useState } from "react";
 import type { DeferredPayment, Project } from "@shared/schema";
 
 const formSchema = z.object({
@@ -59,8 +68,6 @@ export default function Receivables() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState<string>("all");
-  const [selectedReceivable, setSelectedReceivable] = useState<DeferredPayment | null>(null);
-  const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
 
   const { data: receivables = [], isLoading } = useQuery<DeferredPayment[]>({
     queryKey: ["/api/deferred-payments"],
@@ -87,62 +94,82 @@ export default function Receivables() {
 
   const operationType = mainForm.watch("operationType");
 
-  const addReceivableMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await fetch("/api/deferred-payments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
-          userId: user?.id,
-          installments: 1,
-          paymentFrequency: "monthly",
-        }),
-      });
-      if (!response.ok) throw new Error("فشل في إضافة المستحق");
-      return response.json();
+  const mainFormMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      if (data.operationType === "new_receivable") {
+        // Create new receivable with optional initial payment
+        const response = await fetch("/api/deferred-payments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            beneficiaryName: data.beneficiaryName,
+            totalAmount: data.totalAmount,
+            projectId: data.projectId,
+            description: data.description,
+            dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+            userId: user?.id,
+            installments: 1,
+            paymentFrequency: "monthly",
+          }),
+        });
+        if (!response.ok) throw new Error("فشل في إضافة المستحق");
+        
+        const newReceivable = await response.json();
+        
+        // Add initial payment if provided
+        if (data.initialPayment && data.initialPayment > 0) {
+          const paymentResponse = await fetch(`/api/deferred-payments/${newReceivable.id}/pay`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: data.initialPayment,
+              userId: user?.id,
+              notes: "دفعة أولى"
+            }),
+          });
+          if (!paymentResponse.ok) throw new Error("فشل في تسجيل الدفعة الأولى");
+        }
+        
+        return newReceivable;
+      } else if (data.operationType === "payment") {
+        // Make payment to existing receivable
+        const response = await fetch(`/api/deferred-payments/${data.receivableId}/pay`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: data.paymentAmount,
+            userId: user?.id,
+            notes: data.paymentNotes || "دفعة"
+          }),
+        });
+        if (!response.ok) throw new Error("فشل في تسجيل الدفعة");
+        return response.json();
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/deferred-payments"] });
-      addForm.reset();
+      mainForm.reset({
+        operationType: "new_receivable",
+        beneficiaryName: "",
+        totalAmount: 0,
+        projectId: undefined,
+        description: "",
+        dueDate: "",
+        initialPayment: 0,
+        paymentAmount: 0,
+        paymentNotes: ""
+      });
       toast({
         title: "تم بنجاح",
-        description: "تم تسجيل المستحق الجديد",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "خطأ",
-        description: "فشل في تسجيل المستحق",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const payInstallmentMutation = useMutation({
-    mutationFn: async ({ id, amount }: { id: number; amount: number }) => {
-      const response = await fetch(`/api/deferred-payments/${id}/pay`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
-      });
-      if (!response.ok) throw new Error("فشل في دفع المبلغ");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deferred-payments"] });
-      setIsPayDialogOpen(false);
-      payForm.reset();
-      toast({
-        title: "تم بنجاح",
-        description: "تم دفع المبلغ",
+        description: variables.operationType === "new_receivable" 
+          ? "تم تسجيل المستحق الجديد" 
+          : "تم تسجيل الدفعة",
       });
     },
     onError: () => {
       toast({
         title: "خطأ",
-        description: "فشل في دفع المبلغ",
+        description: "فشل في تنفيذ العملية",
         variant: "destructive",
       });
     },
@@ -172,39 +199,21 @@ export default function Receivables() {
     },
   });
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
-      style: 'currency',
-      currency: 'SAR',
-      minimumFractionDigits: 0,
-    }).format(amount / 100);
-  };
-
-  // Filter receivables
-  const filteredReceivables = receivables.filter(receivable => {
+  // Filter receivables based on search and project
+  const filteredReceivables = receivables.filter((receivable: DeferredPayment) => {
     const matchesSearch = receivable.beneficiaryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (receivable.description && receivable.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+                         (receivable.description && receivable.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesProject = selectedProject === "all" || 
-      receivable.projectId?.toString() === selectedProject;
-    
+                          (receivable.projectId && receivable.projectId.toString() === selectedProject);
     return matchesSearch && matchesProject;
   });
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="p-6 space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">المستحقات</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">جاري التحميل...</p>
         </div>
       </div>
     );
@@ -218,126 +227,245 @@ export default function Receivables() {
         <p className="text-gray-600 dark:text-gray-400 mt-1">تسجيل المستحقات للأشخاص والموردين</p>
       </div>
 
-      {/* Add Receivable Form */}
+      {/* Main Form - Conditional based on operation type */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="w-5 h-5" />
-            تسجيل مستحق جديد
+            {operationType === "new_receivable" ? "تسجيل مستحق جديد" : "تسديد دفعة"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...addForm}>
-            <form onSubmit={addForm.handleSubmit((data) => addReceivableMutation.mutate(data))} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={addForm.control}
-                  name="beneficiaryName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>اسم المستفيد</FormLabel>
-                      <FormControl>
-                        <Input placeholder="أدخل اسم المستفيد" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={addForm.control}
-                  name="totalAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>المبلغ المستحق</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="أدخل المبلغ المستحق"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addForm.control}
-                  name="projectId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>المشروع (اختياري)</FormLabel>
-                      <Select 
-                        value={field.value ? field.value.toString() : "none"} 
-                        onValueChange={(value) => field.onChange(value === "none" ? undefined : Number(value))}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المشروع" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">بدون مشروع</SelectItem>
-                          {projects.map((project: Project) => (
-                            <SelectItem key={project.id} value={project.id.toString()}>
-                              {project.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addForm.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تاريخ الاستحقاق (اختياري)</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
+          <Form {...mainForm}>
+            <form onSubmit={mainForm.handleSubmit((data) => mainFormMutation.mutate(data))} className="space-y-4">
+              {/* Operation Type Selector */}
               <FormField
-                control={addForm.control}
-                name="description"
+                control={mainForm.control}
+                name="operationType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الوصف (اختياري)</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="وصف طبيعة المستحق أو العمل المطلوب" 
-                        {...field} 
-                        className="min-h-[60px] resize-none"
-                      />
-                    </FormControl>
+                    <FormLabel>نوع العملية</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="اختر نوع العملية" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="new_receivable">تسجيل مستحق جديد</SelectItem>
+                        <SelectItem value="payment">تسديد دفعة لمستحق موجود</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {/* New Receivable Fields */}
+              {operationType === "new_receivable" && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={mainForm.control}
+                      name="beneficiaryName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>اسم المستفيد</FormLabel>
+                          <FormControl>
+                            <Input placeholder="أدخل اسم المستفيد" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={mainForm.control}
+                      name="totalAmount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>المبلغ المستحق الكلي</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="أدخل المبلغ المستحق الكلي"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={mainForm.control}
+                      name="projectId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>المشروع (اختياري)</FormLabel>
+                          <Select 
+                            value={field.value ? field.value.toString() : "none"} 
+                            onValueChange={(value) => field.onChange(value === "none" ? undefined : Number(value))}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر المشروع" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">بدون مشروع</SelectItem>
+                              {projects.map((project: Project) => (
+                                <SelectItem key={project.id} value={project.id.toString()}>
+                                  {project.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={mainForm.control}
+                      name="dueDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>تاريخ الاستحقاق (اختياري)</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={mainForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>الوصف (اختياري)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="وصف طبيعة المستحق أو العمل المطلوب" 
+                            {...field} 
+                            className="min-h-[60px] resize-none"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={mainForm.control}
+                    name="initialPayment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>الدفعة الأولى (اختياري)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="أدخل مبلغ الدفعة الأولى إن وجدت"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {/* Payment Fields */}
+              {operationType === "payment" && (
+                <>
+                  <FormField
+                    control={mainForm.control}
+                    name="receivableId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المستحق المراد التسديد له</FormLabel>
+                        <Select 
+                          value={field.value ? field.value.toString() : ""} 
+                          onValueChange={(value) => field.onChange(Number(value))}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر المستحق" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {receivables
+                              .filter((r: DeferredPayment) => r.paidAmount < r.totalAmount)
+                              .map((receivable: DeferredPayment) => (
+                                <SelectItem key={receivable.id} value={receivable.id.toString()}>
+                                  {receivable.beneficiaryName} - متبقي: {(receivable.totalAmount - receivable.paidAmount).toLocaleString()} ج.م
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={mainForm.control}
+                      name="paymentAmount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>مبلغ الدفعة</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              placeholder="أدخل مبلغ الدفعة"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={mainForm.control}
+                      name="paymentNotes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ملاحظات الدفعة (اختياري)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="ملاحظات أو تفاصيل الدفعة" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="flex gap-2 pt-2">
                 <Button 
                   type="submit" 
-                  disabled={addReceivableMutation.isPending} 
+                  disabled={mainFormMutation.isPending} 
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 >
                   <Plus className="w-4 h-4 ml-2" />
-                  {addReceivableMutation.isPending ? "جاري الإضافة..." : "إضافة المستحق"}
+                  {mainFormMutation.isPending ? "جاري المعالجة..." : (
+                    operationType === "new_receivable" ? "إضافة المستحق" : "تسجيل الدفعة"
+                  )}
                 </Button>
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => addForm.reset()}
+                  onClick={() => mainForm.reset()}
                 >
                   مسح الحقول
                 </Button>
@@ -347,33 +475,39 @@ export default function Receivables() {
         </CardContent>
       </Card>
 
-      {/* Filters */}
+      {/* Search and Filter */}
       <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative">
-              <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="w-5 h-5" />
+            البحث والتصفية
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
               <Input
-                placeholder="ابحث في المستحقات..."
+                placeholder="ابحث بالاسم أو الوصف..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-10"
+                className="w-full"
               />
             </div>
-            
-            <Select value={selectedProject} onValueChange={setSelectedProject}>
-              <SelectTrigger>
-                <SelectValue placeholder="جميع المشاريع" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع المشاريع</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="w-full md:w-64">
+              <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <SelectTrigger>
+                  <SelectValue placeholder="تصفية بالمشروع" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع المشاريع</SelectItem>
+                  {projects.map((project: Project) => (
+                    <SelectItem key={project.id} value={project.id.toString()}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -393,134 +527,78 @@ export default function Receivables() {
             <Card key={receivable.id} className="border-l-4 border-l-blue-500">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{receivable.beneficiaryName}</h3>
-                  <Badge variant={receivable.status === 'completed' ? 'default' : 'secondary'}>
-                    {receivable.status === 'completed' ? 'مكتمل' : 'معلق'}
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
-                  <div>
-                    <p className="text-sm text-gray-600">المبلغ المستحق</p>
-                    <p className="font-semibold text-blue-600">{formatCurrency(receivable.totalAmount)}</p>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {receivable.beneficiaryName}
+                    </h3>
+                    <Badge variant={receivable.paidAmount >= receivable.totalAmount ? "default" : "secondary"}>
+                      {receivable.paidAmount >= receivable.totalAmount ? "مكتمل" : "معلق"}
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">المدفوع</p>
-                    <p className="font-semibold text-green-600">{formatCurrency(receivable.paidAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">المتبقي</p>
-                    <p className="font-semibold text-red-600">{formatCurrency(receivable.remainingAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">تاريخ الاستحقاق</p>
-                    <p className="font-semibold">
-                      {receivable.dueDate ? new Date(receivable.dueDate).toLocaleDateString('ar-SA') : 'غير محدد'}
-                    </p>
-                  </div>
-                </div>
-
-                {receivable.description && (
-                  <div className="mb-3">
-                    <p className="text-sm text-gray-600">الوصف</p>
-                    <p className="text-sm">{receivable.description}</p>
-                  </div>
-                )}
-
-                {projects.find(p => p.id === receivable.projectId) && (
-                  <div className="mb-3">
-                    <p className="text-sm text-gray-600">المشروع</p>
-                    <p className="text-sm font-medium">{projects.find(p => p.id === receivable.projectId)?.name}</p>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  {receivable.status !== 'completed' && (
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setSelectedReceivable(receivable);
-                        setIsPayDialogOpen(true);
-                      }}
-                    >
-                      <CreditCard className="w-4 h-4 ml-1" />
-                      دفع مبلغ
-                    </Button>
-                  )}
                   <Button
+                    variant="ghost"
                     size="sm"
-                    variant="outline"
                     onClick={() => deleteReceivableMutation.mutate(receivable.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700"
                   >
-                    <Trash2 className="w-4 h-4 ml-1" />
-                    حذف
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-green-500" />
+                    <span className="text-sm text-gray-600">المستحق:</span>
+                    <span className="font-medium">{receivable.totalAmount.toLocaleString()} ج.م</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm text-gray-600">المدفوع:</span>
+                    <span className="font-medium">{receivable.paidAmount.toLocaleString()} ج.م</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-orange-500" />
+                    <span className="text-sm text-gray-600">المتبقي:</span>
+                    <span className="font-medium">
+                      {(receivable.totalAmount - receivable.paidAmount).toLocaleString()} ج.م
+                    </span>
+                  </div>
+                </div>
+
+                {receivable.dueDate && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">تاريخ الاستحقاق:</span>
+                    <span className="text-sm">
+                      {new Date(receivable.dueDate).toLocaleDateString('ar-EG')}
+                    </span>
+                  </div>
+                )}
+
+                {receivable.description && (
+                  <div className="flex items-start gap-2 mb-2">
+                    <FileText className="w-4 h-4 text-gray-500 mt-0.5" />
+                    <span className="text-sm text-gray-600">الوصف:</span>
+                    <span className="text-sm flex-1">{receivable.description}</span>
+                  </div>
+                )}
+
+                {receivable.projectId && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">المشروع:</span>
+                    <span className="text-sm">
+                      {projects.find((p: Project) => p.id === receivable.projectId)?.name || "غير محدد"}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
         )}
       </div>
-
-      {/* Payment Dialog */}
-      <Dialog open={isPayDialogOpen} onOpenChange={setIsPayDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>دفع مبلغ</DialogTitle>
-          </DialogHeader>
-          {selectedReceivable && (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium">{selectedReceivable.beneficiaryName}</p>
-                <p className="text-sm text-gray-600">المتبقي: {formatCurrency(selectedReceivable.remainingAmount)}</p>
-              </div>
-              
-              <Form {...payForm}>
-                <form onSubmit={payForm.handleSubmit((data) => 
-                  payInstallmentMutation.mutate({ id: selectedReceivable.id, amount: data.amount })
-                )} className="space-y-4">
-                  <FormField
-                    control={payForm.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>المبلغ المدفوع</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="أدخل المبلغ المدفوع"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex gap-2">
-                    <Button 
-                      type="submit" 
-                      disabled={payInstallmentMutation.isPending}
-                      className="flex-1"
-                    >
-                      {payInstallmentMutation.isPending ? "جاري الدفع..." : "دفع"}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsPayDialogOpen(false)}
-                    >
-                      إلغاء
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { 
   createContext, 
+  useContext,
   useState, 
   useEffect, 
   ReactNode 
@@ -320,3 +321,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     </AuthContext.Provider>
   );
 }
+
+// Hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
