@@ -197,6 +197,61 @@ class StorageManager {
   }
 
   /**
+   * الحصول على URL صالح للملف
+   */
+  async getFileUrl(filePath: string): Promise<StorageResult> {
+    // إذا كان المسار يحتوي على URL كامل، فقط تحقق من صحته
+    if (filePath.startsWith('http')) {
+      const provider = this.detectProviderFromUrl(filePath);
+      return {
+        success: true,
+        url: filePath,
+        provider
+      };
+    }
+
+    // محاولة الحصول على URL من Supabase أولاً
+    try {
+      const supabaseClient = getSupabaseClient();
+      if (supabaseClient) {
+        const { data } = supabaseClient.storage
+          .from('attachments')
+          .getPublicUrl(filePath);
+        
+        if (data?.publicUrl) {
+          return {
+            success: true,
+            url: data.publicUrl,
+            provider: 'supabase'
+          };
+        }
+      }
+    } catch (error) {
+      console.log('فشل في الحصول على URL من Supabase');
+    }
+
+    // إذا فشل Supabase، جرب Firebase
+    try {
+      // بناء URL Firebase إذا كان الملف موجود في Firebase
+      const firebaseUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.VITE_FIREBASE_PROJECT_ID}.appspot.com/o/${encodeURIComponent(filePath)}?alt=media`;
+      return {
+        success: true,
+        url: firebaseUrl,
+        provider: 'firebase'
+      };
+    } catch (error) {
+      console.log('فشل في بناء URL Firebase');
+    }
+
+    // كحل أخير، استخدم المسار المحلي
+    return {
+      success: true,
+      url: `/uploads/${filePath}`,
+      provider: 'local'
+    };
+  }
+
+  /**
    * تغيير مزود التخزين المفضل
    */
   setPreferredProvider(provider: StorageProvider) {

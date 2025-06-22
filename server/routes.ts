@@ -144,23 +144,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
-  // مسار لعرض الملفات المحفوظة في التخزين السحابي
-  app.get("/api/files/:path(*)", async (req: Request, res: Response) => {
-    try {
-      const filePath = req.params.path;
-      
-      // الحصول على الملف من مدير التخزين
-      const fileResult = await storageManager.getFileUrl(filePath);
-      
-      if (fileResult.success && fileResult.url) {
-        // إعادة توجيه إلى URL الملف
-        return res.redirect(fileResult.url);
-      } else {
-        return res.status(404).json({ message: "الملف غير موجود" });
-      }
-    } catch (error) {
-      console.error("خطأ في عرض الملف:", error);
-      return res.status(500).json({ message: "خطأ في عرض الملف" });
+  // مسار لعرض الملفات المحفوظة محلياً مع دعم المجلدات الفرعية
+  app.get("/uploads/*", (req: Request, res: Response) => {
+    const filePath = req.params[0]; // الحصول على المسار الكامل
+    const fullPath = path.join(__dirname, '../uploads', filePath);
+    
+    // التحقق من الأمان - منع الوصول خارج مجلد uploads
+    const uploadsDir = path.resolve(__dirname, '../uploads');
+    const requestedPath = path.resolve(fullPath);
+    
+    if (!requestedPath.startsWith(uploadsDir)) {
+      return res.status(403).json({ message: "مسار غير مسموح" });
+    }
+    
+    // التحقق من وجود الملف
+    if (fs.existsSync(requestedPath)) {
+      return res.sendFile(requestedPath);
+    } else {
+      return res.status(404).json({ message: "الملف غير موجود" });
     }
   });
 
@@ -945,35 +946,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "خطأ في معالجة العملية" });
       }
       
-      // معالجة الملف المرفق باستخدام نظام التخزين المتطور
+      // معالجة الملف المرفق - نظام محلي موثوق مع تحسين المسارات
       if (req.file) {
         try {
-          // استخدام مدير التخزين الجديد (Supabase أولاً مع احتياطي تلقائي)
-          const storageResult = await storageManager.uploadFile(
-            req.file.path,
-            `transactions/${result.transaction.id}/${req.file.filename}`,
-            req.file.mimetype
-          );
-          
-          if (storageResult.success && storageResult.url) {
-            // تحديث المعاملة بعنوان URL للملف المرفق
-            await storage.updateTransaction(result.transaction.id, { 
-              fileUrl: storageResult.url,
-              fileType: req.file.mimetype
-            });
-            
-            // تحديث كائن النتيجة بمعلومات الملف
-            result.transaction.fileUrl = storageResult.url;
-            result.transaction.fileType = req.file.mimetype;
-            
-            console.log(`✅ تم رفع الملف بنجاح باستخدام ${storageResult.provider}: ${storageResult.url}`);
-          } else {
-            console.error("فشل في رفع الملف:", storageResult.error);
+          // نسخ الملف إلى مجلد منظم
+          const targetDir = path.join('./uploads/transactions', result.transaction.id.toString());
+          if (!fs.existsSync(targetDir)) {
+            fs.mkdirSync(targetDir, { recursive: true });
           }
+          
+          const finalFileName = `${Date.now()}_${req.file.filename}`;
+          const finalPath = path.join(targetDir, finalFileName);
+          
+          // نسخ الملف
+          fs.copyFileSync(req.file.path, finalPath);
+          
+          // حذف الملف المؤقت
+          fs.unlinkSync(req.file.path);
+          
+          // بناء URL الملف
+          const fileUrl = `/uploads/transactions/${result.transaction.id}/${finalFileName}`;
+          
+          // تحديث المعاملة بعنوان URL للملف المرفق
+          await storage.updateTransaction(result.transaction.id, { 
+            fileUrl,
+            fileType: req.file.mimetype
+          });
+          
+          // تحديث كائن النتيجة بمعلومات الملف
+          result.transaction.fileUrl = fileUrl;
+          result.transaction.fileType = req.file.mimetype;
+          
+          console.log(`✅ تم حفظ الملف محلياً: ${fileUrl}`);
           
         } catch (fileError) {
           console.error("خطأ أثناء معالجة الملف المرفق:", fileError);
-          // نستمر بإرجاع المعاملة حتى لو فشل رفع الملف
+          // حذف الملف المؤقت في حالة الخطأ
+          if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
         }
       }
 
