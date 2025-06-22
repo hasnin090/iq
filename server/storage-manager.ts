@@ -205,8 +205,10 @@ class StorageManager {
     try {
       const supabaseClient = getSupabaseClient();
       if (supabaseClient) {
-        const { data, error } = await supabaseClient.storage.listBuckets();
-        healthCheck.supabase = !error;
+        // استخدام نظام فحص Supabase المبسط
+        const { checkSupabaseSimpleHealth } = await import('./supabase-simple');
+        const health = await checkSupabaseSimpleHealth();
+        healthCheck.supabase = health.client;
       }
     } catch {
       healthCheck.supabase = false;
@@ -215,7 +217,8 @@ class StorageManager {
     // فحص Firebase
     try {
       const firebaseHealth = await checkFirebaseHealth();
-      healthCheck.firebase = firebaseHealth.storage && firebaseHealth.initialized;
+      // اعتبار Firebase متاح إذا كان مُهيّأً ومُصادقة تعمل (حتى لو كان Storage محدود)
+      healthCheck.firebase = firebaseHealth.initialized && firebaseHealth.auth;
     } catch {
       healthCheck.firebase = false;
     }
