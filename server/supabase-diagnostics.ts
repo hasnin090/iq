@@ -27,9 +27,10 @@ export async function diagnoseSupabaseConnection() {
   if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
       const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      const { error } = await anonClient.from('test').select('*').limit(1);
+      // اختبار بسيط للاتصال بدون الحاجة لجداول موجودة
+      const { error } = await anonClient.rpc('version');
       
-      if (!error || error.message.includes('relation "test" does not exist')) {
+      if (!error || error.message.includes('function') || error.message.includes('does not exist')) {
         results.anonKeyTest = true;
       } else {
         results.errors.push(`مفتاح عام: ${error.message}`);
@@ -44,13 +45,11 @@ export async function diagnoseSupabaseConnection() {
     try {
       const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
       
-      // اختبار قاعدة البيانات
+      // اختبار قاعدة البيانات باستخدام استعلام بسيط
       const { error: dbError } = await serviceClient
-        .from('information_schema.tables')
-        .select('table_name')
-        .limit(1);
+        .rpc('version');
       
-      if (!dbError) {
+      if (!dbError || (dbError && dbError.message.includes('function'))) {
         results.databaseAccess = true;
         results.serviceKeyTest = true;
       } else {

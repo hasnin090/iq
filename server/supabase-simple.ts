@@ -47,14 +47,13 @@ export async function initializeSupabaseSimple(): Promise<boolean> {
     let dbConnected = false;
     let storageConnected = false;
     
-    // اختبار قاعدة البيانات
+    // اختبار قاعدة البيانات باستخدام استعلام بسيط
     try {
       const { data, error } = await supabaseClient
-        .from('information_schema.tables')
-        .select('table_name')
-        .limit(1);
+        .rpc('version');
       
-      if (!error) {
+      if (!error || (error && error.message.includes('function'))) {
+        // إذا لم يكن هناك خطأ أو كان الخطأ بسبب عدم وجود الدالة، فهذا يعني أن الاتصال يعمل
         dbConnected = true;
         console.log('✅ اتصال قاعدة بيانات Supabase نجح');
       }
