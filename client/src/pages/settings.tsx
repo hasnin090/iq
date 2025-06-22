@@ -341,17 +341,17 @@ export default function Settings() {
   });
 
   const backupMutation = useMutation({
-    mutationFn: () => makeApiCall('/api/backup', { method: 'POST' }),
-    onSuccess: () => {
+    mutationFn: () => makeApiCall('/api/backup/create', { method: 'POST' }),
+    onSuccess: (data: any) => {
       toast({
-        title: "تم",
-        description: "تم إنشاء النسخة الاحتياطية بنجاح",
+        title: "تم إنشاء النسخة الاحتياطية",
+        description: `تم إنشاء النسخة الاحتياطية بنجاح: ${data.backupPath}`,
       });
     },
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: "خطأ",
+        title: "خطأ في النسخ الاحتياطي",
         description: error.message,
       });
     },
