@@ -1,7 +1,9 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
+import { neon } from '@neondatabase/serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
+import { db } from './db';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -9,6 +11,9 @@ neonConfig.webSocketConstructor = ws;
 let backupPool: Pool | null = null;
 let backupDb: any = null;
 let isBackupConnected = false;
+
+// إنشاء pool للقاعدة الرئيسية للفحص
+let primaryPool: Pool | null = null;
 
 // متغير لتتبع حالة قاعدة البيانات الرئيسية
 let isPrimaryDbFailed = false;
@@ -24,8 +29,14 @@ export async function initializeBackupDatabase() {
       return false;
     }
 
+    // إنشاء pool للقاعدة الاحتياطية
     backupPool = new Pool({ connectionString: backupUrl });
     backupDb = drizzle({ client: backupPool, schema });
+    
+    // إنشاء pool للقاعدة الرئيسية للفحص
+    if (!primaryPool && process.env.DATABASE_URL) {
+      primaryPool = new Pool({ connectionString: process.env.DATABASE_URL });
+    }
     
     // اختبار الاتصال
     await backupPool.query('SELECT 1');
@@ -47,8 +58,7 @@ export function getActiveDatabase() {
     return backupDb;
   }
   
-  // إرجاع قاعدة البيانات الرئيسية (سيتم استيرادها من db.ts)
-  const { db } = require('./db');
+  // إرجاع قاعدة البيانات الرئيسية
   return db;
 }
 
@@ -75,10 +85,11 @@ export async function checkDatabasesHealth(): Promise<{
 
   // فحص قاعدة البيانات الرئيسية
   try {
-    const { pool } = require('./db');
-    await pool.query('SELECT 1');
-    primaryHealthy = true;
-  } catch (error) {
+    if (primaryPool) {
+      await primaryPool.query('SELECT 1');
+      primaryHealthy = true;
+    }
+  } catch (error: any) {
     console.error('قاعدة البيانات الرئيسية غير متاحة:', error.message);
   }
 
@@ -88,7 +99,7 @@ export async function checkDatabasesHealth(): Promise<{
       await backupPool.query('SELECT 1');
       backupHealthy = true;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('قاعدة البيانات الاحتياطية غير متاحة:', error.message);
     isBackupConnected = false;
   }
