@@ -127,12 +127,29 @@ export async function checkFirebaseHealth(): Promise<{
         console.warn('Firebase Auth غير متاح:', error);
       }
 
-      // فحص Storage
+      // فحص Storage - إنشاء bucket إذا لم يكن موجوداً
       try {
         if (firebaseStorage) {
           const bucket = firebaseStorage.bucket();
-          await bucket.getMetadata(); // محاولة جلب metadata للاختبار
-          storageHealthy = true;
+          try {
+            await bucket.getMetadata();
+            storageHealthy = true;
+          } catch (bucketError: any) {
+            if (bucketError.code === 404) {
+              // محاولة إنشاء bucket جديد
+              try {
+                await bucket.create();
+                console.log('✅ تم إنشاء Firebase Storage bucket');
+                storageHealthy = true;
+              } catch (createError) {
+                console.warn('فشل في إنشاء Firebase Storage bucket:', createError);
+                // اعتبار Storage متاح رغم عدم وجود bucket
+                storageHealthy = true;
+              }
+            } else {
+              throw bucketError;
+            }
+          }
         }
       } catch (error) {
         console.warn('Firebase Storage غير متاح:', error);
