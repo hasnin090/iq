@@ -14,7 +14,7 @@ interface StorageResult {
 
 class StorageManager {
   private preferredProvider: StorageProvider = 'supabase';
-  private fallbackProviders: StorageProvider[] = ['local'];
+  private fallbackProviders: StorageProvider[] = ['firebase'];
 
   constructor() {
     this.detectAvailableProviders();
@@ -22,7 +22,7 @@ class StorageManager {
 
   private async detectAvailableProviders() {
     // تحديث قائمة مزودات التخزين المتاحة
-    this.fallbackProviders = ['local']; // البدء بالتخزين المحلي دائماً
+    this.fallbackProviders = ['firebase']; // Firebase كاحتياطي أول
     
     // فحص توفر Supabase
     try {
@@ -30,12 +30,10 @@ class StorageManager {
       if (supabaseClient) {
         const { data, error } = await supabaseClient.storage.listBuckets();
         if (!error) {
-          console.log('✅ Supabase متاح كمزود تخزين');
-          if (this.preferredProvider === 'supabase') {
-            this.fallbackProviders.unshift('supabase');
-          } else {
-            this.fallbackProviders.push('supabase');
-          }
+          console.log('✅ Supabase متاح كمزود تخزين أساسي');
+          // Supabase هو المزود الأساسي دائماً إذا كان متاحاً
+        } else {
+          console.log('⚠️ Supabase غير متاح، سيتم استخدام Firebase');
         }
       }
     } catch (e) {
@@ -46,8 +44,7 @@ class StorageManager {
     try {
       const firebaseInitialized = await initializeFirebase();
       if (firebaseInitialized) {
-        console.log('✅ Firebase متاح كمزود تخزين');
-        this.fallbackProviders.push('firebase');
+        console.log('✅ Firebase متاح كمزود احتياطي');
       }
     } catch (e) {
       console.log('⚠️ Firebase غير متاح كمزود تخزين');
@@ -55,6 +52,7 @@ class StorageManager {
 
     console.log(`📁 مزود التخزين الأساسي: ${this.preferredProvider}`);
     console.log(`🔄 مزودات التخزين الاحتياطية: ${this.fallbackProviders.join(', ')}`);
+    console.log(`💾 التخزين المحلي: نسخ احتياطية تلقائية فقط`);
   }
 
   /**
@@ -66,13 +64,32 @@ class StorageManager {
     contentType?: string,
     metadata?: Record<string, string>
   ): Promise<StorageResult> {
-    const providers = [this.preferredProvider, ...this.fallbackProviders];
+    // محاولة رفع الملف إلى Supabase أولاً
+    try {
+      const supabaseResult = await this.uploadToProvider('supabase', file, fileName, contentType, metadata);
+      if (supabaseResult.success) {
+        console.log(`✅ تم رفع الملف ${fileName} إلى Supabase`);
+        
+        // حفظ نسخة احتياطية محلية
+        try {
+          await this.uploadToProvider('local', file, fileName, contentType, metadata);
+          console.log(`✅ تم حفظ نسخة احتياطية محلية للملف ${fileName}`);
+        } catch (backupError) {
+          console.warn(`⚠️ فشل في حفظ النسخة الاحتياطية المحلية للملف ${fileName}:`, backupError);
+        }
+        
+        return supabaseResult;
+      }
+    } catch (error) {
+      console.warn(`⚠️ فشل رفع الملف ${fileName} إلى Supabase:`, error);
+    }
 
-    for (const provider of providers) {
+    // في حالة فشل Supabase، استخدم المزودات الاحتياطية
+    for (const provider of this.fallbackProviders) {
       try {
         const result = await this.uploadToProvider(provider, file, fileName, contentType, metadata);
         if (result.success) {
-          console.log(`✅ تم رفع الملف ${fileName} باستخدام ${provider}`);
+          console.log(`✅ تم رفع الملف ${fileName} باستخدام ${provider} (احتياطي)`);
           return result;
         }
       } catch (error) {
