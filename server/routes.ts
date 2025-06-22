@@ -144,6 +144,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
+  // مسار لعرض الملفات المحفوظة في التخزين السحابي
+  app.get("/api/files/:path(*)", async (req: Request, res: Response) => {
+    try {
+      const filePath = req.params.path;
+      
+      // الحصول على الملف من مدير التخزين
+      const fileResult = await storageManager.getFileUrl(filePath);
+      
+      if (fileResult.success && fileResult.url) {
+        // إعادة توجيه إلى URL الملف
+        return res.redirect(fileResult.url);
+      } else {
+        return res.status(404).json({ message: "الملف غير موجود" });
+      }
+    } catch (error) {
+      console.error("خطأ في عرض الملف:", error);
+      return res.status(500).json({ message: "خطأ في عرض الملف" });
+    }
+  });
+
   // Role-based authorization middleware
   const authorize = (roles: string[]) => {
     return (req: Request, res: Response, next: Function) => {
@@ -925,22 +945,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "خطأ في معالجة العملية" });
       }
       
-      // معالجة الملف المرفق بشكل مبسط للحصول على أداء أفضل
+      // معالجة الملف المرفق باستخدام نظام التخزين المتطور
       if (req.file) {
         try {
-          // استخدام التخزين المحلي مباشرة لتسريع العملية
-          const storageFolder = `transactions/${result.transaction.id}`;
-          const fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
+          // استخدام مدير التخزين الجديد (Supabase أولاً مع احتياطي تلقائي)
+          const storageResult = await storageManager.uploadFile(
+            req.file.path,
+            `transactions/${result.transaction.id}/${req.file.filename}`,
+            req.file.mimetype
+          );
           
-          // تحديث المعاملة بعنوان URL للملف المرفق
-          await storage.updateTransaction(result.transaction.id, { 
-            fileUrl,
-            fileType: req.file.mimetype
-          });
-          
-          // تحديث كائن النتيجة بمعلومات الملف
-          result.transaction.fileUrl = fileUrl;
-          result.transaction.fileType = req.file.mimetype;
+          if (storageResult.success && storageResult.url) {
+            // تحديث المعاملة بعنوان URL للملف المرفق
+            await storage.updateTransaction(result.transaction.id, { 
+              fileUrl: storageResult.url,
+              fileType: req.file.mimetype
+            });
+            
+            // تحديث كائن النتيجة بمعلومات الملف
+            result.transaction.fileUrl = storageResult.url;
+            result.transaction.fileType = req.file.mimetype;
+            
+            console.log(`✅ تم رفع الملف بنجاح باستخدام ${storageResult.provider}: ${storageResult.url}`);
+          } else {
+            console.error("فشل في رفع الملف:", storageResult.error);
+          }
           
         } catch (fileError) {
           console.error("خطأ أثناء معالجة الملف المرفق:", fileError);
@@ -1167,28 +1196,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (transaction.fileUrl) {
         try {
           console.log(`محاولة حذف الملف السابق: ${transaction.fileUrl}`);
-          // محاولة استخدام Firebase Storage للحذف
-          try {
-            await localDelete(transaction.fileUrl);
-            console.log("تم حذف الملف المرفق السابق بنجاح من Firebase Storage");
-          } catch (firebaseError: unknown) {
-            // إذا فشل، محاولة استخدام التخزين المحلي
-            console.warn("فشل حذف الملف من Firebase Storage، محاولة الحذف من التخزين المحلي:", (firebaseError as Error).message);
-            await localDelete(transaction.fileUrl);
-            console.log("تم حذف الملف المرفق السابق بنجاح من التخزين المحلي");
-          }
+          await storageManager.deleteFile(transaction.fileUrl);
+          console.log("تم حذف الملف المرفق السابق بنجاح");
         } catch (fileError) {
           console.error("خطأ في حذف الملف المرفق السابق:", fileError);
           // استمر بعملية الرفع حتى لو فشل حذف الملف السابق
         }
       }
       
-      // رفع الملف الجديد
-      const storageFolder = `transactions/${id}`;
+      // رفع الملف الجديد باستخدام نظام التخزين المتطور
       let fileUrl;
       try {
-        // محاولة استخدام Firebase أولاً
-        fileUrl = await localUpload(req.file.path, `${storageFolder}/${req.file.filename}`);
+        const storageResult = await storageManager.uploadFile(
+          req.file.path,
+          `transactions/${id}/${req.file.filename}`,
+          req.file.mimetype
+        );
+        
+        if (storageResult.success && storageResult.url) {
+          fileUrl = storageResult.url;
+          console.log(`✅ تم رفع الملف الجديد بنجاح باستخدام ${storageResult.provider}: ${storageResult.url}`);
+        } else {
+          throw new Error(storageResult.error || 'فشل في رفع الملف');
+        }
       } catch (uploadError) {
         console.error("خطأ في رفع الملف:", uploadError);
         return res.status(500).json({ message: "خطأ في رفع الملف" });
