@@ -56,6 +56,7 @@ import {
   deleteFromFirebase
 } from './firebase-storage';
 import { storageManager } from './storage-manager';
+import { fileMigration } from './file-migration';
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -3523,6 +3524,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: "حدث خطأ أثناء مزامنة الملف" 
       });
+    }
+  });
+
+  // مسارات إدارة نقل الملفات إلى التخزين السحابي
+  
+  // الحصول على حالة الملفات
+  app.get("/api/files/status", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const status = await fileMigration.getFilesStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("خطأ في الحصول على حالة الملفات:", error);
+      res.status(500).json({ message: "خطأ في الحصول على حالة الملفات" });
+    }
+  });
+
+  // بدء عملية نقل الملفات
+  app.post("/api/files/migrate", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("🔄 بدء عملية نقل الملفات إلى التخزين السحابي...");
+      const result = await fileMigration.migrateAllFiles();
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "migrate",
+        entityType: "files",
+        entityId: 0,
+        details: `نقل الملفات: ${result.migratedFiles} نجح، ${result.failedFiles} فشل`,
+        userId: req.session.userId as number
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في نقل الملفات:", error);
+      res.status(500).json({ message: "خطأ في نقل الملفات" });
+    }
+  });
+
+  // تنظيف الملفات القديمة
+  app.post("/api/files/cleanup", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("🗑️ بدء تنظيف الملفات القديمة...");
+      const cleanedCount = await fileMigration.cleanupOldFiles();
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "cleanup",
+        entityType: "files",
+        entityId: 0,
+        details: `تم حذف ${cleanedCount} ملف قديم`,
+        userId: req.session.userId as number
+      });
+
+      res.json({ cleanedFiles: cleanedCount });
+    } catch (error) {
+      console.error("خطأ في تنظيف الملفات:", error);
+      res.status(500).json({ message: "خطأ في تنظيف الملفات" });
     }
   });
 

@@ -18,6 +18,7 @@ import Receivables from "@/pages/receivables";
 import DatabaseManagement from "@/pages/database-management";
 import HybridStorageManagement from "@/pages/hybrid-storage-management";
 import SupabaseStatus from "@/pages/supabase-status";
+import FileMigration from "@/pages/file-migration";
 
 import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";
@@ -137,6 +138,9 @@ function AppRoutes() {
               </Route>
               <Route path="/supabase-status">
                 {user?.role === 'admin' ? <SupabaseStatus /> : <NotFound />}
+              </Route>
+              <Route path="/file-migration">
+                {user?.role === 'admin' ? <FileMigration /> : <NotFound />}
               </Route>
               <Route component={NotFound} />
             </Switch>
