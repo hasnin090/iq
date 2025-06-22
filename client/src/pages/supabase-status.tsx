@@ -58,7 +58,7 @@ export default function SupabaseStatus() {
   });
 
   const initMutation = useMutation({
-    mutationFn: () => apiRequest('/api/supabase/init', { method: 'POST' }),
+    mutationFn: () => apiRequest('/api/supabase/init', 'POST'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/supabase/health'] });
       setLastRefresh(new Date());
@@ -66,21 +66,21 @@ export default function SupabaseStatus() {
   });
 
   const runDiagnosisMutation = useMutation({
-    mutationFn: () => apiRequest('/api/supabase/diagnose'),
+    mutationFn: () => apiRequest('/api/supabase/diagnose', 'GET'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/supabase/diagnose'] });
     },
   });
 
-  const health: SupabaseHealth = healthData?.health || {
+  const health: SupabaseHealth = (healthData as any)?.health || {
     client: false,
     database: false,
     storage: false,
     lastCheck: new Date().toISOString()
   };
 
-  const diagnosis: DiagnosisResult = diagnosisData?.diagnosis;
-  const suggestions: string[] = diagnosisData?.suggestions || [];
+  const diagnosis: DiagnosisResult = (diagnosisData as any)?.diagnosis || {} as DiagnosisResult;
+  const suggestions: string[] = (diagnosisData as any)?.suggestions || [];
 
   const getStatusIcon = (status: boolean) => {
     return status ? (

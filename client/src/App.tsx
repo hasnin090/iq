@@ -17,6 +17,7 @@ import Ledger from "@/pages/ledger";
 import Receivables from "@/pages/receivables";
 import DatabaseManagement from "@/pages/database-management";
 import HybridStorageManagement from "@/pages/hybrid-storage-management";
+import SupabaseStatus from "@/pages/supabase-status";
 
 import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";
@@ -133,6 +134,9 @@ function AppRoutes() {
               </Route>
               <Route path="/hybrid-storage">
                 {user?.role === 'admin' ? <HybridStorageManagement /> : <NotFound />}
+              </Route>
+              <Route path="/supabase-status">
+                {user?.role === 'admin' ? <SupabaseStatus /> : <NotFound />}
               </Route>
               <Route component={NotFound} />
             </Switch>
