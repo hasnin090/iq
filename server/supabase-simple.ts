@@ -3,6 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // نظام Supabase مبسط يعمل بدون timeout issues
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://yieyqusnciiithjtlgod.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let supabaseClient: SupabaseClient | null = null;
 let connectionStatus = {
@@ -14,12 +15,20 @@ let connectionStatus = {
 // تهيئة بسيطة
 export async function initializeSupabaseSimple(): Promise<boolean> {
   try {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      console.log('⚠️ مفاتيح Supabase غير متوفرة');
+    if (!SUPABASE_URL) {
+      console.log('⚠️ رابط Supabase غير متوفر');
       return false;
     }
 
-    supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    // استخدام مفتاح الخدمة إذا كان متوفراً، وإلا المفتاح العام
+    const apiKey = SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY;
+    
+    if (!apiKey) {
+      console.log('⚠️ لا توجد مفاتيح Supabase متاحة');
+      return false;
+    }
+
+    supabaseClient = createClient(SUPABASE_URL, apiKey, {
       auth: { autoRefreshToken: false, persistSession: false },
       global: {
         headers: {
@@ -28,16 +37,56 @@ export async function initializeSupabaseSimple(): Promise<boolean> {
       }
     });
 
-    // اختبار الاتصال البسيط
+    // اختبار الاتصال بقاعدة البيانات والتخزين
+    let dbConnected = false;
+    let storageConnected = false;
+    
+    // اختبار قاعدة البيانات
     try {
-      const { data, error } = await supabaseClient.from('test').select('*').limit(1);
-      connectionStatus.client = true;
-      connectionStatus.storage = true;
-    } catch (testError) {
-      // حتى لو فشل الاختبار، نعتبر العميل متصل
-      connectionStatus.client = true;
-      connectionStatus.storage = false;
+      const { data, error } = await supabaseClient
+        .from('information_schema.tables')
+        .select('table_name')
+        .limit(1);
+      
+      if (!error) {
+        dbConnected = true;
+        console.log('✅ اتصال قاعدة بيانات Supabase نجح');
+      }
+    } catch (dbError) {
+      console.log('⚠️ اختبار قاعدة بيانات Supabase فشل');
     }
+    
+    // اختبار التخزين
+    try {
+      const { data: buckets, error: listError } = await supabaseClient.storage.listBuckets();
+      
+      if (!listError) {
+        storageConnected = true;
+        
+        // البحث عن bucket الملفات أو إنشاؤه
+        const filesBucket = buckets?.find(bucket => bucket.name === 'files');
+        
+        if (!filesBucket) {
+          const { error: createError } = await supabaseClient.storage.createBucket('files', {
+            public: true,
+            allowedMimeTypes: ['*/*'],
+            fileSizeLimit: 50 * 1024 * 1024 // 50MB
+          });
+          
+          if (!createError) {
+            console.log('✅ تم إنشاء bucket الملفات في Supabase');
+          }
+        }
+        
+        console.log('✅ اتصال تخزين Supabase نجح');
+      }
+    } catch (storageError) {
+      console.log('⚠️ اختبار تخزين Supabase فشل');
+    }
+    
+    // تحديث الحالة
+    connectionStatus.client = true;
+    connectionStatus.storage = storageConnected;
 
     connectionStatus.lastCheck = new Date();
     
