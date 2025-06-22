@@ -27,6 +27,7 @@ export async function initializeBackupDatabase(): Promise<boolean> {
       return false;
     }
 
+    // استخدام نفس طريقة الاتصال المستخدمة في القاعدة الرئيسية
     backupSql = neon(backupUrl);
     backupDb = drizzle(backupSql, { schema });
     
