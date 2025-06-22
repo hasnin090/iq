@@ -8,8 +8,14 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 let supabaseClient: SupabaseClient | null = null;
 let connectionStatus = {
   client: false,
+  database: false,
   storage: false,
-  lastCheck: new Date()
+  lastCheck: new Date(),
+  keyStatus: {
+    urlValid: false,
+    anonKeyValid: false,
+    serviceKeyValid: false
+  }
 };
 
 // تهيئة بسيطة
@@ -86,7 +92,13 @@ export async function initializeSupabaseSimple(): Promise<boolean> {
     
     // تحديث الحالة
     connectionStatus.client = true;
+    connectionStatus.database = dbConnected;
     connectionStatus.storage = storageConnected;
+    connectionStatus.keyStatus = {
+      urlValid: true,
+      anonKeyValid: !!SUPABASE_ANON_KEY,
+      serviceKeyValid: !!SUPABASE_SERVICE_KEY
+    };
 
     connectionStatus.lastCheck = new Date();
     
