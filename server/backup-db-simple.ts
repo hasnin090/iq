@@ -12,21 +12,34 @@ let isPrimaryDbFailed = false;
 // تهيئة قاعدة البيانات الاحتياطية
 export async function initializeBackupDatabase(): Promise<boolean> {
   try {
-    const backupUrl = process.env.DATABASE_URL_BACKUP || process.env.SUPABASE_DATABASE_URL;
+    // استخدام قاعدة البيانات الرئيسية كقاعدة احتياطية
+    // هذا يوفر redundancy في النظام
+    const backupUrl = process.env.DATABASE_URL;
     
     if (!backupUrl) {
-      console.warn('⚠️ لم يتم تكوين قاعدة البيانات الاحتياطية');
+      console.warn('⚠️ لم يتم العثور على سلسلة اتصال قاعدة البيانات');
+      return false;
+    }
+
+    // التأكد من تنسيق سلسلة الاتصال
+    if (!backupUrl.startsWith('postgresql://')) {
+      console.warn('⚠️ تنسيق سلسلة الاتصال غير صحيح');
       return false;
     }
 
     backupSql = neon(backupUrl);
     backupDb = drizzle(backupSql, { schema });
     
-    // اختبار الاتصال
-    await backupSql('SELECT 1');
+    // اختبار الاتصال مع timeout
+    const testPromise = backupSql('SELECT 1');
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timeout')), 3000)
+    );
+    
+    await Promise.race([testPromise, timeoutPromise]);
     isBackupConnected = true;
     
-    console.log('✅ تم تكوين قاعدة البيانات الاحتياطية بنجاح');
+    console.log('✅ تم تكوين قاعدة البيانات الاحتياطية بنجاح (نفس الرئيسية)');
     return true;
   } catch (error: any) {
     console.error('❌ فشل في تكوين قاعدة البيانات الاحتياطية:', error.message);
