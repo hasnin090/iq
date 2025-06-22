@@ -124,15 +124,15 @@ async function createTablesInSupabase() {
     );
 
     -- إنشاء جدول دفتر الأستاذ
-    CREATE TABLE IF NOT EXISTS ledger (
+    CREATE TABLE IF NOT EXISTS ledger_entries (
       id SERIAL PRIMARY KEY,
       date TIMESTAMP NOT NULL,
       transaction_id INTEGER,
-      account_name VARCHAR(255) NOT NULL,
-      debit DECIMAL(15,2) DEFAULT 0,
-      credit DECIMAL(15,2) DEFAULT 0,
-      description TEXT,
-      reference VARCHAR(255),
+      expense_type_id INTEGER,
+      amount INTEGER NOT NULL,
+      description TEXT NOT NULL,
+      project_id INTEGER,
+      entry_type VARCHAR(50) NOT NULL,
       created_at TIMESTAMP DEFAULT NOW()
     );
 
