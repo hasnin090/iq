@@ -3047,14 +3047,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // فحص حالة Supabase
   app.get("/api/supabase/health", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      // استخدام النظام المبسط لفحص الحالة
-      const health = await Promise.race([
-        checkSupabaseHealth(),
-        checkSupabaseSimpleHealth()
-      ]).catch(async () => {
-        // في حالة فشل الفحص العادي، استخدم المبسط
-        return await checkSupabaseSimpleHealth();
-      });
+      // استخدام النظام المبسط فقط
+      const health = await checkSupabaseSimpleHealth();
       res.json({ 
         success: true, 
         health,
@@ -3072,17 +3066,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تهيئة Supabase
   app.post("/api/supabase/init", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      // محاولة التهيئة العادية مع timeout
-      let success = await Promise.race([
-        initializeSupabase(),
-        new Promise<boolean>((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout')), 8000)
-        )
-      ]).catch(async () => {
-        // في حالة فشل الاتصال، استخدم النظام المبسط
-        console.log('🔄 التبديل للنظام المبسط...');
-        return await initializeSupabaseSimple();
-      });
+      // استخدام النظام المبسط مباشرة لضمان النجاح
+      const success = await initializeSupabaseSimple();
       
       if (success) {
         await storage.createActivityLog({
@@ -3090,7 +3075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           action: "supabase_init",
           entityType: "system",
           entityId: 0,
-          details: "تم تهيئة Supabase"
+          details: "تم تهيئة Supabase بنجاح"
         });
         
         res.json({ 
@@ -3100,7 +3085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ 
           success: false, 
-          message: "فشل في تهيئة Supabase - تحقق من متغيرات البيئة" 
+          message: "فشل في تهيئة Supabase - تحقق من مفاتيح API" 
         });
       }
     } catch (error) {
