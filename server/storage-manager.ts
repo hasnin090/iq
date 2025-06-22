@@ -13,8 +13,8 @@ interface StorageResult {
 }
 
 class StorageManager {
-  private preferredProvider: StorageProvider = 'local';
-  private fallbackProviders: StorageProvider[] = ['supabase'];
+  private preferredProvider: StorageProvider = 'supabase';
+  private fallbackProviders: StorageProvider[] = ['local'];
 
   constructor() {
     this.detectAvailableProviders();
