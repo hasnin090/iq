@@ -175,21 +175,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Date Display */}
-              <div className="bg-gradient-to-r from-blue-600 via-indigo-700 to-purple-800 px-6 py-3 rounded-xl shadow-lg text-white relative overflow-hidden">
-                <div className="relative text-center">
-                  <div className="text-sm font-medium opacity-90 mb-1">التاريخ اليوم</div>
-                  <div className="font-semibold text-base">
-                    {new Date().toLocaleDateString('ar-SA', { 
-                      weekday: 'short', 
-                      day: 'numeric', 
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-                  </div>
-                </div>
-                <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -258,7 +244,7 @@ export default function Dashboard() {
                 </div>
                 <Link 
                   href="/transactions" 
-                  className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-700 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-800 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                  className="bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
                 >
                   <span>عرض الكل</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
