@@ -21,18 +21,36 @@ class StorageManager {
   }
 
   private async detectAvailableProviders() {
+    // تحديث قائمة مزودات التخزين المتاحة
+    this.fallbackProviders = ['local']; // البدء بالتخزين المحلي دائماً
+    
     // فحص توفر Supabase
-    const supabaseClient = getSupabaseClient();
-    if (supabaseClient) {
-      console.log('✅ Supabase متاح كمزود تخزين');
-      this.fallbackProviders.unshift('supabase');
+    try {
+      const supabaseClient = getSupabaseClient();
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient.storage.listBuckets();
+        if (!error) {
+          console.log('✅ Supabase متاح كمزود تخزين');
+          if (this.preferredProvider === 'supabase') {
+            this.fallbackProviders.unshift('supabase');
+          } else {
+            this.fallbackProviders.push('supabase');
+          }
+        }
+      }
+    } catch (e) {
+      console.log('⚠️ Supabase غير متاح كمزود تخزين');
     }
 
     // فحص توفر Firebase
-    const firebaseInitialized = await initializeFirebase();
-    if (firebaseInitialized) {
-      console.log('✅ Firebase متاح كمزود تخزين');
-      this.fallbackProviders.unshift('firebase');
+    try {
+      const firebaseInitialized = await initializeFirebase();
+      if (firebaseInitialized) {
+        console.log('✅ Firebase متاح كمزود تخزين');
+        this.fallbackProviders.push('firebase');
+      }
+    } catch (e) {
+      console.log('⚠️ Firebase غير متاح كمزود تخزين');
     }
 
     console.log(`📁 مزود التخزين الأساسي: ${this.preferredProvider}`);
