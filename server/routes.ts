@@ -57,6 +57,7 @@ import {
 } from './firebase-storage';
 import { storageManager } from './storage-manager';
 import { fileMigration } from './file-migration';
+import { databaseCleanup } from './database-cleanup';
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -3581,6 +3582,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في تنظيف الملفات:", error);
       res.status(500).json({ message: "خطأ في تنظيف الملفات" });
+    }
+  });
+
+  // تنظيف قاعدة البيانات من الروابط المعطلة
+  app.post("/api/database/cleanup", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("🗑️ بدء تنظيف قاعدة البيانات...");
+      const result = await databaseCleanup.cleanupDatabase();
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "cleanup",
+        entityType: "database",
+        entityId: 0,
+        details: `تنظيف قاعدة البيانات: ${result.brokenLinksRemoved} رابط معطل، ${result.validFilesFound} ملف صالح`,
+        userId: req.session.userId as number
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في تنظيف قاعدة البيانات:", error);
+      res.status(500).json({ message: "خطأ في تنظيف قاعدة البيانات" });
+    }
+  });
+
+  // تنظيم الملفات الموجودة
+  app.post("/api/files/organize", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("📁 بدء تنظيم الملفات...");
+      const result = await databaseCleanup.organizeExistingFiles();
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "organize",
+        entityType: "files",
+        entityId: 0,
+        details: `تنظيم الملفات: ${result.organized} ملف تم تنظيمه`,
+        userId: req.session.userId as number
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في تنظيم الملفات:", error);
+      res.status(500).json({ message: "خطأ في تنظيم الملفات" });
+    }
+  });
+
+  // الحصول على حالة النظام الشاملة
+  app.get("/api/system/status", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const systemStatus = await databaseCleanup.getSystemStatus();
+      res.json(systemStatus);
+    } catch (error) {
+      console.error("خطأ في الحصول على حالة النظام:", error);
+      res.status(500).json({ message: "خطأ في الحصول على حالة النظام" });
     }
   });
 
