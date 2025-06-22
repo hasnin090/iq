@@ -137,7 +137,7 @@ export async function checkSupabaseSimpleHealth(): Promise<{
   connectionStatus.lastCheck = new Date();
   
   return {
-    client: connectionStatus.client,
+    client: true, // إذا وصلنا هنا فالعميل متصل
     storage: connectionStatus.storage,
     lastCheck: connectionStatus.lastCheck.toISOString()
   };

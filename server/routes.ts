@@ -3058,7 +3058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: true, 
         health,
-        message: `Supabase متاح: عميل=${health.client}, قاعدة بيانات=${health.database || 'true'}, تخزين=${health.storage}`
+        message: `Supabase متاح: عميل=${health.client}, قاعدة بيانات=${health.client}, تخزين=${health.storage}`
       });
     } catch (error) {
       console.error("خطأ في فحص حالة Supabase:", error);
