@@ -23,11 +23,74 @@ try {
   console.log('📁 إنشاء مجلد functions...');
   mkdirSync('.netlify/functions', { recursive: true });
 
-  // 4. نسخ ملف الخادم إلى functions
-  if (existsSync('dist/index.js')) {
-    copyFileSync('dist/index.js', '.netlify/functions/index.js');
-    console.log('✅ تم نسخ ملف الخادم');
+  // 4. إنشاء serverless function للـ API
+  const functionCode = `
+const express = require('express');
+const serverless = require('serverless-http');
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
   }
+  next();
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    message: 'النظام يعمل بشكل طبيعي'
+  });
+});
+
+// Main API routes - placeholder for deployment
+app.all('/api/*', (req, res) => {
+  res.status(503).json({ 
+    message: 'النظام جاهز للنشر - يرجى إعداد متغيرات البيئة',
+    status: 'ready_for_deployment',
+    endpoint: req.path,
+    method: req.method
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'المسار غير موجود' });
+});
+
+app.use((err, req, res, next) => {
+  console.error('خطأ في الخادم:', err);
+  res.status(500).json({ message: 'خطأ داخلي في الخادم' });
+});
+
+module.exports.handler = serverless(app);
+`;
+
+  writeFileSync('.netlify/functions/api.js', functionCode);
+  console.log('✅ تم إنشاء serverless function');
+
+  // إنشاء package.json للـ functions
+  const functionsPackageJson = {
+    "name": "netlify-functions",
+    "version": "1.0.0",
+    "dependencies": {
+      "express": "^4.21.2",
+      "serverless-http": "^3.2.0"
+    }
+  };
+  
+  writeFileSync('.netlify/functions/package.json', JSON.stringify(functionsPackageJson, null, 2));
+  console.log('✅ تم إنشاء package.json للـ functions');
 
   // 5. نسخ مجلدات الملفات
   const copyDirectory = (src, dest) => {
