@@ -126,7 +126,7 @@ export default function Dashboard() {
             {/* Logo and Title Section */}
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <div className="relative group">
-                <div className="w-16 h-16 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-950 rounded-xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300 border border-slate-600/30">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 rounded-xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300 border border-blue-400/30">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
@@ -134,7 +134,7 @@ export default function Dashboard() {
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full shadow-lg animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-700 to-indigo-700 dark:from-slate-100 dark:via-blue-300 dark:to-indigo-300 bg-clip-text text-transparent">
+                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-700 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
                   لوحة التحكم المالية
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300 mt-1 text-base font-medium">نظرة شاملة على الأداء والإحصائيات المالية</p>
@@ -176,7 +176,7 @@ export default function Dashboard() {
               )}
 
               {/* Date Display */}
-              <div className="bg-gradient-to-r from-slate-700 via-blue-800 to-indigo-900 px-6 py-3 rounded-xl shadow-lg text-white relative overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 via-indigo-700 to-purple-800 px-6 py-3 rounded-xl shadow-lg text-white relative overflow-hidden">
                 <div className="relative text-center">
                   <div className="text-sm font-medium opacity-90 mb-1">التاريخ اليوم</div>
                   <div className="font-semibold text-base">
