@@ -47,18 +47,21 @@ export async function initializeSupabaseSimple(): Promise<boolean> {
     let dbConnected = false;
     let storageConnected = false;
     
-    // اختبار قاعدة البيانات باستخدام استعلام بسيط
+    // اختبار قاعدة البيانات باستخدام جدول المستخدمين
     try {
       const { data, error } = await supabaseClient
-        .rpc('version');
+        .from('users')
+        .select('count')
+        .limit(1);
       
-      if (!error || (error && error.message.includes('function'))) {
-        // إذا لم يكن هناك خطأ أو كان الخطأ بسبب عدم وجود الدالة، فهذا يعني أن الاتصال يعمل
+      if (!error) {
         dbConnected = true;
         console.log('✅ اتصال قاعدة بيانات Supabase نجح');
+      } else {
+        console.log('⚠️ خطأ في قاعدة بيانات Supabase:', error.message);
       }
     } catch (dbError) {
-      console.log('⚠️ اختبار قاعدة بيانات Supabase فشل');
+      console.log('⚠️ اختبار قاعدة بيانات Supabase فشل:', dbError);
     }
     
     // اختبار التخزين
@@ -112,22 +115,32 @@ export async function initializeSupabaseSimple(): Promise<boolean> {
 // فحص سريع بدون timeout طويل
 export async function checkSupabaseSimpleHealth(): Promise<{
   client: boolean;
+  database: boolean;
   storage: boolean;
   lastCheck: string;
 }> {
   if (!supabaseClient) {
     return {
       client: false,
+      database: false,
       storage: false,
       lastCheck: connectionStatus.lastCheck.toISOString()
     };
   }
 
+  // فحص سريع لقاعدة البيانات
+  try {
+    const { error } = await supabaseClient
+      .from('users')
+      .select('count')
+      .limit(1);
+    connectionStatus.database = !error;
+  } catch (error) {
+    connectionStatus.database = false;
+  }
+
   // فحص سريع للتخزين
   try {
-    const controller = new AbortController();
-    setTimeout(() => controller.abort(), 3000); // 3 ثوانِ timeout
-
     const { error } = await supabaseClient.storage.listBuckets();
     connectionStatus.storage = !error;
   } catch (error) {
@@ -138,6 +151,7 @@ export async function checkSupabaseSimpleHealth(): Promise<{
   
   return {
     client: true, // إذا وصلنا هنا فالعميل متصل
+    database: connectionStatus.database,
     storage: connectionStatus.storage,
     lastCheck: connectionStatus.lastCheck.toISOString()
   };
