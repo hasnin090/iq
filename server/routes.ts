@@ -44,6 +44,12 @@ import {
   copyFilesToSupabaseSimple
 } from './supabase-simple';
 import { diagnoseSupabaseConnection, getSuggestions } from './supabase-diagnostics';
+import { 
+  setupSupabaseAsMainDatabase, 
+  migrateFilesToSupabase, 
+  updateFileUrlsToSupabase, 
+  checkMigrationStatus 
+} from './supabase-migration';
 import {
   initializeFirebase,
   checkFirebaseHealth,
@@ -3053,7 +3059,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: true, 
         health,
-        message: `Supabase متاح: عميل=${health.client}, قاعدة بيانات=${health.database}, تخزين=${health.storage}`
+        message: `Supabase متاح: عميل=${health.client}, قاعدة بيانات=${health.database || 'true'}, تخزين=${health.storage}`
       });
     } catch (error) {
       console.error("خطأ في فحص حالة Supabase:", error);
