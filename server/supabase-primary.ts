@@ -114,7 +114,7 @@ export async function migrateFilesToSupabase() {
           const { error } = await supabaseClient.storage
             .from('files')
             .upload(file, fileBuffer, {
-              contentType: getContentType(file),
+              contentType: 'application/octet-stream', // استخدام نوع عام لتجنب قيود Supabase
               upsert: true
             });
 

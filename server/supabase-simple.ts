@@ -74,8 +74,8 @@ export async function initializeSupabaseSimple(): Promise<boolean> {
         if (!filesBucket) {
           const { error: createError } = await supabaseClient.storage.createBucket('files', {
             public: true,
-            allowedMimeTypes: ['*/*'],
-            fileSizeLimit: 50 * 1024 * 1024 // 50MB
+            allowedMimeTypes: null, // السماح بجميع أنواع الملفات
+            fileSizeLimit: 100 * 1024 * 1024 // 100MB
           });
           
           if (!createError) {
