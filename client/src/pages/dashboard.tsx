@@ -126,14 +126,26 @@ export default function Dashboard() {
             {/* Logo and Title Section */}
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <div className="relative group">
-                <div className="w-16 h-16 bg-gradient-to-br from-slate-700 via-blue-800 to-indigo-900 rounded-2xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300">
+                <div className="w-16 h-16 bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-950 rounded-xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300 border-2 border-slate-600/30">
                   <div className="relative">
-                    <svg className="w-8 h-8 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    {/* Financial Logo - Calculator with Currency Symbol */}
+                    <svg className="w-10 h-10 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 3H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19V7h14v12H5z"/>
+                      <circle cx="7.5" cy="9.5" r="1"/>
+                      <circle cx="12" cy="9.5" r="1"/>
+                      <circle cx="16.5" cy="9.5" r="1"/>
+                      <circle cx="7.5" cy="13" r="1"/>
+                      <circle cx="12" cy="13" r="1"/>
+                      <circle cx="16.5" cy="13" r="1"/>
+                      <rect x="7" y="15.5" width="10" height="1.5" rx="0.75"/>
                     </svg>
+                    {/* Currency overlay */}
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                      ﷼
+                    </div>
                   </div>
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-md animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-600/20 via-blue-700/20 to-indigo-800/20 rounded-xl blur-sm group-hover:blur-md transition-all duration-300"></div>
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-700 to-indigo-700 dark:from-slate-100 dark:via-blue-300 dark:to-indigo-300 bg-clip-text text-transparent">
