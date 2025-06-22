@@ -63,11 +63,30 @@ export class FileMigration {
    */
   async migrateFile(fileInfo: FileInfo): Promise<boolean> {
     try {
-      const fullOldPath = path.join(this.uploadsDir, fileInfo.oldPath);
+      // تنظيف مسار الملف من الروابط المعطلة
+      let cleanPath = fileInfo.oldPath;
+      
+      // إذا كان المسار يحتوي على رابط Firebase، تجاهله
+      if (cleanPath.includes('firebasestorage.googleapis.com')) {
+        console.log(`تجاهل رابط Firebase معطل: ${fileInfo.transactionId}`);
+        return false;
+      }
+      
+      // إزالة البادئات غير المرغوبة
+      if (cleanPath.startsWith('uploads/')) {
+        cleanPath = cleanPath.substring(8);
+      }
+      
+      const fullOldPath = path.join(this.uploadsDir, cleanPath);
       
       // التحقق من وجود الملف
       if (!fs.existsSync(fullOldPath)) {
-        console.log(`الملف غير موجود: ${fullOldPath}`);
+        console.log(`الملف غير موجود: ${cleanPath}`);
+        // إزالة مرجع الملف من قاعدة البيانات إذا كان غير موجود
+        await storage.updateTransaction(fileInfo.transactionId, {
+          fileUrl: null,
+          fileType: null
+        });
         return false;
       }
 
@@ -84,10 +103,10 @@ export class FileMigration {
           fileUrl: migrationResult.url
         });
         
-        console.log(`✅ تم نقل الملف: ${fileInfo.oldPath} → ${migrationResult.provider}: ${migrationResult.url}`);
+        console.log(`✅ تم نقل الملف: ${cleanPath} → ${migrationResult.provider}: ${migrationResult.url}`);
         return true;
       } else {
-        console.error(`فشل نقل الملف: ${fileInfo.oldPath} - ${migrationResult.error}`);
+        console.error(`فشل نقل الملف: ${cleanPath} - ${migrationResult.error}`);
         return false;
       }
     } catch (error) {
@@ -99,12 +118,13 @@ export class FileMigration {
   /**
    * نسخ جميع الملفات إلى التخزين السحابي
    */
-  async migrateAllFiles(): Promise<MigrationResult> {
-    const result: MigrationResult = {
+  async migrateAllFiles(): Promise<MigrationResult & { cleanedBrokenLinks: number }> {
+    const result: MigrationResult & { cleanedBrokenLinks: number } = {
       totalFiles: 0,
       migratedFiles: 0,
       failedFiles: 0,
-      errors: []
+      errors: [],
+      cleanedBrokenLinks: 0
     };
 
     try {
@@ -115,12 +135,22 @@ export class FileMigration {
 
       for (const fileInfo of filesInfo) {
         try {
+          // فحص خاص للروابط المعطلة
+          if (fileInfo.oldPath.includes('firebasestorage.googleapis.com')) {
+            console.log(`🗑️ تنظيف رابط Firebase معطل للمعاملة ${fileInfo.transactionId}`);
+            await storage.updateTransaction(fileInfo.transactionId, {
+              fileUrl: null,
+              fileType: null
+            });
+            result.cleanedBrokenLinks++;
+            continue;
+          }
+
           const success = await this.migrateFile(fileInfo);
           if (success) {
             result.migratedFiles++;
           } else {
             result.failedFiles++;
-            result.errors.push(`فشل نقل الملف: ${fileInfo.oldPath}`);
           }
         } catch (error) {
           result.failedFiles++;
@@ -128,10 +158,10 @@ export class FileMigration {
         }
 
         // توقف قصير لتجنب إرهاق الخادم
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
 
-      console.log(`✅ اكتمل النقل: ${result.migratedFiles} نجح، ${result.failedFiles} فشل`);
+      console.log(`✅ اكتمل النقل: ${result.migratedFiles} نجح، ${result.failedFiles} فشل، ${result.cleanedBrokenLinks} رابط معطل تم تنظيفه`);
       return result;
     } catch (error) {
       result.errors.push(`خطأ عام في النقل: ${error}`);
