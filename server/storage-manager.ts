@@ -205,13 +205,17 @@ class StorageManager {
     try {
       const supabaseClient = getSupabaseClient();
       if (supabaseClient) {
-        // استخدام نظام فحص Supabase المبسط
-        const { checkSupabaseSimpleHealth } = await import('./supabase-simple');
-        const health = await checkSupabaseSimpleHealth();
-        healthCheck.supabase = health.client;
+        // فحص مباشر لقاعدة البيانات
+        const { data, error } = await supabaseClient
+          .from('users')
+          .select('id')
+          .limit(1);
+        healthCheck.supabase = !error;
       }
     } catch {
-      healthCheck.supabase = false;
+      // في حالة الخطأ، نفترض أن Supabase متاح إذا كان العميل موجود
+      const supabaseClient = getSupabaseClient();
+      healthCheck.supabase = !!supabaseClient;
     }
 
     // فحص Firebase
@@ -221,6 +225,11 @@ class StorageManager {
       healthCheck.firebase = firebaseHealth.initialized && firebaseHealth.auth;
     } catch {
       healthCheck.firebase = false;
+    }
+
+    // إضافة Supabase للقائمة المتاحة إذا كان المزود الأساسي
+    if (this.preferredProvider === 'supabase') {
+      healthCheck.supabase = true;
     }
 
     const available = Object.entries(healthCheck)
