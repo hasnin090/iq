@@ -126,24 +126,20 @@ export default function Dashboard() {
             {/* Logo and Title Section */}
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
               <div className="relative group">
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 rounded-3xl flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                <div className="w-16 h-16 bg-gradient-to-br from-slate-700 via-blue-800 to-indigo-900 rounded-2xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300">
                   <div className="relative">
-                    <svg className="w-8 h-8 text-white drop-shadow-2xl" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    <svg className="w-8 h-8 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    <div className="absolute inset-0 bg-white opacity-20 rounded-full animate-ping"></div>
                   </div>
                 </div>
-                <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full border-3 border-white shadow-lg">
-                  <div className="w-full h-full bg-gradient-to-r from-emerald-300 to-green-400 rounded-full animate-pulse"></div>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-300/30 via-orange-400/30 to-red-400/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-md animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 dark:from-amber-400 dark:via-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-700 to-indigo-700 dark:from-slate-100 dark:via-blue-300 dark:to-indigo-300 bg-clip-text text-transparent">
                   لوحة التحكم المالية
                 </h1>
-                <p className="text-gray-700 dark:text-gray-300 mt-1 text-base font-semibold">نظرة شاملة على الأداء والإحصائيات المالية</p>
+                <p className="text-gray-600 dark:text-gray-300 mt-1 text-base font-medium">نظرة شاملة على الأداء والإحصائيات المالية</p>
               </div>
             </div>
             
@@ -182,11 +178,10 @@ export default function Dashboard() {
               )}
 
               {/* Date Display */}
-              <div className="bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 px-6 py-3 rounded-2xl shadow-2xl text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-300/30 via-orange-400/30 to-red-400/30 blur-xl"></div>
+              <div className="bg-gradient-to-r from-slate-700 via-blue-800 to-indigo-900 px-6 py-3 rounded-xl shadow-lg text-white relative overflow-hidden">
                 <div className="relative text-center">
-                  <div className="text-sm font-bold opacity-95 mb-1">التاريخ اليوم</div>
-                  <div className="font-bold text-lg">
+                  <div className="text-sm font-medium opacity-90 mb-1">التاريخ اليوم</div>
+                  <div className="font-semibold text-base">
                     {new Date().toLocaleDateString('ar-SA', { 
                       weekday: 'short', 
                       day: 'numeric', 
@@ -195,7 +190,7 @@ export default function Dashboard() {
                     })}
                   </div>
                 </div>
-                <div className="absolute top-1 right-1 w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
               </div>
             </div>
           </div>
