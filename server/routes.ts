@@ -37,6 +37,13 @@ import {
   deleteFromSupabase
 } from './supabase-db';
 import {
+  initializeSupabaseFallback,
+  checkSupabaseFallbackHealth,
+  uploadToSupabaseFallback,
+  deleteFromSupabaseFallback,
+  isSupabaseReady
+} from './supabase-fallback';
+import {
   initializeFirebase,
   checkFirebaseHealth,
   uploadToFirebase,

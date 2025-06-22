@@ -24,7 +24,7 @@ export async function initializeSupabase(): Promise<boolean> {
       return false;
     }
 
-    // إنشاء عميل Supabase
+    // إنشاء عميل Supabase (هذا يعمل دائماً)
     supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
         autoRefreshToken: false,
@@ -32,17 +32,38 @@ export async function initializeSupabase(): Promise<boolean> {
       }
     });
 
-    // إنشاء اتصال قاعدة البيانات إذا كان متاحاً
+    let dbConnected = false;
+    
+    // محاولة اتصال قاعدة البيانات المباشر (اختياري)
     if (SUPABASE_DATABASE_URL) {
-      supabaseConnection = postgres(SUPABASE_DATABASE_URL);
-      supabaseDb = drizzle(supabaseConnection, { schema });
-      
-      // اختبار الاتصال
-      await supabaseConnection`SELECT 1`;
+      try {
+        supabaseConnection = postgres(SUPABASE_DATABASE_URL, {
+          connect_timeout: 5, // تقليل timeout إلى 5 ثوانِ
+          idle_timeout: 10,
+          max_lifetime: 60 * 30,
+          ssl: 'require',
+          max: 3, // تقليل عدد الاتصالات المتزامنة
+        });
+        supabaseDb = drizzle(supabaseConnection, { schema });
+        
+        // اختبار سريع للاتصال
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database connection timeout')), 3000)
+        );
+        
+        const testQuery = supabaseConnection`SELECT 1`;
+        await Promise.race([testQuery, timeoutPromise]);
+        dbConnected = true;
+        console.log('✅ اتصال مباشر بقاعدة بيانات Supabase');
+      } catch (dbError) {
+        console.warn('⚠️ فشل الاتصال المباشر بقاعدة البيانات Supabase، استخدام API فقط:', dbError.message);
+        supabaseConnection = null;
+        supabaseDb = null;
+      }
     }
 
     isSupabaseConnected = true;
-    console.log('✅ تم تكوين Supabase بنجاح');
+    console.log(`✅ تم تكوين Supabase (عميل: نعم، قاعدة بيانات: ${dbConnected ? 'نعم' : 'لا'})`);
     return true;
   } catch (error) {
     console.error('❌ فشل في تكوين Supabase:', error);
