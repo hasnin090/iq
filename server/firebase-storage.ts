@@ -10,10 +10,11 @@ let isFirebaseInitialized = false;
 export async function initializeFirebase(): Promise<boolean> {
   try {
     // التحقق من وجود متغيرات البيئة المطلوبة
-    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 
-    if (!serviceAccountKey || !storageBucket) {
+    if (!projectId || !privateKey || !clientEmail) {
       console.warn('متغيرات بيئة Firebase غير مكتملة');
       return false;
     }
@@ -22,12 +23,16 @@ export async function initializeFirebase(): Promise<boolean> {
     if (getApps().length > 0) {
       firebaseApp = getApps()[0];
     } else {
-      // تحليل مفتاح الخدمة
-      const serviceAccount = JSON.parse(serviceAccountKey);
+      // إنشاء بيانات الاعتماد من المتغيرات
+      const serviceAccount = {
+        projectId: projectId,
+        privateKey: privateKey.replace(/\\n/g, '\n'),
+        clientEmail: clientEmail
+      };
       
       firebaseApp = initializeApp({
         credential: cert(serviceAccount),
-        storageBucket: storageBucket
+        storageBucket: `${projectId}.appspot.com`
       });
     }
 
