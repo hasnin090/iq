@@ -37,12 +37,12 @@ import {
   deleteFromSupabase
 } from './supabase-db';
 import {
-  initializeSupabaseFallback,
-  checkSupabaseFallbackHealth,
-  uploadToSupabaseFallback,
-  deleteFromSupabaseFallback,
-  isSupabaseReady
-} from './supabase-fallback';
+  initializeSupabaseSimple,
+  checkSupabaseSimpleHealth,
+  uploadToSupabaseSimple,
+  deleteFromSupabaseSimple,
+  copyFilesToSupabaseSimple
+} from './supabase-simple';
 import {
   initializeFirebase,
   checkFirebaseHealth,
@@ -3047,7 +3047,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // فحص حالة Supabase
   app.get("/api/supabase/health", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      const health = await checkSupabaseHealth();
+      // استخدام النظام المبسط لفحص الحالة
+      const health = await Promise.race([
+        checkSupabaseHealth(),
+        checkSupabaseSimpleHealth()
+      ]).catch(async () => {
+        // في حالة فشل الفحص العادي، استخدم المبسط
+        return await checkSupabaseSimpleHealth();
+      });
       res.json({ 
         success: true, 
         health,
@@ -3065,7 +3072,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تهيئة Supabase
   app.post("/api/supabase/init", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      const success = await initializeSupabase();
+      // محاولة التهيئة العادية مع timeout
+      let success = await Promise.race([
+        initializeSupabase(),
+        new Promise<boolean>((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), 8000)
+        )
+      ]).catch(async () => {
+        // في حالة فشل الاتصال، استخدم النظام المبسط
+        console.log('🔄 التبديل للنظام المبسط...');
+        return await initializeSupabaseSimple();
+      });
       
       if (success) {
         await storage.createActivityLog({
@@ -3131,7 +3148,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // نسخ الملفات إلى Supabase
   app.post("/api/supabase/migrate-files", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      const results = await copyFilesToSupabase();
+      // استخدام النظام المبسط أو العادي حسب الحالة
+      let results = await Promise.race([
+        copyFilesToSupabase(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('timeout')), 10000)
+        )
+      ]).catch(async () => {
+        // في حالة timeout، استخدم النظام المبسط
+        console.log('🔄 استخدام النظام المبسط لنسخ الملفات...');
+        return await copyFilesToSupabaseSimple();
+      });
       
       await storage.createActivityLog({
         userId: req.session.userId as number,
