@@ -58,6 +58,7 @@ import {
 import { storageManager } from './storage-manager';
 import { fileMigration } from './file-migration';
 import { databaseCleanup } from './database-cleanup';
+import { simpleMigration } from './simple-migration';
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -3637,6 +3638,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في الحصول على حالة النظام:", error);
       res.status(500).json({ message: "خطأ في الحصول على حالة النظام" });
+    }
+  });
+
+  // التنظيف الشامل المبسط
+  app.post("/api/migration/complete", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("🔄 بدء التنظيف الشامل المبسط...");
+      const result = await simpleMigration.performCompleteMigration();
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "migration",
+        entityType: "system",
+        entityId: 0,
+        details: result.summary,
+        userId: req.session.userId as number
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في التنظيف الشامل:", error);
+      res.status(500).json({ message: "خطأ في التنظيف الشامل" });
+    }
+  });
+
+  // حالة النظام المبسطة
+  app.get("/api/migration/status", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const status = await simpleMigration.getSimpleStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("خطأ في الحصول على حالة التنظيف:", error);
+      res.status(500).json({ message: "خطأ في الحصول على حالة التنظيف" });
     }
   });
 

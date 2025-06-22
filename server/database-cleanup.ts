@@ -146,13 +146,13 @@ export class DatabaseCleanup {
           console.log(`📁 تنظيم ملف المعاملة ${transaction.id}: ${newUrl}`);
 
         } catch (error) {
-          result.errors.push(`خطأ في تنظيم المعاملة ${transaction.id}: ${error}`);
+          result.errors.push(`خطأ في تنظيم المعاملة ${transaction.id}: ${String(error)}`);
         }
       }
 
       return result;
     } catch (error) {
-      result.errors.push(`خطأ عام في التنظيم: ${error}`);
+      result.errors.push(`خطأ عام في التنظيم: ${String(error)}`);
       return result;
     }
   }
