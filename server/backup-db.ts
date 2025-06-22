@@ -1,19 +1,12 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
 import { neon } from '@neondatabase/serverless';
-import ws from "ws";
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from "@shared/schema";
 import { db } from './db';
 
-neonConfig.webSocketConstructor = ws;
-
 // إعداد قاعدة البيانات الاحتياطية
-let backupPool: Pool | null = null;
+let backupSql: any = null;
 let backupDb: any = null;
 let isBackupConnected = false;
-
-// إنشاء pool للقاعدة الرئيسية للفحص
-let primaryPool: Pool | null = null;
 
 // متغير لتتبع حالة قاعدة البيانات الرئيسية
 let isPrimaryDbFailed = false;
@@ -29,22 +22,17 @@ export async function initializeBackupDatabase() {
       return false;
     }
 
-    // إنشاء pool للقاعدة الاحتياطية
-    backupPool = new Pool({ connectionString: backupUrl });
-    backupDb = drizzle({ client: backupPool, schema });
-    
-    // إنشاء pool للقاعدة الرئيسية للفحص
-    if (!primaryPool && process.env.DATABASE_URL) {
-      primaryPool = new Pool({ connectionString: process.env.DATABASE_URL });
-    }
+    // إنشاء اتصال للقاعدة الاحتياطية
+    backupSql = neon(backupUrl);
+    backupDb = drizzle(backupSql, { schema });
     
     // اختبار الاتصال
-    await backupPool.query('SELECT 1');
+    await backupSql('SELECT 1');
     isBackupConnected = true;
     
     console.log('✅ تم تكوين قاعدة البيانات الاحتياطية بنجاح');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ فشل في تكوين قاعدة البيانات الاحتياطية:', error);
     isBackupConnected = false;
     return false;

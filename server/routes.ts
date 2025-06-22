@@ -26,7 +26,7 @@ import {
   checkDatabasesHealth, 
   switchDatabase, 
   syncDatabaseToBackup 
-} from './backup-db';
+} from './backup-db-simple';
 import {
   initializeSupabase,
   checkSupabaseHealth,
