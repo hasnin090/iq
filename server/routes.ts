@@ -43,6 +43,7 @@ import {
   deleteFromSupabaseSimple,
   copyFilesToSupabaseSimple
 } from './supabase-simple';
+import { diagnoseSupabaseConnection, getSuggestions } from './supabase-diagnostics';
 import {
   initializeFirebase,
   checkFirebaseHealth,
@@ -3059,6 +3060,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: "حدث خطأ أثناء فحص حالة Supabase" 
+      });
+    }
+  });
+
+  // تشخيص تفصيلي لـ Supabase
+  app.get("/api/supabase/diagnose", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const diagnosis = await diagnoseSupabaseConnection();
+      const suggestions = getSuggestions(diagnosis);
+      
+      res.json({
+        success: true,
+        diagnosis,
+        suggestions,
+        message: "تشخيص Supabase مكتمل"
+      });
+    } catch (error: any) {
+      console.error("خطأ في تشخيص Supabase:", error);
+      res.status(500).json({
+        success: false,
+        message: `خطأ في تشخيص Supabase: ${error.message}`
       });
     }
   });
