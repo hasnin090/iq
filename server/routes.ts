@@ -3945,5 +3945,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // تهيئة Supabase تلقائياً عند بدء الخادم
+  try {
+    console.log('🔄 محاولة تهيئة Supabase...');
+    const supabaseInitialized = await initializeSupabaseSimple();
+    if (supabaseInitialized) {
+      console.log('✅ تم تهيئة Supabase بنجاح');
+    } else {
+      console.log('⚠️ فشل في تهيئة Supabase - سيتم استخدام التخزين المحلي');
+    }
+  } catch (error) {
+    console.log('⚠️ خطأ في تهيئة Supabase:', error);
+  }
+
   return httpServer;
 }
