@@ -153,6 +153,20 @@ export const funds = pgTable("funds", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Employees table - جدول الموظفين منفصل عن المستخدمين
+export const employees = pgTable("employees", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  salary: integer("salary").notNull().default(0), // الراتب الشهري
+  assignedProjectId: integer("assigned_project_id").references(() => projects.id),
+  active: boolean("active").notNull().default(true),
+  hireDate: timestamp("hire_date").notNull().defaultNow(),
+  notes: text("notes"), // ملاحظات إضافية
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Account Categories table - تصنيفات أنواع الحسابات المخصصة
 export const accountCategories = pgTable("account_categories", {
   id: serial("id").primaryKey(),
@@ -198,6 +212,15 @@ export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({ i
 export const insertSettingSchema = createInsertSchema(settings).omit({ id: true });
 
 export const insertUserProjectSchema = createInsertSchema(userProjects).omit({ id: true, assignedAt: true });
+
+export const insertEmployeeSchema = createInsertSchema(employees)
+  .omit({ id: true, createdBy: true, createdAt: true, updatedAt: true })
+  .extend({
+    hireDate: z.coerce.date().optional(),
+  });
+
+export type Employee = typeof employees.$inferSelect;
+export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 
 export const insertFundSchema = createInsertSchema(funds)
   .omit({ id: true, createdAt: true, updatedAt: true })

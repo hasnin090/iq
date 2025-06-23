@@ -10,7 +10,8 @@ import {
   expenseTypes, type ExpenseType, type InsertExpenseType,
   ledgerEntries, type LedgerEntry, type InsertLedgerEntry,
   accountCategories, type AccountCategory, type InsertAccountCategory,
-  deferredPayments, type DeferredPayment, type InsertDeferredPayment
+  deferredPayments, type DeferredPayment, type InsertDeferredPayment,
+  employees, type InsertEmployee
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage';
