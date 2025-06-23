@@ -13,6 +13,7 @@ import {
   insertAccountCategorySchema,
   insertDeferredPaymentSchema,
   funds,
+  employees,
   type Transaction
 } from "@shared/schema";
 import { z } from "zod";
@@ -3715,13 +3716,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "اسم الموظف مطلوب" });
       }
       
-      const result = await db.execute(`
-        INSERT INTO employees (name, salary, assigned_project_id, notes, created_by)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *
-      `, [name, salary || 0, assignedProjectId || null, notes || null, req.session.userId]);
+      const result = await db.insert(employees).values({
+        name,
+        salary: salary || 0,
+        assigned_project_id: assignedProjectId || null,
+        notes: notes || null,
+        created_by: req.session.userId as number
+      }).returning();
       
-      const employee = result.rows[0];
+      const employee = result[0];
       
       // تسجيل النشاط
       await storage.createActivityLog({
