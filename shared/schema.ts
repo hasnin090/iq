@@ -65,6 +65,7 @@ export const transactions = pgTable("transactions", {
   description: text("description").notNull(),
   projectId: integer("project_id").references(() => projects.id),
   createdBy: integer("created_by").notNull().references(() => users.id),
+  employeeId: integer("employee_id"), // معرف الموظف في حالة معاملات الرواتب
   fileUrl: text("file_url"), // URL للملف المرفق (اختياري)
   fileType: text("file_type"), // نوع الملف المرفق (اختياري)
   archived: boolean("archived").notNull().default(false), // حقل الأرشفة

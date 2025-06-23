@@ -874,6 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expenseType = req.body.expenseType as string || "مصروف عام";
       const description = req.body.description as string;
       const projectId = req.body.projectId ? Number(req.body.projectId) : undefined;
+      const employeeId = req.body.employeeId ? Number(req.body.employeeId) : undefined;
       
       // التحقق من صلاحيات المستخدم
       // 1. إذا لم يتم تحديد مشروع، فقط المدير يمكنه إنشاء معاملات عامة
@@ -898,6 +899,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("خطأ في التحقق من صلاحية الوصول للمشروع:", error);
           return res.status(500).json({ 
             message: "خطأ في التحقق من صلاحية الوصول للمشروع"
+          });
+        }
+      }
+
+      // التحقق من صحة معاملة الراتب
+      if (expenseType === "رواتب" && employeeId) {
+        // التحقق من وجود الموظف
+        const sql = neon(process.env.DATABASE_URL!);
+        const employeeResult = await sql(`SELECT * FROM employees WHERE id = $1 AND active = true`, [employeeId]);
+        
+        if (employeeResult.length === 0) {
+          if (req.file) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(400).json({ message: "الموظف غير موجود أو غير نشط" });
+        }
+
+        const employee = employeeResult[0];
+        
+        // التحقق من أن الموظف مخصص للمشروع المحدد
+        if (projectId && employee.assigned_project_id !== projectId) {
+          if (req.file) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(400).json({ message: "الموظف غير مخصص لهذا المشروع" });
+        }
+
+        // التحقق من أن المبلغ يتطابق مع راتب الموظف (مع هامش خطأ صغير)
+        if (Math.abs(amount - employee.salary) > 0.01) {
+          if (req.file) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(400).json({ 
+            message: `المبلغ المدخل (${amount}) لا يتطابق مع راتب الموظف (${employee.salary})` 
           });
         }
       }
