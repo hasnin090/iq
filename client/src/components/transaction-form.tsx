@@ -486,14 +486,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             <ExpenseTypeField transactionType={transactionType} form={form} />
 
             {/* Employee selection for salary transactions */}
-            {(() => {
-              const expenseType = form.watch('expenseType');
-              return expenseType === "راتب";
-            })() && (
-              <FormField
-                control={form.control}
-                name="employeeId"
-                render={({ field }) => (
+            <FormField
+              control={form.control}
+              name="employeeId"
+              render={({ field }) => {
+                const expenseType = form.watch('expenseType') as string;
+                if (expenseType !== "راتب") return null;
+                
+                return (
                   <FormItem>
                     <FormLabel>اختر الموظف</FormLabel>
                     <Select onValueChange={(value) => {
@@ -528,9 +528,9 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       </p>
                     )}
                   </FormItem>
-                )}
-              />
-            )}
+                );
+              }}
+            />
 
 
             {/* الصف الثاني: المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
