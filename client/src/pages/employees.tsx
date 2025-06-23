@@ -208,17 +208,17 @@ export default function Employees() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4 rtl:space-x-reverse">
           <Users className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">إدارة الموظفين</h1>
-            <p className="text-muted-foreground">إدارة رواتب الموظفين ومعلوماتهم الأساسية</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">إدارة الموظفين</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">إدارة رواتب الموظفين ومعلوماتهم الأساسية</p>
           </div>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2">
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2 w-full sm:w-auto">
           <UserPlus className="h-4 w-4" />
-          إضافة موظف جديد
+          <span className="sm:inline">إضافة موظف جديد</span>
         </Button>
       </div>
 
@@ -274,50 +274,49 @@ export default function Employees() {
               {employees.map((employee) => (
                 <div
                   key={employee.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 gap-4"
                 >
-                  <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{employee.name}</h3>
-                        {employee.active ? (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800">
-                            نشط
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="bg-red-100 text-red-800">
-                            غير نشط
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        <span className="font-medium">الراتب: {formatCurrency(employee.salary)}</span>
-                        {employee.assignedProject && (
-                          <span className="mr-4">المشروع: {employee.assignedProject.name}</span>
-                        )}
-                      </div>
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <h3 className="font-semibold text-lg">{employee.name}</h3>
+                      {employee.active ? (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 w-fit">
+                          نشط
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="bg-red-100 text-red-800 w-fit">
+                          غير نشط
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                      <div className="font-medium text-base">الراتب: {formatCurrency(employee.salary)}</div>
+                      {employee.assignedProject && (
+                        <div>المشروع: {employee.assignedProject.name}</div>
+                      )}
                       {employee.notes && (
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {employee.notes}
-                        </div>
+                        <div className="text-xs">{employee.notes}</div>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse sm:flex-col sm:space-x-0 sm:space-y-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(employee)}
+                      className="flex-1 sm:flex-none sm:w-full"
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-4 w-4 sm:ml-2" />
+                      <span className="hidden sm:inline">تعديل</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(employee)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 flex-1 sm:flex-none sm:w-full"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 sm:ml-2" />
+                      <span className="hidden sm:inline">حذف</span>
                     </Button>
                   </div>
                 </div>
@@ -329,12 +328,12 @@ export default function Employees() {
 
       {/* حوار إضافة موظف جديد */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle>إضافة موظف جديد</DialogTitle>
           </DialogHeader>
           <Form {...createForm}>
-            <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+            <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4 px-1">
               <FormField
                 control={createForm.control}
                 name="name"
@@ -429,12 +428,12 @@ export default function Employees() {
 
       {/* حوار تعديل موظف */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle>تعديل بيانات الموظف</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4 px-1">
               <FormField
                 control={editForm.control}
                 name="name"
