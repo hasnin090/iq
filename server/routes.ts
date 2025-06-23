@@ -985,6 +985,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         return res.status(400).json({ message: "خطأ في معالجة العملية" });
       }
+
+      // حفظ معرف الموظف إذا كانت معاملة راتب (حتى بدون ملف مرفق)
+      if (expenseType === "رواتب" && employeeId) {
+        await storage.updateTransaction(result.transaction.id, { employeeId });
+        result.transaction.employeeId = employeeId;
+      }
       
       // معالجة الملف المرفق - نظام محلي موثوق مع تحسين المسارات
       if (req.file) {
@@ -1008,10 +1014,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const fileUrl = `/uploads/transactions/${result.transaction.id}/${finalFileName}`;
           
           // تحديث المعاملة بعنوان URL للملف المرفق
-          await storage.updateTransaction(result.transaction.id, { 
+          const updateData: any = { 
             fileUrl,
             fileType: req.file.mimetype
-          });
+          };
+          
+          // إضافة معرف الموظف إذا كانت معاملة راتب
+          if (expenseType === "رواتب" && employeeId) {
+            updateData.employeeId = employeeId;
+          }
+          
+          await storage.updateTransaction(result.transaction.id, updateData);
           
           // تحديث كائن النتيجة بمعلومات الملف
           result.transaction.fileUrl = fileUrl;
