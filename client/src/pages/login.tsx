@@ -96,24 +96,24 @@ export default function Login() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-gray-900 flex flex-col items-center justify-center z-50 transition-opacity duration-300">
-      <div className="w-full max-w-md p-6">
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-gray-900 flex flex-col items-center justify-center z-50 transition-opacity duration-300 px-4 py-6">
+      <div className="w-full max-w-md">
         {/* إضافة شعار وعنوان البرنامج قبل بطاقة تسجيل الدخول */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-5">
-            <img src="/logo.svg" alt="شعار Code-01" className="h-24 w-auto" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex justify-center mb-3 sm:mb-5">
+            <img src="/logo.svg" alt="شعار Code-01" className="h-16 sm:h-24 w-auto" />
           </div>
-          <h1 className="text-4xl font-bold text-primary mb-3 drop-shadow-md">Code-01</h1>
-          <div className="bg-primary/10 dark:bg-primary/20 rounded-lg py-2 px-6 inline-block shadow-sm">
-            <p className="text-primary dark:text-primary-foreground text-lg font-bold">نظام المحاسبة المتكامل</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-primary mb-2 sm:mb-3 drop-shadow-md">Code-01</h1>
+          <div className="bg-primary/10 dark:bg-primary/20 rounded-lg py-1.5 sm:py-2 px-4 sm:px-6 inline-block shadow-sm">
+            <p className="text-primary dark:text-primary-foreground text-sm sm:text-lg font-bold">نظام المحاسبة المتكامل</p>
           </div>
         </div>
         
-        <div className={`bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-slate-700 transition-all ${shakeAnimation ? 'shake' : ''}`}>
-          <h2 className="text-gray-800 dark:text-gray-100 text-2xl font-bold text-center mb-6">تسجيل الدخول إلى النظام</h2>
+        <div className={`bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-8 shadow-xl border border-gray-100 dark:border-slate-700 transition-all ${shakeAnimation ? 'shake' : ''}`}>
+          <h2 className="text-gray-800 dark:text-gray-100 text-lg sm:text-2xl font-bold text-center mb-4 sm:mb-6">تسجيل الدخول إلى النظام</h2>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
               <FormField
                 control={form.control}
                 name="username"
@@ -122,12 +122,12 @@ export default function Login() {
                     <FormControl>
                       <Input
                         {...field}
-                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 focus:border-primary dark:focus:border-blue-400 text-gray-800 dark:text-gray-100 font-medium outline-none transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 focus:border-primary dark:focus:border-blue-400 text-gray-800 dark:text-gray-100 font-medium outline-none transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         placeholder="اسم المستخدم"
                         disabled={isLoading}
                       />
                     </FormControl>
-                    <FormMessage className="text-red-600 text-sm font-medium" />
+                    <FormMessage className="text-red-600 text-xs sm:text-sm font-medium" />
                   </FormItem>
                 )}
               />
@@ -141,19 +141,19 @@ export default function Login() {
                       <Input
                         {...field}
                         type="password"
-                        className="w-full px-4 py-3 rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 focus:border-primary dark:focus:border-blue-400 text-gray-800 dark:text-gray-100 font-medium outline-none transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 focus:border-primary dark:focus:border-blue-400 text-gray-800 dark:text-gray-100 font-medium outline-none transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         placeholder="كلمة المرور"
                         disabled={isLoading}
                       />
                     </FormControl>
-                    <FormMessage className="text-red-600 text-sm font-medium" />
+                    <FormMessage className="text-red-600 text-xs sm:text-sm font-medium" />
                   </FormItem>
                 )}
               />
               
               <Button
                 type="submit"
-                className="w-full py-3 mt-5 rounded-lg bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
+                className="w-full py-2.5 sm:py-3 mt-4 sm:mt-5 text-sm sm:text-base rounded-lg bg-gradient-to-r from-primary to-primary-light text-white font-bold transition-all hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -164,15 +164,15 @@ export default function Login() {
                 ) : "دخول"}
               </Button>
               
-              <div className="mt-6">
-                <Separator className="my-4">
-                  <span className="px-2 text-sm text-muted-foreground">أو</span>
+              <div className="mt-4 sm:mt-6">
+                <Separator className="my-3 sm:my-4">
+                  <span className="px-2 text-xs sm:text-sm text-muted-foreground">أو</span>
                 </Separator>
                 
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full py-3 mt-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 hover:border-gray-400 dark:hover:border-slate-500 transition-colors"
+                  className="w-full py-2.5 sm:py-3 mt-2 sm:mt-3 text-xs sm:text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-600 hover:border-gray-400 dark:hover:border-slate-500 transition-colors"
                   onClick={async () => {
                     try {
                       setIsLoading(true);
@@ -187,7 +187,7 @@ export default function Login() {
                   }}
                   disabled={isLoading}
                 >
-                  <svg className="w-5 h-5 ml-2" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
                       d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"
@@ -202,8 +202,10 @@ export default function Login() {
       </div>
       
       {/* إضافة حقوق الملكية في أسفل الصفحة */}
-      <div className="mt-8 text-center text-xs text-gray-500">
-        <p>جميع الحقوق محفوظة &copy; {new Date().getFullYear()} Code-01</p>
+      <div className="mt-4 sm:mt-8 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          جميع الحقوق محفوظة &copy; {new Date().getFullYear()} Code-01
+        </p>
       </div>
     </div>
   );
