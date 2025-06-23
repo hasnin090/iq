@@ -3730,6 +3730,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/employees", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
       const sql = neon(process.env.DATABASE_URL!);
+      
+      // جلب الموظفين مع معلومات المشروع
       const result = await sql(`
         SELECT e.*, p.name as project_name 
         FROM employees e 
@@ -3737,17 +3739,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY e.created_at DESC
       `);
       
-      const employees = result.map(row => ({
-        id: row.id,
-        name: row.name,
-        salary: row.salary,
-        assignedProjectId: row.assigned_project_id,
-        assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
-        active: row.active,
-        hireDate: row.hire_date,
-        notes: row.notes,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
+      // حساب المبلغ المسحوب من راتب كل موظف في الشهر الحالي
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+      
+      const employees = await Promise.all(result.map(async (row) => {
+        // حساب إجمالي المبلغ المسحوب من راتب الموظف في الشهر الحالي
+        const salaryWithdrawals = await sql(`
+          SELECT COALESCE(SUM(amount), 0) as total_withdrawn
+          FROM transactions 
+          WHERE employee_id = $1 
+          AND expense_type = 'رواتب'
+          AND type = 'expense'
+          AND EXTRACT(MONTH FROM date) = $2 
+          AND EXTRACT(YEAR FROM date) = $3
+        `, [row.id, currentMonth, currentYear]);
+        
+        const totalWithdrawn = parseInt(salaryWithdrawals[0].total_withdrawn) || 0;
+        const remainingSalary = row.salary - totalWithdrawn;
+        
+        return {
+          id: row.id,
+          name: row.name,
+          salary: row.salary,
+          totalWithdrawn,
+          remainingSalary,
+          assignedProjectId: row.assigned_project_id,
+          assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
+          active: row.active,
+          hireDate: row.hire_date,
+          notes: row.notes,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
       }));
       
       res.json(employees);
@@ -3771,17 +3795,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY e.name ASC
       `, [parseInt(projectId)]);
       
-      const employees = result.map(row => ({
-        id: row.id,
-        name: row.name,
-        salary: row.salary,
-        assignedProjectId: row.assigned_project_id,
-        assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
-        active: row.active,
-        hireDate: row.hire_date,
-        notes: row.notes,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
+      // حساب المبلغ المسحوب من راتب كل موظف في الشهر الحالي
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+      
+      const employees = await Promise.all(result.map(async (row) => {
+        // حساب إجمالي المبلغ المسحوب من راتب الموظف في الشهر الحالي
+        const salaryWithdrawals = await sql(`
+          SELECT COALESCE(SUM(amount), 0) as total_withdrawn
+          FROM transactions 
+          WHERE employee_id = $1 
+          AND expense_type = 'رواتب'
+          AND type = 'expense'
+          AND EXTRACT(MONTH FROM date) = $2 
+          AND EXTRACT(YEAR FROM date) = $3
+        `, [row.id, currentMonth, currentYear]);
+        
+        const totalWithdrawn = parseInt(salaryWithdrawals[0].total_withdrawn) || 0;
+        const remainingSalary = row.salary - totalWithdrawn;
+        
+        return {
+          id: row.id,
+          name: row.name,
+          salary: row.salary,
+          totalWithdrawn,
+          remainingSalary,
+          assignedProjectId: row.assigned_project_id,
+          assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
+          active: row.active,
+          hireDate: row.hire_date,
+          notes: row.notes,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        };
       }));
       
       res.json(employees);

@@ -54,6 +54,8 @@ interface Employee {
   id: number;
   name: string;
   salary: number;
+  totalWithdrawn?: number;
+  remainingSalary?: number;
   assignedProjectId?: number;
   assignedProject?: { id: number; name: string };
 }
@@ -119,10 +121,9 @@ function EmployeeField({ form, projectEmployees }: { form: any; projectEmployees
           <FormLabel>اختر الموظف</FormLabel>
           <Select onValueChange={(value) => {
             field.onChange(value);
-            // تعيين الراتب تلقائياً عند اختيار الموظف
+            // تعيين وصف فقط، بدون تعبئة المبلغ تلقائياً
             const selectedEmployee = projectEmployees.find(emp => emp.id.toString() === value);
             if (selectedEmployee) {
-              form.setValue("amount", selectedEmployee.salary);
               form.setValue("description", `راتب ${selectedEmployee.name}`);
             }
           }} value={field.value}>
@@ -136,9 +137,17 @@ function EmployeeField({ form, projectEmployees }: { form: any; projectEmployees
                 <SelectItem key={employee.id} value={employee.id.toString()}>
                   <div className="flex flex-col">
                     <span>{employee.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      الراتب: {employee.salary.toLocaleString()} د.ع
-                    </span>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>الراتب الأساسي: {employee.salary.toLocaleString()} د.ع</div>
+                      {typeof employee.totalWithdrawn === 'number' && (
+                        <div className="text-orange-600">مسحوب: {employee.totalWithdrawn.toLocaleString()} د.ع</div>
+                      )}
+                      {typeof employee.remainingSalary === 'number' && (
+                        <div className={employee.remainingSalary > 0 ? 'text-green-600' : 'text-red-600'}>
+                          متبقي: {employee.remainingSalary.toLocaleString()} د.ع
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </SelectItem>
               ))}

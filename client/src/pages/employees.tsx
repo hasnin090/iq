@@ -21,6 +21,8 @@ interface Employee {
   id: number;
   name: string;
   salary: number;
+  totalWithdrawn?: number;
+  remainingSalary?: number;
   assignedProjectId?: number;
   assignedProject?: {
     id: number;
@@ -290,7 +292,15 @@ export default function Employees() {
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground mt-2 space-y-1">
-                      <div className="font-medium text-base">الراتب: {formatCurrency(employee.salary)}</div>
+                      <div className="font-medium text-base">الراتب الأساسي: {formatCurrency(employee.salary)}</div>
+                      {typeof employee.totalWithdrawn === 'number' && (
+                        <div className="text-orange-600">المسحوب هذا الشهر: {formatCurrency(employee.totalWithdrawn)}</div>
+                      )}
+                      {typeof employee.remainingSalary === 'number' && (
+                        <div className={`font-medium ${employee.remainingSalary > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          المتبقي: {formatCurrency(employee.remainingSalary)}
+                        </div>
+                      )}
                       {employee.assignedProject && (
                         <div>المشروع: {employee.assignedProject.name}</div>
                       )}
