@@ -3945,6 +3945,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== استعادة المرفقات المفقودة ========
+  
+  // فحص حالة المرفقات
+  app.get("/api/attachments/status", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { attachmentRecovery } = await import("./attachment-recovery");
+      const status = await attachmentRecovery.getAttachmentsStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("خطأ في فحص حالة المرفقات:", error);
+      res.status(500).json({ message: "خطأ في فحص حالة المرفقات" });
+    }
+  });
+
+  // استعادة المرفقات المفقودة
+  app.post("/api/attachments/recover", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("🔄 بدء عملية استعادة المرفقات المفقودة...");
+      const { attachmentRecovery } = await import("./attachment-recovery");
+      const result = await attachmentRecovery.recoverMissingAttachments();
+      
+      await storage.createActivityLog({
+        action: "attachment_recovery",
+        entityType: "system",
+        entityId: 0,
+        details: `استعادة المرفقات: ${result.recoveredFromSupabase + result.recoveredFromFirebase} نجح، ${result.stillMissing} فشل`,
+        userId: req.session.userId as number
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في استعادة المرفقات:", error);
+      res.status(500).json({ message: "خطأ في استعادة المرفقات" });
+    }
+  });
+
   // تهيئة Supabase تلقائياً عند بدء الخادم
   try {
     console.log('🔄 محاولة تهيئة Supabase...');
