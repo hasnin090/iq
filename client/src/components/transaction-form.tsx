@@ -107,8 +107,17 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
 }
 
 // Component for employee selection when expense type is "رواتب"
-function EmployeeField({ form, projectEmployees }: { form: any; projectEmployees: Employee[] }): JSX.Element | null {
+function EmployeeField({ form, projectEmployees }: { form: any; projectEmployees: Employee[] }) {
   const expenseType = form.watch('expenseType');
+  const currentProjectId = form.watch('projectId');
+  const isValidProjectId = currentProjectId && currentProjectId !== 'none' && currentProjectId !== '' && !isNaN(Number(currentProjectId));
+  
+  console.log('EmployeeField rendered:', { 
+    expenseType, 
+    projectEmployees: projectEmployees.length, 
+    currentProjectId,
+    isValidProjectId 
+  });
   
   if (expenseType !== "رواتب") return null;
   
@@ -154,9 +163,14 @@ function EmployeeField({ form, projectEmployees }: { form: any; projectEmployees
             </SelectContent>
           </Select>
           <FormMessage />
-          {projectEmployees.length === 0 && (
+          {projectEmployees.length === 0 && isValidProjectId && (
             <p className="text-sm text-muted-foreground">
               لا توجد موظفين مخصصين لهذا المشروع
+            </p>
+          )}
+          {!isValidProjectId && (
+            <p className="text-sm text-muted-foreground">
+              يرجى اختيار مشروع أولاً لعرض الموظفين
             </p>
           )}
         </FormItem>
@@ -516,7 +530,63 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
 
             <ExpenseTypeField transactionType={transactionType} form={form} />
 
-            <EmployeeField form={form} projectEmployees={Array.isArray(projectEmployees) ? projectEmployees : []} />
+            {/* Employee selection for salary transactions */}
+            {form.watch('expenseType') === "رواتب" && (
+              <FormField
+                control={form.control}
+                name="employeeId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اختر الموظف</FormLabel>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      // تعيين وصف فقط، بدون تعبئة المبلغ تلقائياً
+                      const selectedEmployee = projectEmployees.find(emp => emp.id.toString() === value);
+                      if (selectedEmployee) {
+                        form.setValue("description", `راتب ${selectedEmployee.name}`);
+                      }
+                    }} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
+                          <SelectValue placeholder="اختر الموظف" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {projectEmployees.map(employee => (
+                          <SelectItem key={employee.id} value={employee.id.toString()}>
+                            <div className="flex flex-col">
+                              <span>{employee.name}</span>
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                <div>الراتب الأساسي: {employee.salary.toLocaleString()} د.ع</div>
+                                {typeof employee.totalWithdrawn === 'number' && (
+                                  <div className="text-orange-600">مسحوب: {employee.totalWithdrawn.toLocaleString()} د.ع</div>
+                                )}
+                                {typeof employee.remainingSalary === 'number' && (
+                                  <div className={employee.remainingSalary > 0 ? 'text-green-600' : 'text-red-600'}>
+                                    متبقي: {employee.remainingSalary.toLocaleString()} د.ع
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    {projectEmployees.length === 0 && isValidProjectId && (
+                      <p className="text-sm text-muted-foreground">
+                        لا توجد موظفين مخصصين لهذا المشروع
+                      </p>
+                    )}
+                    {!isValidProjectId && (
+                      <p className="text-sm text-muted-foreground">
+                        يرجى اختيار مشروع أولاً لعرض الموظفين
+                      </p>
+                    )}
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* الصف الثاني: المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
             {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 1)) && (
