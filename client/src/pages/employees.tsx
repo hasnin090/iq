@@ -11,24 +11,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit2, UserPlus, Users, Shield, Eye } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Trash2, Edit2, UserPlus, Users, DollarSign } from 'lucide-react';
 
 interface Employee {
   id: number;
-  username: string;
   name: string;
-  email: string;
-  role: string;
-  active: boolean;
-  permissions: string[];
-  salary?: number;
+  salary: number;
   assignedProjectId?: number;
   assignedProject?: {
     id: number;
     name: string;
   };
+  active: boolean;
+  notes?: string;
+  hireDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Project {
@@ -38,27 +40,21 @@ interface Project {
 }
 
 const employeeFormSchema = z.object({
-  username: z.string().min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل"),
-  name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل"),
-  email: z.string().email("البريد الإلكتروني غير صحيح").optional().or(z.literal("")),
-  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
-  role: z.string().min(1, "الرجاء اختيار الدور"),
-  salary: z.number().min(0, "الراتب يجب أن يكون أكبر من أو يساوي صفر").optional(),
-  assignedProjectId: z.number().optional(),
+  name: z.string().min(2, "اسم الموظف مطلوب"),
+  salary: z.coerce.number().min(0, "الراتب يجب أن يكون أكبر من أو يساوي صفر"),
+  assignedProjectId: z.coerce.number().optional(),
+  notes: z.string().optional(),
+});
+
+const editEmployeeFormSchema = z.object({
+  name: z.string().min(2, "اسم الموظف مطلوب"),
+  salary: z.coerce.number().min(0, "الراتب يجب أن يكون أكبر من أو يساوي صفر"),
+  active: z.boolean(),
+  assignedProjectId: z.coerce.number().optional(),
+  notes: z.string().optional(),
 });
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
-
-const editEmployeeFormSchema = z.object({
-  username: z.string().min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل"),
-  name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل"),
-  email: z.string().email("البريد الإلكتروني غير صحيح").optional().or(z.literal("")),
-  role: z.string().min(1, "الرجاء اختيار الدور"),
-  active: z.boolean(),
-  salary: z.number().min(0, "الراتب يجب أن يكون أكبر من أو يساوي صفر").optional(),
-  assignedProjectId: z.number().optional(),
-});
-
 type EditEmployeeFormData = z.infer<typeof editEmployeeFormSchema>;
 
 export default function Employees() {
@@ -84,13 +80,10 @@ export default function Employees() {
   const createForm = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues: {
-      username: '',
       name: '',
-      email: '',
-      password: '',
-      role: 'user',
       salary: 0,
       assignedProjectId: undefined,
+      notes: '',
     },
   });
 
@@ -105,11 +98,11 @@ export default function Employees() {
         description: "تم إضافة الموظف الجديد إلى النظام",
       });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
-        variant: "destructive",
         title: "خطأ في إنشاء الموظف",
-        description: error.message || "حدث خطأ غير متوقع",
+        description: "حدث خطأ أثناء إضافة الموظف",
+        variant: "destructive",
       });
     },
   });
@@ -118,13 +111,11 @@ export default function Employees() {
   const editForm = useForm<EditEmployeeFormData>({
     resolver: zodResolver(editEmployeeFormSchema),
     defaultValues: {
-      username: '',
       name: '',
-      email: '',
-      role: 'user',
-      active: true,
       salary: 0,
+      active: true,
       assignedProjectId: undefined,
+      notes: '',
     },
   });
 
@@ -141,11 +132,11 @@ export default function Employees() {
         description: "تم حفظ التغييرات",
       });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
-        variant: "destructive",
         title: "خطأ في تحديث الموظف",
-        description: error.message || "حدث خطأ غير متوقع",
+        description: "حدث خطأ أثناء التحديث",
+        variant: "destructive",
       });
     },
   });
@@ -162,72 +153,54 @@ export default function Employees() {
         description: "تم إزالة الموظف من النظام",
       });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
-        variant: "destructive",
         title: "خطأ في حذف الموظف",
-        description: error.message || "حدث خطأ غير متوقع",
+        description: "حدث خطأ أثناء الحذف",
+        variant: "destructive",
       });
     },
   });
 
-  const handleCreateSubmit = (data: EmployeeFormData) => {
-    createMutation.mutate(data);
-  };
-
-  const handleEditSubmit = (data: EditEmployeeFormData) => {
-    if (selectedEmployee) {
-      editMutation.mutate({ id: selectedEmployee.id, data });
-    }
-  };
-
-  const handleEditClick = (employee: Employee) => {
+  const handleEdit = (employee: Employee) => {
     setSelectedEmployee(employee);
     editForm.reset({
-      username: employee.username,
       name: employee.name,
-      email: employee.email || '',
-      role: employee.role,
+      salary: employee.salary,
       active: employee.active,
-      salary: employee.salary || 0,
       assignedProjectId: employee.assignedProjectId,
+      notes: employee.notes || '',
     });
     setIsEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (employee: Employee) => {
+  const handleDelete = (employee: Employee) => {
     setSelectedEmployee(employee);
     setIsDeleteDialogOpen(true);
   };
 
-  const getRoleName = (role: string) => {
-    const roleNames: Record<string, string> = {
-      admin: 'مدير النظام',
-      manager: 'مدير',
-      user: 'مستخدم',
-      viewer: 'مشاهد',
-    };
-    return roleNames[role] || role;
+  const onCreateSubmit = (data: EmployeeFormData) => {
+    createMutation.mutate(data);
   };
 
-  const getRoleColor = (role: string) => {
-    const colors: Record<string, string> = {
-      admin: 'bg-red-100 text-red-800',
-      manager: 'bg-blue-100 text-blue-800',
-      user: 'bg-green-100 text-green-800',
-      viewer: 'bg-gray-100 text-gray-800',
-    };
-    return colors[role] || 'bg-gray-100 text-gray-800';
+  const onEditSubmit = (data: EditEmployeeFormData) => {
+    if (!selectedEmployee) return;
+    editMutation.mutate({ id: selectedEmployee.id, data });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ar-SA', {
+      style: 'currency',
+      currency: 'SAR',
+      minimumFractionDigits: 0,
+    }).format(amount);
   };
 
   if (isLoading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">جاري تحميل الموظفين...</p>
-          </div>
+        <div className="flex items-center justify-center h-32">
+          <div className="text-muted-foreground">جاري تحميل الموظفين...</div>
         </div>
       </div>
     );
@@ -235,198 +208,142 @@ export default function Employees() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <Users className="h-6 w-6 text-blue-600" />
-          </div>
+        <div className="flex items-center space-x-4 rtl:space-x-reverse">
+          <Users className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">إدارة الموظفين</h1>
-            <p className="text-gray-600">إضافة وتعديل وحذف موظفي النظام</p>
+            <h1 className="text-3xl font-bold">إدارة الموظفين</h1>
+            <p className="text-muted-foreground">إدارة رواتب الموظفين ومعلوماتهم الأساسية</p>
           </div>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center space-x-2 space-x-reverse">
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2">
           <UserPlus className="h-4 w-4" />
-          <span>إضافة موظف جديد</span>
+          إضافة موظف جديد
         </Button>
       </div>
 
-      {/* Employees Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {employees.map((employee) => (
-          <Card key={employee.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 space-x-reverse">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold">
-                      {employee.name.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{employee.name}</CardTitle>
-                    <p className="text-sm text-gray-600">@{employee.username}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-1 space-x-reverse">
-                  {employee.active ? (
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  ) : (
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Badge className={getRoleColor(employee.role)}>
-                  {getRoleName(employee.role)}
-                </Badge>
-              </div>
-              
-              {employee.email && (
-                <p className="text-sm text-gray-600 truncate">{employee.email}</p>
-              )}
-
-              {employee.salary && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">الراتب الشهري:</span>
-                  <span className="text-sm font-medium text-green-600">
-                    {employee.salary.toLocaleString()} ريال
-                  </span>
-                </div>
-              )}
-
-              {employee.assignedProject && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">المشروع:</span>
-                  <span className="text-sm font-medium text-blue-600 truncate">
-                    {employee.assignedProject.name}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-sm text-gray-500">
-                  {employee.active ? 'نشط' : 'غير نشط'}
-                </span>
-                <div className="flex items-center space-x-2 space-x-reverse">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditClick(employee)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteClick(employee)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* إحصائيات سريعة */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">إجمالي الموظفين</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{employees.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">الموظفين النشطين</CardTitle>
+            <Users className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{employees.filter(emp => emp.active).length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">إجمالي الرواتب الشهرية</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(employees.reduce((sum, emp) => sum + emp.salary, 0))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {employees.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد موظفين</h3>
-          <p className="text-gray-600 mb-4">ابدأ بإضافة موظف جديد إلى النظام</p>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            إضافة موظف جديد
-          </Button>
-        </div>
-      )}
+      {/* قائمة الموظفين */}
+      <Card>
+        <CardHeader>
+          <CardTitle>قائمة الموظفين</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {employees.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">لا توجد موظفين مسجلين حتى الآن</p>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">
+                إضافة أول موظف
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {employees.map((employee) => (
+                <div
+                  key={employee.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                >
+                  <div className="flex items-center space-x-4 rtl:space-x-reverse">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">{employee.name}</h3>
+                        {employee.active ? (
+                          <Badge variant="secondary" className="bg-green-100 text-green-800">
+                            نشط
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-red-100 text-red-800">
+                            غير نشط
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <span className="font-medium">الراتب: {formatCurrency(employee.salary)}</span>
+                        {employee.assignedProject && (
+                          <span className="mr-4">المشروع: {employee.assignedProject.name}</span>
+                        )}
+                      </div>
+                      {employee.notes && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {employee.notes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(employee)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(employee)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Create Employee Dialog */}
+      {/* حوار إضافة موظف جديد */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>إضافة موظف جديد</DialogTitle>
           </DialogHeader>
           <Form {...createForm}>
-            <form onSubmit={createForm.handleSubmit(handleCreateSubmit)} className="space-y-4">
+            <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
               <FormField
                 control={createForm.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الاسم الكامل</FormLabel>
+                    <FormLabel>اسم الموظف</FormLabel>
                     <FormControl>
-                      <Input placeholder="أدخل الاسم الكامل" {...field} />
+                      <Input placeholder="أدخل اسم الموظف" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={createForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>اسم المستخدم</FormLabel>
-                    <FormControl>
-                      <Input placeholder="أدخل اسم المستخدم" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={createForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>البريد الإلكتروني (اختياري)</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="أدخل البريد الإلكتروني" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={createForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>كلمة المرور</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="أدخل كلمة المرور" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={createForm.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>الدور</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر الدور" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="user">مستخدم</SelectItem>
-                        <SelectItem value="manager">مدير</SelectItem>
-                        <SelectItem value="viewer">مشاهد</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -437,13 +354,12 @@ export default function Employees() {
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الراتب الشهري (ريال)</FormLabel>
+                    <FormLabel>الراتب الشهري (ريال سعودي)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="أدخل الراتب الشهري"
+                        placeholder="0"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -456,15 +372,15 @@ export default function Employees() {
                 name="assignedProjectId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>المشروع المخصص (اختياري)</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} value={field.value ? field.value.toString() : "none"}>
+                    <FormLabel>المشروع المكلف به (اختياري)</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString() || ""}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر المشروع" />
+                          <SelectValue placeholder="اختر مشروع" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">بدون مشروع</SelectItem>
+                        <SelectItem value="">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
@@ -472,6 +388,23 @@ export default function Employees() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ملاحظات (اختياري)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="أضف ملاحظات حول الموظف"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -486,7 +419,7 @@ export default function Employees() {
                   إلغاء
                 </Button>
                 <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'جاري الإنشاء...' : 'إنشاء'}
+                  {createMutation.isPending ? "جاري الإنشاء..." : "إنشاء الموظف"}
                 </Button>
               </DialogFooter>
             </form>
@@ -494,74 +427,23 @@ export default function Employees() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Employee Dialog */}
+      {/* حوار تعديل موظف */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>تعديل الموظف</DialogTitle>
+            <DialogTitle>تعديل بيانات الموظف</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
               <FormField
                 control={editForm.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الاسم الكامل</FormLabel>
+                    <FormLabel>اسم الموظف</FormLabel>
                     <FormControl>
-                      <Input placeholder="أدخل الاسم الكامل" {...field} />
+                      <Input placeholder="أدخل اسم الموظف" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={editForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>اسم المستخدم</FormLabel>
-                    <FormControl>
-                      <Input placeholder="أدخل اسم المستخدم" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={editForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>البريد الإلكتروني (اختياري)</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="أدخل البريد الإلكتروني" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={editForm.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>الدور</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر الدور" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="user">مستخدم</SelectItem>
-                        <SelectItem value="manager">مدير</SelectItem>
-                        <SelectItem value="viewer">مشاهد</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -572,13 +454,12 @@ export default function Employees() {
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الراتب الشهري (ريال)</FormLabel>
+                    <FormLabel>الراتب الشهري (ريال سعودي)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="أدخل الراتب الشهري"
+                        placeholder="0"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -588,18 +469,39 @@ export default function Employees() {
 
               <FormField
                 control={editForm.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>حالة الموظف</FormLabel>
+                      <div className="text-sm text-muted-foreground">
+                        هل الموظف نشط في العمل؟
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
                 name="assignedProjectId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>المشروع المخصص (اختياري)</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} value={field.value ? field.value.toString() : "none"}>
+                    <FormLabel>المشروع المكلف به (اختياري)</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString() || ""}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر المشروع" />
+                          <SelectValue placeholder="اختر مشروع" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">بدون مشروع</SelectItem>
+                        <SelectItem value="">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
@@ -607,6 +509,23 @@ export default function Employees() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ملاحظات (اختياري)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="أضف ملاحظات حول الموظف"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -621,7 +540,7 @@ export default function Employees() {
                   إلغاء
                 </Button>
                 <Button type="submit" disabled={editMutation.isPending}>
-                  {editMutation.isPending ? 'جاري التحديث...' : 'تحديث'}
+                  {editMutation.isPending ? "جاري التحديث..." : "حفظ التغييرات"}
                 </Button>
               </DialogFooter>
             </form>
@@ -629,24 +548,24 @@ export default function Employees() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* حوار تأكيد الحذف */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من حذف الموظف "{selectedEmployee?.name}"؟ 
-              لا يمكن التراجع عن هذا الإجراء.
+              هل أنت متأكد من حذف الموظف "{selectedEmployee?.name}"؟
+              هذا الإجراء لا يمكن التراجع عنه.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => selectedEmployee && deleteMutation.mutate(selectedEmployee.id)}
-              disabled={deleteMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
+              {deleteMutation.isPending ? "جاري الحذف..." : "حذف"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
