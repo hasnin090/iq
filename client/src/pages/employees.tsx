@@ -123,6 +123,8 @@ export default function Employees() {
       email: '',
       role: 'user',
       active: true,
+      salary: 0,
+      assignedProjectId: undefined,
     },
   });
 
@@ -187,6 +189,8 @@ export default function Employees() {
       email: employee.email || '',
       role: employee.role,
       active: employee.active,
+      salary: employee.salary || 0,
+      assignedProjectId: employee.assignedProjectId,
     });
     setIsEditDialogOpen(true);
   };
@@ -283,6 +287,24 @@ export default function Employees() {
               
               {employee.email && (
                 <p className="text-sm text-gray-600 truncate">{employee.email}</p>
+              )}
+
+              {employee.salary && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">الراتب الشهري:</span>
+                  <span className="text-sm font-medium text-green-600">
+                    {employee.salary.toLocaleString()} ريال
+                  </span>
+                </div>
+              )}
+
+              {employee.assignedProject && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">المشروع:</span>
+                  <span className="text-sm font-medium text-blue-600 truncate">
+                    {employee.assignedProject.name}
+                  </span>
+                </div>
               )}
 
               <div className="flex items-center justify-between pt-2">
@@ -410,6 +432,51 @@ export default function Employees() {
                 )}
               />
 
+              <FormField
+                control={createForm.control}
+                name="salary"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الراتب الشهري (ريال)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="أدخل الراتب الشهري"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="assignedProjectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المشروع المخصص (اختياري)</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المشروع" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">بدون مشروع</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id.toString()}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <DialogFooter>
                 <Button
                   type="button"
@@ -493,6 +560,51 @@ export default function Employees() {
                         <SelectItem value="user">مستخدم</SelectItem>
                         <SelectItem value="manager">مدير</SelectItem>
                         <SelectItem value="viewer">مشاهد</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="salary"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>الراتب الشهري (ريال)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="أدخل الراتب الشهري"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="assignedProjectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المشروع المخصص (اختياري)</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر المشروع" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">بدون مشروع</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id.toString()}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
