@@ -79,7 +79,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
           <Select onValueChange={(value) => {
             field.onChange(value);
             // إعادة تعيين الموظف عند تغيير نوع المصروف
-            if (value !== "رواتب") {
+            if (value !== "راتب") {
               form.setValue("employeeId", "");
             }
           }} value={field.value}>
@@ -94,7 +94,6 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
                 الأكثر استخداماً
               </div>
               <SelectItem value="راتب">💰 راتب</SelectItem>
-              <SelectItem value="رواتب">👥 رواتب</SelectItem>
               <SelectItem value="أجور عمال">🔨 أجور عمال</SelectItem>
               <SelectItem value="مشتريات">🛒 مشتريات</SelectItem>
               <SelectItem value="صيانة">🔧 صيانة</SelectItem>
@@ -489,7 +488,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             {/* Employee selection for salary transactions */}
             {(() => {
               const expenseType = form.watch('expenseType');
-              return expenseType === "رواتب" || expenseType === "راتب";
+              return expenseType === "راتب";
             })() && (
               <FormField
                 control={form.control}
