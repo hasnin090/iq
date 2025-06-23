@@ -457,14 +457,14 @@ export default function Employees() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>المشروع المخصص (اختياري)</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+                    <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} value={field.value ? field.value.toString() : "none"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر المشروع" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون مشروع</SelectItem>
+                        <SelectItem value="none">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
@@ -592,14 +592,14 @@ export default function Employees() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>المشروع المخصص (اختياري)</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+                    <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))} value={field.value ? field.value.toString() : "none"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر المشروع" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">بدون مشروع</SelectItem>
+                        <SelectItem value="none">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id.toString()}>
                             {project.name}
