@@ -207,9 +207,21 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
 
   // جلب الموظفين المخصصين للمشروع المحدد
   const currentProjectId = form.watch('projectId');
+  const isValidProjectId = currentProjectId && currentProjectId !== 'none' && currentProjectId !== '' && !isNaN(Number(currentProjectId));
+  
   const { data: projectEmployees = [] } = useQuery<Employee[]>({
     queryKey: ['/api/employees/by-project', currentProjectId],
-    enabled: !!currentProjectId && currentProjectId !== 'none',
+    queryFn: async () => {
+      console.log('Fetching employees for project:', currentProjectId);
+      const response = await fetch(`/api/employees/by-project/${currentProjectId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch employees');
+      }
+      const data = await response.json();
+      console.log('Employees response:', data);
+      return data;
+    },
+    enabled: !!isValidProjectId,
   });
 
   // تعيين المشروع تلقائياً للمستخدمين العاديين
