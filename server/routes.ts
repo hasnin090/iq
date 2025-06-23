@@ -3674,5 +3674,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== إدارة الموظفين ========
+  
+  // جلب جميع الموظفين
+  app.get("/api/employees", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const result = await db.execute(`
+        SELECT e.*, p.name as project_name 
+        FROM employees e 
+        LEFT JOIN projects p ON e.assigned_project_id = p.id 
+        ORDER BY e.created_at DESC
+      `);
+      
+      const employees = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        salary: row.salary,
+        assignedProjectId: row.assigned_project_id,
+        assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
+        active: row.active,
+        hireDate: row.hire_date,
+        notes: row.notes,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      res.json(employees);
+    } catch (error) {
+      console.error("خطأ في جلب الموظفين:", error);
+      res.status(500).json({ message: "خطأ في جلب الموظفين" });
+    }
+  });
+
+  // إنشاء موظف جديد
+  app.post("/api/employees", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { name, salary, assignedProjectId, notes } = req.body;
+      
+      if (!name || name.trim() === '') {
+        return res.status(400).json({ message: "اسم الموظف مطلوب" });
+      }
+      
+      const result = await db.execute(`
+        INSERT INTO employees (name, salary, assigned_project_id, notes, created_by)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `, [name, salary || 0, assignedProjectId || null, notes || null, req.session.userId]);
+      
+      const employee = result.rows[0];
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "create",
+        entityType: "employee",
+        entityId: employee.id,
+        details: `تم إنشاء موظف جديد: ${employee.name}`,
+        userId: req.session.userId as number
+      });
+      
+      res.status(201).json(employee);
+    } catch (error) {
+      console.error("خطأ في إنشاء الموظف:", error);
+      res.status(500).json({ message: "خطأ في إنشاء الموظف" });
+    }
+  });
+
+  // تحديث موظف
+  app.put("/api/employees/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const employeeId = parseInt(req.params.id);
+      const { name, salary, assignedProjectId, active, notes } = req.body;
+      
+      if (!name || name.trim() === '') {
+        return res.status(400).json({ message: "اسم الموظف مطلوب" });
+      }
+      
+      const result = await db.execute(`
+        UPDATE employees 
+        SET name = $1, salary = $2, assigned_project_id = $3, active = $4, notes = $5, updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `, [name, salary || 0, assignedProjectId || null, active !== false, notes || null, employeeId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "الموظف غير موجود" });
+      }
+      
+      const employee = result.rows[0];
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "update",
+        entityType: "employee",
+        entityId: employee.id,
+        details: `تم تحديث بيانات الموظف: ${employee.name}`,
+        userId: req.session.userId as number
+      });
+      
+      res.json(employee);
+    } catch (error) {
+      console.error("خطأ في تحديث الموظف:", error);
+      res.status(500).json({ message: "خطأ في تحديث الموظف" });
+    }
+  });
+
+  // حذف موظف
+  app.delete("/api/employees/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const employeeId = parseInt(req.params.id);
+      
+      // الحصول على بيانات الموظف قبل الحذف
+      const employeeResult = await db.execute(`SELECT * FROM employees WHERE id = $1`, [employeeId]);
+      
+      if (employeeResult.rows.length === 0) {
+        return res.status(404).json({ message: "الموظف غير موجود" });
+      }
+      
+      const employee = employeeResult.rows[0];
+      
+      // حذف الموظف
+      await db.execute(`DELETE FROM employees WHERE id = $1`, [employeeId]);
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "delete",
+        entityType: "employee",
+        entityId: employeeId,
+        details: `تم حذف الموظف: ${employee.name}`,
+        userId: req.session.userId as number
+      });
+      
+      res.json({ message: "تم حذف الموظف بنجاح" });
+    } catch (error) {
+      console.error("خطأ في حذف الموظف:", error);
+      res.status(500).json({ message: "خطأ في حذف الموظف" });
+    }
+  });
+
   return httpServer;
 }

@@ -70,8 +70,8 @@ export default function Employees() {
 
   // جلب الموظفين
   const { data: employees = [], isLoading } = useQuery({
-    queryKey: ['/api/users'],
-    queryFn: () => apiRequest<Employee[]>('/api/users', 'GET'),
+    queryKey: ['/api/employees'],
+    queryFn: () => apiRequest<Employee[]>('/api/employees', 'GET'),
   });
 
   // جلب المشاريع
@@ -95,9 +95,9 @@ export default function Employees() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: EmployeeFormData) => apiRequest('/api/users', 'POST', data),
+    mutationFn: (data: EmployeeFormData) => apiRequest('/api/employees', 'POST', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
@@ -130,9 +130,9 @@ export default function Employees() {
 
   const editMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: EditEmployeeFormData }) =>
-      apiRequest(`/api/users/${id}`, 'PUT', data),
+      apiRequest(`/api/employees/${id}`, 'PUT', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
       setIsEditDialogOpen(false);
       setSelectedEmployee(null);
       editForm.reset();
@@ -152,9 +152,9 @@ export default function Employees() {
 
   // حذف موظف
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/users/${id}`, 'DELETE'),
+    mutationFn: (id: number) => apiRequest(`/api/employees/${id}`, 'DELETE'),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
       setIsDeleteDialogOpen(false);
       setSelectedEmployee(null);
       toast({
