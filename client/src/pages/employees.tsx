@@ -189,9 +189,9 @@ export default function Employees() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
+    return new Intl.NumberFormat('ar-IQ', {
       style: 'currency',
-      currency: 'SAR',
+      currency: 'IQD',
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -354,7 +354,7 @@ export default function Employees() {
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الراتب الشهري (ريال سعودي)</FormLabel>
+                    <FormLabel>الراتب الشهري (دينار عراقي)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -454,7 +454,7 @@ export default function Employees() {
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>الراتب الشهري (ريال سعودي)</FormLabel>
+                    <FormLabel>الراتب الشهري (دينار عراقي)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
