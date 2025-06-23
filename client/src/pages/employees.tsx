@@ -23,6 +23,18 @@ interface Employee {
   role: string;
   active: boolean;
   permissions: string[];
+  salary?: number;
+  assignedProjectId?: number;
+  assignedProject?: {
+    id: number;
+    name: string;
+  };
+}
+
+interface Project {
+  id: number;
+  name: string;
+  description?: string;
 }
 
 const employeeFormSchema = z.object({
@@ -31,6 +43,8 @@ const employeeFormSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صحيح").optional().or(z.literal("")),
   password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
   role: z.string().min(1, "الرجاء اختيار الدور"),
+  salary: z.number().min(0, "الراتب يجب أن يكون أكبر من أو يساوي صفر").optional(),
+  assignedProjectId: z.number().optional(),
 });
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
@@ -41,6 +55,8 @@ const editEmployeeFormSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صحيح").optional().or(z.literal("")),
   role: z.string().min(1, "الرجاء اختيار الدور"),
   active: z.boolean(),
+  salary: z.number().min(0, "الراتب يجب أن يكون أكبر من أو يساوي صفر").optional(),
+  assignedProjectId: z.number().optional(),
 });
 
 type EditEmployeeFormData = z.infer<typeof editEmployeeFormSchema>;
@@ -58,6 +74,12 @@ export default function Employees() {
     queryFn: () => apiRequest<Employee[]>('/api/users', 'GET'),
   });
 
+  // جلب المشاريع
+  const { data: projects = [] } = useQuery({
+    queryKey: ['/api/projects'],
+    queryFn: () => apiRequest<Project[]>('/api/projects', 'GET'),
+  });
+
   // إنشاء موظف جديد
   const createForm = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
@@ -67,13 +89,15 @@ export default function Employees() {
       email: '',
       password: '',
       role: 'user',
+      salary: 0,
+      assignedProjectId: undefined,
     },
   });
 
   const createMutation = useMutation({
     mutationFn: (data: EmployeeFormData) => apiRequest('/api/users', 'POST', data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['/api/users']);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
@@ -106,7 +130,7 @@ export default function Employees() {
     mutationFn: ({ id, data }: { id: number; data: EditEmployeeFormData }) =>
       apiRequest(`/api/users/${id}`, 'PUT', data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['/api/users']);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setIsEditDialogOpen(false);
       setSelectedEmployee(null);
       editForm.reset();
@@ -128,7 +152,7 @@ export default function Employees() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest(`/api/users/${id}`, 'DELETE'),
     onSuccess: () => {
-      queryClient.invalidateQueries(['/api/users']);
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setIsDeleteDialogOpen(false);
       setSelectedEmployee(null);
       toast({
