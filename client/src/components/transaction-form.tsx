@@ -462,9 +462,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             {/* Employee selection for salary transactions */}
             {(() => {
               const expenseType = form.watch('expenseType');
-              const isSalary = expenseType === "رواتب" || expenseType === "راتب";
-              console.log('Current expense type:', expenseType, 'Is salary?', isSalary);
-              return isSalary;
+              return expenseType === "رواتب" || expenseType === "راتب";
             })() && (
               <FormField
                 control={form.control}
@@ -487,20 +485,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       <SelectContent>
                         {projectEmployees.map(employee => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
-                            <div className="flex flex-col">
-                              <span>{employee.name}</span>
-                              <div className="text-xs text-muted-foreground space-y-1">
-                                <div>الراتب الأساسي: {employee.salary.toLocaleString()} د.ع</div>
-                                {typeof employee.totalWithdrawn === 'number' && (
-                                  <div className="text-orange-600">مسحوب: {employee.totalWithdrawn.toLocaleString()} د.ع</div>
-                                )}
-                                {typeof employee.remainingSalary === 'number' && (
-                                  <div className={employee.remainingSalary > 0 ? 'text-green-600' : 'text-red-600'}>
-                                    متبقي: {employee.remainingSalary.toLocaleString()} د.ع
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                            {employee.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
