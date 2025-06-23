@@ -8,6 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import Transactions from "@/pages/transactions";
 import Projects from "@/pages/projects";
 import Users from "@/pages/users";
+import Employees from "@/pages/employees";
 import Documents from "@/pages/documents";
 import Archive from "@/pages/archive";
 import Reports from "@/pages/reports";
@@ -122,6 +123,9 @@ function AppRoutes() {
               <Route path="/transactions" component={Transactions} />
               <Route path="/projects" component={Projects} />
               <Route path="/users" component={Users} />
+              <Route path="/employees">
+                {user?.role === 'admin' ? <Employees /> : <NotFound />}
+              </Route>
               <Route path="/documents" component={Documents} />
               <Route path="/archive" component={Archive} />
               <Route path="/reports">
