@@ -88,39 +88,43 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
                 <SelectValue placeholder="اختر نوع المصروف" />
               </SelectTrigger>
             </FormControl>
-            <SelectContent>
-              {/* أنواع المصاريف المهمة أولاً */}
-              <SelectItem value="راتب">راتب</SelectItem>
-              <SelectItem value="رواتب">رواتب</SelectItem>
-              <SelectItem value="أجور عمال">أجور عمال</SelectItem>
-              <SelectItem value="اجور تشغيلية">اجور تشغيلية</SelectItem>
-              <SelectItem value="مشتريات">مشتريات</SelectItem>
-              <SelectItem value="صيانة">صيانة</SelectItem>
-              <SelectItem value="معدات وآلات">معدات وآلات</SelectItem>
-              <SelectItem value="نقل ومواصلات">نقل ومواصلات</SelectItem>
-              <SelectItem value="كهرباء وماء">كهرباء وماء</SelectItem>
-              <SelectItem value="مصروفات إدارية">مصروفات إدارية</SelectItem>
-              <SelectItem value="تأمينات">تأمينات</SelectItem>
-              <SelectItem value="مصروفات قانونية">مصروفات قانونية</SelectItem>
-              <SelectItem value="دعاية وإعلان">دعاية وإعلان</SelectItem>
-              <SelectItem value="أثاث">أثاث</SelectItem>
-              <SelectItem value="سلفة تشغيلية">سلفة تشغيلية</SelectItem>
-              <SelectItem value="دفعات آجلة">دفعات آجلة</SelectItem>
-              <SelectItem value="مصروف عام">مصروف عام</SelectItem>
-              {/* أي أنواع أخرى قد تكون مضافة */}
-              {expenseTypes
-                .filter(type => type.isActive && ![
-                  "راتب", "رواتب", "أجور عمال", "اجور تشغيلية", "مشتريات", 
-                  "صيانة", "معدات وآلات", "نقل ومواصلات", "كهرباء وماء", 
-                  "مصروفات إدارية", "تأمينات", "مصروفات قانونية", "دعاية وإعلان", 
-                  "أثاث", "سلفة تشغيلية", "دفعات آجلة", "مصروف عام"
-                ].includes(type.name))
-                .sort((a, b) => a.name.localeCompare(b.name, 'ar'))
-                .map(type => (
-                  <SelectItem key={type.id} value={type.name}>
-                    {type.name}
-                  </SelectItem>
-                ))}
+            <SelectContent className="max-h-[300px] overflow-y-auto">
+              {/* الأنواع الأكثر استخداماً */}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
+                الأكثر استخداماً
+              </div>
+              <SelectItem value="راتب">💰 راتب</SelectItem>
+              <SelectItem value="رواتب">👥 رواتب</SelectItem>
+              <SelectItem value="أجور عمال">🔨 أجور عمال</SelectItem>
+              <SelectItem value="مشتريات">🛒 مشتريات</SelectItem>
+              <SelectItem value="صيانة">🔧 صيانة</SelectItem>
+              
+              {/* المصاريف التشغيلية */}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b border-t mt-1">
+                مصاريف تشغيلية
+              </div>
+              <SelectItem value="اجور تشغيلية">⚙️ اجور تشغيلية</SelectItem>
+              <SelectItem value="معدات وآلات">🏗️ معدات وآلات</SelectItem>
+              <SelectItem value="نقل ومواصلات">🚛 نقل ومواصلات</SelectItem>
+              <SelectItem value="كهرباء وماء">⚡ كهرباء وماء</SelectItem>
+              
+              {/* المصاريف الإدارية */}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b border-t mt-1">
+                مصاريف إدارية
+              </div>
+              <SelectItem value="مصروفات إدارية">📋 مصروفات إدارية</SelectItem>
+              <SelectItem value="تأمينات">🛡️ تأمينات</SelectItem>
+              <SelectItem value="مصروفات قانونية">⚖️ مصروفات قانونية</SelectItem>
+              <SelectItem value="دعاية وإعلان">📢 دعاية وإعلان</SelectItem>
+              <SelectItem value="أثاث">🪑 أثاث</SelectItem>
+              
+              {/* أخرى */}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b border-t mt-1">
+                أخرى
+              </div>
+              <SelectItem value="سلفة تشغيلية">💵 سلفة تشغيلية</SelectItem>
+              <SelectItem value="دفعات آجلة">📅 دفعات آجلة</SelectItem>
+              <SelectItem value="مصروف عام">📝 مصروف عام</SelectItem>
             </SelectContent>
           </Select>
           <FormMessage />
