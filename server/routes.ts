@@ -3709,6 +3709,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // جلب الموظفين حسب المشروع
+  app.get("/api/employees/by-project/:projectId", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const result = await sql(`
+        SELECT e.*, p.name as project_name 
+        FROM employees e 
+        LEFT JOIN projects p ON e.assigned_project_id = p.id 
+        WHERE e.assigned_project_id = $1 AND e.active = true
+        ORDER BY e.name ASC
+      `, [parseInt(projectId)]);
+      
+      const employees = result.map(row => ({
+        id: row.id,
+        name: row.name,
+        salary: row.salary,
+        assignedProjectId: row.assigned_project_id,
+        assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
+        active: row.active,
+        hireDate: row.hire_date,
+        notes: row.notes,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      res.json(employees);
+    } catch (error) {
+      console.error("خطأ في جلب موظفي المشروع:", error);
+      res.status(500).json({ message: "خطأ في جلب موظفي المشروع" });
+    }
+  });
+
   // إنشاء موظف جديد
   app.post("/api/employees", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
