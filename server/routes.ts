@@ -21,6 +21,7 @@ import bcrypt from "bcryptjs";
 import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import { db } from "./db";
+import { neon } from '@neondatabase/serverless';
 import { backupSystem } from "./backup-system";
 import { 
   initializeBackupDatabase, 
@@ -3680,14 +3681,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // جلب جميع الموظفين
   app.get("/api/employees", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      const result = await db.execute(`
+      const sql = neon(process.env.DATABASE_URL!);
+      const result = await sql(`
         SELECT e.*, p.name as project_name 
         FROM employees e 
         LEFT JOIN projects p ON e.assigned_project_id = p.id 
         ORDER BY e.created_at DESC
       `);
       
-      const employees = result.rows.map(row => ({
+      const employees = result.map(row => ({
         id: row.id,
         name: row.name,
         salary: row.salary,
@@ -3716,13 +3718,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "اسم الموظف مطلوب" });
       }
       
-      const result = await db.insert(employees).values({
-        name,
-        salary: salary || 0,
-        assigned_project_id: assignedProjectId || null,
-        notes: notes || null,
-        created_by: req.session.userId as number
-      }).returning();
+      const sql = neon(process.env.DATABASE_URL!);
+      const result = await sql(`
+        INSERT INTO employees (name, salary, assigned_project_id, notes, created_by)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `, [name, salary || 0, assignedProjectId || null, notes || null, req.session.userId]);
       
       const employee = result[0];
       
@@ -3752,18 +3753,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "اسم الموظف مطلوب" });
       }
       
-      const result = await db.execute(`
+      const sql = neon(process.env.DATABASE_URL!);
+      const result = await sql(`
         UPDATE employees 
         SET name = $1, salary = $2, assigned_project_id = $3, active = $4, notes = $5, updated_at = NOW()
         WHERE id = $6
         RETURNING *
       `, [name, salary || 0, assignedProjectId || null, active !== false, notes || null, employeeId]);
       
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({ message: "الموظف غير موجود" });
       }
       
-      const employee = result.rows[0];
+      const employee = result[0];
       
       // تسجيل النشاط
       await storage.createActivityLog({
@@ -3787,16 +3789,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const employeeId = parseInt(req.params.id);
       
       // الحصول على بيانات الموظف قبل الحذف
-      const employeeResult = await db.execute(`SELECT * FROM employees WHERE id = $1`, [employeeId]);
+      const sql = neon(process.env.DATABASE_URL!);
+      const employeeResult = await sql(`SELECT * FROM employees WHERE id = $1`, [employeeId]);
       
-      if (employeeResult.rows.length === 0) {
+      if (employeeResult.length === 0) {
         return res.status(404).json({ message: "الموظف غير موجود" });
       }
       
-      const employee = employeeResult.rows[0];
+      const employee = employeeResult[0];
       
       // حذف الموظف
-      await db.execute(`DELETE FROM employees WHERE id = $1`, [employeeId]);
+      await sql(`DELETE FROM employees WHERE id = $1`, [employeeId]);
       
       // تسجيل النشاط
       await storage.createActivityLog({
