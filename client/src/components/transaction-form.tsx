@@ -50,6 +50,14 @@ interface ExpenseType {
   isActive: boolean;
 }
 
+interface Employee {
+  id: number;
+  name: string;
+  salary: number;
+  assignedProjectId?: number;
+  assignedProject?: { id: number; name: string };
+}
+
 // Component for expense type field
 function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }): JSX.Element | null {
   const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
@@ -97,7 +105,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
 }
 
 // Component for employee selection when expense type is "رواتب"
-function EmployeeField({ form, projectEmployees }: { form: any; projectEmployees: any[] }): JSX.Element | null {
+function EmployeeField({ form, projectEmployees }: { form: any; projectEmployees: Employee[] }): JSX.Element | null {
   const expenseType = form.watch('expenseType');
   
   if (expenseType !== "رواتب") return null;
@@ -190,7 +198,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
 
   // جلب الموظفين المخصصين للمشروع المحدد
   const currentProjectId = form.watch('projectId');
-  const { data: projectEmployees = [] } = useQuery({
+  const { data: projectEmployees = [] } = useQuery<Employee[]>({
     queryKey: ['/api/employees/by-project', currentProjectId],
     enabled: !!currentProjectId && currentProjectId !== 'none',
   });
@@ -246,6 +254,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         // إضافة نوع المصروف إذا كان النوع مصروف
         if (data.type === 'expense' && data.expenseType) {
           formData.append('expenseType', data.expenseType);
+        }
+
+        // إضافة معرف الموظف إذا كان نوع المصروف رواتب
+        if (data.type === 'expense' && data.expenseType === 'رواتب' && data.employeeId) {
+          formData.append('employeeId', data.employeeId);
         }
         
         if (data.projectId && data.projectId !== "none") {
@@ -481,6 +494,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             </div>
 
             <ExpenseTypeField transactionType={transactionType} form={form} />
+
+            <EmployeeField form={form} projectEmployees={Array.isArray(projectEmployees) ? projectEmployees : []} />
 
             {/* الصف الثاني: المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
             {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 1)) && (
