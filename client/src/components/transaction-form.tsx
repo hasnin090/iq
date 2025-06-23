@@ -462,8 +462,9 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             {/* Employee selection for salary transactions */}
             {(() => {
               const expenseType = form.watch('expenseType');
-              console.log('Current expense type:', expenseType, 'Is salary?', expenseType === "رواتب");
-              return expenseType === "رواتب";
+              const isSalary = expenseType === "رواتب" || expenseType === "راتب";
+              console.log('Current expense type:', expenseType, 'Is salary?', isSalary);
+              return isSalary;
             })() && (
               <FormField
                 control={form.control}
