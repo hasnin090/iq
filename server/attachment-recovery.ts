@@ -202,9 +202,15 @@ export class AttachmentRecovery {
   /**
    * حفظ الملف المستعاد محلياً
    */
-  private async saveRecoveredFile(attachment: MissingAttachment, fileData: Blob): Promise<string | null> {
+  private async saveRecoveredFile(attachment: MissingAttachment, fileData: Buffer | Blob): Promise<string | null> {
     try {
-      const buffer = Buffer.from(await fileData.arrayBuffer());
+      let buffer: Buffer;
+      
+      if (fileData instanceof Buffer) {
+        buffer = fileData;
+      } else {
+        buffer = Buffer.from(await fileData.arrayBuffer());
+      }
       
       // إنشاء مسار جديد منظم
       const timestamp = Date.now();
