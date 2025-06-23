@@ -84,7 +84,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
             }
           }} value={field.value}>
             <FormControl>
-              <SelectTrigger className="flex items-center justify-between px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 font-bold text-center text-[13px]">
+              <SelectTrigger className="flex items-center justify-between px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-center text-[13px] font-normal">
                 <SelectValue placeholder="اختر نوع المصروف" />
               </SelectTrigger>
             </FormControl>
@@ -320,7 +320,6 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
           إضافة عملية مالية جديدة
         </CardTitle>
       </CardHeader>
-      
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
