@@ -476,18 +476,31 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
               </tr>
             </thead>
             <tbody className="divide-y divide-secondary-light">
-              {sortedUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-sm text-neutral-light">
-                    {user.username}
-                    {currentUserId === user.id && (
-                      <span className="text-xs text-primary-light mr-2">(أنت)</span>
-                    )}
+              {sortedUsers.map((user, index) => (
+                <tr key={user.id} className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
+                  user.role === 'admin' ? 'bg-red-50/30 dark:bg-red-900/10' : 
+                  user.role === 'user' ? 'bg-blue-50/30 dark:bg-blue-900/10' : 
+                  'bg-green-50/30 dark:bg-green-900/10'
+                }`}>
+                  <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="flex items-center">
+                      <div className={`w-2 h-8 rounded-full ml-3 ${
+                        user.role === 'admin' ? 'bg-red-500' : 
+                        user.role === 'user' ? 'bg-blue-500' : 
+                        'bg-green-500'
+                      }`}></div>
+                      <div>
+                        <div className="font-semibold">{user.username}</div>
+                        {currentUserId === user.id && (
+                          <span className="text-xs text-primary bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full">(أنت)</span>
+                        )}
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-neutral-light">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm text-gray-800 dark:text-gray-200 font-medium">
                     {user.name}
                   </td>
-                  <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
                     {getRoleBadge(user.role)}
                   </td>
                   <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm text-neutral-light">

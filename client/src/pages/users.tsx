@@ -68,10 +68,15 @@ export default function Users() {
         {/* User List - في الأسفل */}
         <div className="w-full mt-4 sm:mt-6">
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] sm:border-2 p-4 sm:p-6 rounded-xl shadow-md sm:shadow-lg fade-in">
-            <h3 className="text-base sm:text-lg md:text-xl font-bold mb-4 sm:mb-5 flex items-center space-x-2 space-x-reverse bg-[hsl(var(--primary))/10] dark:bg-[hsl(var(--primary))/20] p-2 sm:p-3 rounded-lg">
-              <i className="fas fa-users text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))/80] text-lg sm:text-xl"></i>
-              <span className="text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))/90]">قائمة المستخدمين</span>
-            </h3>
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <h3 className="text-base sm:text-lg md:text-xl font-bold flex items-center space-x-2 space-x-reverse bg-[hsl(var(--primary))/10] dark:bg-[hsl(var(--primary))/20] p-2 sm:p-3 rounded-lg">
+                <i className="fas fa-users text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))/80] text-lg sm:text-xl"></i>
+                <span className="text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))/90]">قائمة المستخدمين</span>
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg">
+                إجمالي المستخدمين: {users?.length || 0}
+              </div>
+            </div>
             <UserList 
               users={users || []} 
               isLoading={isLoading}
