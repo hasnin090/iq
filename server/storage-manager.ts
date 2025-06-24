@@ -291,6 +291,19 @@ class StorageManager {
     }
     
     console.log(`🔄 مزودات التخزين الاحتياطية: ${this.fallbackProviders.join(', ')}`);
+    
+    // إعادة تشغيل فحص التوفر بعد التبديل
+    setTimeout(() => {
+      this.detectAvailableProviders();
+    }, 2000);
+  }
+
+  /**
+   * إعادة تقييم حالة جميع مزودات التخزين
+   */
+  async refreshProvidersStatus(): Promise<void> {
+    console.log('🔄 إعادة تقييم حالة مزودات التخزين...');
+    await this.detectAvailableProviders();
   }
 
   /**

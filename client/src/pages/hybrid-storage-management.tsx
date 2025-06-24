@@ -71,28 +71,40 @@ export default function HybridStorageManagement() {
   const [targetProviders, setTargetProviders] = useState<string[]>(['local', 'firebase', 'supabase']);
   const { toast } = useToast();
 
-  // جلب حالة التخزين
+  // جلب حالة التخزين مع تحديث دوري
   const { data: storageStatus, refetch: refetchStorage } = useQuery({
     queryKey: ['/api/storage/status'],
-    enabled: true
+    enabled: true,
+    refetchInterval: 10000, // تحديث كل 10 ثوانٍ
+    staleTime: 5000 // البيانات صالحة لمدة 5 ثوانٍ
   });
 
   // جلب حالة Firebase
   const { data: firebaseHealth, refetch: refetchFirebase } = useQuery({
     queryKey: ['/api/firebase/health'],
-    enabled: true
+    enabled: true,
+    refetchInterval: 15000, // تحديث كل 15 ثانية
+    staleTime: 10000
   });
 
   // جلب حالة Supabase
   const { data: supabaseHealth, refetch: refetchSupabase } = useQuery({
     queryKey: ['/api/supabase/health'],
-    enabled: true
+    enabled: true,
+    refetchInterval: 15000, // تحديث كل 15 ثانية
+    staleTime: 10000
   });
 
   const refreshAllData = () => {
+    console.log('🔄 تحديث بيانات التخزين...');
     refetchStorage();
     refetchFirebase();
     refetchSupabase();
+    
+    // إجبار إعادة تحميل بيانات الاستعلام
+    queryClient.invalidateQueries({ queryKey: ['/api/storage/status'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/firebase/health'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/supabase/health'] });
   };
 
   const initializeFirebase = async () => {
@@ -167,7 +179,12 @@ export default function HybridStorageManagement() {
         // تحديث البيانات بعد فترة قصيرة للسماح للنظام بالتحديث
         setTimeout(() => {
           refreshAllData();
-        }, 1000);
+        }, 2000);
+        
+        // تحديث إضافي بعد فترة أطول للتأكد من تحديث الحالة
+        setTimeout(() => {
+          refreshAllData();
+        }, 5000);
       } else {
         throw new Error(response.message || "فشل في تغيير مزود التخزين");
       }

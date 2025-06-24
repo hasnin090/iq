@@ -108,11 +108,11 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 - Environment variables for database URLs and API keys
 
 ## Recent Changes
+- ✓ June 24, 2025: Fixed Supabase re-availability issue after switching storage providers
 - ✓ June 24, 2025: Fixed Supabase switching crash in hybrid storage management with proper validation
 - ✓ June 24, 2025: Enhanced users management section with improved sorting and visual organization
 - ✓ June 24, 2025: Added admin-only attachment deletion functionality with secure API and UI
 - ✓ June 24, 2025: Successfully fixed orphaned attachments - linked 7 files to appropriate transactions
-- ✓ June 24, 2025: Increased transactions with attachments from 2 to 9 (complete recovery)
 - ✓ June 24, 2025: Completed comprehensive system testing and permissions audit
 - ✓ June 24, 2025: Fixed project creation by adjusting required field validation
 - ✓ June 24, 2025: Enhanced backup system with proper API endpoints (32 backups available)

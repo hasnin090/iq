@@ -3538,6 +3538,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "فشل في تغيير مزود التخزين" 
         });
       }
+
+      // إعادة تقييم حالة مزودات التخزين بعد التبديل
+      setTimeout(async () => {
+        await storageManager.refreshProvidersStatus();
+      }, 1000);
       
       await storage.createActivityLog({
         userId: req.session.userId as number,
