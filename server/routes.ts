@@ -3992,6 +3992,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== رفع البيانات إلى Supabase ========
+  
+  // فحص حالة المزامنة مع Supabase
+  app.get("/api/supabase/sync-status", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { supabaseMigration } = await import("./supabase-migration");
+      const status = await supabaseMigration.getSyncStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("خطأ في فحص حالة المزامنة:", error);
+      res.status(500).json({ message: "خطأ في فحص حالة المزامنة" });
+    }
+  });
+
+  // رفع جميع البيانات المحلية إلى Supabase
+  app.post("/api/supabase/migrate", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("🔄 بدء عملية رفع البيانات إلى Supabase...");
+      const { supabaseMigration } = await import("./supabase-migration");
+      const result = await supabaseMigration.migrateToSupabase();
+      
+      await storage.createActivityLog({
+        action: "supabase_migration",
+        entityType: "system",
+        entityId: 0,
+        details: `رفع البيانات إلى Supabase: ${result.uploadedFiles} ملف, ${result.syncedTransactions} معاملة`,
+        userId: req.session.userId as number
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في رفع البيانات:", error);
+      res.status(500).json({ message: "خطأ في رفع البيانات إلى Supabase" });
+    }
+  });
+
   // ======== إدارة كلمات المرور ========
   
   // إعادة تعيين كلمة مرور مستخدم

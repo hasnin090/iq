@@ -1,490 +1,339 @@
-import { createClient } from '@supabase/supabase-js';
-import { db } from './db';
-import { users, projects, transactions, documents, activityLogs, settings, expenseTypes, ledgerEntries, accountCategories, deferredPayments } from '@shared/schema';
-import * as fs from 'fs';
-import * as path from 'path';
+import { neon } from '@neondatabase/serverless';
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { join } from 'path';
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-let supabaseClient: any = null;
-
-// إعداد Supabase كقاعدة البيانات الرئيسية
-export async function setupSupabaseAsMainDatabase() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    throw new Error('Supabase credentials not configured');
-  }
-
-  supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  
-  console.log('🔄 بدء إعداد Supabase كقاعدة البيانات الرئيسية...');
-  
-  try {
-    // إنشاء الجداول في Supabase إذا لم تكن موجودة
-    await createTablesInSupabase();
-    
-    // نقل البيانات من PostgreSQL إلى Supabase
-    await migrateDataToSupabase();
-    
-    console.log('✅ تم إعداد Supabase كقاعدة البيانات الرئيسية بنجاح');
-    return true;
-  } catch (error) {
-    console.error('❌ خطأ في إعداد Supabase:', error);
-    throw error;
-  }
+interface MigrationResult {
+  totalFiles: number;
+  uploadedFiles: number;
+  failedFiles: number;
+  totalTransactions: number;
+  syncedTransactions: number;
+  errors: string[];
 }
 
-// إنشاء الجداول في Supabase
-async function createTablesInSupabase() {
-  console.log('📊 إنشاء الجداول في Supabase...');
-  
-  const createTablesSQL = `
-    -- إنشاء جدول المستخدمين
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(255) UNIQUE NOT NULL,
-      password VARCHAR(255) NOT NULL,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255),
-      role VARCHAR(50) DEFAULT 'user',
-      permissions TEXT[],
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول المشاريع
-    CREATE TABLE IF NOT EXISTS projects (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      start_date DATE,
-      status VARCHAR(50) DEFAULT 'active',
-      progress INTEGER DEFAULT 0,
-      created_by INTEGER,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول المعاملات
-    CREATE TABLE IF NOT EXISTS transactions (
-      id SERIAL PRIMARY KEY,
-      date TIMESTAMP NOT NULL,
-      amount DECIMAL(15,2) NOT NULL,
-      type VARCHAR(20) NOT NULL,
-      description TEXT,
-      category VARCHAR(255),
-      file_url TEXT,
-      created_by INTEGER,
-      project_id INTEGER,
-      expense_type_id INTEGER,
-      beneficiary_name VARCHAR(255),
-      payment_method VARCHAR(50),
-      invoice_number VARCHAR(255),
-      notes TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول الوثائق
-    CREATE TABLE IF NOT EXISTS documents (
-      id SERIAL PRIMARY KEY,
-      title VARCHAR(255) NOT NULL,
-      description TEXT,
-      file_url TEXT NOT NULL,
-      file_type VARCHAR(50),
-      file_size INTEGER,
-      uploaded_by INTEGER,
-      project_id INTEGER,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول سجل النشاطات
-    CREATE TABLE IF NOT EXISTS activity_logs (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL,
-      action VARCHAR(255) NOT NULL,
-      entity_type VARCHAR(100),
-      entity_id INTEGER,
-      details TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول الإعدادات
-    CREATE TABLE IF NOT EXISTS settings (
-      id SERIAL PRIMARY KEY,
-      key VARCHAR(255) UNIQUE NOT NULL,
-      value TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول أنواع المصروفات
-    CREATE TABLE IF NOT EXISTS expense_types (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      is_active BOOLEAN DEFAULT true,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول دفتر الأستاذ
-    CREATE TABLE IF NOT EXISTS ledger_entries (
-      id SERIAL PRIMARY KEY,
-      date TIMESTAMP NOT NULL,
-      transaction_id INTEGER,
-      expense_type_id INTEGER,
-      amount INTEGER NOT NULL,
-      description TEXT NOT NULL,
-      project_id INTEGER,
-      entry_type VARCHAR(50) NOT NULL,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول فئات الحسابات
-    CREATE TABLE IF NOT EXISTS account_categories (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      type VARCHAR(50) NOT NULL,
-      parent_id INTEGER,
-      is_active BOOLEAN DEFAULT true,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-
-    -- إنشاء جدول المدفوعات المؤجلة
-    CREATE TABLE IF NOT EXISTS deferred_payments (
-      id SERIAL PRIMARY KEY,
-      beneficiary_name VARCHAR(255) NOT NULL,
-      amount DECIMAL(15,2) NOT NULL,
-      due_date DATE NOT NULL,
-      description TEXT,
-      status VARCHAR(50) DEFAULT 'pending',
-      project_id INTEGER,
-      created_by INTEGER,
-      created_at TIMESTAMP DEFAULT NOW()
-    );
-  `;
-
-  try {
-    // تنفيذ SQL لإنشاء الجداول
-    const { error } = await supabaseClient.rpc('exec_sql', { sql: createTablesSQL });
-    
-    if (error) {
-      console.log('⚠️ محاولة إنشاء الجداول يدوياً...');
-      // إذا فشلت الطريقة الأولى، نحاول إنشاء الجداول واحداً تلو الآخر
-      await createTablesManually();
-    } else {
-      console.log('✅ تم إنشاء الجداول في Supabase');
-    }
-  } catch (error) {
-    console.log('⚠️ محاولة إنشاء الجداول يدوياً...');
-    await createTablesManually();
-  }
+interface LocalFile {
+  transactionId: number;
+  filePath: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
 }
 
-// إنشاء الجداول يدوياً
-async function createTablesManually() {
-  // سنحاول إدراج بيانات تجريبية للتأكد من وجود الجداول
-  try {
-    await supabaseClient.from('users').select('id').limit(1);
-    console.log('✅ جدول المستخدمين موجود');
-  } catch (error) {
-    console.log('📊 الجداول ستُنشأ تلقائياً عند إدراج البيانات');
+export class SupabaseMigration {
+  private sql = neon(process.env.DATABASE_URL!);
+  private uploadsDir = './uploads';
+
+  /**
+   * رفع جميع العمليات والملفات المحلية إلى Supabase
+   */
+  async migrateToSupabase(): Promise<MigrationResult> {
+    const result: MigrationResult = {
+      totalFiles: 0,
+      uploadedFiles: 0,
+      failedFiles: 0,
+      totalTransactions: 0,
+      syncedTransactions: 0,
+      errors: []
+    };
+
+    try {
+      console.log('🔄 بدء عملية رفع البيانات إلى Supabase...');
+
+      // 1. رفع الملفات المحلية إلى Supabase Storage
+      const filesResult = await this.uploadLocalFilesToSupabase();
+      result.totalFiles = filesResult.totalFiles;
+      result.uploadedFiles = filesResult.uploadedFiles;
+      result.failedFiles = filesResult.failedFiles;
+      result.errors.push(...filesResult.errors);
+
+      // 2. مزامنة المعاملات مع Supabase Database
+      const transactionsResult = await this.syncTransactionsToSupabase();
+      result.totalTransactions = transactionsResult.totalTransactions;
+      result.syncedTransactions = transactionsResult.syncedTransactions;
+      result.errors.push(...transactionsResult.errors);
+
+      console.log(`✅ اكتملت العملية: ${result.uploadedFiles}/${result.totalFiles} ملف, ${result.syncedTransactions}/${result.totalTransactions} معاملة`);
+
+    } catch (error) {
+      console.error('خطأ في عملية الرفع:', error);
+      result.errors.push(`General error: ${error}`);
+    }
+
+    return result;
   }
-}
 
-// نقل البيانات من PostgreSQL إلى Supabase
-async function migrateDataToSupabase() {
-  console.log('🔄 بدء نقل البيانات إلى Supabase...');
+  /**
+   * رفع الملفات المحلية إلى Supabase Storage
+   */
+  private async uploadLocalFilesToSupabase(): Promise<{ totalFiles: number; uploadedFiles: number; failedFiles: number; errors: string[] }> {
+    const localFiles = await this.findLocalFiles();
+    const result = {
+      totalFiles: localFiles.length,
+      uploadedFiles: 0,
+      failedFiles: 0,
+      errors: [] as string[]
+    };
 
-  try {
-    // نقل المستخدمين
-    const dbUsers = await db.select().from(users);
-    if (dbUsers.length > 0) {
-      const { error: usersError } = await supabaseClient
-        .from('users')
-        .upsert(dbUsers, { onConflict: 'username' });
-      
-      if (!usersError) {
-        console.log(`✅ تم نقل ${dbUsers.length} مستخدم`);
-      }
-    }
+    console.log(`📁 تم العثور على ${localFiles.length} ملف محلي`);
 
-    // نقل المشاريع
-    const dbProjects = await db.select().from(projects);
-    if (dbProjects.length > 0) {
-      const { error: projectsError } = await supabaseClient
-        .from('projects')
-        .upsert(dbProjects);
-      
-      if (!projectsError) {
-        console.log(`✅ تم نقل ${dbProjects.length} مشروع`);
-      }
-    }
-
-    // نقل المعاملات
-    const dbTransactions = await db.select().from(transactions);
-    if (dbTransactions.length > 0) {
-      const { error: transactionsError } = await supabaseClient
-        .from('transactions')
-        .upsert(dbTransactions);
-      
-      if (!transactionsError) {
-        console.log(`✅ تم نقل ${dbTransactions.length} معاملة`);
-      }
-    }
-
-    // نقل الوثائق
-    const dbDocuments = await db.select().from(documents);
-    if (dbDocuments.length > 0) {
-      const { error: documentsError } = await supabaseClient
-        .from('documents')
-        .upsert(dbDocuments);
-      
-      if (!documentsError) {
-        console.log(`✅ تم نقل ${dbDocuments.length} وثيقة`);
-      }
-    }
-
-    // نقل سجل النشاطات
-    const dbActivityLogs = await db.select().from(activityLogs);
-    if (dbActivityLogs.length > 0) {
-      const { error: activityLogsError } = await supabaseClient
-        .from('activity_logs')
-        .upsert(dbActivityLogs);
-      
-      if (!activityLogsError) {
-        console.log(`✅ تم نقل ${dbActivityLogs.length} نشاط`);
-      }
-    }
-
-    // نقل الإعدادات
-    const dbSettings = await db.select().from(settings);
-    if (dbSettings.length > 0) {
-      const { error: settingsError } = await supabaseClient
-        .from('settings')
-        .upsert(dbSettings, { onConflict: 'key' });
-      
-      if (!settingsError) {
-        console.log(`✅ تم نقل ${dbSettings.length} إعداد`);
-      }
-    }
-
-    // نقل أنواع المصروفات
-    const dbExpenseTypes = await db.select().from(expenseTypes);
-    if (dbExpenseTypes.length > 0) {
-      const { error: expenseTypesError } = await supabaseClient
-        .from('expense_types')
-        .upsert(dbExpenseTypes);
-      
-      if (!expenseTypesError) {
-        console.log(`✅ تم نقل ${dbExpenseTypes.length} نوع مصروف`);
-      }
-    }
-
-    // نقل دفتر الأستاذ
-    const dbLedgerEntries = await db.select().from(ledgerEntries);
-    if (dbLedgerEntries.length > 0) {
-      const { error: ledgerError } = await supabaseClient
-        .from('ledger_entries')
-        .upsert(dbLedgerEntries);
-      
-      if (!ledgerError) {
-        console.log(`✅ تم نقل ${dbLedgerEntries.length} قيد محاسبي`);
-      }
-    }
-
-    // نقل فئات الحسابات
-    const dbAccountCategories = await db.select().from(accountCategories);
-    if (dbAccountCategories.length > 0) {
-      const { error: accountCategoriesError } = await supabaseClient
-        .from('account_categories')
-        .upsert(dbAccountCategories);
-      
-      if (!accountCategoriesError) {
-        console.log(`✅ تم نقل ${dbAccountCategories.length} فئة حساب`);
-      }
-    }
-
-    // نقل المدفوعات المؤجلة
-    const dbDeferredPayments = await db.select().from(deferredPayments);
-    if (dbDeferredPayments.length > 0) {
-      const { error: deferredPaymentsError } = await supabaseClient
-        .from('deferred_payments')
-        .upsert(dbDeferredPayments);
-      
-      if (!deferredPaymentsError) {
-        console.log(`✅ تم نقل ${dbDeferredPayments.length} دفعة مؤجلة`);
-      }
-    }
-
-    console.log('✅ تم نقل جميع البيانات إلى Supabase بنجاح');
-  } catch (error) {
-    console.error('❌ خطأ في نقل البيانات:', error);
-    throw error;
-  }
-}
-
-// نقل الملفات من التخزين المحلي إلى Supabase
-export async function migrateFilesToSupabase() {
-  console.log('📁 بدء نقل الملفات إلى Supabase...');
-  
-  const uploadsDir = path.join(process.cwd(), 'uploads');
-  let migratedCount = 0;
-  let errorCount = 0;
-
-  try {
-    if (!fs.existsSync(uploadsDir)) {
-      console.log('📂 مجلد uploads غير موجود');
-      return { success: true, migratedCount: 0, errorCount: 0 };
-    }
-
-    const files = fs.readdirSync(uploadsDir);
-    console.log(`📋 العثور على ${files.length} ملف للنقل`);
-
-    for (const file of files) {
+    for (const file of localFiles) {
       try {
-        const filePath = path.join(uploadsDir, file);
-        const fileStats = fs.statSync(filePath);
-        
-        if (fileStats.isFile()) {
-          const fileBuffer = fs.readFileSync(filePath);
-          
-          // رفع الملف إلى Supabase Storage
-          const { data, error } = await supabaseClient.storage
-            .from('files')
-            .upload(file, fileBuffer, {
-              contentType: getContentType(file),
-              upsert: true
-            });
+        const uploaded = await this.uploadFileToSupabase(file);
+        if (uploaded) {
+          result.uploadedFiles++;
+          // تحديث رابط الملف في قاعدة البيانات
+          await this.updateFileUrlInDatabase(file.transactionId, uploaded.url);
+          console.log(`✅ تم رفع ${file.fileName}`);
+        } else {
+          result.failedFiles++;
+          result.errors.push(`Failed to upload ${file.fileName}`);
+        }
+      } catch (error) {
+        result.failedFiles++;
+        result.errors.push(`Error uploading ${file.fileName}: ${error}`);
+        console.error(`❌ فشل رفع ${file.fileName}:`, error);
+      }
+    }
 
-          if (error) {
-            console.error(`❌ فشل رفع ${file}:`, error.message);
-            errorCount++;
-          } else {
-            console.log(`✅ تم رفع ${file}`);
-            migratedCount++;
+    return result;
+  }
+
+  /**
+   * البحث عن الملفات المحلية
+   */
+  private async findLocalFiles(): Promise<LocalFile[]> {
+    const files: LocalFile[] = [];
+
+    if (!existsSync(this.uploadsDir)) {
+      return files;
+    }
+
+    const scanDirectory = (dir: string, transactionId?: number) => {
+      try {
+        const items = readdirSync(dir);
+        
+        for (const item of items) {
+          const fullPath = join(dir, item);
+          const stat = statSync(fullPath);
+          
+          if (stat.isDirectory()) {
+            // إذا كان اسم المجلد رقم، فهو معرف المعاملة
+            const possibleId = parseInt(item);
+            if (!isNaN(possibleId)) {
+              scanDirectory(fullPath, possibleId);
+            } else {
+              scanDirectory(fullPath, transactionId);
+            }
+          } else if (stat.isFile()) {
+            // تحديد نوع الملف
+            const fileType = this.getFileType(item);
+            
+            files.push({
+              transactionId: transactionId || 0,
+              filePath: fullPath,
+              fileName: item,
+              fileSize: stat.size,
+              fileType
+            });
           }
         }
       } catch (error) {
-        console.error(`❌ خطأ في معالجة ${file}:`, error);
-        errorCount++;
+        console.error(`خطأ في فحص المجلد ${dir}:`, error);
       }
-    }
-
-    console.log(`📊 نتائج نقل الملفات: ${migratedCount} نجح، ${errorCount} فشل`);
-    return { success: true, migratedCount, errorCount };
-  } catch (error) {
-    console.error('❌ خطأ عام في نقل الملفات:', error);
-    return { success: false, migratedCount, errorCount, error: error.message };
-  }
-}
-
-// تحديد نوع محتوى الملف
-function getContentType(filename: string): string {
-  const ext = path.extname(filename).toLowerCase();
-  const contentTypes: { [key: string]: string } = {
-    '.pdf': 'application/pdf',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.png': 'image/png',
-    '.gif': 'image/gif',
-    '.doc': 'application/msword',
-    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    '.xls': 'application/vnd.ms-excel',
-    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    '.txt': 'text/plain',
-    '.zip': 'application/zip'
-  };
-  
-  return contentTypes[ext] || 'application/octet-stream';
-}
-
-// تحديث روابط الملفات في قاعدة البيانات
-export async function updateFileUrlsToSupabase() {
-  console.log('🔄 تحديث روابط الملفات في قاعدة البيانات...');
-  
-  try {
-    // الحصول على URL الأساسي لـ Supabase Storage
-    const baseUrl = `${SUPABASE_URL}/storage/v1/object/public/files/`;
-    
-    // تحديث روابط الملفات في جدول المعاملات
-    const transactionsWithFiles = await supabaseClient
-      .from('transactions')
-      .select('id, file_url')
-      .not('file_url', 'is', null);
-
-    if (transactionsWithFiles.data) {
-      for (const transaction of transactionsWithFiles.data) {
-        if (transaction.file_url && !transaction.file_url.includes('supabase')) {
-          const filename = path.basename(transaction.file_url);
-          const newUrl = baseUrl + filename;
-          
-          await supabaseClient
-            .from('transactions')
-            .update({ file_url: newUrl })
-            .eq('id', transaction.id);
-        }
-      }
-      console.log(`✅ تم تحديث روابط ${transactionsWithFiles.data.length} معاملة`);
-    }
-
-    // تحديث روابط الملفات في جدول الوثائق
-    const documentsWithFiles = await supabaseClient
-      .from('documents')
-      .select('id, file_url');
-
-    if (documentsWithFiles.data) {
-      for (const document of documentsWithFiles.data) {
-        if (document.file_url && !document.file_url.includes('supabase')) {
-          const filename = path.basename(document.file_url);
-          const newUrl = baseUrl + filename;
-          
-          await supabaseClient
-            .from('documents')
-            .update({ file_url: newUrl })
-            .eq('id', document.id);
-        }
-      }
-      console.log(`✅ تم تحديث روابط ${documentsWithFiles.data.length} وثيقة`);
-    }
-
-    console.log('✅ تم تحديث جميع روابط الملفات');
-    return true;
-  } catch (error) {
-    console.error('❌ خطأ في تحديث روابط الملفات:', error);
-    throw error;
-  }
-}
-
-// فحص حالة النقل
-export async function checkMigrationStatus() {
-  try {
-    const tablesStatus = {
-      users: 0,
-      projects: 0,
-      transactions: 0,
-      documents: 0,
-      activityLogs: 0,
-      settings: 0,
-      expenseTypes: 0,
-      ledger: 0,
-      accountCategories: 0,
-      deferredPayments: 0
     };
 
-    // فحص عدد السجلات في كل جدول
-    const tables = Object.keys(tablesStatus);
-    for (const table of tables) {
-      try {
-        const { count } = await supabaseClient
-          .from(table.replace(/([A-Z])/g, '_$1').toLowerCase())
-          .select('*', { count: 'exact', head: true });
-        
-        tablesStatus[table as keyof typeof tablesStatus] = count || 0;
-      } catch (error) {
-        console.log(`⚠️ لا يمكن فحص جدول ${table}`);
+    scanDirectory(this.uploadsDir);
+    return files;
+  }
+
+  /**
+   * رفع ملف واحد إلى Supabase
+   */
+  private async uploadFileToSupabase(file: LocalFile): Promise<{ url: string } | null> {
+    try {
+      // استيراد Supabase client
+      const { supabaseClient } = await import('./supabase-simple');
+      
+      if (!supabaseClient) {
+        console.error('Supabase client غير متوفر');
+        return null;
       }
+
+      // قراءة الملف
+      const fileBuffer = readFileSync(file.filePath);
+      
+      // إنشاء مسار الملف في Supabase
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${file.transactionId}_${file.fileName}`;
+      
+      // رفع الملف
+      const { data, error } = await supabaseClient.storage
+        .from('files')
+        .upload(fileName, fileBuffer, {
+          contentType: file.fileType,
+          upsert: true
+        });
+
+      if (error) {
+        console.error('خطأ في رفع الملف:', error);
+        return null;
+      }
+
+      // إنشاء رابط عام للملف
+      const { data: urlData } = supabaseClient.storage
+        .from('files')
+        .getPublicUrl(fileName);
+
+      return { url: urlData.publicUrl };
+      
+    } catch (error) {
+      console.error('خطأ في رفع الملف إلى Supabase:', error);
+      return null;
+    }
+  }
+
+  /**
+   * مزامنة المعاملات مع Supabase Database
+   */
+  private async syncTransactionsToSupabase(): Promise<{ totalTransactions: number; syncedTransactions: number; errors: string[] }> {
+    const result = {
+      totalTransactions: 0,
+      syncedTransactions: 0,
+      errors: [] as string[]
+    };
+
+    try {
+      // جلب جميع المعاملات من قاعدة البيانات المحلية
+      const transactions = await this.sql(`
+        SELECT * FROM transactions 
+        ORDER BY created_at DESC
+      `);
+
+      result.totalTransactions = transactions.length;
+      console.log(`💾 بدء مزامنة ${transactions.length} معاملة`);
+
+      // رفع البيانات دفعة واحدة إلى Supabase
+      const { supabaseClient } = await import('./supabase-simple');
+      
+      if (!supabaseClient) {
+        result.errors.push('Supabase client غير متوفر');
+        return result;
+      }
+
+      // رفع المعاملات بدفعات صغيرة لتجنب القيود
+      const batchSize = 100;
+      for (let i = 0; i < transactions.length; i += batchSize) {
+        const batch = transactions.slice(i, i + batchSize);
+        
+        try {
+          const { error } = await supabaseClient
+            .from('transactions')
+            .upsert(batch, { onConflict: 'id' });
+
+          if (error) {
+            result.errors.push(`Batch ${Math.floor(i/batchSize) + 1} error: ${error.message}`);
+          } else {
+            result.syncedTransactions += batch.length;
+            console.log(`✅ تمت مزامنة دفعة ${Math.floor(i/batchSize) + 1}/${Math.ceil(transactions.length/batchSize)}`);
+          }
+        } catch (error) {
+          result.errors.push(`Batch ${Math.floor(i/batchSize) + 1} exception: ${error}`);
+        }
+      }
+
+    } catch (error) {
+      result.errors.push(`Sync error: ${error}`);
+      console.error('خطأ في مزامنة المعاملات:', error);
     }
 
-    return tablesStatus;
-  } catch (error) {
-    console.error('❌ خطأ في فحص حالة النقل:', error);
-    throw error;
+    return result;
+  }
+
+  /**
+   * تحديث رابط الملف في قاعدة البيانات
+   */
+  private async updateFileUrlInDatabase(transactionId: number, newUrl: string): Promise<void> {
+    try {
+      await this.sql(`
+        UPDATE transactions 
+        SET file_url = $1 
+        WHERE id = $2
+      `, [newUrl, transactionId]);
+    } catch (error) {
+      console.error('خطأ في تحديث رابط الملف:', error);
+    }
+  }
+
+  /**
+   * تحديد نوع الملف
+   */
+  private getFileType(fileName: string): string {
+    const extension = fileName.toLowerCase().split('.').pop();
+    
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'doc':
+      case 'docx':
+        return 'application/msword';
+      case 'xls':
+      case 'xlsx':
+        return 'application/vnd.ms-excel';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  /**
+   * فحص حالة المزامنة
+   */
+  async getSyncStatus(): Promise<{
+    localFiles: number;
+    localTransactions: number;
+    supabaseFiles: number;
+    supabaseTransactions: number;
+  }> {
+    const localFiles = await this.findLocalFiles();
+    
+    const localTransactions = await this.sql(`SELECT COUNT(*) as count FROM transactions`);
+    
+    let supabaseFiles = 0;
+    let supabaseTransactions = 0;
+
+    try {
+      const { supabaseClient } = await import('./supabase-simple');
+      
+      if (supabaseClient) {
+        // فحص عدد الملفات في Supabase
+        const { data: files } = await supabaseClient.storage
+          .from('files')
+          .list();
+        supabaseFiles = files?.length || 0;
+
+        // فحص عدد المعاملات في Supabase
+        const { count } = await supabaseClient
+          .from('transactions')
+          .select('*', { count: 'exact', head: true });
+        supabaseTransactions = count || 0;
+      }
+    } catch (error) {
+      console.error('خطأ في فحص حالة Supabase:', error);
+    }
+
+    return {
+      localFiles: localFiles.length,
+      localTransactions: localTransactions[0].count,
+      supabaseFiles,
+      supabaseTransactions
+    };
   }
 }
+
+export const supabaseMigration = new SupabaseMigration();
