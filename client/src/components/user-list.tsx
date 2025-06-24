@@ -327,6 +327,20 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const { toast } = useToast();
+
+  // ترتيب المستخدمين: المدير أولاً، ثم المستخدمين، ثم المشاهدين، ثم بالاسم
+  const sortedUsers = [...(users || [])].sort((a, b) => {
+    // ترتيب حسب الدور أولاً
+    const roleOrder = { admin: 1, user: 2, viewer: 3 };
+    const roleComparison = (roleOrder[a.role as keyof typeof roleOrder] || 4) - (roleOrder[b.role as keyof typeof roleOrder] || 4);
+    
+    if (roleComparison !== 0) {
+      return roleComparison;
+    }
+    
+    // ثم ترتيب بالاسم
+    return a.name.localeCompare(b.name, 'ar');
+  });
   
   const deleteMutation = useMutation({
     mutationFn: (id: number) => {
@@ -398,11 +412,13 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-primary">مدير</Badge>;
+        return <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm">مدير النظام</Badge>;
       case 'user':
-        return <Badge className="bg-secondary">مستخدم</Badge>;
+        return <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">مستخدم</Badge>;
+      case 'viewer':
+        return <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm">مشاهد</Badge>;
       default:
-        return <Badge>{role}</Badge>;
+        return <Badge className="bg-gray-500 text-white">{role}</Badge>;
     }
   };
   
@@ -425,7 +441,7 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
     );
   }
   
-  if (users.length === 0) {
+  if (sortedUsers.length === 0) {
     return (
       <div className="bg-secondary-light rounded-xl shadow-card p-10 text-center">
         <p className="text-muted-foreground">لا يوجد مستخدمين حتى الآن</p>
@@ -440,17 +456,27 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
       <div className="hidden md:block bg-secondary-light rounded-xl shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-secondary">
-            <thead>
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
               <tr>
-                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">اسم المستخدم</th>
-                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الاسم الكامل</th>
-                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحية</th>
-                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الصلاحيات</th>
-                <th scope="col" className="px-3 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-neutral-DEFAULT uppercase tracking-wider">الإجراءات</th>
+                <th scope="col" className="px-3 sm:px-4 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b-2 border-primary/20">
+                  اسم المستخدم
+                </th>
+                <th scope="col" className="px-3 sm:px-4 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b-2 border-primary/20">
+                  الاسم الكامل
+                </th>
+                <th scope="col" className="px-3 sm:px-4 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b-2 border-primary/20">
+                  الصلاحية
+                </th>
+                <th scope="col" className="px-3 sm:px-4 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b-2 border-primary/20">
+                  الصلاحيات
+                </th>
+                <th scope="col" className="px-3 sm:px-4 py-3 sm:py-4 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b-2 border-primary/20">
+                  الإجراءات
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-secondary-light">
-              {users.map((user) => (
+              {sortedUsers.map((user) => (
                 <tr key={user.id}>
                   <td className="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-sm text-neutral-light">
                     {user.username}
@@ -507,7 +533,7 @@ export function UserList({ users, isLoading, onUserUpdated, currentUserId }: Use
       
       {/* بطاقات للشاشات الصغيرة */}
       <div className="md:hidden grid grid-cols-1 gap-3">
-        {users.map((user) => (
+        {sortedUsers.map((user) => (
           <div 
             key={user.id}
             className="bg-white dark:bg-gray-800 shadow-sm border dark:border-gray-700 rounded-lg p-3 hover:shadow-md transition-all duration-300"
