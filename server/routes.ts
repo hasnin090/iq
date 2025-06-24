@@ -633,8 +633,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Project creation request:", req.body);
 
-      if (!req.body.name || !req.body.description || !req.body.startDate || !req.body.status) {
-        return res.status(400).json({ message: "البيانات المطلوبة غير مكتملة" });
+      if (!req.body.name || !req.body.description) {
+        return res.status(400).json({ message: "البيانات المطلوبة غير مكتملة - الاسم والوصف مطلوبان" });
       }
       
       const projectData = insertProjectSchema.parse(req.body);
@@ -2373,6 +2373,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: "حدث خطأ أثناء جلب قائمة النسخ الاحتياطية" 
       });
+    }
+  });
+
+  // إضافة endpoint آخر للنسخ الاحتياطية
+  app.get("/api/backups", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const backups = await backupSystem.getAvailableBackups();
+      res.json(backups);
+    } catch (error) {
+      console.error("خطأ في جلب قائمة النسخ الاحتياطية:", error);
+      res.status(500).json({ message: "خطأ في جلب قائمة النسخ الاحتياطية" });
     }
   });
 
