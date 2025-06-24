@@ -4,34 +4,25 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
+# Production builds
 dist/
 build/
-server/public/
 
-# Environment files
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Database and backup files
-*.sql
-*.db
-*.sqlite
-backups/
-*.zip
-*.tar.gz
-
-# Uploads and user files
-uploads/
-attached_assets/
-
-# System files
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-*.log
 
 # IDE files
 .vscode/
@@ -40,26 +31,43 @@ Thumbs.db
 *.swo
 *~
 
-# Runtime files
-vite.config.ts.*
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
 *.pid
 *.seed
-*.coverage
-.nyc_output
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Database
+*.sqlite
+*.db
+
+# Uploads (keep structure but ignore files)
+uploads/*
+!uploads/.gitkeep
+
+# Backups
+backups/
+cloud-backup/
 
 # Temporary files
 tmp/
 temp/
-.tmp/
 
 # Cache
 .cache/
-.parcel-cache/
+.npm
+.eslintcache
 
-# Session files
-cookies.txt
-/tmp/
+# Replit specific
+.replit
+replit.nix
 
-# Test files
-test-*.js
-test-*.mjs
+# Lock files (optional - remove if you want to keep them)
+package-lock.json
