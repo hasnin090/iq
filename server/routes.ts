@@ -4006,18 +4006,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // رفع جميع البيانات المحلية إلى Supabase
+  // رفع البيانات فقط إلى Supabase (بدون ملفات)
   app.post("/api/supabase/migrate", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
       console.log("🔄 بدء عملية رفع البيانات إلى Supabase...");
-      const { localToSupabaseSync } = await import("./local-to-supabase-sync");
-      const result = await localToSupabaseSync.syncAllData();
+      const { dataOnlySync } = await import("./data-only-sync");
+      const result = await dataOnlySync.syncAllData();
+      
+      const totalSynced = result.transactions.synced + result.projects.synced + 
+                         result.users.synced + result.expenseTypes.synced + 
+                         result.employees.synced + result.settings.synced;
       
       await storage.createActivityLog({
         action: "supabase_migration",
         entityType: "system",
         entityId: 0,
-        details: `رفع البيانات إلى Supabase: ${result.successes.length} نجح, ${result.errors.length} فشل`,
+        details: `مزامنة البيانات مع Supabase: ${totalSynced} عنصر، ${result.errors.length} خطأ`,
         userId: req.session.userId as number
       });
 
