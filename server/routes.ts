@@ -3521,7 +3521,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      storageManager.setPreferredProvider(provider);
+      // التحقق من حالة مزود التخزين قبل التبديل
+      const storageStatus = await storageManager.getStorageStatus();
+      if (provider !== 'local' && !storageStatus.healthCheck[provider]) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `مزود التخزين ${provider} غير متاح حالياً` 
+        });
+      }
+
+      const success = storageManager.setPreferredProvider(provider);
+      
+      if (!success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "فشل في تغيير مزود التخزين" 
+        });
+      }
       
       await storage.createActivityLog({
         userId: req.session.userId as number,

@@ -144,6 +144,18 @@ export default function HybridStorageManagement() {
   const setPreferredProvider = async (provider: string) => {
     setIsLoading(true);
     try {
+      // التحقق من حالة المزود قبل التبديل
+      const isHealthy = storageStatus?.status?.healthCheck?.[provider] || provider === 'local';
+      
+      if (!isHealthy) {
+        toast({
+          variant: "destructive",
+          title: "مزود التخزين غير متاح",
+          description: `${storageProviders[provider].displayName} غير متاح حالياً`
+        });
+        return;
+      }
+
       const response = await apiRequest('/api/storage/set-preferred', 'POST', { provider });
       
       if (response.success) {
@@ -151,9 +163,16 @@ export default function HybridStorageManagement() {
           title: "تم التغيير",
           description: `تم تعيين ${storageProviders[provider].displayName} كمزود تخزين أساسي`
         });
-        refreshAllData();
+        
+        // تحديث البيانات بعد فترة قصيرة للسماح للنظام بالتحديث
+        setTimeout(() => {
+          refreshAllData();
+        }, 1000);
+      } else {
+        throw new Error(response.message || "فشل في تغيير مزود التخزين");
       }
     } catch (error: any) {
+      console.error("خطأ في تغيير مزود التخزين:", error);
       toast({
         variant: "destructive",
         title: "فشل التغيير",
@@ -283,9 +302,21 @@ export default function HybridStorageManagement() {
                         className="w-full"
                         onClick={() => setPreferredProvider(provider.name)}
                         disabled={isLoading}
+                        title={`تعيين ${provider.displayName} كمزود تخزين أساسي`}
                       >
                         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Settings className="h-4 w-4" />}
                         تعيين كأساسي
+                      </Button>
+                    )}
+                    
+                    {!isHealthy && provider.name !== 'local' && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full opacity-50 cursor-not-allowed"
+                        disabled
+                      >
+                        غير متاح
                       </Button>
                     )}
                   </CardContent>

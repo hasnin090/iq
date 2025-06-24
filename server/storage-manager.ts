@@ -255,8 +255,42 @@ class StorageManager {
    * تغيير مزود التخزين المفضل
    */
   setPreferredProvider(provider: StorageProvider) {
+    // التحقق من صحة مزود التخزين
+    if (!['local', 'supabase', 'firebase'].includes(provider)) {
+      console.log(`❌ مزود تخزين غير صالح: ${provider}`);
+      return false;
+    }
+
+    const previousProvider = this.preferredProvider;
     this.preferredProvider = provider;
-    console.log(`📁 تم تغيير مزود التخزين المفضل إلى: ${provider}`);
+    
+    console.log(`📁 تم تغيير مزود التخزين المفضل من ${previousProvider} إلى ${provider}`);
+    
+    // إعادة تحديد مزودات التخزين الاحتياطية بناءً على المزود الجديد
+    this.updateFallbackProviders(provider);
+    
+    return true;
+  }
+
+  /**
+   * تحديث مزودات التخزين الاحتياطية
+   */
+  private updateFallbackProviders(preferredProvider: StorageProvider) {
+    switch (preferredProvider) {
+      case 'supabase':
+        this.fallbackProviders = ['firebase', 'local'];
+        break;
+      case 'firebase':
+        this.fallbackProviders = ['supabase', 'local'];
+        break;
+      case 'local':
+        this.fallbackProviders = ['supabase', 'firebase'];
+        break;
+      default:
+        this.fallbackProviders = ['firebase', 'local'];
+    }
+    
+    console.log(`🔄 مزودات التخزين الاحتياطية: ${this.fallbackProviders.join(', ')}`);
   }
 
   /**
