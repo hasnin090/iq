@@ -3970,25 +3970,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // استعادة المرفقات المفقودة
+  // إصلاح ربط المرفقات المنفصلة
   app.post("/api/attachments/recover", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      console.log("🔄 بدء عملية استعادة المرفقات المفقودة...");
-      const { attachmentRecovery } = await import("./attachment-recovery");
-      const result = await attachmentRecovery.recoverMissingAttachments();
+      console.log("🔄 بدء عملية إصلاح المرفقات المنفصلة...");
+      const { attachmentFixer } = await import("./fix-attachments");
+      const result = await attachmentFixer.fixOrphanedAttachments();
       
       await storage.createActivityLog({
-        action: "attachment_recovery",
+        action: "attachments_fixed",
         entityType: "system",
         entityId: 0,
-        details: `استعادة المرفقات: ${result.recoveredFromSupabase + result.recoveredFromFirebase} نجح، ${result.stillMissing} فشل`,
+        details: `إصلاح المرفقات: ${result.linked} ملف مربوط، ${result.orphanedFiles} ملف منفصل`,
         userId: req.session.userId as number
       });
 
       res.json(result);
     } catch (error) {
-      console.error("خطأ في استعادة المرفقات:", error);
-      res.status(500).json({ message: "خطأ في استعادة المرفقات" });
+      console.error("خطأ في إصلاح المرفقات:", error);
+      res.status(500).json({ message: "خطأ في إصلاح المرفقات" });
     }
   });
 
