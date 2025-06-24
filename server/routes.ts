@@ -1818,8 +1818,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Settings routes
-  app.get("/api/settings", authenticate, async (req: Request, res: Response) => {
+  // Settings routes - المدير فقط يمكنه تعديل الإعدادات، المشاهدة متاحة للجميع
+  app.get("/api/settings", authenticate, authorize(["admin", "manager", "user", "viewer"]), async (req: Request, res: Response) => {
     try {
       const settings = await storage.listSettings();
       return res.status(200).json(settings);
