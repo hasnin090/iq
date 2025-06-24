@@ -3992,6 +3992,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== إدارة كلمات المرور ========
+  
+  // إعادة تعيين كلمة مرور مستخدم
+  app.post("/api/users/:id/reset-password", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { newPassword } = req.body;
+      
+      if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" });
+      }
+      
+      const { passwordResetTool } = await import("./password-reset-tool");
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "المستخدم غير موجود" });
+      }
+      
+      const success = await passwordResetTool.resetUserPassword(user.username, newPassword);
+      
+      if (success) {
+        await storage.createActivityLog({
+          action: "password_reset",
+          entityType: "user",
+          entityId: userId,
+          details: `إعادة تعيين كلمة مرور المستخدم: ${user.username}`,
+          userId: req.session.userId as number
+        });
+        
+        res.json({ message: "تم إعادة تعيين كلمة المرور بنجاح" });
+      } else {
+        res.status(500).json({ message: "فشل في إعادة تعيين كلمة المرور" });
+      }
+    } catch (error) {
+      console.error("خطأ في إعادة تعيين كلمة المرور:", error);
+      res.status(500).json({ message: "خطأ في إعادة تعيين كلمة المرور" });
+    }
+  });
+
   // تهيئة Supabase تلقائياً عند بدء الخادم
   try {
     console.log('🔄 محاولة تهيئة Supabase...');
