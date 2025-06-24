@@ -4006,29 +4006,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // رفع البيانات فقط إلى Supabase (بدون ملفات)
+  // إنشاء نسخة احتياطية JSON للبيانات
   app.post("/api/supabase/migrate", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
-      console.log("🔄 بدء عملية رفع البيانات إلى Supabase...");
-      const { dataOnlySync } = await import("./data-only-sync");
-      const result = await dataOnlySync.syncAllData();
-      
-      const totalSynced = result.transactions.synced + result.projects.synced + 
-                         result.users.synced + result.expenseTypes.synced + 
-                         result.employees.synced + result.settings.synced;
+      console.log("🔄 بدء إنشاء نسخة احتياطية JSON...");
+      const { jsonBackup } = await import("./backup-to-json");
+      const result = await jsonBackup.createFullBackup();
       
       await storage.createActivityLog({
-        action: "supabase_migration",
+        action: "json_backup_created",
         entityType: "system",
         entityId: 0,
-        details: `مزامنة البيانات مع Supabase: ${totalSynced} عنصر، ${result.errors.length} خطأ`,
+        details: `إنشاء نسخة احتياطية JSON: ${result.totalRecords} سجل في ${result.files.length} ملف`,
         userId: req.session.userId as number
       });
 
       res.json(result);
     } catch (error) {
-      console.error("خطأ في رفع البيانات:", error);
-      res.status(500).json({ message: "خطأ في رفع البيانات إلى Supabase" });
+      console.error("خطأ في إنشاء النسخة الاحتياطية:", error);
+      res.status(500).json({ message: "خطأ في إنشاء النسخة الاحتياطية" });
     }
   });
 
