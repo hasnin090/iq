@@ -3992,6 +3992,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // حذف مرفق من معاملة (للمدير فقط)
+  app.delete("/api/transactions/:id/attachment", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const transactionId = parseInt(req.params.id);
+      
+      // التحقق من وجود المعاملة
+      const transaction = await storage.getTransaction(transactionId);
+      if (!transaction) {
+        return res.status(404).json({ message: "المعاملة غير موجودة" });
+      }
+
+      if (!transaction.fileUrl) {
+        return res.status(400).json({ message: "لا يوجد مرفق لحذفه" });
+      }
+
+      // حذف الملف من النظام
+      const { deleteFile } = await import("./firebase-utils");
+      const fileDeleted = await deleteFile(transaction.fileUrl);
+      
+      if (fileDeleted) {
+        console.log(`✅ تم حذف الملف: ${transaction.fileUrl}`);
+      } else {
+        console.log(`⚠️ فشل في حذف الملف من التخزين: ${transaction.fileUrl}`);
+      }
+
+      // إزالة رابط المرفق من قاعدة البيانات
+      const updatedTransaction = await storage.updateTransaction(transactionId, {
+        fileUrl: null,
+        fileType: null
+      });
+
+      if (!updatedTransaction) {
+        return res.status(500).json({ message: "فشل في تحديث المعاملة" });
+      }
+
+      // تسجيل العملية
+      await storage.createActivityLog({
+        action: "attachment_deleted",
+        entityType: "transaction",
+        entityId: transactionId,
+        details: `تم حذف المرفق: ${transaction.fileUrl}`,
+        userId: req.session.userId as number
+      });
+
+      res.json({ 
+        success: true, 
+        message: "تم حذف المرفق بنجاح",
+        transaction: updatedTransaction
+      });
+
+    } catch (error) {
+      console.error("خطأ في حذف المرفق:", error);
+      res.status(500).json({ message: "خطأ في حذف المرفق" });
+    }
+  });
+
   // ======== رفع البيانات إلى Supabase ========
   
   // فحص حالة المزامنة مع Supabase

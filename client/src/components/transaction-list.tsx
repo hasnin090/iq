@@ -82,6 +82,8 @@ export function TransactionList({
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [selectedAttachment, setSelectedAttachment] = useState<{url: string; type: string} | null>(null);
+  const [deleteAttachmentDialogOpen, setDeleteAttachmentDialogOpen] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<Transaction | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -185,6 +187,16 @@ export function TransactionList({
   const handleEditClick = (transaction: Transaction) => {
     setTransactionToEdit(transaction);
     setEditDialogOpen(true);
+  };
+
+  const handleDeleteAttachmentClick = (transaction: Transaction) => {
+    setAttachmentToDelete(transaction);
+    setDeleteAttachmentDialogOpen(true);
+  };
+
+  const handleDeleteAttachmentClick = (transaction: Transaction) => {
+    setAttachmentToDelete(transaction);
+    setDeleteAttachmentDialogOpen(true);
   };
 
   const onEditSubmit = (values: TransactionFormValues) => {
@@ -326,7 +338,7 @@ export function TransactionList({
                     
                     {/* المرفق - يظهر فقط للمنشئ والمدير */}
                     {transaction.fileUrl && canViewAttachment(transaction) && (
-                      <div className="mb-2">
+                      <div className="mb-2 flex items-center gap-2">
                         <button
                           onClick={() => {
                             console.log('Button clicked for transaction:', transaction.id, 'fileUrl:', transaction.fileUrl, 'fileType:', transaction.fileType);
@@ -337,6 +349,16 @@ export function TransactionList({
                           {getFileIcon(transaction.fileType || '')}
                           عرض المرفق
                         </button>
+                        {/* زر حذف المرفق للمدير فقط */}
+                        {user?.role === 'admin' && (
+                          <button
+                            onClick={() => handleDeleteAttachmentClick(transaction)}
+                            className="text-xs text-red-600 hover:text-red-700 p-1 hover:bg-red-50 rounded"
+                            title="حذف المرفق"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
                       </div>
                     )}
                     
@@ -814,6 +836,31 @@ export function TransactionList({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* حوار تأكيد حذف المرفق */}
+      <AlertDialog open={deleteAttachmentDialogOpen} onOpenChange={setDeleteAttachmentDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد حذف المرفق</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل تريد بالتأكيد حذف المرفق من هذه المعاملة؟ هذا الإجراء لا يمكن التراجع عنه.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (attachmentToDelete) {
+                  deleteAttachmentMutation.mutate(attachmentToDelete.id);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              حذف المرفق
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
