@@ -15,10 +15,10 @@
 
 ```bash
 # إضافة remote origin
-git remote add origin https://github.com/your-username/arabic-accounting-system.git
+git remote add origin https://github.com/hasnin090/arabic-accounting-system.git
 
 # أو إذا كنت تستخدم SSH
-git remote add origin git@github.com:your-username/arabic-accounting-system.git
+git remote add origin git@github.com:hasnin090/arabic-accounting-system.git
 ```
 
 ### 3. رفع الملفات
@@ -123,7 +123,7 @@ git commit -m "changes"
 
 ```bash
 # استنساخ المشروع
-git clone https://github.com/your-username/arabic-accounting-system.git
+git clone https://github.com/hasnin090/arabic-accounting-system.git
 
 # الدخول إلى مجلد المشروع
 cd arabic-accounting-system
@@ -144,14 +144,14 @@ npm run dev
 ### مشكلة Permission denied
 ```bash
 # إذا كانت المشكلة في SSH
-ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
+ssh-keygen -t rsa -b 4096 -C "fcblon@yahoo.com"
 # ثم أضف المفتاح العام إلى GitHub Settings > SSH Keys
 ```
 
 ### مشكلة remote origin already exists
 ```bash
 git remote remove origin
-git remote add origin https://github.com/your-username/arabic-accounting-system.git
+git remote add origin https://github.com/hasnin090/arabic-accounting-system.git
 ```
 
 ### مشكلة merge conflicts
