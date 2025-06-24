@@ -355,8 +355,17 @@ export class PgStorage implements IStorage {
   }
   
   async deleteTransaction(id: number): Promise<boolean> {
-    const result = await db.delete(transactions).where(eq(transactions.id, id)).returning({ id: transactions.id });
-    return result.length > 0;
+    try {
+      // حذف الإدخالات المرتبطة أولاً
+      await db.delete(ledgerEntries).where(eq(ledgerEntries.transactionId, id));
+      
+      // ثم حذف المعاملة
+      const result = await db.delete(transactions).where(eq(transactions.id, id)).returning({ id: transactions.id });
+      return result.length > 0;
+    } catch (error) {
+      console.error('خطأ في حذف المعاملة:', error);
+      throw error;
+    }
   }
   
   // ======== إدارة المستندات ========

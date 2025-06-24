@@ -107,6 +107,13 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 - Production: Cloud PostgreSQL with multi-tier backup
 - Environment variables for database URLs and API keys
 
+## Recent Changes
+- ✓ June 24, 2025: Fixed transaction deletion error by handling related ledger entries
+- ✓ June 23, 2025: Implemented comprehensive attachment recovery system with multi-source restoration
+- ✓ June 23, 2025: Enhanced login interface for better mobile responsiveness
+- ✓ June 23, 2025: Completely reorganized projects section with improved UI and statistics
+- ✓ June 23, 2025: Resolved Supabase connection issues with automatic initialization
+
 ## Changelog
 - June 23, 2025. Initial setup
 
