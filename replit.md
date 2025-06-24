@@ -108,6 +108,7 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 - Environment variables for database URLs and API keys
 
 ## Recent Changes
+- ✓ June 24, 2025: Added admin-only attachment deletion functionality with secure API and UI
 - ✓ June 24, 2025: Successfully fixed orphaned attachments - linked 7 files to appropriate transactions
 - ✓ June 24, 2025: Increased transactions with attachments from 2 to 9 (complete recovery)
 - ✓ June 24, 2025: Successfully created comprehensive JSON backup with 601 records
