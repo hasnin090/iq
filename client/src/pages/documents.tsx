@@ -57,6 +57,9 @@ export default function Documents() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteAttachmentDialog, setShowDeleteAttachmentDialog] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<Transaction | null>(null);
+  const [isDeletingAttachment, setIsDeletingAttachment] = useState(false);
   const { user } = useAuth();
   const isManagerOrAdmin = user?.role === 'admin' || user?.role === 'manager';
 
@@ -141,6 +144,12 @@ export default function Documents() {
     setSelectedTransaction(transaction);
     setShowReuploadDialog(true);
   };
+
+  // التعامل مع حذف مرفق المعاملة
+  const handleDeleteAttachmentClick = (transaction: Transaction) => {
+    setAttachmentToDelete(transaction);
+    setShowDeleteAttachmentDialog(true);
+  };
   
   // إعادة تعيين حالة إعادة الرفع
   const resetReuploadState = () => {
@@ -148,6 +157,38 @@ export default function Documents() {
     setReuploadFile(null);
     setShowReuploadDialog(false);
     setIsUploading(false);
+  };
+
+  // حذف مرفق المعاملة
+  const handleDeleteAttachmentSubmit = async () => {
+    if (!attachmentToDelete) return;
+    
+    setIsDeletingAttachment(true);
+    
+    try {
+      const response = await fetch(`/api/transactions/${attachmentToDelete.id}/delete-attachment`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('فشل في حذف المرفق');
+      }
+      
+      // تحديث البيانات
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions/attachments'] });
+      
+      // إعادة تعيين الحالة
+      setAttachmentToDelete(null);
+      setShowDeleteAttachmentDialog(false);
+      
+      alert('تم حذف المرفق بنجاح!');
+    } catch (error) {
+      console.error('خطأ في حذف المرفق:', error);
+      alert('حدث خطأ أثناء حذف المرفق. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsDeletingAttachment(false);
+    }
   };
   
   // رفع الملف المحدث للمعاملة
@@ -1477,17 +1518,32 @@ export default function Documents() {
                               تحميل
                             </Button>
                             
-                            {/* زر إعادة رفع المستند - متاح فقط للمدراء والمسؤولين */}
+                            {/* أزرار المدراء - إعادة رفع وحذف المرفق */}
                             {isManagerOrAdmin && (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="text-xs w-full mt-1"
-                                onClick={() => handleReuploadClick(transaction)}
-                              >
-                                <Upload className="ml-1 h-3 w-3" />
-                                إعادة رفع المستند
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs"
+                                  onClick={() => handleReuploadClick(transaction)}
+                                >
+                                  <Upload className="ml-1 h-3 w-3" />
+                                  إعادة رفع المستند
+                                </Button>
+                                
+                                {/* زر حذف المرفق - للمدراء فقط */}
+                                {user?.role === 'admin' && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="text-xs"
+                                    onClick={() => handleDeleteAttachmentClick(transaction)}
+                                  >
+                                    <X className="ml-1 h-3 w-3" />
+                                    حذف المرفق
+                                  </Button>
+                                )}
+                              </>
                             )}
                           </div>
                         </CardContent>
@@ -1639,6 +1695,59 @@ export default function Documents() {
               )}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* نافذة تأكيد حذف مرفق المعاملة */}
+      <Dialog open={showDeleteAttachmentDialog} onOpenChange={setShowDeleteAttachmentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <X className="h-5 w-5" />
+              تأكيد حذف المرفق
+            </DialogTitle>
+            <DialogDescription>
+              هل أنت متأكد من رغبتك في حذف مرفق هذه المعاملة؟ سيتم حذف الملف نهائياً ولا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {attachmentToDelete && (
+            <div className="py-4">
+              <div className="text-sm border p-3 rounded-lg bg-muted/30">
+                <p><strong>وصف المعاملة:</strong> {attachmentToDelete.description}</p>
+                <p><strong>المبلغ:</strong> {new Intl.NumberFormat('ar-IQ').format(attachmentToDelete.amount)} د.ع</p>
+                <p><strong>التاريخ:</strong> {new Date(attachmentToDelete.date).toLocaleDateString('ar-SA')}</p>
+                <p><strong>نوع الملف:</strong> {attachmentToDelete.fileType || 'غير محدد'}</p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteAttachmentDialog(false)}
+              disabled={isDeletingAttachment}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAttachmentSubmit}
+              disabled={isDeletingAttachment}
+            >
+              {isDeletingAttachment ? (
+                <>
+                  <div className="spinner w-4 h-4 ml-2"></div>
+                  جاري الحذف...
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 ml-2" />
+                  حذف المرفق
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
         </div>
