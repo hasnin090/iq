@@ -4010,14 +4010,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/supabase/migrate", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
       console.log("🔄 بدء عملية رفع البيانات إلى Supabase...");
-      const { supabaseMigration } = await import("./supabase-migration");
-      const result = await supabaseMigration.migrateToSupabase();
+      const { localToSupabaseSync } = await import("./local-to-supabase-sync");
+      const result = await localToSupabaseSync.syncAllData();
       
       await storage.createActivityLog({
         action: "supabase_migration",
         entityType: "system",
         entityId: 0,
-        details: `رفع البيانات إلى Supabase: ${result.uploadedFiles} ملف, ${result.syncedTransactions} معاملة`,
+        details: `رفع البيانات إلى Supabase: ${result.successes.length} نجح, ${result.errors.length} فشل`,
         userId: req.session.userId as number
       });
 
@@ -4025,6 +4025,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في رفع البيانات:", error);
       res.status(500).json({ message: "خطأ في رفع البيانات إلى Supabase" });
+    }
+  });
+
+  // تقدم عملية الرفع
+  app.get("/api/supabase/migrate/progress", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { localToSupabaseSync } = await import("./local-to-supabase-sync");
+      const progress = localToSupabaseSync.getProgress();
+      res.json(progress);
+    } catch (error) {
+      console.error("خطأ في فحص التقدم:", error);
+      res.status(500).json({ message: "خطأ في فحص تقدم الرفع" });
     }
   });
 
