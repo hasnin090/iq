@@ -194,10 +194,26 @@ export function TransactionList({
     setDeleteAttachmentDialogOpen(true);
   };
 
-  const handleDeleteAttachmentClick = (transaction: Transaction) => {
-    setAttachmentToDelete(transaction);
-    setDeleteAttachmentDialogOpen(true);
-  };
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: (transactionId: number) => 
+      apiRequest(`/api/transactions/${transactionId}/attachment`, 'DELETE'),
+    onSuccess: () => {
+      toast({
+        title: "تم حذف المرفق بنجاح",
+        description: "تم حذف المرفق من المعاملة",
+      });
+      setDeleteAttachmentDialogOpen(false);
+      setAttachmentToDelete(null);
+      onTransactionUpdated();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في حذف المرفق",
+        description: error.message || "حدث خطأ أثناء حذف المرفق",
+        variant: "destructive",
+      });
+    },
+  });
 
   const onEditSubmit = (values: TransactionFormValues) => {
     if (!transactionToEdit) return;
