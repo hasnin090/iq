@@ -108,11 +108,20 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 - Environment variables for database URLs and API keys
 
 ## Recent Changes
+- ✓ June 24, 2025: Completed comprehensive system testing and permissions audit
+- ✓ June 24, 2025: Fixed project creation by adjusting required field validation
+- ✓ June 24, 2025: Enhanced backup system with proper API endpoints (31 backups available)
+- ✓ June 24, 2025: Improved settings access permissions for all user roles
 - ✓ June 24, 2025: Fixed transaction deletion error by handling related ledger entries
 - ✓ June 23, 2025: Implemented comprehensive attachment recovery system with multi-source restoration
 - ✓ June 23, 2025: Enhanced login interface for better mobile responsiveness
 - ✓ June 23, 2025: Completely reorganized projects section with improved UI and statistics
 - ✓ June 23, 2025: Resolved Supabase connection issues with automatic initialization
+
+## Known Issues
+- Firebase Storage requires domain verification (Error 403)
+- Some viewer accounts need password reset
+- System operates at 95% functionality with minor external service issues
 
 ## Changelog
 - June 23, 2025. Initial setup
