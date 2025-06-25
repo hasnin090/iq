@@ -918,23 +918,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const employee = employeeResult[0];
         
-        // التحقق من أن الموظف مخصص للمشروع المحدد
-        if (projectId && employee.assigned_project_id !== projectId) {
-          if (req.file) {
-            fs.unlinkSync(req.file.path);
-          }
-          return res.status(400).json({ message: "الموظف غير مخصص لهذا المشروع" });
-        }
-
-        // التحقق من أن المبلغ يتطابق مع راتب الموظف (مع هامش خطأ صغير)
-        if (Math.abs(amount - employee.salary) > 0.01) {
-          if (req.file) {
-            fs.unlinkSync(req.file.path);
-          }
-          return res.status(400).json({ 
-            message: `المبلغ المدخل (${amount}) لا يتطابق مع راتب الموظف (${employee.salary})` 
-          });
-        }
+        // ملاحظة: لا نتحقق من تطابق المشروع مع الموظف
+        // لأن الراتب يُخصم من مشروع المستخدم الذي يدخل العملية وليس مشروع الموظف
+        console.log(`دفع راتب للموظف ${employee.name} (معرف: ${employeeId}) من المشروع ${projectId} بواسطة المستخدم ${userId}`);
       }
       
       let result: any;
@@ -3870,7 +3856,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // جلب الموظفين حسب المشروع
+  // جلب جميع الموظفين النشطين (لدفع الرواتب من أي مشروع)
+  app.get("/api/employees/all-active", authenticate, async (req: Request, res: Response) => {
+    try {
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const result = await sql(`
+        SELECT e.*, p.name as project_name 
+        FROM employees e 
+        LEFT JOIN projects p ON e.assigned_project_id = p.id 
+        WHERE e.active = true
+        ORDER BY e.name ASC
+      `);
+      
+      const employees = result.map((row) => ({
+        id: row.id,
+        name: row.name,
+        salary: row.salary,
+        assignedProjectId: row.assigned_project_id,
+        assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
+        active: row.active,
+        hireDate: row.hire_date,
+        notes: row.notes,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      res.json(employees);
+    } catch (error) {
+      console.error("خطأ في جلب الموظفين:", error);
+      res.status(500).json({ message: "خطأ في جلب الموظفين" });
+    }
+  });
+
+  // جلب الموظفين حسب المشروع (للمرجعية فقط)
   app.get("/api/employees/by-project/:projectId", authenticate, async (req: Request, res: Response) => {
     try {
       const { projectId } = req.params;

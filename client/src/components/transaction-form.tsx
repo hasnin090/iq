@@ -175,23 +175,20 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     enabled: user?.role !== 'admin',
   });
 
-  // جلب الموظفين المخصصين للمشروع المحدد
-  const currentProjectId = form.watch('projectId');
-  const isValidProjectId = currentProjectId && currentProjectId !== 'none' && currentProjectId !== '' && !isNaN(Number(currentProjectId));
-  
-  const { data: projectEmployees = [] } = useQuery<Employee[]>({
-    queryKey: ['/api/employees/by-project', currentProjectId],
+  // جلب جميع الموظفين النشطين (وليس المخصصين للمشروع فقط)
+  // لأن الراتب يُخصم من مشروع المستخدم وليس مشروع الموظف
+  const { data: allEmployees = [] } = useQuery<Employee[]>({
+    queryKey: ['/api/employees'],
     queryFn: async () => {
-      console.log('Fetching employees for project:', currentProjectId);
-      const response = await fetch(`/api/employees/by-project/${currentProjectId}`);
+      console.log('Fetching all active employees');
+      const response = await fetch('/api/employees');
       if (!response.ok) {
         throw new Error('Failed to fetch employees');
       }
       const data = await response.json();
-      console.log('Employees response:', data);
+      console.log('All employees response:', data);
       return data;
     },
-    enabled: !!isValidProjectId,
   });
 
   // تعيين المشروع تلقائياً للمستخدمين العاديين
@@ -499,7 +496,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     <FormLabel>اختر الموظف</FormLabel>
                     <Select onValueChange={(value) => {
                       field.onChange(value);
-                      const selectedEmployee = projectEmployees.find(emp => emp.id.toString() === value);
+                      const selectedEmployee = allEmployees.find(emp => emp.id.toString() === value);
                       if (selectedEmployee) {
                         form.setValue("description", `راتب ${selectedEmployee.name}`);
                       }
@@ -510,7 +507,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {projectEmployees.map(employee => (
+                        {allEmployees.map(employee => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {employee.name}
                           </SelectItem>
@@ -518,14 +515,9 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       </SelectContent>
                     </Select>
                     <FormMessage />
-                    {projectEmployees.length === 0 && currentProjectId && (
+                    {allEmployees.length === 0 && (
                       <p className="text-sm text-muted-foreground">
-                        لا توجد موظفين مخصصين لهذا المشروع
-                      </p>
-                    )}
-                    {!currentProjectId && (
-                      <p className="text-sm text-muted-foreground">
-                        يرجى اختيار مشروع أولاً لعرض الموظفين
+                        لا توجد موظفين نشطين في النظام
                       </p>
                     )}
                   </FormItem>
