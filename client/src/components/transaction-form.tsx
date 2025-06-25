@@ -247,8 +247,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
           formData.append('expenseType', data.expenseType);
         }
 
-        // إضافة معرف الموظف إذا كان نوع المصروف رواتب
-        if (data.type === 'expense' && data.expenseType === 'رواتب' && data.employeeId) {
+        // إضافة معرف الموظف إذا كان نوع المصروف راتب
+        if (data.type === 'expense' && data.expenseType === 'راتب' && data.employeeId) {
           formData.append('employeeId', data.employeeId);
         }
         
@@ -491,6 +491,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               name="employeeId"
               render={({ field }) => {
                 const expenseType = form.watch('expenseType') as string;
+                console.log('Current expense type:', expenseType, 'Should show employee dropdown?', expenseType === "راتب");
                 if (expenseType !== "راتب") return null;
                 
                 return (
