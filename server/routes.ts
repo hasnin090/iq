@@ -904,7 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // التحقق من صحة معاملة الراتب
-      if (expenseType === "رواتب" && employeeId) {
+      if (expenseType === "راتب" && employeeId) {
         // التحقق من وجود الموظف
         const sql = neon(process.env.DATABASE_URL!);
         const employeeResult = await sql(`SELECT * FROM employees WHERE id = $1 AND active = true`, [employeeId]);
@@ -987,7 +987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // حفظ معرف الموظف إذا كانت معاملة راتب (حتى بدون ملف مرفق)
-      if (expenseType === "رواتب" && employeeId) {
+      if (expenseType === "راتب" && employeeId) {
         await storage.updateTransaction(result.transaction.id, { employeeId });
         result.transaction.employeeId = employeeId;
       }
@@ -1020,7 +1020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           
           // إضافة معرف الموظف إذا كانت معاملة راتب
-          if (expenseType === "رواتب" && employeeId) {
+          if (expenseType === "راتب" && employeeId) {
             updateData.employeeId = employeeId;
           }
           
@@ -3838,7 +3838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT COALESCE(SUM(amount), 0) as total_withdrawn
           FROM transactions 
           WHERE employee_id = $1 
-          AND expense_type = 'رواتب'
+          AND expense_type = 'راتب'
           AND type = 'expense'
           AND EXTRACT(MONTH FROM date) = $2 
           AND EXTRACT(YEAR FROM date) = $3
@@ -3894,7 +3894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT COALESCE(SUM(amount), 0) as total_withdrawn
           FROM transactions 
           WHERE employee_id = $1 
-          AND expense_type = 'رواتب'
+          AND expense_type = 'راتب'
           AND type = 'expense'
           AND EXTRACT(MONTH FROM date) = $2 
           AND EXTRACT(YEAR FROM date) = $3

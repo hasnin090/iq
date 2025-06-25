@@ -882,47 +882,69 @@ export class PgStorage implements IStorage {
         console.log(`processWithdrawal - تم التحقق من صلاحية المستخدم للوصول للمشروع`);
       }
 
-      // البحث عن صندوق المشروع
+      // حساب الرصيد الفعلي للمشروع من المعاملات
+      const sql = neon(process.env.DATABASE_URL!);
+      const balanceResult = await sql(`
+        SELECT 
+          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income,
+          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expenses
+        FROM transactions 
+        WHERE project_id = $1
+      `, [projectId]);
+      
+      const actualBalance = balanceResult[0].total_income - balanceResult[0].total_expenses;
+      
+      // البحث عن صندوق المشروع أو إنشاؤه
       let projectFund = await this.getFundByProject(projectId);
       
-      // إذا لم يكن الصندوق موجوداً، قم بإنشائه
       if (!projectFund) {
         console.log(`processWithdrawal - صندوق المشروع غير موجود للمشروع رقم ${projectId}، سيتم إنشاؤه`);
         
         projectFund = await this.createFund({
           name: `صندوق المشروع: ${project.name}`,
-          balance: 0,
+          balance: actualBalance,
           type: "project",
           ownerId: null,
           projectId
         });
         
         console.log(`processWithdrawal - تم إنشاء صندوق جديد للمشروع بمعرف: ${projectFund.id}`);
+      } else {
+        // تحديث رصيد الصندوق ليتطابق مع الرصيد الفعلي من المعاملات
+        await db.update(funds)
+          .set({ 
+            balance: actualBalance,
+            updatedAt: new Date()
+          })
+          .where(eq(funds.id, projectFund.id));
+        
+        projectFund.balance = actualBalance;
+        console.log(`processWithdrawal - تم تحديث رصيد صندوق المشروع ليتطابق مع المعاملات الفعلية: ${actualBalance}`);
       }
       
-      console.log(`processWithdrawal - رصيد المشروع قبل العملية: ${projectFund.balance}`);
+      console.log(`processWithdrawal - الرصيد الفعلي للمشروع: ${actualBalance}, المبلغ المطلوب: ${amount}`);
 
       // التحقق من رصيد المشروع
       // إذا كان المستخدم مديرًا، نسمح بالسحب حتى لو كان الرصيد 0 (سيتم تسجيله كسحب على المكشوف)
-      if (user && user.role !== 'admin' && projectFund.balance < amount) {
-        console.log(`processWithdrawal - رصيد المشروع غير كافي. الرصيد الحالي: ${projectFund.balance}, المبلغ المطلوب: ${amount}`);
+      if (user && user.role !== 'admin' && actualBalance < amount) {
+        console.log(`processWithdrawal - رصيد المشروع غير كافي. الرصيد الحالي: ${actualBalance}, المبلغ المطلوب: ${amount}`);
         throw new Error("رصيد المشروع غير كافي لإجراء العملية");
       }
 
-      // خصم المبلغ من صندوق المشروع
+      // إنشاء المعاملة أولاً ثم تحديث رصيد الصندوق
       try {
-        const originalBalance = projectFund.balance;
+        const newBalance = actualBalance - amount;
         
-        // تحديث مباشر لصندوق المشروع
+        // تحديث رصيد صندوق المشروع
         const [updatedProjectFund] = await db.update(funds)
           .set({ 
-            balance: originalBalance - amount, // نخصم المبلغ مباشرة
+            balance: newBalance,
             updatedAt: new Date()
           })
           .where(eq(funds.id, projectFund.id))
           .returning();
         
-        console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
+        console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${actualBalance}، الرصيد بعد: ${newBalance}`);
         
         // إنشاء معاملة جديدة
         const transaction = await this.createTransaction({
