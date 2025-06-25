@@ -1327,6 +1327,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // نقطة النهاية لحذف مرفق المعاملة
+  app.delete("/api/transactions/:id/delete-attachment", authenticate, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // التحقق من وجود المعاملة
+      const transaction = await storage.getTransaction(id);
+      if (!transaction) {
+        return res.status(404).json({ message: "المعاملة غير موجودة" });
+      }
+      
+      // التحقق من صلاحيات المستخدم - للمدراء فقط
+      const userRole = req.session.role as string;
+      if (userRole !== 'admin') {
+        return res.status(403).json({ message: "ليس لديك صلاحية لحذف مرفقات المعاملات" });
+      }
+      
+      // التحقق من وجود مرفق للحذف
+      if (!transaction.fileUrl) {
+        return res.status(400).json({ message: "هذه المعاملة لا تحتوي على مرفق" });
+      }
+      
+      // محاولة حذف الملف من نظام التخزين
+      try {
+        console.log(`محاولة حذف المرفق: ${transaction.fileUrl}`);
+        await storageManager.deleteFile(transaction.fileUrl);
+        console.log("تم حذف الملف المرفق بنجاح");
+      } catch (fileError) {
+        console.error("خطأ في حذف الملف المرفق:", fileError);
+        // استمر بعملية الحذف من قاعدة البيانات حتى لو فشل حذف الملف
+      }
+      
+      // إزالة معلومات المرفق من المعاملة في قاعدة البيانات
+      const updatedTransaction = await storage.updateTransaction(id, { 
+        fileUrl: null,
+        fileType: null
+      });
+      
+      // تسجيل نشاط حذف المرفق
+      await storage.createActivityLog({
+        action: "delete_attachment",
+        entityType: "transaction",
+        entityId: id,
+        details: `حذف مرفق للمعاملة: ${transaction.description}`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(200).json({ 
+        message: "تم حذف المرفق بنجاح",
+        transaction: updatedTransaction 
+      });
+    } catch (error) {
+      console.error("خطأ في حذف المرفق:", error);
+      return res.status(500).json({ message: "خطأ في حذف المرفق" });
+    }
+  });
+
   // Archive routes - جلب المعاملات المالية المؤرشفة (أكثر من 30 يوم)
   app.get("/api/archive", authenticate, async (req: Request, res: Response) => {
     try {
