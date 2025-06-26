@@ -175,20 +175,34 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     enabled: user?.role !== 'admin',
   });
 
-  // جلب جميع الموظفين النشطين (وليس المخصصين للمشروع فقط)
-  // لأن الراتب يُخصم من مشروع المستخدم وليس مشروع الموظف
-  const { data: allEmployees = [] } = useQuery<Employee[]>({
-    queryKey: ['/api/employees'],
+  // جلب الموظفين حسب دور المستخدم
+  const currentProjectId = form.watch('projectId');
+  const isValidProjectId = currentProjectId && currentProjectId !== 'none' && currentProjectId !== '' && !isNaN(Number(currentProjectId));
+  
+  const { data: availableEmployees = [] } = useQuery<Employee[]>({
+    queryKey: user?.role === 'admin' ? ['/api/employees'] : ['/api/employees/by-project', currentProjectId],
     queryFn: async () => {
-      console.log('Fetching all active employees');
-      const response = await fetch('/api/employees');
-      if (!response.ok) {
-        throw new Error('Failed to fetch employees');
+      if (user?.role === 'admin') {
+        console.log('Admin: Fetching all active employees');
+        const response = await fetch('/api/employees');
+        if (!response.ok) {
+          throw new Error('Failed to fetch employees');
+        }
+        const data = await response.json();
+        console.log('All employees response:', data);
+        return data;
+      } else {
+        console.log('User: Fetching employees for project:', currentProjectId);
+        const response = await fetch(`/api/employees/by-project/${currentProjectId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch employees');
+        }
+        const data = await response.json();
+        console.log('Project employees response:', data);
+        return data;
       }
-      const data = await response.json();
-      console.log('All employees response:', data);
-      return data;
     },
+    enabled: user?.role === 'admin' ? true : !!isValidProjectId,
   });
 
   // تعيين المشروع تلقائياً للمستخدمين العاديين
@@ -496,7 +510,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     <FormLabel>اختر الموظف</FormLabel>
                     <Select onValueChange={(value) => {
                       field.onChange(value);
-                      const selectedEmployee = allEmployees.find(emp => emp.id.toString() === value);
+                      const selectedEmployee = availableEmployees.find(emp => emp.id.toString() === value);
                       if (selectedEmployee) {
                         form.setValue("description", `راتب ${selectedEmployee.name}`);
                       }
@@ -507,17 +521,30 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {allEmployees.map(employee => (
+                        {availableEmployees.map(employee => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {employee.name}
+                            {user?.role === 'admin' && employee.assignedProject && (
+                              <span className="text-xs text-muted-foreground ml-2">
+                                ({employee.assignedProject.name})
+                              </span>
+                            )}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
-                    {allEmployees.length === 0 && (
+                    {availableEmployees.length === 0 && currentProjectId && (
                       <p className="text-sm text-muted-foreground">
-                        لا توجد موظفين نشطين في النظام
+                        {user?.role === 'admin' 
+                          ? "لا توجد موظفين نشطين في النظام"
+                          : "لا توجد موظفين مخصصين لهذا المشروع"
+                        }
+                      </p>
+                    )}
+                    {!currentProjectId && user?.role !== 'admin' && (
+                      <p className="text-sm text-muted-foreground">
+                        يرجى اختيار مشروع أولاً لعرض الموظفين
                       </p>
                     )}
                   </FormItem>

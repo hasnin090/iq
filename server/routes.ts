@@ -918,8 +918,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const employee = employeeResult[0];
         
-        // ملاحظة: لا نتحقق من تطابق المشروع مع الموظف
-        // لأن الراتب يُخصم من مشروع المستخدم الذي يدخل العملية وليس مشروع الموظف
+        // التحقق من صلاحية المستخدم لدفع راتب هذا الموظف
+        if (userRole !== 'admin') {
+          // المستخدم العادي يمكنه دفع رواتب الموظفين المخصصين لنفس مشروعه فقط
+          if (employee.assigned_project_id !== projectId) {
+            if (req.file) {
+              fs.unlinkSync(req.file.path);
+            }
+            return res.status(403).json({ 
+              message: "يمكنك دفع رواتب الموظفين المخصصين لمشروعك فقط" 
+            });
+          }
+        }
+        
         console.log(`دفع راتب للموظف ${employee.name} (معرف: ${employeeId}) من المشروع ${projectId} بواسطة المستخدم ${userId}`);
       }
       
@@ -3801,8 +3812,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ======== إدارة الموظفين ========
   
-  // جلب جميع الموظفين
-  app.get("/api/employees", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+  // جلب جميع الموظفين (للمديرين فقط في صفحة إدارة الموظفين)
+  app.get("/api/employees/admin", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
       const sql = neon(process.env.DATABASE_URL!);
       
@@ -3856,33 +3867,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // جلب جميع الموظفين النشطين (لدفع الرواتب من أي مشروع)
-  app.get("/api/employees/all-active", authenticate, async (req: Request, res: Response) => {
+  // تعديل endpoint الموظفين الرئيسي ليشمل معلومات المشروع للمديرين
+  app.get("/api/employees", authenticate, async (req: Request, res: Response) => {
     try {
       const sql = neon(process.env.DATABASE_URL!);
+      const userRole = req.user?.role;
       
-      const result = await sql(`
-        SELECT e.*, p.name as project_name 
-        FROM employees e 
-        LEFT JOIN projects p ON e.assigned_project_id = p.id 
-        WHERE e.active = true
-        ORDER BY e.name ASC
-      `);
-      
-      const employees = result.map((row) => ({
-        id: row.id,
-        name: row.name,
-        salary: row.salary,
-        assignedProjectId: row.assigned_project_id,
-        assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
-        active: row.active,
-        hireDate: row.hire_date,
-        notes: row.notes,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }));
-      
-      res.json(employees);
+      if (userRole === 'admin') {
+        // المدير يحصل على جميع الموظفين مع معلومات المشاريع
+        const result = await sql(`
+          SELECT e.*, p.name as project_name 
+          FROM employees e 
+          LEFT JOIN projects p ON e.assigned_project_id = p.id 
+          WHERE e.active = true
+          ORDER BY p.name ASC, e.name ASC
+        `);
+        
+        const employees = result.map((row) => ({
+          id: row.id,
+          name: row.name,
+          salary: row.salary,
+          assignedProjectId: row.assigned_project_id,
+          assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
+          active: row.active,
+          hireDate: row.hire_date,
+          notes: row.notes,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        }));
+        
+        res.json(employees);
+      } else {
+        // المستخدم العادي يحصل على قائمة فارغة لأنه يجب أن يختار مشروع أولاً
+        res.json([]);
+      }
     } catch (error) {
       console.error("خطأ في جلب الموظفين:", error);
       res.status(500).json({ message: "خطأ في جلب الموظفين" });
