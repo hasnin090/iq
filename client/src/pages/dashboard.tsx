@@ -118,10 +118,10 @@ export default function Dashboard() {
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
-      {/* Professional Header with Glass Effect */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="p-6 space-y-6">
+      {/* Header Section */}
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-6">
+        <div className="max-w-full mx-auto">
           <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
             {/* Logo and Title Section */}
             <div className="flex items-center space-x-4 rtl:space-x-reverse">
@@ -194,8 +194,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      {/* Main Content with Enhanced Spacing */}
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      {/* Main Content */}
+      <div className="max-w-full mx-auto space-y-6">
         
         {statsLoading ? (
           <div className="flex items-center justify-center min-h-[70vh]">
