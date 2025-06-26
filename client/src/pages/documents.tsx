@@ -2,13 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { DocumentForm } from '@/components/document-form';
 import { DocumentList, DocumentSidebar } from '@/components/document';
+import { DocumentLinker } from '@/components/document-library/document-linker';
 import { queryClient } from '@/lib/queryClient';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from "@/components/ui/badge";
-import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2, Plus, Upload, X, Folder, FolderOpen, Paperclip } from 'lucide-react';
+import { Lock, ShieldAlert, FileText, AlertCircle, CalendarIcon, File, FileImage, Clock, Filter, Search, Download, Eye, Calendar as CalendarIcon2, Plus, Upload, X, Folder, FolderOpen, Paperclip, Link } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Card, 
