@@ -2743,21 +2743,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // جلب الدفعات الآجلة مع تجميعها حسب المستفيد
   app.get("/api/ledger/deferred-payments", authenticate, async (req: Request, res: Response) => {
     try {
+      // جلب جميع المستحقات من جدول deferred_payments
+      const allDeferredPayments = await storage.listDeferredPayments();
+      
       // جلب نوع المصروف للدفعات الآجلة
       const deferredExpenseType = await storage.getExpenseTypeByName('دفعات آجلة');
       if (!deferredExpenseType) {
-        return res.status(200).json([]);
+        // إنشاء نوع المصروف إذا لم يكن موجوداً
+        const newExpenseType = await storage.createExpenseType({
+          name: 'دفعات آجلة',
+          description: 'المستحقات والدفعات الآجلة',
+          isActive: true,
+          createdBy: req.session.userId as number
+        });
+        console.log("تم إنشاء نوع مصروف جديد: دفعات آجلة");
       }
 
-      // جلب السجلات المتعلقة بالدفعات الآجلة
-      const deferredEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
+      // جلب السجلات المرحلة في دفتر الأستاذ
+      const deferredEntries = deferredExpenseType ? 
+        await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id) : [];
       
-      // تجميع السجلات حسب المستفيد (استخراج اسم المستفيد من الوصف)
+      // تجميع السجلات المرحلة حسب المستفيد
       const groupedEntries: { [key: string]: any[] } = {};
       
       deferredEntries.forEach(entry => {
-        // استخراج اسم المستفيد من الوصف (دفعة مستحق: اسم المستفيد - قسط...)
-        const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/);
+        // استخراج اسم المستفيد من الوصف
+        const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/) ||
+                     entry.description.match(/دفعة (.+?) - قسط/) ||
+                     entry.description.match(/(.+?) - دفعة/);
         const beneficiaryName = match ? match[1] : 'غير محدد';
         
         if (!groupedEntries[beneficiaryName]) {
@@ -2766,13 +2779,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupedEntries[beneficiaryName].push(entry);
       });
 
-      // تحويل إلى تنسيق مناسب للعرض
-      const result = Object.keys(groupedEntries).map(beneficiaryName => ({
-        beneficiaryName,
-        totalAmount: groupedEntries[beneficiaryName].reduce((sum, entry) => sum + entry.amount, 0),
-        paymentsCount: groupedEntries[beneficiaryName].length,
-        entries: groupedEntries[beneficiaryName].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      }));
+      // إضافة المستحقات غير المرحلة
+      const result: any[] = [];
+      
+      // معالجة المستحقات المرحلة
+      Object.keys(groupedEntries).forEach(beneficiaryName => {
+        if (beneficiaryName !== 'غير محدد') {
+          result.push({
+            beneficiaryName,
+            totalAmount: groupedEntries[beneficiaryName].reduce((sum, entry) => sum + entry.amount, 0),
+            paymentsCount: groupedEntries[beneficiaryName].length,
+            entries: groupedEntries[beneficiaryName].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+            isTransferred: true
+          });
+        }
+      });
+
+      // إضافة المستحقات غير المرحلة
+      allDeferredPayments.forEach(payment => {
+        const isAlreadyTransferred = result.some(r => r.beneficiaryName === payment.beneficiaryName);
+        if (!isAlreadyTransferred && payment.paidAmount > 0) {
+          // هذا مستحق مدفوع جزئياً أو كلياً لكن غير مرحل
+          result.push({
+            beneficiaryName: payment.beneficiaryName,
+            totalAmount: payment.paidAmount,
+            paymentsCount: 1, // تقديري - سيتم تحديثه عند الترحيل
+            entries: [{
+              id: `pending-${payment.id}`,
+              date: payment.createdAt,
+              description: `مستحق غير مرحل: ${payment.beneficiaryName} - ${payment.paidAmount.toLocaleString()} د.ع`,
+              amount: payment.paidAmount,
+              entryType: 'pending_transfer',
+              projectId: payment.projectId
+            }],
+            isTransferred: false,
+            pendingTransfer: true,
+            originalPaymentId: payment.id
+          });
+        }
+      });
 
       return res.status(200).json(result);
     } catch (error) {
@@ -2820,6 +2865,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في جلب سجل الدفعات:", error);
       return res.status(500).json({ message: "خطأ في جلب سجل الدفعات" });
+    }
+  });
+
+  // ترحيل المستحقات غير المرحلة إلى دفتر الأستاذ
+  app.post("/api/ledger/transfer-receivables", authenticate, authorize(["admin", "manager"]), async (req: Request, res: Response) => {
+    try {
+      const { receivableIds } = req.body;
+      
+      if (!receivableIds || !Array.isArray(receivableIds)) {
+        return res.status(400).json({ message: "قائمة المستحقات مطلوبة" });
+      }
+
+      // جلب نوع المصروف للدفعات الآجلة
+      let deferredExpenseType = await storage.getExpenseTypeByName('دفعات آجلة');
+      if (!deferredExpenseType) {
+        // إنشاء نوع المصروف إذا لم يكن موجوداً
+        deferredExpenseType = await storage.createExpenseType({
+          name: 'دفعات آجلة',
+          description: 'المستحقات والدفعات الآجلة',
+          isActive: true,
+          createdBy: req.session.userId as number
+        });
+      }
+
+      let transferredCount = 0;
+      const errors: string[] = [];
+
+      for (const receivableId of receivableIds) {
+        try {
+          // جلب بيانات المستحق
+          const receivable = await storage.getDeferredPayment(receivableId);
+          if (!receivable) {
+            errors.push(`المستحق برقم ${receivableId} غير موجود`);
+            continue;
+          }
+
+          if (receivable.paidAmount <= 0) {
+            errors.push(`المستحق ${receivable.beneficiaryName} لا يحتوي على مبالغ مدفوعة`);
+            continue;
+          }
+
+          // إنشاء قيد في دفتر الأستاذ
+          await storage.createLedgerEntry({
+            date: new Date(),
+            transactionId: 0, // قيد ترحيل مستحق
+            expenseTypeId: deferredExpenseType.id,
+            amount: receivable.paidAmount,
+            description: `دفعة مستحق: ${receivable.beneficiaryName} - قسط مرحل من النظام`,
+            projectId: receivable.projectId,
+            entryType: 'classified'
+          });
+
+          transferredCount++;
+
+          // تسجيل النشاط
+          await storage.createActivityLog({
+            action: "transfer",
+            entityType: "receivable",
+            entityId: receivable.id,
+            details: `ترحيل مستحق ${receivable.beneficiaryName} إلى دفتر الأستاذ - ${receivable.paidAmount.toLocaleString()} د.ع`,
+            userId: req.session.userId as number
+          });
+
+        } catch (error) {
+          console.error(`خطأ في ترحيل المستحق ${receivableId}:`, error);
+          errors.push(`خطأ في ترحيل المستحق ${receivableId}: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        transferredCount,
+        totalRequested: receivableIds.length,
+        errors: errors.length > 0 ? errors : undefined,
+        message: `تم ترحيل ${transferredCount} مستحق من أصل ${receivableIds.length} إلى دفتر الأستاذ`
+      });
+
+    } catch (error) {
+      console.error("خطأ في ترحيل المستحقات:", error);
+      return res.status(500).json({ message: "خطأ في ترحيل المستحقات" });
     }
   });
 

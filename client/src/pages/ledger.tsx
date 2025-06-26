@@ -319,72 +319,93 @@ export default function LedgerPage() {
 
         <TabsContent value="summary" className="space-y-4">
           {ledgerSummary && (
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* المصروفات المصنفة */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                    المصروفات المصنفة
-                  </CardTitle>
-                  <CardDescription>
-                    المصروفات التي تم تصنيفها حسب النوع
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {ledgerSummary.classified.entries.slice(0, 5).map((entry) => (
-                      <div key={entry.id} className="flex justify-between items-center p-2 bg-green-50 rounded">
-                        <div>
-                          <p className="font-medium">{entry.description}</p>
-                          <p className="text-sm text-muted-foreground">{formatDate(entry.date)}</p>
-                        </div>
-                        <div className="text-left">
-                          <p className="font-bold text-green-600">{formatCurrency(entry.amount)}</p>
-                        </div>
+            <div className="space-y-6">
+              {/* تنبيه للمستحقات غير المرحلة */}
+              {(deferredPayments.data as any[])?.some((b: any) => !b.isTransferred) && (
+                <Card className="border-orange-200 bg-orange-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <TrendingDown className="h-5 w-5 text-orange-600" />
+                      <div>
+                        <p className="font-medium text-orange-800">
+                          يوجد {(deferredPayments.data as any[])?.filter((b: any) => !b.isTransferred).length} مستحق غير مرحل إلى دفتر الأستاذ
+                        </p>
+                        <p className="text-sm text-orange-600">
+                          انتقل إلى تبويبات المستفيدين لترحيل المستحقات المفقودة
+                        </p>
                       </div>
-                    ))}
-                    {ledgerSummary.classified.entries.length > 5 && (
-                      <p className="text-sm text-muted-foreground text-center mt-2">
-                        و {ledgerSummary.classified.entries.length - 5} معاملة أخرى...
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* المصروفات العامة */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingDown className="h-5 w-5 text-orange-600" />
-                    المصروفات العامة
-                  </CardTitle>
-                  <CardDescription>
-                    المصروفات غير المصنفة حسب النوع
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {ledgerSummary.general_expense.entries.slice(0, 5).map((entry) => (
-                      <div key={entry.id} className="flex justify-between items-center p-2 bg-orange-50 rounded">
-                        <div>
-                          <p className="font-medium">{entry.description}</p>
-                          <p className="text-sm text-muted-foreground">{formatDate(entry.date)}</p>
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* المصروفات المصنفة */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                      المصروفات المصنفة
+                    </CardTitle>
+                    <CardDescription>
+                      المصروفات التي تم تصنيفها حسب النوع
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {ledgerSummary.classified.entries.slice(0, 5).map((entry) => (
+                        <div key={entry.id} className="flex justify-between items-center p-2 bg-green-50 rounded">
+                          <div>
+                            <p className="font-medium">{entry.description}</p>
+                            <p className="text-sm text-muted-foreground">{formatDate(entry.date)}</p>
+                          </div>
+                          <div className="text-left">
+                            <p className="font-bold text-green-600">{formatCurrency(entry.amount)}</p>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="font-bold text-orange-600">{formatCurrency(entry.amount)}</p>
+                      ))}
+                      {ledgerSummary.classified.entries.length > 5 && (
+                        <p className="text-sm text-muted-foreground text-center mt-2">
+                          و {ledgerSummary.classified.entries.length - 5} معاملة أخرى...
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* المصروفات العامة */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingDown className="h-5 w-5 text-orange-600" />
+                      المصروفات العامة
+                    </CardTitle>
+                    <CardDescription>
+                      المصروفات غير المصنفة حسب النوع
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {ledgerSummary.general_expense.entries.slice(0, 5).map((entry) => (
+                        <div key={entry.id} className="flex justify-between items-center p-2 bg-orange-50 rounded">
+                          <div>
+                            <p className="font-medium">{entry.description}</p>
+                            <p className="text-sm text-muted-foreground">{formatDate(entry.date)}</p>
+                          </div>
+                          <div className="text-left">
+                            <p className="font-bold text-orange-600">{formatCurrency(entry.amount)}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {ledgerSummary.general_expense.entries.length > 5 && (
-                      <p className="text-sm text-muted-foreground text-center mt-2">
-                        و {ledgerSummary.general_expense.entries.length - 5} معاملة أخرى...
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                      {ledgerSummary.general_expense.entries.length > 5 && (
+                        <p className="text-sm text-muted-foreground text-center mt-2">
+                          و {ledgerSummary.general_expense.entries.length - 5} معاملة أخرى...
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
         </TabsContent>
@@ -440,15 +461,32 @@ export default function LedgerPage() {
             </div>
 
             {/* جدول دفتر الأستاذ */}
-            <Card className="border-l-4 border-l-blue-500">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  دفتر الأستاذ التفصيلي
-                </CardTitle>
-                <CardDescription>
-                  سجل كامل بجميع عمليات الترحيل مرتبة حسب التاريخ
-                </CardDescription>
+            <Card className={`border-l-4 ${beneficiary.isTransferred ? 'border-l-blue-500' : 'border-l-orange-500'}`}>
+              <CardHeader className={`bg-gradient-to-r ${beneficiary.isTransferred ? 'from-blue-50' : 'from-orange-50'} to-transparent`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className={`w-5 h-5 ${beneficiary.isTransferred ? 'text-blue-600' : 'text-orange-600'}`} />
+                      {beneficiary.isTransferred ? 'دفتر الأستاذ التفصيلي' : 'مستحق غير مرحل'}
+                    </CardTitle>
+                    <CardDescription>
+                      {beneficiary.isTransferred 
+                        ? 'سجل كامل بجميع عمليات الترحيل مرتبة حسب التاريخ'
+                        : 'هذا المستحق لم يتم ترحيله إلى دفتر الأستاذ بعد'
+                      }
+                    </CardDescription>
+                  </div>
+                  {!beneficiary.isTransferred && beneficiary.pendingTransfer && (
+                    <Button
+                      onClick={() => handleTransferReceivable(beneficiary.originalPaymentId)}
+                      className="bg-orange-600 hover:bg-orange-700"
+                      size="sm"
+                    >
+                      <Plus className="w-4 h-4 ml-1" />
+                      ترحيل إلى الأستاذ
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -483,8 +521,12 @@ export default function LedgerPage() {
                                 </div>
                               </TableCell>
                               <TableCell className="text-center">
-                                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                                  دفعة مستحق
+                                <Badge variant="outline" className={
+                                  beneficiary.isTransferred 
+                                    ? "bg-red-50 text-red-700 border-red-200"
+                                    : "bg-orange-50 text-orange-700 border-orange-200"
+                                }>
+                                  {beneficiary.isTransferred ? 'دفعة مستحق' : 'قيد انتظار'}
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-right font-mono font-bold text-red-600">
@@ -513,19 +555,33 @@ export default function LedgerPage() {
             </Card>
 
             {/* ملخص الحساب */}
-            <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+            <Card className={`bg-gradient-to-r ${
+              beneficiary.isTransferred 
+                ? 'from-blue-600 to-blue-700' 
+                : 'from-orange-600 to-orange-700'
+            } text-white`}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-xl font-bold mb-1">ملخص حساب {beneficiary.beneficiaryName}</h3>
-                    <p className="text-blue-100">إجمالي العمليات المرحلة في دفتر الأستاذ</p>
+                    <h3 className="text-xl font-bold mb-1">
+                      {beneficiary.isTransferred ? 'ملخص حساب' : 'مستحق في انتظار الترحيل'} {beneficiary.beneficiaryName}
+                    </h3>
+                    <p className={beneficiary.isTransferred ? "text-blue-100" : "text-orange-100"}>
+                      {beneficiary.isTransferred 
+                        ? 'إجمالي العمليات المرحلة في دفتر الأستاذ'
+                        : 'هذا المستحق بحاجة لترحيل إلى دفتر الأستاذ'
+                      }
+                    </p>
                   </div>
                   <div className="text-left">
                     <div className="text-2xl font-bold mb-1">
                       {beneficiary.totalAmount.toLocaleString()} د.ع
                     </div>
-                    <div className="text-blue-100">
-                      إجمالي الجانب الدائن | {beneficiary.paymentsCount} عملية ترحيل
+                    <div className={beneficiary.isTransferred ? "text-blue-100" : "text-orange-100"}>
+                      {beneficiary.isTransferred 
+                        ? `إجمالي الجانب الدائن | ${beneficiary.paymentsCount} عملية ترحيل`
+                        : 'مبلغ في انتظار الترحيل'
+                      }
                     </div>
                   </div>
                 </div>
