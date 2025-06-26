@@ -2753,8 +2753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const newExpenseType = await storage.createExpenseType({
           name: 'دفعات آجلة',
           description: 'المستحقات والدفعات الآجلة',
-          isActive: true,
-          createdBy: req.session.userId as number
+          isActive: true
         });
         console.log("تم إنشاء نوع مصروف جديد: دفعات آجلة");
       }
@@ -2884,8 +2883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deferredExpenseType = await storage.createExpenseType({
           name: 'دفعات آجلة',
           description: 'المستحقات والدفعات الآجلة',
-          isActive: true,
-          createdBy: req.session.userId as number
+          isActive: true
         });
       }
 
@@ -3160,11 +3158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // جلب جميع عمليات الدفع المتعلقة بهذا المستحق
       // البحث في جدول المعاملات عن العمليات المرتبطة بهذا المستحق
-      const transactions = await storage.listTransactions({
-        type: 'expense',
-        description: payment.beneficiaryName,
-        limit: 100
-      });
+      const transactions = await storage.listTransactions();
 
       // تصفية المعاملات للحصول على الدفعات فقط
       const paymentTransactions = transactions.filter((transaction: any) => 
