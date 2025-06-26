@@ -92,6 +92,36 @@ export default function LedgerPage() {
     queryKey: ["/api/ledger/deferred-payments"],
   });
 
+  // ترحيل مستحق واحد
+  const transferReceivableMutation = useMutation({
+    mutationFn: async (receivableId: number) => {
+      return apiRequest('/api/ledger/transfer-receivables', {
+        method: 'POST',
+        body: JSON.stringify({ receivableIds: [receivableId] }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم الترحيل بنجاح",
+        description: "تم ترحيل المستحق إلى دفتر الأستاذ",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/ledger/deferred-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ledger/summary'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في الترحيل",
+        description: error.message || "حدث خطأ أثناء ترحيل المستحق",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleTransferReceivable = (receivableId: number) => {
+    transferReceivableMutation.mutate(receivableId);
+  };
+
   // إضافة نوع مصروف جديد
   const createExpenseTypeMutation = useMutation({
     mutationFn: (data: ExpenseTypeForm) => 
@@ -299,20 +329,20 @@ export default function LedgerPage() {
       )}
 
       <Tabs defaultValue="summary" className="space-y-4">
-        <TabsList className="grid w-full" style={{ 
-          gridTemplateColumns: `repeat(${3 + ((deferredPayments as any[])?.length || 0)}, 1fr)` 
+        <TabsList className="grid w-full overflow-x-auto" style={{ 
+          gridTemplateColumns: `repeat(${3 + ((deferredPayments as any[])?.length || 0)}, minmax(120px, 1fr))` 
         }}>
           <TabsTrigger value="summary">الملخص</TabsTrigger>
           <TabsTrigger value="expense-types">أنواع المصروفات</TabsTrigger>
-          <TabsTrigger value="entries">دفتر الأستاذ</TabsTrigger>
+          <TabsTrigger value="entries">دفتر الأستاذ العام</TabsTrigger>
           {/* تبويب لكل مستفيد */}
           {(deferredPayments as any[])?.map((beneficiary: any) => (
             <TabsTrigger 
               key={beneficiary.beneficiaryName} 
               value={`beneficiary-${beneficiary.beneficiaryName}`}
-              className="text-xs px-2"
+              className="text-xs px-2 whitespace-nowrap"
             >
-              {beneficiary.beneficiaryName}
+              <span className="truncate max-w-20">{beneficiary.beneficiaryName}</span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -321,14 +351,14 @@ export default function LedgerPage() {
           {ledgerSummary && (
             <div className="space-y-6">
               {/* تنبيه للمستحقات غير المرحلة */}
-              {(deferredPayments.data as any[])?.some((b: any) => !b.isTransferred) && (
+              {(deferredPayments as any[])?.some((b: any) => !b.isTransferred) && (
                 <Card className="border-orange-200 bg-orange-50">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <TrendingDown className="h-5 w-5 text-orange-600" />
                       <div>
                         <p className="font-medium text-orange-800">
-                          يوجد {(deferredPayments.data as any[])?.filter((b: any) => !b.isTransferred).length} مستحق غير مرحل إلى دفتر الأستاذ
+                          يوجد {(deferredPayments as any[])?.filter((b: any) => !b.isTransferred).length} مستحق غير مرحل إلى دفتر الأستاذ
                         </p>
                         <p className="text-sm text-orange-600">
                           انتقل إلى تبويبات المستفيدين لترحيل المستحقات المفقودة
@@ -481,9 +511,10 @@ export default function LedgerPage() {
                       onClick={() => handleTransferReceivable(beneficiary.originalPaymentId)}
                       className="bg-orange-600 hover:bg-orange-700"
                       size="sm"
+                      disabled={transferReceivableMutation.isPending}
                     >
                       <Plus className="w-4 h-4 ml-1" />
-                      ترحيل إلى الأستاذ
+                      {transferReceivableMutation.isPending ? 'جاري الترحيل...' : 'ترحيل إلى الأستاذ'}
                     </Button>
                   )}
                 </div>
