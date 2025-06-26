@@ -8,7 +8,7 @@ import {
   projects, Project, InsertProject,
   transactions, Transaction, InsertTransaction,
   documents, Document, InsertDocument,
-  documentTransactionLinks, DocumentTransactionLink, InsertDocumentTransactionLink,
+  documentTransactionLinks,
   activityLogs, ActivityLog, InsertActivityLog,
   settings, Setting, InsertSetting,
   userProjects, UserProject, InsertUserProject,
