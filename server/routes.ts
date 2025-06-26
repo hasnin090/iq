@@ -3834,6 +3834,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // اختبار اتصال WhatsApp
+  app.post("/api/whatsapp/test", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const { accessToken, phoneNumberId } = req.body;
+      
+      if (!accessToken || !phoneNumberId) {
+        return res.status(400).json({
+          success: false,
+          message: 'يرجى إدخال Access Token و Phone Number ID'
+        });
+      }
+
+      // اختبار الاتصال مع WhatsApp API
+      const response = await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        res.json({
+          success: true,
+          message: 'تم الاتصال بنجاح',
+          data
+        });
+      } else {
+        const error = await response.text();
+        res.status(400).json({
+          success: false,
+          message: 'فشل في الاتصال مع WhatsApp API',
+          error
+        });
+      }
+    } catch (error) {
+      console.error('خطأ في اختبار WhatsApp:', error);
+      res.status(500).json({
+        success: false,
+        message: 'خطأ في اختبار الاتصال'
+      });
+    }
+  });
+
   // ======== تصدير Excel ========
   
   // تصدير المعاملات إلى Excel/CSV

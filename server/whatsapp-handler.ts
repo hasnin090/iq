@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { neon } from '@neondatabase/serverless';
-import fetch from 'node-fetch';
+// استخدام fetch المدمج في Node.js 18+
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -195,7 +195,7 @@ export class WhatsAppHandler {
       });
 
       // إرسال رسالة تأكيد
-      const confirmationMessage = `✅ تم استلام الملف بنجاح!\n\n📁 اسم الملف: ${fileName}\n📏 الحجم: ${this.formatFileSize(fileBuffer.length)}\n👤 تم رفعه بواسطة: ${user.name}`;
+      let confirmationMessage = `✅ تم استلام الملف بنجاح!\n\n📁 اسم الملف: ${fileName}\n📏 الحجم: ${this.formatFileSize(fileBuffer.length)}\n👤 تم رفعه بواسطة: ${user.name}`;
       
       if (caption) {
         confirmationMessage += `\n💬 الوصف: ${caption}`;
