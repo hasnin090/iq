@@ -126,6 +126,7 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 
 ## Changelog
 
+- June 26, 2025: **Currency standardization completed** - Unified all monetary displays to Iraqi Dinar (دينار عراقي) across the entire system
 - June 26, 2025: **Comprehensive system testing completed** - All components tested and verified working
 - June 26, 2025: **Document management library with manual linking** - Users can now upload documents once and manually link them to multiple financial transactions
 - June 26, 2025: **Database schema enhanced** - Added `document_transaction_links` table for manual document-transaction associations
