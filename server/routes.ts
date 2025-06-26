@@ -4537,7 +4537,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // جلب المستندات غير المربوطة (متاحة للربط)
   app.get("/api/documents/unlinked", authenticate, async (req: Request, res: Response) => {
     try {
-      const result = await sql(`
+      const { sql } = await import("@neondatabase/serverless");
+      const sqlInstance = sql(process.env.DATABASE_URL!);
+      const result = await sqlInstance(`
         SELECT d.*, u.name as uploaded_by_name
         FROM documents d
         LEFT JOIN users u ON d.uploaded_by = u.id
@@ -4558,7 +4560,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // جلب العمليات المالية المتاحة للربط
   app.get("/api/transactions/linkable", authenticate, async (req: Request, res: Response) => {
     try {
-      const result = await sql(`
+      const { sql } = await import("@neondatabase/serverless");
+      const sqlInstance = sql(process.env.DATABASE_URL!);
+      const result = await sqlInstance(`
         SELECT t.*, p.name as project_name, u.name as created_by_name,
         CASE 
           WHEN EXISTS (SELECT 1 FROM document_transaction_links dtl WHERE dtl.transaction_id = t.id) 
@@ -4583,13 +4587,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ربط مستند بعملية مالية
   app.post("/api/documents/:documentId/link-transaction", authenticate, async (req: Request, res: Response) => {
     try {
+      const { sql } = await import("@neondatabase/serverless");
+      const sqlInstance = sql(process.env.DATABASE_URL!);
       const { documentId } = req.params;
       const { transactionId, linkType, notes } = req.body;
       const userId = (req as any).user.id;
 
       // التحقق من وجود المستند والعملية المالية
-      const documentCheck = await sql(`SELECT id FROM documents WHERE id = $1`, [parseInt(documentId)]);
-      const transactionCheck = await sql(`SELECT id FROM transactions WHERE id = $1`, [parseInt(transactionId)]);
+      const documentCheck = await sqlInstance(`SELECT id FROM documents WHERE id = $1`, [parseInt(documentId)]);
+      const transactionCheck = await sqlInstance(`SELECT id FROM transactions WHERE id = $1`, [parseInt(transactionId)]);
       
       if (documentCheck.length === 0) {
         return res.status(404).json({ message: "المستند غير موجود" });
@@ -4600,7 +4606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // التحقق من عدم وجود ربط مسبق
-      const existingLink = await sql(`
+      const existingLink = await sqlInstance(`
         SELECT id FROM document_transaction_links 
         WHERE document_id = $1 AND transaction_id = $2
       `, [parseInt(documentId), parseInt(transactionId)]);
@@ -4610,7 +4616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // إنشاء الربط
-      const result = await sql(`
+      const result = await sqlInstance(`
         INSERT INTO document_transaction_links 
         (document_id, transaction_id, link_type, linked_by, notes)
         VALUES ($1, $2, $3, $4, $5)
@@ -4618,7 +4624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [parseInt(documentId), parseInt(transactionId), linkType || 'receipt', userId, notes || null]);
 
       // تسجيل النشاط
-      await sql(`
+      await sqlInstance(`
         INSERT INTO activity_logs (user_id, action, entity_type, entity_id, details)
         VALUES ($1, $2, $3, $4, $5)
       `, [
@@ -4643,10 +4649,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // إلغاء ربط مستند من عملية مالية
   app.delete("/api/documents/:documentId/unlink-transaction/:transactionId", authenticate, async (req: Request, res: Response) => {
     try {
+      const { sql } = await import("@neondatabase/serverless");
+      const sqlInstance = sql(process.env.DATABASE_URL!);
       const { documentId, transactionId } = req.params;
       const userId = (req as any).user.id;
 
-      const result = await sql(`
+      const result = await sqlInstance(`
         DELETE FROM document_transaction_links 
         WHERE document_id = $1 AND transaction_id = $2
         RETURNING *
@@ -4657,7 +4665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // تسجيل النشاط
-      await sql(`
+      await sqlInstance(`
         INSERT INTO activity_logs (user_id, action, entity_type, entity_id, details)
         VALUES ($1, $2, $3, $4, $5)
       `, [
@@ -4681,9 +4689,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // جلب المستندات المربوطة بعملية مالية معينة
   app.get("/api/transactions/:transactionId/linked-documents", authenticate, async (req: Request, res: Response) => {
     try {
+      const { sql } = await import("@neondatabase/serverless");
+      const sqlInstance = sql(process.env.DATABASE_URL!);
       const { transactionId } = req.params;
       
-      const result = await sql(`
+      const result = await sqlInstance(`
         SELECT d.*, dtl.link_type, dtl.notes as link_notes, dtl.linked_at,
                u.name as linked_by_name, up.name as uploaded_by_name
         FROM document_transaction_links dtl
@@ -4704,9 +4714,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // جلب العمليات المالية المربوطة بمستند معين
   app.get("/api/documents/:documentId/linked-transactions", authenticate, async (req: Request, res: Response) => {
     try {
+      const { sql } = await import("@neondatabase/serverless");
+      const sqlInstance = sql(process.env.DATABASE_URL!);
       const { documentId } = req.params;
       
-      const result = await sql(`
+      const result = await sqlInstance(`
         SELECT t.*, dtl.link_type, dtl.notes as link_notes, dtl.linked_at,
                u.name as linked_by_name, tc.name as created_by_name, p.name as project_name
         FROM document_transaction_links dtl
@@ -4728,10 +4740,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تحديث تصنيف المستند
   app.patch("/api/documents/:documentId/category", authenticate, async (req: Request, res: Response) => {
     try {
+      const { sql } = await import("@neondatabase/serverless");
+      const sqlInstance = sql(process.env.DATABASE_URL!);
       const { documentId } = req.params;
       const { category, tags } = req.body;
       
-      const result = await sql(`
+      const result = await sqlInstance(`
         UPDATE documents 
         SET category = $1, tags = $2
         WHERE id = $3
