@@ -149,6 +149,13 @@ function AppRoutes() {
               <Route path="/file-migration">
                 {user?.role === 'admin' ? <FileMigration /> : <NotFound />}
               </Route>
+              <Route path="/deferred-payments" component={DeferredPayments} />
+              <Route path="/whatsapp-integration">
+                {user?.role === 'admin' ? <WhatsAppIntegration /> : <NotFound />}
+              </Route>
+              <Route path="/system-management">
+                {user?.role === 'admin' ? <SystemManagement /> : <NotFound />}
+              </Route>
               <Route component={NotFound} />
             </Switch>
           </div>
