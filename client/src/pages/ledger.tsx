@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useCustomMutation } from "@/hooks/use-mutations";
 import { Plus, FileText, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -61,7 +61,6 @@ interface LedgerSummary {
 
 export default function LedgerPage() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const form = useForm<ExpenseTypeForm>({
@@ -93,60 +92,29 @@ export default function LedgerPage() {
   });
 
   // ترحيل مستحق واحد
-  const transferReceivableMutation = useMutation({
-    mutationFn: async (receivableId: number) => {
-      return apiRequest('/api/ledger/transfer-receivables', {
-        method: 'POST',
-        body: JSON.stringify({ receivableIds: [receivableId] }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "تم الترحيل بنجاح",
-        description: "تم ترحيل المستحق إلى دفتر الأستاذ",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/ledger/deferred-payments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/ledger/summary'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في الترحيل",
-        description: error.message || "حدث خطأ أثناء ترحيل المستحق",
-        variant: "destructive",
-      });
-    }
+  const transferReceivableMutation = useCustomMutation({
+    endpoint: '/api/ledger/transfer-receivables',
+    method: 'POST',
+    successMessage: "تم ترحيل المستحق إلى دفتر الأستاذ",
+    errorMessage: "فشل في ترحيل المستحق",
+    invalidateQueries: ['/api/ledger/deferred-payments', '/api/ledger/summary']
   });
 
   const handleTransferReceivable = (receivableId: number) => {
-    transferReceivableMutation.mutate(receivableId);
+    transferReceivableMutation.mutate({ receivableIds: [receivableId] });
   };
 
   // إضافة نوع مصروف جديد
-  const createExpenseTypeMutation = useMutation({
-    mutationFn: (data: ExpenseTypeForm) => 
-      fetch("/api/expense-types", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/expense-types"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ledger/summary"] });
-      toast({
-        title: "نجح الحفظ",
-        description: "تم إضافة نوع المصروف بنجاح",
-      });
+  const createExpenseTypeMutation = useCustomMutation({
+    endpoint: "/api/expense-types",
+    method: "POST",
+    successMessage: "تم إضافة نوع المصروف بنجاح",
+    errorMessage: "حدث خطأ أثناء إضافة نوع المصروف",
+    invalidateQueries: ["/api/expense-types", "/api/ledger/summary"],
+    onSuccessCallback: () => {
       setIsAddDialogOpen(false);
       form.reset();
-    },
-    onError: () => {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إضافة نوع المصروف",
-        variant: "destructive",
-      });
-    },
+    }
   });
 
   const onSubmit = (data: ExpenseTypeForm) => {
