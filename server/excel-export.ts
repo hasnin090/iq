@@ -1,4 +1,3 @@
-import ExcelJS from 'exceljs';
 import { neon } from '@neondatabase/serverless';
 import path from 'path';
 import fs from 'fs';
@@ -34,8 +33,9 @@ export class ExcelExporter {
       const transactions = await this.fetchTransactions(filters);
       
       // إنشاء ملف Excel
-      const Excel = require('exceljs');
-      const workbook = new Excel.Workbook();
+      const ExcelJSModule = await import('exceljs');
+      const ExcelJS = ExcelJSModule.default || ExcelJSModule;
+      const workbook = new (ExcelJS as any).Workbook();
       const worksheet = workbook.addWorksheet('العمليات النقدية');
 
       // إعداد الأعمدة

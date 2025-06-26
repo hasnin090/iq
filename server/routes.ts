@@ -3812,10 +3812,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ======== تصدير Excel ========
   
-  // تصدير المعاملات إلى Excel
+  // تصدير المعاملات إلى Excel/CSV
   app.post("/api/transactions/export/excel", authenticate, async (req: Request, res: Response) => {
     try {
-      const { excelExporter } = await import('./excel-export');
+      const { simpleExcelExporter } = await import('./simple-excel-export');
       const userId = req.session?.userId;
       const userRole = req.session?.role;
       
@@ -3828,17 +3828,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userRole
       };
       
-      console.log('تصدير Excel مع الفلاتر:', filters);
+      console.log('تصدير CSV مع الفلاتر:', filters);
       
-      const filePath = await excelExporter.exportTransactions(filters);
+      const filePath = await simpleExcelExporter.exportTransactionsAsCSV(filters);
       
       res.json({
         success: true,
         filePath,
-        message: 'تم تصدير البيانات بنجاح'
+        message: 'تم تصدير البيانات بنجاح كملف CSV (يفتح في Excel)'
       });
     } catch (error) {
-      console.error('خطأ في تصدير Excel:', error);
+      console.error('خطأ في تصدير CSV:', error);
       res.status(500).json({
         success: false,
         message: 'فشل في تصدير البيانات'

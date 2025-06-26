@@ -438,7 +438,7 @@ export default function Transactions() {
                 disabled={exportToExcelMutation.isPending}
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                {exportToExcelMutation.isPending ? 'جاري التصدير...' : 'تصدير Excel'}
+                {exportToExcelMutation.isPending ? 'جاري التصدير...' : 'تصدير CSV'}
               </Button>
               
               {user?.role === 'viewer' && (
