@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, ArrowDown, ArrowUp, Search, Archive, CheckSquare, Square, Download, Printer } from 'lucide-react';
+import { Filter, ArrowDown, ArrowUp, Search, Archive, CheckSquare, Square, Download, Printer, FileSpreadsheet } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -376,18 +376,39 @@ export default function Transactions() {
             </h3>
             
             <div className="flex flex-wrap gap-2 w-full lg:w-auto items-center">
-              {/* زر تصدير Excel - متاح فقط لمستخدمي المشاهدة */}
+              {/* أزرار التصدير والطباعة */}
+              <Button
+                onClick={handleExcelExport}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                disabled={exportToExcelMutation.isPending}
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                {exportToExcelMutation.isPending ? 'جاري التصدير...' : 'تصدير Excel'}
+              </Button>
+              
               {user?.role === 'viewer' && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={exportToExcel}
-                  className="flex items-center gap-1 hover:bg-green-50 dark:hover:bg-green-900/20"
+                  className="flex items-center gap-1 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                 >
                   <Download className="w-4 h-4" />
-                  تصدير Excel
+                  تصدير Excel بسيط
                 </Button>
               )}
+              
+              <Button
+                onClick={handlePrint}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Printer className="w-4 h-4" />
+                طباعة
+              </Button>
 
               {/* أزرار الأرشفة - مخفية للمستخدمين مشاهدة فقط */}
               {user?.role !== 'viewer' && (

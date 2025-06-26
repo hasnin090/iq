@@ -3810,6 +3810,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== تصدير Excel ========
+  
+  // تصدير المعاملات إلى Excel
+  app.post("/api/transactions/export/excel", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { excelExporter } = await import('./excel-export');
+      const userId = req.session?.userId;
+      const userRole = req.session?.role;
+      
+      const filters = {
+        projectId: req.body.projectId ? parseInt(req.body.projectId) : undefined,
+        type: req.body.type || undefined,
+        dateFrom: req.body.dateFrom || undefined,
+        dateTo: req.body.dateTo || undefined,
+        userId,
+        userRole
+      };
+      
+      console.log('تصدير Excel مع الفلاتر:', filters);
+      
+      const filePath = await excelExporter.exportTransactions(filters);
+      
+      res.json({
+        success: true,
+        filePath,
+        message: 'تم تصدير البيانات بنجاح'
+      });
+    } catch (error) {
+      console.error('خطأ في تصدير Excel:', error);
+      res.status(500).json({
+        success: false,
+        message: 'فشل في تصدير البيانات'
+      });
+    }
+  });
+
   // ======== إدارة الموظفين ========
   
   // جلب جميع الموظفين (للمديرين فقط في صفحة إدارة الموظفين)
