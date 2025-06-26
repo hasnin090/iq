@@ -118,7 +118,7 @@ export default function Dashboard() {
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 w-full max-w-full lg:max-w-5xl xl:max-w-6xl mx-auto">
+    <div className="dashboard-container p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
       {/* Header Section */}
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 sm:p-4 lg:p-6">
         <div className="max-w-full mx-auto">
@@ -197,7 +197,7 @@ export default function Dashboard() {
       </div>
       
       {/* Main Content */}
-      <div className="w-full max-w-full space-y-4 lg:space-y-6">
+      <div className="dashboard-content space-y-4 lg:space-y-6">
         
         {statsLoading ? (
           <div className="flex items-center justify-center min-h-[70vh]">
@@ -270,7 +270,7 @@ export default function Dashboard() {
               </div>
               
               {/* Desktop Table */}
-              <div className="hidden lg:block overflow-hidden rounded-2xl border border-gray-200/50 dark:border-gray-700/50 max-w-full">
+              <div className="dashboard-table hidden lg:block overflow-hidden rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
                 <table className="w-full table-auto divide-y divide-gray-200/50 dark:divide-gray-700/50">
                   <thead className={`${
                     displayMode === 'admin' 

@@ -1256,4 +1256,69 @@ input[type="number"] {
     background: inherit;
     backdrop-filter: blur(8px);
   }
+  
+  /* تحسينات لوحة التحكم للشاشات الكبيرة لمنع التداخل مع القائمة الجانبية */
+  @media (min-width: 1024px) {
+    .dashboard-container {
+      max-width: calc(100vw - 340px);
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    .dashboard-content {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    
+    .dashboard-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      max-width: 100%;
+    }
+    
+    .dashboard-charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.25rem;
+      max-width: 100%;
+    }
+    
+    .dashboard-table {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    
+    .dashboard-table table {
+      min-width: 600px;
+    }
+  }
+  
+  /* تحسين إضافي للشاشات الكبيرة جداً */
+  @media (min-width: 1280px) {
+    .dashboard-container {
+      max-width: calc(100vw - 360px);
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+    
+    .dashboard-charts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* تحسين شامل للمحتوى الرئيسي في الشاشات الكبيرة */
+  @media (min-width: 768px) {
+    .main-content-wrapper {
+      width: 100%;
+      max-width: calc(100vw - 300px);
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
 }
