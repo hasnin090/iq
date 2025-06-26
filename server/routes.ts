@@ -3810,6 +3810,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== WhatsApp Integration ========
+  
+  // webhook للتحقق من WhatsApp
+  app.get("/api/whatsapp/webhook", async (req: Request, res: Response) => {
+    try {
+      const { whatsappHandler } = await import('./whatsapp-handler');
+      await whatsappHandler.verifyWebhook(req, res);
+    } catch (error) {
+      console.error('خطأ في التحقق من WhatsApp webhook:', error);
+      res.sendStatus(500);
+    }
+  });
+
+  // استقبال رسائل WhatsApp
+  app.post("/api/whatsapp/webhook", async (req: Request, res: Response) => {
+    try {
+      const { whatsappHandler } = await import('./whatsapp-handler');
+      await whatsappHandler.handleIncomingMessage(req, res);
+    } catch (error) {
+      console.error('خطأ في معالجة رسالة WhatsApp:', error);
+      res.sendStatus(500);
+    }
+  });
+
   // ======== تصدير Excel ========
   
   // تصدير المعاملات إلى Excel/CSV

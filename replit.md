@@ -89,6 +89,7 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 ### Optional Cloud Services
 - **Supabase**: Cloud database and storage backup
 - **Firebase**: Alternative cloud storage and authentication
+- **WhatsApp Business API**: File reception via WhatsApp messages
 
 ### Development Dependencies
 - **TypeScript**: Type safety and development experience
@@ -127,7 +128,8 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 
 - June 24, 2025: File organization - separated core files from Replit documentation
 - June 24, 2025: GitHub preparation - added README, LICENSE, .gitignore, and upload guide
-- June 24, 2025: Admin-only attachment deletion functionality completed
+- June 26, 2025: Added WhatsApp Business API integration for file reception
+- June 24, 2025: Admin-only attachment deletion functionality completed  
 - June 24, 2025: Initial setup
 
 ## User Preferences
