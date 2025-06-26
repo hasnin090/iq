@@ -204,6 +204,59 @@ export default function Transactions() {
     });
   };
 
+  // تصدير Excel المحسّن
+  const exportToExcelMutation = useMutation({
+    mutationFn: async (exportFilters: any) => {
+      const response = await fetch('/api/transactions/export/excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(exportFilters),
+      });
+
+      if (!response.ok) {
+        throw new Error('فشل في تصدير البيانات');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        // تحميل الملف
+        const link = document.createElement('a');
+        link.href = data.filePath;
+        link.download = data.filePath.split('/').pop() || 'transactions_export.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast({
+          title: "نجح التصدير",
+          description: "تم تصدير البيانات إلى ملف Excel بنجاح",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في التصدير",
+        description: error.message || "فشل في تصدير البيانات",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleExcelExport = () => {
+    const exportFilters = {
+      projectId: filter.projectId,
+      type: filter.type,
+      dateFrom: filter.startDate,
+      dateTo: filter.endDate,
+    };
+
+    exportToExcelMutation.mutate(exportFilters);
+  };
+
   // وظيفة الطباعة - مخصصة للمستخدمين من نوع المشاهدة
   const handlePrint = () => {
     if (!filteredTransactions || filteredTransactions.length === 0) {
@@ -401,7 +454,7 @@ export default function Transactions() {
               )}
               
               <Button
-                onClick={handlePrint}
+                onClick={() => window.print()}
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-1"
