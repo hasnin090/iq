@@ -270,26 +270,22 @@ export default function Dashboard() {
               </div>
               
               {/* Desktop Table */}
-              <div className="hidden lg:block overflow-hidden rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                <table className="w-full table-fixed divide-y divide-gray-200/50 dark:divide-gray-700/50">
+              <div className="hidden lg:block overflow-hidden rounded-2xl border border-gray-200/50 dark:border-gray-700/50 max-w-full">
+                <table className="w-full table-auto divide-y divide-gray-200/50 dark:divide-gray-700/50">
                   <thead className={`${
                     displayMode === 'admin' 
                       ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20' 
                       : 'bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20'
                   }`}>
                     <tr>
-                      <th className={`px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider ${
-                        displayMode === 'projects' ? 'w-24' : 'w-32'
-                      }`}>التاريخ</th>
-                      <th className={`px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider ${
-                        displayMode === 'projects' ? 'w-48' : 'w-64'
-                      }`}>الوصف</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">التاريخ</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">الوصف</th>
                       {displayMode === 'projects' && (
-                        <th className="w-32 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المشروع</th>
+                        <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المشروع</th>
                       )}
-                      <th className="w-24 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">النوع</th>
-                      <th className="w-32 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
-                      <th className="w-24 px-6 py-4 text-right text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المرفقات</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">النوع</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المبلغ</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">المرفقات</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200/30 dark:divide-gray-700/30">
@@ -303,22 +299,22 @@ export default function Dashboard() {
                               : 'hover:from-emerald-50/50 hover:to-green-50/50 dark:hover:from-emerald-900/20 dark:hover:to-green-900/20'
                           }`}
                         >
-                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
+                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
                             {formatDate(transaction.date)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
+                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
                             <div className="truncate" title={transaction.description}>
                               {transaction.description}
                             </div>
                           </td>
                           {displayMode === 'projects' && (
-                            <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                               <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-medium truncate block">
                                 {getProjectName(transaction.projectId)}
                               </span>
                             </td>
                           )}
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-4 py-3 text-center">
                             <span className={`px-2 py-1 inline-flex text-xs font-bold rounded shadow-sm ${
                               transaction.type === 'income' 
                                 ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white' 
@@ -327,7 +323,7 @@ export default function Dashboard() {
                               {transaction.type === 'income' ? 'إيراد' : 'مصروف'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm font-bold text-center">
+                          <td className="px-4 py-3 text-sm font-bold text-center">
                             <div className={`truncate ${
                               transaction.type === 'income' 
                                 ? 'text-emerald-600 dark:text-emerald-400' 
@@ -336,7 +332,7 @@ export default function Dashboard() {
                               {transaction.type === 'income' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-4 py-3 text-center">
                             {transaction.fileUrl ? (
                               <button 
                                 onClick={() => window.open(transaction.fileUrl, '_blank')}
@@ -355,7 +351,7 @@ export default function Dashboard() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={displayMode === 'projects' ? 6 : 5} className="px-6 py-16 text-center">
+                        <td colSpan={displayMode === 'projects' ? 6 : 5} className="px-4 py-12 text-center">
                           <div className="flex flex-col items-center">
                             <svg className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

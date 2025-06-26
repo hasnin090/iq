@@ -114,13 +114,13 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
   const isShowingAdmin = isAdmin ? displayMode === 'admin' : false;
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 mt-4 sm:mt-5 md:mt-6">
-      <div className={`rounded-xl shadow-card p-6 ${
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 mt-4 sm:mt-5 lg:mt-6">
+      <div className={`rounded-xl shadow-card p-4 sm:p-5 lg:p-6 ${
         isShowingAdmin 
           ? 'bg-blue-50/50 border border-blue-100' 
           : 'bg-green-50/50 border border-green-100'
       }`}>
-        <h3 className={`text-lg font-bold mb-4 ${
+        <h3 className={`text-base sm:text-lg font-bold mb-3 sm:mb-4 ${
           isShowingAdmin ? 'text-blue-700' : 'text-green-700'
         }`}>
           {canViewIncome 
@@ -128,17 +128,17 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
             : 'ملخص المصروفات'
           }
         </h3>
-        <div className="h-64">
+        <div className="h-48 sm:h-56 lg:h-64">
           <canvas ref={financialChartRef}></canvas>
         </div>
       </div>
       
-      <div className={`rounded-xl shadow-card p-6 ${
+      <div className={`rounded-xl shadow-card p-4 sm:p-5 lg:p-6 ${
         isShowingAdmin 
           ? 'bg-blue-50/50 border border-blue-100' 
           : 'bg-green-50/50 border border-green-100'
       }`}>
-        <h3 className={`text-lg font-bold mb-4 ${
+        <h3 className={`text-base sm:text-lg font-bold mb-3 sm:mb-4 ${
           isShowingAdmin ? 'text-blue-700' : 'text-green-700'
         }`}>
           {isShowingAdmin 
@@ -146,7 +146,7 @@ export function Charts({ income, expenses, profit, displayMode = 'admin' }: Char
             : 'توزيع مصروفات المشاريع'
           }
         </h3>
-        <div className="h-64">
+        <div className="h-48 sm:h-56 lg:h-64">
           <canvas ref={expenseChartRef}></canvas>
         </div>
       </div>
