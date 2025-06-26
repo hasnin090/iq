@@ -95,6 +95,23 @@ export const documents = pgTable("documents", {
   projectId: integer("project_id").references(() => projects.id),
   uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
   isManagerDocument: boolean("is_manager_document").default(false), // إضافة حقل للإشارة إلى المستندات الإدارية
+  category: text("category").default("general"), // تصنيف المستند: receipt, contract, general, etc.
+  tags: jsonb("tags").default([]).notNull(), // علامات للبحث والتصنيف
+});
+
+// جدول ربط المستندات بالعمليات المالية
+export const documentTransactionLinks = pgTable("document_transaction_links", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").notNull().references(() => documents.id),
+  transactionId: integer("transaction_id").notNull().references(() => transactions.id),
+  linkType: text("link_type").notNull().default("receipt"), // receipt, contract, invoice, etc.
+  linkedBy: integer("linked_by").notNull().references(() => users.id),
+  linkedAt: timestamp("linked_at").notNull().defaultNow(),
+  notes: text("notes"), // ملاحظات إضافية عن الربط
+}, (table) => {
+  return {
+    documentTransactionUnique: unique().on(table.documentId, table.transactionId),
+  };
 });
 
 // Activity Logs table
@@ -241,6 +258,12 @@ export type Transaction = typeof transactions.$inferSelect;
 
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
+
+export const insertDocumentTransactionLinkSchema = createInsertSchema(documentTransactionLinks)
+  .omit({ id: true, linkedAt: true });
+
+export type InsertDocumentTransactionLink = z.infer<typeof insertDocumentTransactionLinkSchema>;
+export type DocumentTransactionLink = typeof documentTransactionLinks.$inferSelect;
 
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type ActivityLog = typeof activityLogs.$inferSelect;

@@ -4532,6 +4532,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ======== APIs لإدارة ربط المستندات بالعمليات المالية ========
+  
+  // جلب المستندات غير المربوطة (متاحة للربط)
+  app.get("/api/documents/unlinked", authenticate, async (req: Request, res: Response) => {
+    try {
+      const result = await sql(`
+        SELECT d.*, u.name as uploaded_by_name
+        FROM documents d
+        LEFT JOIN users u ON d.uploaded_by = u.id
+        WHERE d.id NOT IN (
+          SELECT DISTINCT document_id FROM document_transaction_links
+        )
+        AND d.category IN ('receipt', 'invoice', 'contract', 'general')
+        ORDER BY d.upload_date DESC
+      `);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في جلب المستندات غير المربوطة:", error);
+      res.status(500).json({ message: "خطأ في جلب المستندات غير المربوطة" });
+    }
+  });
+
+  // جلب العمليات المالية المتاحة للربط
+  app.get("/api/transactions/linkable", authenticate, async (req: Request, res: Response) => {
+    try {
+      const result = await sql(`
+        SELECT t.*, p.name as project_name, u.name as created_by_name,
+        CASE 
+          WHEN EXISTS (SELECT 1 FROM document_transaction_links dtl WHERE dtl.transaction_id = t.id) 
+          THEN true 
+          ELSE false 
+        END as has_linked_documents
+        FROM transactions t
+        LEFT JOIN projects p ON t.project_id = p.id
+        LEFT JOIN users u ON t.created_by = u.id
+        WHERE t.archived = false
+        ORDER BY t.date DESC
+        LIMIT 100
+      `);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في جلب العمليات المالية:", error);
+      res.status(500).json({ message: "خطأ في جلب العمليات المالية" });
+    }
+  });
+
+  // ربط مستند بعملية مالية
+  app.post("/api/documents/:documentId/link-transaction", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { documentId } = req.params;
+      const { transactionId, linkType, notes } = req.body;
+      const userId = (req as any).user.id;
+
+      // التحقق من وجود المستند والعملية المالية
+      const documentCheck = await sql(`SELECT id FROM documents WHERE id = $1`, [parseInt(documentId)]);
+      const transactionCheck = await sql(`SELECT id FROM transactions WHERE id = $1`, [parseInt(transactionId)]);
+      
+      if (documentCheck.length === 0) {
+        return res.status(404).json({ message: "المستند غير موجود" });
+      }
+      
+      if (transactionCheck.length === 0) {
+        return res.status(404).json({ message: "العملية المالية غير موجودة" });
+      }
+
+      // التحقق من عدم وجود ربط مسبق
+      const existingLink = await sql(`
+        SELECT id FROM document_transaction_links 
+        WHERE document_id = $1 AND transaction_id = $2
+      `, [parseInt(documentId), parseInt(transactionId)]);
+      
+      if (existingLink.length > 0) {
+        return res.status(400).json({ message: "الربط موجود مسبقاً" });
+      }
+
+      // إنشاء الربط
+      const result = await sql(`
+        INSERT INTO document_transaction_links 
+        (document_id, transaction_id, link_type, linked_by, notes)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `, [parseInt(documentId), parseInt(transactionId), linkType || 'receipt', userId, notes || null]);
+
+      // تسجيل النشاط
+      await sql(`
+        INSERT INTO activity_logs (user_id, action, entity_type, entity_id, details)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [
+        userId,
+        "link_document_transaction",
+        "document_transaction_link",
+        result[0].id,
+        JSON.stringify({
+          documentId: parseInt(documentId),
+          transactionId: parseInt(transactionId),
+          linkType: linkType || 'receipt'
+        })
+      ]);
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error("خطأ في ربط المستند بالعملية المالية:", error);
+      res.status(500).json({ message: "خطأ في ربط المستند بالعملية المالية" });
+    }
+  });
+
+  // إلغاء ربط مستند من عملية مالية
+  app.delete("/api/documents/:documentId/unlink-transaction/:transactionId", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { documentId, transactionId } = req.params;
+      const userId = (req as any).user.id;
+
+      const result = await sql(`
+        DELETE FROM document_transaction_links 
+        WHERE document_id = $1 AND transaction_id = $2
+        RETURNING *
+      `, [parseInt(documentId), parseInt(transactionId)]);
+
+      if (result.length === 0) {
+        return res.status(404).json({ message: "الربط غير موجود" });
+      }
+
+      // تسجيل النشاط
+      await sql(`
+        INSERT INTO activity_logs (user_id, action, entity_type, entity_id, details)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [
+        userId,
+        "unlink_document_transaction",
+        "document_transaction_link",
+        result[0].id,
+        JSON.stringify({
+          documentId: parseInt(documentId),
+          transactionId: parseInt(transactionId)
+        })
+      ]);
+
+      res.json({ message: "تم إلغاء الربط بنجاح" });
+    } catch (error) {
+      console.error("خطأ في إلغاء ربط المستند:", error);
+      res.status(500).json({ message: "خطأ في إلغاء ربط المستند" });
+    }
+  });
+
+  // جلب المستندات المربوطة بعملية مالية معينة
+  app.get("/api/transactions/:transactionId/linked-documents", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { transactionId } = req.params;
+      
+      const result = await sql(`
+        SELECT d.*, dtl.link_type, dtl.notes as link_notes, dtl.linked_at,
+               u.name as linked_by_name, up.name as uploaded_by_name
+        FROM document_transaction_links dtl
+        JOIN documents d ON dtl.document_id = d.id
+        LEFT JOIN users u ON dtl.linked_by = u.id
+        LEFT JOIN users up ON d.uploaded_by = up.id
+        WHERE dtl.transaction_id = $1
+        ORDER BY dtl.linked_at DESC
+      `, [parseInt(transactionId)]);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في جلب المستندات المربوطة:", error);
+      res.status(500).json({ message: "خطأ في جلب المستندات المربوطة" });
+    }
+  });
+
+  // جلب العمليات المالية المربوطة بمستند معين
+  app.get("/api/documents/:documentId/linked-transactions", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { documentId } = req.params;
+      
+      const result = await sql(`
+        SELECT t.*, dtl.link_type, dtl.notes as link_notes, dtl.linked_at,
+               u.name as linked_by_name, tc.name as created_by_name, p.name as project_name
+        FROM document_transaction_links dtl
+        JOIN transactions t ON dtl.transaction_id = t.id
+        LEFT JOIN users u ON dtl.linked_by = u.id
+        LEFT JOIN users tc ON t.created_by = tc.id
+        LEFT JOIN projects p ON t.project_id = p.id
+        WHERE dtl.document_id = $1
+        ORDER BY dtl.linked_at DESC
+      `, [parseInt(documentId)]);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في جلب العمليات المالية المربوطة:", error);
+      res.status(500).json({ message: "خطأ في جلب العمليات المالية المربوطة" });
+    }
+  });
+
+  // تحديث تصنيف المستند
+  app.patch("/api/documents/:documentId/category", authenticate, async (req: Request, res: Response) => {
+    try {
+      const { documentId } = req.params;
+      const { category, tags } = req.body;
+      
+      const result = await sql(`
+        UPDATE documents 
+        SET category = $1, tags = $2
+        WHERE id = $3
+        RETURNING *
+      `, [category, JSON.stringify(tags || []), parseInt(documentId)]);
+      
+      if (result.length === 0) {
+        return res.status(404).json({ message: "المستند غير موجود" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("خطأ في تحديث تصنيف المستند:", error);
+      res.status(500).json({ message: "خطأ في تحديث تصنيف المستند" });
+    }
+  });
+
   // تهيئة Supabase تلقائياً عند بدء الخادم
   try {
     console.log('🔄 محاولة تهيئة Supabase...');
