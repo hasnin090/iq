@@ -118,7 +118,7 @@ export default function Dashboard() {
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 max-w-7xl mx-auto">
+    <div className="p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 w-full max-w-full lg:max-w-5xl xl:max-w-6xl mx-auto">
       {/* Header Section */}
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 sm:p-4 lg:p-6">
         <div className="max-w-full mx-auto">
@@ -197,7 +197,7 @@ export default function Dashboard() {
       </div>
       
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto space-y-4 lg:space-y-6">
+      <div className="w-full max-w-full space-y-4 lg:space-y-6">
         
         {statsLoading ? (
           <div className="flex items-center justify-center min-h-[70vh]">
