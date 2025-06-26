@@ -202,7 +202,7 @@ export function DocumentLinker() {
                           <div className="text-xs text-gray-500 space-y-1">
                             <div>رفع بواسطة: {doc.uploaded_by_name}</div>
                             <div>
-                              التاريخ: {format(new Date(doc.uploadDate), "dd/MM/yyyy HH:mm", { locale: ar })}
+                              التاريخ: {doc.uploadDate ? format(new Date(doc.uploadDate), "dd/MM/yyyy HH:mm", { locale: ar }) : 'غير محدد'}
                             </div>
                           </div>
 
