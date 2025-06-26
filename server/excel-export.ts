@@ -1,4 +1,4 @@
-import * as ExcelJS from 'exceljs';
+import ExcelJS from 'exceljs';
 import { neon } from '@neondatabase/serverless';
 import path from 'path';
 import fs from 'fs';
@@ -34,7 +34,8 @@ export class ExcelExporter {
       const transactions = await this.fetchTransactions(filters);
       
       // إنشاء ملف Excel
-      const workbook = new ExcelJS.Workbook();
+      const Excel = require('exceljs');
+      const workbook = new Excel.Workbook();
       const worksheet = workbook.addWorksheet('العمليات النقدية');
 
       // إعداد الأعمدة
@@ -147,7 +148,7 @@ export class ExcelExporter {
     }));
   }
 
-  private setupColumns(worksheet: ExcelJS.Worksheet) {
+  private setupColumns(worksheet: any) {
     worksheet.columns = [
       { header: 'رقم العملية', key: 'id', width: 15 },
       { header: 'التاريخ', key: 'date', width: 15 },
@@ -161,7 +162,7 @@ export class ExcelExporter {
     ];
   }
 
-  private addMainHeader(worksheet: ExcelJS.Worksheet, filters: any) {
+  private addMainHeader(worksheet: any, filters: any) {
     // دمج الخلايا للعنوان الرئيسي
     worksheet.mergeCells('A1:I1');
     const titleCell = worksheet.getCell('A1');
@@ -186,7 +187,7 @@ export class ExcelExporter {
     filterCell.alignment = { horizontal: 'center' };
   }
 
-  private addColumnHeaders(worksheet: ExcelJS.Worksheet) {
+  private addColumnHeaders(worksheet: any) {
     const headerRow = worksheet.getRow(4);
     
     // تطبيق التنسيق على رؤوس الأعمدة
@@ -205,7 +206,7 @@ export class ExcelExporter {
     headerRow.height = 25;
   }
 
-  private addTransactionData(worksheet: ExcelJS.Worksheet, transactions: ExportTransaction[]) {
+  private addTransactionData(worksheet: any, transactions: ExportTransaction[]) {
     let runningBalance = 0;
     
     transactions.forEach((transaction, index) => {
@@ -274,7 +275,7 @@ export class ExcelExporter {
     });
   }
 
-  private addSummary(worksheet: ExcelJS.Worksheet, transactions: ExportTransaction[]) {
+  private addSummary(worksheet: any, transactions: ExportTransaction[]) {
     const lastDataRow = transactions.length + 4;
     const summaryStartRow = lastDataRow + 2;
     
@@ -341,7 +342,7 @@ export class ExcelExporter {
     });
   }
 
-  private applyFormatting(worksheet: ExcelJS.Worksheet) {
+  private applyFormatting(worksheet: any) {
     // تطبيق التنسيق العام
     worksheet.views = [{ rightToLeft: true }];
     
