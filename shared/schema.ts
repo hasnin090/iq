@@ -259,12 +259,6 @@ export type Transaction = typeof transactions.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
 
-export const insertDocumentTransactionLinkSchema = createInsertSchema(documentTransactionLinks)
-  .omit({ id: true, linkedAt: true });
-
-export type InsertDocumentTransactionLink = z.infer<typeof insertDocumentTransactionLinkSchema>;
-export type DocumentTransactionLink = typeof documentTransactionLinks.$inferSelect;
-
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 
@@ -326,6 +320,13 @@ export const insertDeferredPaymentSchema = createInsertSchema(deferredPayments)
 
 export type InsertDeferredPayment = z.infer<typeof insertDeferredPaymentSchema>;
 export type DeferredPayment = typeof deferredPayments.$inferSelect;
+
+// Document Transaction Links schema and types
+export const insertDocumentTransactionLinkSchema = createInsertSchema(documentTransactionLinks)
+  .omit({ id: true, linkedAt: true });
+
+export type InsertDocumentTransactionLink = z.infer<typeof insertDocumentTransactionLinkSchema>;
+export type DocumentTransactionLink = typeof documentTransactionLinks.$inferSelect;
 
 // Permission types
 export type Permission = keyof typeof PERMISSIONS;

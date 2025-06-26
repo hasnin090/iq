@@ -2,11 +2,13 @@ import { db } from './db';
 import { getActiveDatabase, checkDatabasesHealth, markPrimaryDatabaseAsFailed } from './backup-db';
 import { eq, and, or, desc } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { neon } from '@neondatabase/serverless';
 import { 
   users, User, InsertUser,
   projects, Project, InsertProject,
   transactions, Transaction, InsertTransaction,
   documents, Document, InsertDocument,
+  documentTransactionLinks, DocumentTransactionLink, InsertDocumentTransactionLink,
   activityLogs, ActivityLog, InsertActivityLog,
   settings, Setting, InsertSetting,
   userProjects, UserProject, InsertUserProject,
@@ -356,7 +358,10 @@ export class PgStorage implements IStorage {
   
   async deleteTransaction(id: number): Promise<boolean> {
     try {
-      // حذف الإدخالات المرتبطة أولاً
+      // حذف روابط المستندات أولاً
+      await db.delete(documentTransactionLinks).where(eq(documentTransactionLinks.transactionId, id));
+      
+      // حذف الإدخالات المرتبطة
       await db.delete(ledgerEntries).where(eq(ledgerEntries.transactionId, id));
       
       // ثم حذف المعاملة
