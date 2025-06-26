@@ -118,7 +118,7 @@ export default function Dashboard() {
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
+    <div className="p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 max-w-7xl mx-auto">
       {/* Header Section */}
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 sm:p-4 lg:p-6">
         <div className="max-w-full mx-auto">
@@ -197,7 +197,7 @@ export default function Dashboard() {
       </div>
       
       {/* Main Content */}
-      <div className="max-w-full mx-auto space-y-4 lg:space-y-6">
+      <div className="max-w-6xl mx-auto space-y-4 lg:space-y-6">
         
         {statsLoading ? (
           <div className="flex items-center justify-center min-h-[70vh]">
@@ -233,7 +233,7 @@ export default function Dashboard() {
             </div>
             
             {/* Enhanced Charts Section */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8 transform hover:scale-[1.01] transition-all duration-500">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 lg:p-8 max-w-full overflow-hidden">
               <Charts 
                 income={displayMode === 'admin' ? stats?.adminTotalIncome || 0 : stats?.projectTotalIncome || 0} 
                 expenses={displayMode === 'admin' ? stats?.adminTotalExpenses || 0 : stats?.projectTotalExpenses || 0} 
@@ -243,7 +243,7 @@ export default function Dashboard() {
             </div>
             
             {/* Enhanced Recent Transactions */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8 transform hover:scale-[1.01] transition-all duration-500">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 lg:p-8 max-w-full overflow-hidden">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
                   <h3 className={`text-2xl lg:text-3xl font-bold bg-gradient-to-r ${
