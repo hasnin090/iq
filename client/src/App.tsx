@@ -20,6 +20,9 @@ import DatabaseManagement from "@/pages/database-management";
 import HybridStorageManagement from "@/pages/hybrid-storage-management";
 import SupabaseStatus from "@/pages/supabase-status";
 import FileMigration from "@/pages/file-migration";
+import DeferredPayments from './pages/deferred-payments';
+import WhatsAppIntegration from './pages/whatsapp-integration';
+import SystemManagement from './pages/system-management';
 
 import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";
