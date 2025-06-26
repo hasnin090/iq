@@ -380,57 +380,152 @@ export default function LedgerPage() {
 
         <TabsContent value="deferred" className="space-y-4">
           {deferredLoading ? (
-            <div className="text-center">جاري التحميل...</div>
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">جاري تحميل المستحقات...</p>
+            </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {(deferredPayments as any[]).length === 0 ? (
                 <Card>
-                  <CardContent className="text-center py-8">
-                    <p className="text-muted-foreground">لا توجد دفعات آجلة مسجلة حتى الآن</p>
+                  <CardContent className="text-center py-12">
+                    <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-muted-foreground text-lg">لا توجد مستحقات مسجلة في دفتر الأستاذ</p>
+                    <p className="text-sm text-muted-foreground mt-2">المستحقات ستظهر هنا عند إضافة دفعات آجلة</p>
                   </CardContent>
                 </Card>
               ) : (
-                (deferredPayments as any[]).map((beneficiary: any) => (
-                  <Card key={beneficiary.beneficiaryName}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span>{beneficiary.beneficiaryName}</span>
-                        <Badge variant="outline">
-                          {beneficiary.paymentsCount} دفعة
-                        </Badge>
-                      </CardTitle>
-                      <CardDescription>
-                        إجمالي المدفوع: {beneficiary.totalAmount.toLocaleString()} د.ع
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>التاريخ</TableHead>
-                            <TableHead>الوصف</TableHead>
-                            <TableHead>المبلغ</TableHead>
-                            <TableHead>المشروع</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {beneficiary.entries.map((entry: any) => (
-                            <TableRow key={entry.id}>
-                              <TableCell>{formatDate(entry.date)}</TableCell>
-                              <TableCell>{entry.description}</TableCell>
-                              <TableCell className="font-mono text-right">
-                                {entry.amount.toLocaleString()} د.ع
-                              </TableCell>
-                              <TableCell>
-                                {entry.projectId ? `مشروع ${entry.projectId}` : "غير محدد"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                <>
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold mb-2">حسابات المستحقات في دفتر الأستاذ</h3>
+                    <p className="text-muted-foreground">عرض المستحقات مجمعة حسب اسم المستفيد مع جميع عمليات الترحيل</p>
+                  </div>
+
+                  {(deferredPayments as any[]).map((beneficiary: any) => (
+                    <Card key={beneficiary.beneficiaryName} className="border-l-4 border-l-blue-500">
+                      <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="flex items-center gap-3 text-lg">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              حساب: {beneficiary.beneficiaryName}
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                              دفتر أستاذ المستحق - جميع عمليات الترحيل
+                            </CardDescription>
+                          </div>
+                          <div className="text-left">
+                            <Badge variant="secondary" className="mb-1">
+                              {beneficiary.paymentsCount} عملية ترحيل
+                            </Badge>
+                            <div className="text-sm font-bold text-blue-600">
+                              إجمالي: {beneficiary.totalAmount.toLocaleString()} د.ع
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-gray-50">
+                                <TableHead className="font-semibold">تاريخ العملية</TableHead>
+                                <TableHead className="font-semibold">وصف العملية</TableHead>
+                                <TableHead className="font-semibold text-center">نوع العملية</TableHead>
+                                <TableHead className="font-semibold text-right">المبلغ (دائن)</TableHead>
+                                <TableHead className="font-semibold text-center">المشروع</TableHead>
+                                <TableHead className="font-semibold text-right">الرصيد المتراكم</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {(() => {
+                                let runningBalance = 0;
+                                return beneficiary.entries.map((entry: any, index: number) => {
+                                  runningBalance += entry.amount;
+                                  return (
+                                    <TableRow key={entry.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-25"}>
+                                      <TableCell className="font-medium">
+                                        {formatDate(entry.date)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="max-w-xs">
+                                          <p className="text-sm">{entry.description}</p>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                          دفعة آجلة
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="text-right font-mono font-bold text-red-600">
+                                        {entry.amount.toLocaleString()} د.ع
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        {entry.projectId ? (
+                                          <Badge variant="secondary" className="text-xs">
+                                            مشروع {entry.projectId}
+                                          </Badge>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">عام</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="text-right font-mono font-bold text-blue-600">
+                                        {runningBalance.toLocaleString()} د.ع
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                });
+                              })()}
+                            </TableBody>
+                          </Table>
+                        </div>
+                        
+                        {/* ملخص الحساب */}
+                        <div className="bg-blue-50 border-t border-blue-200 p-4">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm font-medium text-blue-800">ملخص حساب {beneficiary.beneficiaryName}</p>
+                              <p className="text-xs text-blue-600">جميع العمليات المرحلة لهذا المستحق</p>
+                            </div>
+                            <div className="text-left">
+                              <div className="text-lg font-bold text-blue-800">
+                                إجمالي الدائن: {beneficiary.totalAmount.toLocaleString()} د.ع
+                              </div>
+                              <div className="text-sm text-blue-600">
+                                عدد العمليات: {beneficiary.paymentsCount}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* ملخص إجمالي لجميع المستحقات */}
+                  <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-xl font-bold mb-1">إجمالي حسابات المستحقات</h3>
+                          <p className="text-blue-100">ملخص دفتر الأستاذ للدفعات الآجلة</p>
+                        </div>
+                        <div className="text-left">
+                          <div className="text-2xl font-bold">
+                            {(deferredPayments as any[]).reduce((total: number, beneficiary: any) => 
+                              total + beneficiary.totalAmount, 0
+                            ).toLocaleString()} د.ع
+                          </div>
+                          <div className="text-blue-100">
+                            {(deferredPayments as any[]).length} مستفيد | {' '}
+                            {(deferredPayments as any[]).reduce((total: number, beneficiary: any) => 
+                              total + beneficiary.paymentsCount, 0
+                            )} عملية ترحيل
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
-                ))
+                </>
               )}
             </div>
           )}
