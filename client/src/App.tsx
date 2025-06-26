@@ -109,7 +109,7 @@ function AppRoutes() {
   return (
     <div className="flex">
       <Sidebar />
-      <main className="flex-1 min-h-screen transition-all duration-300 ml-0 md:mr-72 lg:mr-80 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
+      <main className="flex-1 min-h-screen transition-all duration-300 mr-0 md:mr-72 lg:mr-80 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
         {/* تم إزالة الأشرطة القديمة واستبدالها بشريط علوي مركزي في مكون Sidebar */}
         
         {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}

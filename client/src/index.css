@@ -850,6 +850,29 @@ input[type="number"] {
     right: 16px !important;
     z-index: 999 !important;
   }
+
+  /* تحسينات خاصة للشاشات الكبيرة */
+  @media (min-width: 768px) {
+    /* إخفاء زر فتح القائمة في الشاشات الكبيرة لأن القائمة مفتوحة دائماً */
+    [aria-label="فتح القائمة"] {
+      display: none !important;
+    }
+    
+    /* تحسين عرض المحتوى الرئيسي */
+    .main-content-container {
+      margin-right: 0 !important;
+      padding-left: 1rem !important;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    /* تحسينات إضافية للشاشات الكبيرة جداً */
+    .main-content-container {
+      max-width: 1200px !important;
+      padding-left: 2rem !important;
+      padding-right: 2rem !important;
+    }
+  }
   
   /* تأثيرات حركية للأزرار */
   .btn-hover-effect {
