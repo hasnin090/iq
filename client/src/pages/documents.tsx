@@ -394,11 +394,20 @@ export default function Documents() {
                 
                 <TabsTrigger 
                   value="attachments" 
-                  className={`flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-primary rounded-md transition-all ${!isManagerOrAdmin ? 'col-span-2 lg:col-span-2' : 'col-span-2 lg:col-span-1'}`}
+                  className="flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-primary rounded-md transition-all"
                 >
                   <Paperclip className="h-4 w-4" />
                   <span className="hidden sm:inline">مرفقات المعاملات</span>
                   <span className="sm:hidden">مرفقات</span>
+                </TabsTrigger>
+                
+                <TabsTrigger 
+                  value="link-manager" 
+                  className="flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-blue-600 rounded-md transition-all"
+                >
+                  <Link className="h-4 w-4" />
+                  <span className="hidden sm:inline">ربط الملفات</span>
+                  <span className="sm:hidden">ربط</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -1425,6 +1434,11 @@ export default function Documents() {
               </div>
             </div>
           )}
+        </TabsContent>
+        
+        <TabsContent value="link-manager" className="p-0">
+          {/* مكتبة إدارة الملفات والربط اليدوي */}
+          <DocumentLinker />
         </TabsContent>
         
         <TabsContent value="attachments" className="p-0">
