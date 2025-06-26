@@ -3,8 +3,10 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Select, 
   SelectContent, 
@@ -25,7 +27,11 @@ import {
   FileText, 
   Building2,
   CreditCard,
-  Trash2
+  Trash2,
+  Eye,
+  Receipt,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -69,6 +75,8 @@ export default function Receivables() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState<string>("all");
+  const [selectedReceivable, setSelectedReceivable] = useState<DeferredPayment | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   const { data: receivables = [], isLoading } = useQuery<DeferredPayment[]>({
     queryKey: ["/api/deferred-payments"],
@@ -76,6 +84,21 @@ export default function Receivables() {
 
   const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
+  });
+
+  // جلب تفاصيل مستحق معين مع عمليات الدفع
+  const { data: receivableDetails, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ["/api/deferred-payments", selectedReceivable?.id, "details"],
+    queryFn: async () => {
+      if (!selectedReceivable?.id) return null;
+      const response = await fetch(`/api/deferred-payments/${selectedReceivable.id}/details`, {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("فشل في تحميل تفاصيل المستحق");
+      return response.json();
+    },
+    enabled: !!selectedReceivable?.id,
+    staleTime: 1000 * 60 * 2, // دقيقتان
   });
 
   const mainForm = useForm<FormData>({
@@ -204,6 +227,33 @@ export default function Receivables() {
       });
     },
   });
+
+  // وظائف مساعدة
+  const handleViewDetails = (receivable: DeferredPayment) => {
+    setSelectedReceivable(receivable);
+    setShowDetails(true);
+  };
+
+  const calculateReceivableStats = (details: any) => {
+    if (!details || !details.payments) return {
+      totalPaid: details?.paidAmount || 0,
+      totalPayments: 0,
+      remainingAmount: (details?.totalAmount || 0) - (details?.paidAmount || 0),
+      completionPercentage: details?.totalAmount > 0 ? Math.round(((details?.paidAmount || 0) / details.totalAmount) * 100) : 0
+    };
+
+    const totalPaid = details.payments.reduce((sum: number, payment: any) => sum + payment.amount, 0);
+    const totalPayments = details.payments.length;
+    const remainingAmount = details.totalAmount - totalPaid;
+    const completionPercentage = details.totalAmount > 0 ? Math.round((totalPaid / details.totalAmount) * 100) : 0;
+
+    return {
+      totalPaid,
+      totalPayments,
+      remainingAmount,
+      completionPercentage
+    };
+  };
 
   // Filter receivables based on search and project
   const filteredReceivables = receivables.filter((receivable: DeferredPayment) => {
