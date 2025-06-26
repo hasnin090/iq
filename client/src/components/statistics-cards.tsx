@@ -50,10 +50,10 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
       {/* تم إزالة بطاقة صندوق المدير بناءً على طلب المستخدم */}
       
       {/* بطاقات الإحصائيات */}
-      <div className={`grid grid-cols-1 ${canViewIncome ? 'sm:grid-cols-2 md:grid-cols-3' : 'sm:grid-cols-1 md:grid-cols-1'} gap-4 sm:gap-5 md:gap-6`}>
+      <div className={`grid grid-cols-1 ${canViewIncome ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-1 lg:grid-cols-2'} gap-3 sm:gap-4 lg:gap-6`}>
         {/* بطاقة الإيرادات - تظهر فقط للمستخدمين المصرح لهم */}
         {canViewIncome && (
-          <div className={`rounded-xl shadow-md p-6 relative min-h-[200px] ${
+          <div className={`rounded-xl shadow-md p-4 sm:p-5 lg:p-6 relative min-h-[160px] sm:min-h-[180px] lg:min-h-[200px] ${
             isShowingAdmin 
               ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30 border border-green-200 dark:border-green-800' 
               : 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800'
@@ -87,7 +87,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
           </div>
         )}
         
-        <div className={`rounded-xl shadow-md p-6 relative min-h-[200px] ${
+        <div className={`rounded-xl shadow-md p-4 sm:p-5 lg:p-6 relative min-h-[160px] sm:min-h-[180px] lg:min-h-[200px] ${
           isShowingAdmin 
             ? 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/30 border border-red-200 dark:border-red-800' 
             : 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/30 border border-orange-200 dark:border-orange-800'
@@ -122,7 +122,7 @@ export function StatisticsCards({ income, expenses, profit, adminFundBalance, di
         
         {/* بطاقة صافي الربح - تظهر فقط للمستخدمين المصرح لهم برؤية الإيرادات */}
         {canViewIncome && (
-          <div className={`rounded-xl shadow-md p-6 relative min-h-[200px] ${
+          <div className={`rounded-xl shadow-md p-4 sm:p-5 lg:p-6 relative min-h-[160px] sm:min-h-[180px] lg:min-h-[200px] ${
             isShowingAdmin 
               ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800' 
               : 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800'

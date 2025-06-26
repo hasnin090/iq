@@ -118,56 +118,57 @@ export default function Dashboard() {
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
       {/* Header Section */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 sm:p-4 lg:p-6">
         <div className="max-w-full mx-auto">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col xl:flex-row justify-between items-center gap-4 lg:gap-6">
             {/* Logo and Title Section */}
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
+            <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
               <div className="relative group">
-                <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300 border border-sky-300/30">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300 border border-sky-300/30">
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full shadow-lg animate-pulse"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full shadow-lg animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-sky-600 to-blue-700 dark:from-sky-400 dark:to-blue-500 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-sky-600 to-blue-700 dark:from-sky-400 dark:to-blue-500 bg-clip-text text-transparent">
                   لوحة التحكم المالية
                 </h1>
-                <p className="text-gray-600 dark:text-gray-300 mt-1 text-base font-medium">نظرة شاملة على الأداء والإحصائيات المالية</p>
+                <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base font-medium hidden sm:block">نظرة شاملة على الأداء والإحصائيات المالية</p>
               </div>
             </div>
             
             {/* Controls Section */}
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 lg:gap-6 w-full xl:w-auto">
               {/* Mode Toggle for Admins */}
               {isAdmin && (
-                <div className="bg-white/80 dark:bg-gray-700/80 backdrop-blur-lg rounded-xl shadow-lg p-1 flex items-center border border-gray-200/50 dark:border-gray-600/50">
+                <div className="bg-white/80 dark:bg-gray-700/80 backdrop-blur-lg rounded-xl shadow-lg p-1 flex items-center border border-gray-200/50 dark:border-gray-600/50 w-full sm:w-auto">
                   <button
                     onClick={() => setDisplayMode('admin')}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${
+                    className={`px-2 sm:px-3 lg:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 sm:gap-2 transition-all duration-300 flex-1 sm:flex-none justify-center ${
                       displayMode === 'admin'
                         ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
                         : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
                     }`}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    الصندوق الرئيسي
+                    <span className="hidden sm:inline">الصندوق الرئيسي</span>
+                    <span className="sm:hidden">الصندوق</span>
                   </button>
                   <button
                     onClick={() => setDisplayMode('projects')}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${
+                    className={`px-2 sm:px-3 lg:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1 sm:gap-2 transition-all duration-300 flex-1 sm:flex-none justify-center ${
                       displayMode === 'projects'
                         ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md'
                         : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
                     }`}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                     المشاريع
@@ -176,10 +177,10 @@ export default function Dashboard() {
               )}
 
               {/* Date Display */}
-              <div className="bg-gradient-to-r from-sky-400 to-blue-500 px-6 py-3 rounded-xl shadow-lg text-white relative overflow-hidden">
+              <div className="bg-gradient-to-r from-sky-400 to-blue-500 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-xl shadow-lg text-white relative overflow-hidden w-full sm:w-auto">
                 <div className="relative text-center">
-                  <div className="text-sm font-medium opacity-90 mb-1">التاريخ اليوم</div>
-                  <div className="font-semibold text-base">
+                  <div className="text-xs sm:text-sm font-medium opacity-90 mb-1">التاريخ اليوم</div>
+                  <div className="font-semibold text-sm sm:text-base">
                     {new Date().toLocaleDateString('ar-SA', { 
                       weekday: 'short', 
                       day: 'numeric', 
@@ -196,7 +197,7 @@ export default function Dashboard() {
       </div>
       
       {/* Main Content */}
-      <div className="max-w-full mx-auto space-y-6">
+      <div className="max-w-full mx-auto space-y-4 lg:space-y-6">
         
         {statsLoading ? (
           <div className="flex items-center justify-center min-h-[70vh]">
