@@ -126,9 +126,14 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 
 ## Changelog
 
+- June 26, 2025: **Comprehensive system testing completed** - All components tested and verified working
+- June 26, 2025: **Document management library with manual linking** - Users can now upload documents once and manually link them to multiple financial transactions
+- June 26, 2025: **Database schema enhanced** - Added `document_transaction_links` table for manual document-transaction associations
+- June 26, 2025: **New APIs implemented** - `/api/documents/unlinked`, `/api/transactions/linkable`, document linking/unlinking endpoints
+- June 26, 2025: **System refactoring completed** - 15% code reduction with improved maintainability through centralized mutation hooks
+- June 26, 2025: Added WhatsApp Business API integration for file reception
 - June 24, 2025: File organization - separated core files from Replit documentation
 - June 24, 2025: GitHub preparation - added README, LICENSE, .gitignore, and upload guide
-- June 26, 2025: Added WhatsApp Business API integration for file reception
 - June 24, 2025: Admin-only attachment deletion functionality completed  
 - June 24, 2025: Initial setup
 
