@@ -687,6 +687,31 @@ export default function Receivables() {
                   </div>
                 )}
 
+                {/* أزرار الإجراءات */}
+                <div className="flex gap-2 mt-4 pt-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewDetails(receivable)}
+                    className="flex-1"
+                  >
+                    <Eye className="w-4 h-4 ml-1" />
+                    عرض التفاصيل
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      mainForm.setValue("operationType", "payment");
+                      mainForm.setValue("receivableId", receivable.id);
+                    }}
+                    className="flex-1"
+                    disabled={receivable.paidAmount >= receivable.totalAmount}
+                  >
+                    <DollarSign className="w-4 h-4 ml-1" />
+                    إضافة دفعة
+                  </Button>
+                </div>
 
               </CardContent>
             </Card>
@@ -694,6 +719,215 @@ export default function Receivables() {
         )}
       </div>
 
+      {/* نافذة تفاصيل المستحق */}
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Receipt className="w-6 h-6 text-blue-600" />
+              تفاصيل المستحق: {selectedReceivable?.beneficiaryName}
+            </DialogTitle>
+            <DialogDescription>
+              عرض جميع العمليات والدفعات المتعلقة بهذا المستحق
+            </DialogDescription>
+          </DialogHeader>
+
+          {isLoadingDetails ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+              <span className="mr-3">جاري تحميل التفاصيل...</span>
+            </div>
+          ) : receivableDetails ? (
+            <div className="space-y-6">
+              {/* معلومات أساسية */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">معلومات المستحق</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">اسم المستفيد:</span>
+                      <span className="font-medium">{receivableDetails.beneficiaryName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">المبلغ الإجمالي:</span>
+                      <span className="font-bold text-blue-600">{receivableDetails.totalAmount?.toLocaleString()} دينار عراقي</span>
+                    </div>
+                    {receivableDetails.dueDate && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">تاريخ الاستحقاق:</span>
+                        <span>{new Date(receivableDetails.dueDate).toLocaleDateString('ar-EG')}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">الحالة:</span>
+                      <Badge variant={receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'default' : 
+                                   receivableDetails.paidAmount > 0 ? 'secondary' : 'destructive'}>
+                        {receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'مدفوع بالكامل' : 
+                         receivableDetails.paidAmount > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}
+                      </Badge>
+                    </div>
+                    {receivableDetails.description && (
+                      <div className="pt-2 border-t">
+                        <span className="text-gray-600 block mb-1">الوصف:</span>
+                        <p className="text-sm">{receivableDetails.description}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">إحصائيات الدفع</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {(() => {
+                      const stats = calculateReceivableStats(receivableDetails);
+                      return (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">إجمالي المدفوع:</span>
+                            <span className="font-bold text-green-600">{stats.totalPaid.toLocaleString()} دينار عراقي</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">المبلغ المتبقي:</span>
+                            <span className="font-bold text-red-600">{stats.remainingAmount.toLocaleString()} دينار عراقي</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">عدد الدفعات:</span>
+                            <span className="font-medium">{stats.totalPayments} دفعة</span>
+                          </div>
+                          <div className="pt-2">
+                            <div className="flex justify-between mb-2">
+                              <span className="text-gray-600">نسبة الإنجاز:</span>
+                              <span className="font-bold">{stats.completionPercentage}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${stats.completionPercentage}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* جدول العمليات */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    سجل العمليات والدفعات
+                  </CardTitle>
+                  <CardDescription>
+                    جميع العمليات التي تمت على هذا المستحق مرتبة حسب التاريخ
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {receivableDetails.payments && receivableDetails.payments.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">رقم العملية</TableHead>
+                            <TableHead className="text-right">تاريخ الدفع</TableHead>
+                            <TableHead className="text-right">المبلغ المدفوع</TableHead>
+                            <TableHead className="text-right">المدفوع بواسطة</TableHead>
+                            <TableHead className="text-right">ملاحظات</TableHead>
+                            <TableHead className="text-right">الحالة</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {receivableDetails.payments.map((payment: any, index: number) => (
+                            <TableRow key={payment.id || index} className="hover:bg-gray-50">
+                              <TableCell className="font-medium">#{payment.id || index + 1}</TableCell>
+                              <TableCell>
+                                {new Date(payment.paymentDate || payment.createdAt).toLocaleDateString('ar-EG', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </TableCell>
+                              <TableCell>
+                                <span className="font-bold text-green-600">
+                                  {payment.amount?.toLocaleString()} دينار عراقي
+                                </span>
+                              </TableCell>
+                              <TableCell>{payment.paidBy || payment.userName || 'غير محدد'}</TableCell>
+                              <TableCell>
+                                <span className="text-sm text-gray-600">
+                                  {payment.notes || 'لا توجد ملاحظات'}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="default" className="bg-green-100 text-green-800">
+                                  <CheckCircle className="w-3 h-3 ml-1" />
+                                  مؤكد
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">لا توجد عمليات دفع مسجلة لهذا المستحق بعد</p>
+                      <Button
+                        onClick={() => {
+                          setShowDetails(false);
+                          mainForm.setValue("operationType", "payment");
+                          mainForm.setValue("receivableId", selectedReceivable?.id);
+                        }}
+                        className="mt-3"
+                        size="sm"
+                      >
+                        إضافة دفعة جديدة
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* أزرار الإجراءات */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  onClick={() => {
+                    setShowDetails(false);
+                    mainForm.setValue("operationType", "payment");
+                    mainForm.setValue("receivableId", selectedReceivable?.id);
+                  }}
+                  className="flex-1"
+                  disabled={selectedReceivable && selectedReceivable.paidAmount >= selectedReceivable.totalAmount}
+                >
+                  <DollarSign className="w-4 h-4 ml-1" />
+                  إضافة دفعة جديدة
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDetails(false)}
+                  className="flex-1"
+                >
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+              <p className="text-red-500">فشل في تحميل تفاصيل المستحق</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

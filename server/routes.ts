@@ -3023,6 +3023,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // جلب تفاصيل مستحق مع جميع عمليات الدفع
+  app.get("/api/deferred-payments/:id/details", authenticate, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const payment = await storage.getDeferredPayment(id);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "المستحق غير موجود" });
+      }
+
+      // جلب جميع عمليات الدفع المتعلقة بهذا المستحق
+      // البحث في جدول المعاملات عن العمليات المرتبطة بهذا المستحق
+      const transactions = await storage.listTransactions({
+        type: 'expense',
+        description: payment.beneficiaryName,
+        limit: 100
+      });
+
+      // تصفية المعاملات للحصول على الدفعات فقط
+      const paymentTransactions = transactions.filter((transaction: any) => 
+        transaction.description && (
+          transaction.description.includes(`دفعة ${payment.beneficiaryName}`) ||
+          transaction.description.includes(`دفعة مستحق: ${payment.beneficiaryName}`) ||
+          transaction.description.includes(payment.beneficiaryName)
+        )
+      );
+
+      // إنشاء قائمة الدفعات
+      const payments = paymentTransactions.map((transaction: any) => ({
+        id: transaction.id,
+        amount: transaction.amount,
+        paymentDate: transaction.date,
+        createdAt: transaction.createdAt,
+        notes: transaction.description,
+        paidBy: transaction.createdBy || 'غير محدد',
+        userName: transaction.userName || 'غير محدد'
+      }));
+
+      // ترتيب الدفعات حسب التاريخ (الأحدث أولاً)
+      payments.sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
+
+      const result = {
+        ...payment,
+        payments: payments
+      };
+      
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error("خطأ في جلب تفاصيل المستحق:", error);
+      return res.status(500).json({ message: "خطأ في جلب تفاصيل المستحق" });
+    }
+  });
+
   // تحديث دفعة مؤجلة
   app.put("/api/deferred-payments/:id", authenticate, async (req: Request, res: Response) => {
     try {
