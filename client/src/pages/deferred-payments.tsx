@@ -30,7 +30,7 @@ export default function DeferredPayments() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">0 ريال</div>
+            <div className="text-2xl font-bold text-green-600">0 دينار عراقي</div>
             <p className="text-sm text-muted-foreground">لا توجد مدفوعات مؤجلة حالياً</p>
           </CardContent>
         </Card>

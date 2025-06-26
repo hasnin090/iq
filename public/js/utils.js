@@ -10,12 +10,11 @@ const formatUtils = {
     // تنسيق العملة
     currency(amount, currency = 'IQD') {
         const numberFormat = new Intl.NumberFormat('ar-IQ', {
-            style: 'currency',
-            currency: currency,
+            style: 'decimal',
             minimumFractionDigits: 0,
-            maximumFractionDigits: 2
+            maximumFractionDigits: 0
         });
-        return numberFormat.format(amount);
+        return numberFormat.format(amount) + ' دينار عراقي';
     },
 
     // تنسيق الأرقام

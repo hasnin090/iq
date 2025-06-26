@@ -246,7 +246,7 @@ export function DocumentLinker() {
                                           <SelectItem key={transaction.id} value={transaction.id.toString()}>
                                             <div className="flex items-center justify-between w-full">
                                               <span className="flex-1">
-                                                {transaction.description} - {transaction.amount.toLocaleString()} ريال
+                                                {transaction.description} - {transaction.amount.toLocaleString()} دينار عراقي
                                               </span>
                                               <span className="text-xs text-gray-500 ml-2">
                                                 {format(new Date(transaction.date), "dd/MM/yyyy", { locale: ar })}

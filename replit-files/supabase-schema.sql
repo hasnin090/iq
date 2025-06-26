@@ -158,7 +158,7 @@ ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO settings (key, value) VALUES 
 ('company_name', 'شركة المحاسبة المتقدمة'),
-('currency', 'ريال سعودي'),
+('currency', 'دينار عراقي'),
 ('timezone', 'Asia/Riyadh')
 ON CONFLICT (key) DO NOTHING;
 
