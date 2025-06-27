@@ -1323,7 +1323,7 @@ export class PgStorage implements IStorage {
     // إنشاء إدخال في دفتر الأستاذ تلقائياً باسم المستفيد
     const ledgerEntry = await this.createLedgerEntry({
       date: new Date(),
-      transactionId: 0, // لا يوجد معاملة مرتبطة مباشرة
+      transactionId: null, // لا يوجد معاملة مرتبطة مباشرة
       expenseTypeId: deferredExpenseType.id,
       amount: result[0].totalAmount,
       description: `${result[0].beneficiaryName} - ${result[0].totalAmount.toLocaleString()} دينار عراقي`,
