@@ -361,8 +361,16 @@ export default function LedgerPage() {
                   <CardContent>
                     <div className="space-y-2">
                       {ledgerSummary.classified.entries.slice(0, 5).map((entry) => (
-                        <div key={entry.id} className="flex justify-between items-center p-2 bg-green-50 rounded">
-                          <div>
+                        <div key={entry.id} className="flex justify-between items-center p-2 bg-green-50 rounded relative">
+                          {/* علامة دفعات آجلة إذا كان النوع deferred */}
+                          {entry.entryType === 'deferred' && (
+                            <div className="absolute top-1 left-1">
+                              <Badge variant="secondary" className="text-xs px-1 py-0 bg-blue-100 text-blue-800">
+                                دفعات آجلة
+                              </Badge>
+                            </div>
+                          )}
+                          <div className={entry.entryType === 'deferred' ? 'mt-4' : ''}>
                             <p className="font-medium">{entry.description}</p>
                             <p className="text-sm text-muted-foreground">{formatDate(entry.date)}</p>
                           </div>
@@ -727,9 +735,18 @@ export default function LedgerPage() {
                       </TableHeader>
                       <TableBody>
                         {entries.map((entry: LedgerEntry) => (
-                          <TableRow key={entry.id}>
+                          <TableRow key={entry.id} className="relative">
                             <TableCell>{formatDate(entry.date)}</TableCell>
-                            <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
+                            <TableCell className="max-w-xs truncate relative">
+                              {entry.entryType === 'deferred' && (
+                                <Badge variant="secondary" className="absolute top-0 right-0 text-xs px-1 py-0 bg-blue-100 text-blue-800 mb-1">
+                                  دفعات آجلة
+                                </Badge>
+                              )}
+                              <div className={entry.entryType === 'deferred' ? 'mt-5' : ''}>
+                                {entry.description}
+                              </div>
+                            </TableCell>
                             <TableCell className="font-mono">{formatCurrency(entry.amount)}</TableCell>
                             <TableCell>
                               {entry.projectId ? (
