@@ -126,6 +126,7 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 
 ## Changelog
 
+- June 27, 2025: **Netlify deployment login issue resolved** - Fixed serverless authentication by implementing in-memory session management for Netlify Functions, created complete deployment package with `server-simple.js` function
 - June 26, 2025: **Currency standardization completed** - Unified all monetary displays to Iraqi Dinar (دينار عراقي) across the entire system
 - June 26, 2025: **Comprehensive system testing completed** - All components tested and verified working
 - June 26, 2025: **Document management library with manual linking** - Users can now upload documents once and manually link them to multiple financial transactions
