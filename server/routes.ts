@@ -4145,32 +4145,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تعديل endpoint الموظفين الرئيسي ليشمل معلومات المشروع للمديرين
   app.get("/api/employees", authenticate, async (req: Request, res: Response) => {
     try {
-      const sql = neon(process.env.DATABASE_URL!);
       const userRole = req.user?.role;
       
       if (userRole === 'admin') {
-        // المدير يحصل على جميع الموظفين مع معلومات المشاريع
-        const result = await sql(`
-          SELECT e.*, p.name as project_name 
-          FROM employees e 
-          LEFT JOIN projects p ON e.assigned_project_id = p.id 
-          WHERE e.active = true
-          ORDER BY p.name ASC, e.name ASC
-        `);
-        
-        const employees = result.map((row) => ({
-          id: row.id,
-          name: row.name,
-          salary: row.salary,
-          assignedProjectId: row.assigned_project_id,
-          assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
-          active: row.active,
-          hireDate: row.hire_date,
-          notes: row.notes,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at
-        }));
-        
+        // المدير يحصل على جميع الموظفين
+        const employees = await storage.getEmployees();
         res.json(employees);
       } else {
         // المستخدم العادي يحصل على قائمة فارغة لأنه يجب أن يختار مشروع أولاً

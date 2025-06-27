@@ -16,7 +16,8 @@ import {
   expenseTypes, ExpenseType, InsertExpenseType,
   ledgerEntries, LedgerEntry, InsertLedgerEntry,
   accountCategories, AccountCategory, InsertAccountCategory,
-  deferredPayments, DeferredPayment, InsertDeferredPayment
+  deferredPayments, DeferredPayment, InsertDeferredPayment,
+  employees, Employee, InsertEmployee
 } from '../shared/schema';
 import { IStorage } from './storage';
 
@@ -1451,6 +1452,141 @@ export class PgStorage implements IStorage {
       };
     } catch (error) {
       console.error('خطأ في دفع القسط:', error);
+      throw error;
+    }
+  }
+
+  // ========== وظائف إدارة الموظفين ==========
+
+  /**
+   * إنشاء موظف جديد
+   */
+  async createEmployee(employee: InsertEmployee): Promise<Employee> {
+    try {
+      const [newEmployee] = await db.insert(employees)
+        .values(employee)
+        .returning();
+      
+      console.log('تم إنشاء موظف جديد:', newEmployee);
+      return newEmployee;
+    } catch (error) {
+      console.error('خطأ في إنشاء الموظف:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * جلب جميع الموظفين
+   */
+  async getEmployees(): Promise<Employee[]> {
+    try {
+      const allEmployees = await db.select().from(employees)
+        .orderBy(desc(employees.createdAt));
+      
+      console.log(`تم جلب ${allEmployees.length} موظف`);
+      return allEmployees;
+    } catch (error) {
+      console.error('خطأ في جلب الموظفين:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * جلب موظف بواسطة ID
+   */
+  async getEmployee(id: number): Promise<Employee | null> {
+    try {
+      const [employee] = await db.select().from(employees)
+        .where(eq(employees.id, id));
+      
+      return employee || null;
+    } catch (error) {
+      console.error('خطأ في جلب الموظف:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * تحديث موظف
+   */
+  async updateEmployee(id: number, updates: Partial<InsertEmployee>): Promise<Employee> {
+    try {
+      const [updatedEmployee] = await db.update(employees)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(employees.id, id))
+        .returning();
+      
+      if (!updatedEmployee) {
+        throw new Error('الموظف غير موجود');
+      }
+      
+      console.log('تم تحديث الموظف:', updatedEmployee);
+      return updatedEmployee;
+    } catch (error) {
+      console.error('خطأ في تحديث الموظف:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * حذف موظف
+   */
+  async deleteEmployee(id: number): Promise<boolean> {
+    try {
+      const [deletedEmployee] = await db.delete(employees)
+        .where(eq(employees.id, id))
+        .returning();
+      
+      if (!deletedEmployee) {
+        throw new Error('الموظف غير موجود');
+      }
+      
+      console.log('تم حذف الموظف:', deletedEmployee);
+      return true;
+    } catch (error) {
+      console.error('خطأ في حذف الموظف:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * جلب الموظفين المعينين لمشروع محدد
+   */
+  async getEmployeesByProject(projectId: number): Promise<Employee[]> {
+    try {
+      const projectEmployees = await db.select().from(employees)
+        .where(
+          and(
+            eq(employees.assignedProjectId, projectId),
+            eq(employees.active, true)
+          )
+        )
+        .orderBy(employees.name);
+      
+      console.log(`تم جلب ${projectEmployees.length} موظف للمشروع ${projectId}`);
+      return projectEmployees;
+    } catch (error) {
+      console.error('خطأ في جلب موظفي المشروع:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * جلب الموظفين النشطين فقط
+   */
+  async getActiveEmployees(): Promise<Employee[]> {
+    try {
+      const activeEmployees = await db.select().from(employees)
+        .where(eq(employees.active, true))
+        .orderBy(employees.name);
+      
+      console.log(`تم جلب ${activeEmployees.length} موظف نشط`);
+      return activeEmployees;
+    } catch (error) {
+      console.error('خطأ في جلب الموظفين النشطين:', error);
       throw error;
     }
   }
