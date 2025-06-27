@@ -1310,12 +1310,33 @@ export class PgStorage implements IStorage {
     
     const result = await db.insert(deferredPayments).values([paymentData]).returning();
     
+    // البحث عن نوع المصروف "دفعات آجلة" أو إنشاؤه
+    let deferredExpenseType = await this.getExpenseTypeByName('دفعات آجلة');
+    if (!deferredExpenseType) {
+      deferredExpenseType = await this.createExpenseType({
+        name: 'دفعات آجلة',
+        description: 'المستحقات والدفعات الآجلة للمستفيدين',
+        isActive: true
+      });
+    }
+    
+    // إنشاء إدخال في دفتر الأستاذ تلقائياً
+    const ledgerEntry = await this.createLedgerEntry({
+      date: new Date(),
+      transactionId: 0, // لا يوجد معاملة مرتبطة مباشرة
+      expenseTypeId: deferredExpenseType.id,
+      amount: result[0].totalAmount,
+      description: `مستحق جديد: ${result[0].beneficiaryName} - ${result[0].totalAmount.toLocaleString()} دينار عراقي`,
+      projectId: result[0].projectId,
+      entryType: 'deferred'
+    });
+    
     // إنشاء سجل نشاط
     await this.createActivityLog({
       action: "create",
       entityType: "deferred_payment",
       entityId: result[0].id,
-      details: `إنشاء دفعة مؤجلة: ${result[0].beneficiaryName} - ${result[0].totalAmount}`,
+      details: `إنشاء دفعة مؤجلة: ${result[0].beneficiaryName} - ${result[0].totalAmount.toLocaleString()} دينار عراقي`,
       userId: payment.userId
     });
     
