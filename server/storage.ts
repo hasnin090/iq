@@ -11,7 +11,7 @@ import {
   ledgerEntries, type LedgerEntry, type InsertLedgerEntry,
   accountCategories, type AccountCategory, type InsertAccountCategory,
   deferredPayments, type DeferredPayment, type InsertDeferredPayment,
-  employees, type InsertEmployee
+  employees, type Employee, type InsertEmployee
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage';
@@ -115,6 +115,15 @@ export interface IStorage {
   listDeferredPayments(): Promise<DeferredPayment[]>;
   deleteDeferredPayment(id: number): Promise<boolean>;
   payDeferredPaymentInstallment(id: number, amount: number, userId: number): Promise<{ payment: DeferredPayment; transaction?: Transaction }>;
+
+  // Employees
+  getEmployee(id: number): Promise<Employee | undefined>;
+  createEmployee(employee: InsertEmployee): Promise<Employee>;
+  updateEmployee(id: number, employee: Partial<InsertEmployee>): Promise<Employee>;
+  getEmployees(): Promise<Employee[]>;
+  deleteEmployee(id: number): Promise<boolean>;
+  getEmployeesByProject(projectId: number): Promise<Employee[]>;
+  getActiveEmployees(): Promise<Employee[]>;
 }
 
 export class MemStorage implements IStorage {

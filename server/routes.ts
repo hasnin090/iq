@@ -4145,11 +4145,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تعديل endpoint الموظفين الرئيسي ليشمل معلومات المشروع للمديرين
   app.get("/api/employees", authenticate, async (req: Request, res: Response) => {
     try {
-      const userRole = req.user?.role;
+      const sql = neon(process.env.DATABASE_URL!);
+      const userRole = (req as any).user?.role;
       
       if (userRole === 'admin') {
-        // المدير يحصل على جميع الموظفين
-        const employees = await storage.getEmployees();
+        // المدير يحصل على جميع الموظفين مع معلومات المشاريع
+        const result = await sql(`
+          SELECT e.*, p.name as project_name 
+          FROM employees e 
+          LEFT JOIN projects p ON e.assigned_project_id = p.id 
+          ORDER BY e.created_at DESC
+        `);
+        
+        const employees = result.map((row: any) => ({
+          id: row.id,
+          name: row.name,
+          salary: row.salary,
+          assignedProjectId: row.assigned_project_id,
+          assignedProject: row.project_name ? { id: row.assigned_project_id, name: row.project_name } : null,
+          active: row.active,
+          hireDate: row.hire_date,
+          notes: row.notes,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        }));
+        
+        console.log(`تم جلب ${employees.length} موظف للمدير`);
         res.json(employees);
       } else {
         // المستخدم العادي يحصل على قائمة فارغة لأنه يجب أن يختار مشروع أولاً
@@ -4228,8 +4249,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const sql = neon(process.env.DATABASE_URL!);
       const result = await sql(`
-        INSERT INTO employees (name, salary, assigned_project_id, notes, created_by)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO employees (name, salary, assigned_project_id, notes, created_by, active)
+        VALUES ($1, $2, $3, $4, $5, true)
         RETURNING *
       `, [name, salary || 0, assignedProjectId || null, notes || null, req.session.userId]);
       

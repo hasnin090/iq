@@ -1463,8 +1463,14 @@ export class PgStorage implements IStorage {
    */
   async createEmployee(employee: InsertEmployee): Promise<Employee> {
     try {
+      // إضافة createdBy من user session إذا لم يكن موجوداً
+      const employeeData = {
+        ...employee,
+        createdBy: employee.createdBy || 1, // افتراضي للمدير
+      };
+      
       const [newEmployee] = await db.insert(employees)
-        .values(employee)
+        .values(employeeData)
         .returning();
       
       console.log('تم إنشاء موظف جديد:', newEmployee);
