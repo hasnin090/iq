@@ -147,12 +147,12 @@ export const expenseTypes = pgTable("expense_types", {
 export const ledgerEntries = pgTable("ledger_entries", {
   id: serial("id").primaryKey(),
   date: timestamp("date").notNull(),
-  transactionId: integer("transaction_id").notNull().references(() => transactions.id),
+  transactionId: integer("transaction_id").references(() => transactions.id),
   expenseTypeId: integer("expense_type_id").references(() => expenseTypes.id),
   amount: integer("amount").notNull(),
   description: text("description").notNull(),
   projectId: integer("project_id").references(() => projects.id),
-  entryType: text("entry_type").notNull(), // "classified" أو "miscellaneous" 
+  entryType: text("entry_type").notNull(), // "classified" أو "miscellaneous" أو "deferred"
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -281,7 +281,10 @@ export const insertExpenseTypeSchema = createInsertSchema(expenseTypes)
   .omit({ id: true, createdAt: true, updatedAt: true });
 
 export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries)
-  .omit({ id: true, createdAt: true });
+  .omit({ id: true, createdAt: true })
+  .extend({
+    transactionId: z.number().nullable().optional(),
+  });
 
 export const insertAccountCategorySchema = createInsertSchema(accountCategories)
   .omit({ id: true, createdAt: true, updatedAt: true });
