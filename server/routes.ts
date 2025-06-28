@@ -2825,11 +2825,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // جلب سجل الدفعات لمستحق معين
+  // جلب سجل الدفعات لمستحق معين (من قسم المستحقات فقط)
   app.get("/api/ledger/deferred-payments/:receivableId", authenticate, async (req: Request, res: Response) => {
     try {
       const receivableId = parseInt(req.params.receivableId);
-      const includeAllPayments = req.query.includeAll === 'true'; // خيار لإظهار جميع المدفوعات
       
       if (isNaN(receivableId)) {
         return res.status(400).json({ message: "معرف المستحق غير صحيح" });
@@ -2850,20 +2849,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // جلب جميع السجلات للدفعات الآجلة
       const allDeferredEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
       
-      // جلب جميع المعاملات المالية مع أنواع المصاريف من قاعدة البيانات
-      const sql = neon(process.env.DATABASE_URL!);
-      const allTransactions = await sql`
-        SELECT t.*, et.name as expense_type_name 
-        FROM transactions t
-        LEFT JOIN expense_types et ON t.expense_type_id = et.id
-        WHERE t.type = 'expense' 
-        ORDER BY t.date DESC
-      `;
-      
-      // البحث عن جميع المدفوعات لهذا المستفيد في جميع المعاملات
+      // البحث عن المدفوعات من قسم المستحقات فقط (بدون بحث تلقائي)
       const receivableEntries = [];
       
-      // 1. السجلات من دفتر الأستاذ (النظام الجديد) - دفعات مستحقة مؤكدة
+      // السجلات من دفتر الأستاذ (قسم المستحقات) - دفعات مستحقة مؤكدة فقط
       const ledgerEntries = allDeferredEntries.filter(entry => {
         const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/);
         const beneficiaryName = match ? match[1] : '';
@@ -2873,95 +2862,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       receivableEntries.push(...ledgerEntries.map((entry: any) => ({
         ...entry,
         entryType: 'confirmed_settlement',
-        paymentType: 'تسديد مؤكد'
+        paymentType: 'تسديد من قسم المستحقات'
       })));
       
-      // 2. المعاملات المالية التي تحتوي على اسم المستفيد (فقط التسديدات المؤكدة للمستحقات)
-      const historicalTransactions = allTransactions.filter((transaction: any) => {
-        if (!transaction.description) return false;
-        
-        const description = transaction.description.toLowerCase();
-        const beneficiaryName = receivable.beneficiaryName.toLowerCase();
-        
-        // التحقق من وجود اسم المستفيد
-        if (!description.includes(beneficiaryName)) return false;
-        
-        // التحقق من نوع المصروف - استبعاد أنواع المصاريف العامة
-        const expenseTypeName = transaction.expense_type_name?.toLowerCase() || '';
-        const isGeneralExpenseType = (
-          expenseTypeName.includes('عام') ||
-          expenseTypeName.includes('متنوع') ||
-          expenseTypeName.includes('أخرى') ||
-          expenseTypeName.includes('نقدي') ||
-          expenseTypeName.includes('كاش')
-        );
-        
-        // التحقق من أن المعاملة هي تسديد مستحق حقيقي
-        const hasSettlementKeywords = (
-          description.includes('مستحق') ||
-          description.includes('دفعة مستحق') ||
-          description.includes('قسط مستحق') ||
-          description.includes('تسديد مستحق') ||
-          description.includes('سداد مستحق') ||
-          description.includes('استحقاق') ||
-          expenseTypeName.includes('مستحق') ||
-          expenseTypeName.includes('دفعات آجلة')
-        );
-        
-        // استبعاد المدفوعات النقدية والمصاريف العامة بشكل صارم
-        const isCashOrGeneralPayment = (
-          description.includes('نقدي') ||
-          description.includes('كاش') ||
-          description.includes('مدفوع نقداً') ||
-          description.includes('دفع نقدي') ||
-          description.includes('مصروف عام') ||
-          description.includes('مصاريف متنوعة') ||
-          description.includes('مصاريف أخرى') ||
-          isGeneralExpenseType ||
-          // استبعاد المعاملات التي تحتوي على اسم المستفيد لكن بدون كلمات المستحقات
-          (!hasSettlementKeywords && description.includes(beneficiaryName))
-        );
-        
-        // إذا كان المطلوب إظهار جميع المدفوعات، نعرض كل ما يحتوي على اسم المستفيد
-        if (includeAllPayments) {
-          return true; // إظهار جميع المعاملات التي تحتوي على اسم المستفيد
-        }
-        
-        // الفلترة الصارمة لتسديدات المستحقات فقط
-        const isValidSettlement = hasSettlementKeywords && !isCashOrGeneralPayment;
-        
-        // تسجيل مفصل للتتبع
-        if (description.includes(beneficiaryName)) {
-          console.log(`🔍 تحليل معاملة ${beneficiaryName}:`, {
-            id: transaction.id,
-            description: transaction.description,
-            amount: transaction.amount,
-            date: transaction.date,
-            expenseType: expenseTypeName,
-            hasSettlementKeywords,
-            isCashOrGeneralPayment,
-            isValidSettlement,
-            includeAllPayments,
-            filterResult: includeAllPayments || isValidSettlement ? '✅ مقبولة' : '❌ مرفوضة'
-          });
-        }
-        
-        return isValidSettlement;
+      console.log(`📋 عرض دفعات المستحق "${receivable.beneficiaryName}":`, {
+        totalEntries: receivableEntries.length,
+        source: 'قسم المستحقات فقط'
       });
       
-      // تحويل المعاملات التاريخية إلى تنسيق موحد
-      const historicalEntries = historicalTransactions.map((transaction: any) => ({
-        id: `transaction-${transaction.id}`,
-        date: transaction.date,
-        description: transaction.description,
-        amount: transaction.amount,
-        entryType: 'historical_settlement',
-        paymentType: 'تسديد تاريخي',
-        projectId: transaction.projectId,
-        transactionId: transaction.id
-      }));
-      
-      receivableEntries.push(...historicalEntries);
+      // لا يوجد بحث تلقائي - فقط دفعات قسم المستحقات
 
       // إزالة التكرارات وترتيب السجلات حسب التاريخ (الأحدث أولاً)
       const uniqueEntries = receivableEntries.filter((entry, index, self) => {

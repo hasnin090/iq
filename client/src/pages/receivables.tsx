@@ -80,7 +80,6 @@ export default function Receivables() {
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedReceivable, setSelectedReceivable] = useState<DeferredPayment | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [showAllPayments, setShowAllPayments] = useState(false);
 
   const { data: receivables = [], isLoading } = useQuery<DeferredPayment[]>({
     queryKey: ["/api/deferred-payments"],
@@ -90,13 +89,12 @@ export default function Receivables() {
     queryKey: ["/api/projects"],
   });
 
-  // جلب تفاصيل مستحق معين مع عمليات الدفع
+  // جلب تفاصيل مستحق معين مع عمليات الدفع (من قسم المستحقات فقط)
   const { data: receivableDetails, isLoading: isLoadingDetails } = useQuery({
-    queryKey: ["/api/deferred-payments", selectedReceivable?.id, "details", showAllPayments],
+    queryKey: ["/api/deferred-payments", selectedReceivable?.id, "details"],
     queryFn: async () => {
       if (!selectedReceivable?.id) return null;
-      const url = `/api/deferred-payments/${selectedReceivable.id}/details${showAllPayments ? '?includeAll=true' : ''}`;
-      const response = await fetch(url, {
+      const response = await fetch(`/api/deferred-payments/${selectedReceivable.id}/details`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("فشل في تحميل تفاصيل المستحق");
@@ -849,37 +847,9 @@ export default function Receivables() {
                       <History className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       سجل تسديدات المستحق
                     </CardTitle>
-                    <div className="flex items-center justify-between">
-                      <CardDescription className="text-gray-600 dark:text-gray-400">
-                        {showAllPayments 
-                          ? 'عرض جميع المدفوعات المرتبطة بالمستفيد' 
-                          : 'عرض تسديدات المستحقات المؤكدة فقط'
-                        }
-                      </CardDescription>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {showAllPayments ? 'جميع المدفوعات' : 'التسديدات فقط'}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowAllPayments(!showAllPayments)}
-                          className="h-8 px-3"
-                        >
-                          {showAllPayments ? (
-                            <>
-                              <Filter className="w-3 h-3 ml-1" />
-                              تطبيق فلتر
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="w-3 h-3 ml-1" />
-                              عرض الكل
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+                    <CardDescription className="text-gray-600 dark:text-gray-400">
+                      عرض دفعات المستحق من قسم المستحقات فقط
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
                     {receivableDetails.payments && receivableDetails.payments.length > 0 ? (
