@@ -31,7 +31,10 @@ import {
   Eye,
   Receipt,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  History,
+  X,
+  BarChart3
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -979,13 +982,13 @@ export default function Receivables() {
                   </Button>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-              <p className="text-red-500">فشل في تحميل تفاصيل المستحق</p>
-            </div>
-          )}
+            ) : (
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                <p className="text-red-500">فشل في تحميل تفاصيل المستحق</p>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
