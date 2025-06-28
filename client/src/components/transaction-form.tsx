@@ -274,19 +274,13 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         description: "تم حفظ المعاملة المالية بنجاح",
       });
       
-      // تحديث الكاش فوراً لإظهار المعاملة الجديدة
-      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-      
       // إضافة المعاملة الجديدة للكاش المحلي إذا كانت متوفرة
       if (newTransaction) {
-        queryClient.setQueryData(['/api/transactions'], (oldData: any) => {
-          if (Array.isArray(oldData)) {
-            return [newTransaction, ...oldData];
-          }
-          return [newTransaction];
-        });
+        addTransactionToCache(newTransaction);
       }
+      
+      // تحديث شامل للكاش
+      refreshTransactions();
       
       // إعادة تعيين النموذج مع الحفاظ على المشروع للمستخدمين العاديين
       const resetProjectId = user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0 

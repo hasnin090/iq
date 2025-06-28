@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { TransactionForm } from '@/components/transaction-form';
 import { TransactionList } from '@/components/transaction-list';
 import { TransactionLinkedDocuments } from '@/components/document-library/document-linker';
-import { queryClient } from '@/lib/queryClient';
+import { useCacheManager } from '@/hooks/use-cache-manager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,6 +26,7 @@ interface Filter {
 export default function Transactions() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { refreshTransactions } = useCacheManager();
   const [filter, setFilter] = useState<Filter>({});
   const [currentView, setCurrentView] = useState<'cards' | 'table'>('cards');
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,12 +84,7 @@ export default function Transactions() {
 
   const handleFormSubmit = () => {
     // تحديث شامل للكاش بعد إنشاء معاملة جديدة
-    queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-    
-    // إعادة جلب البيانات فوراً لضمان التحديث
-    queryClient.refetchQueries({ queryKey: ['/api/transactions'] });
+    refreshTransactions();
   };
 
   const [activeTab, setActiveTab] = useState<"admin" | "all" | "projects">("all");
@@ -116,12 +112,7 @@ export default function Transactions() {
       });
       
       // تحديث شامل للكاش بعد الأرشفة
-      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-      
-      // إعادة جلب البيانات فوراً
-      queryClient.refetchQueries({ queryKey: ['/api/transactions'] });
+      refreshTransactions();
       
       setSelectedTransactions([]);
       setIsArchiveMode(false);
