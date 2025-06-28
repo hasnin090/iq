@@ -107,20 +107,15 @@ function AppRoutes() {
   }
   
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 min-h-screen transition-all duration-300 mr-0 md:mr-72 lg:mr-80 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100">
-        {/* تم إزالة الأشرطة القديمة واستبدالها بشريط علوي مركزي في مكون Sidebar */}
+      <main className="flex-1 transition-all duration-300 mr-0 md:mr-72 lg:mr-80 bg-[hsl(var(--background))] dark:bg-gray-900 dark:text-gray-100 overflow-y-auto">
+        {/* شريط علوي فارغ لمنع التداخل مع شريط القوائم */}
+        <div className="h-20 md:h-16 lg:h-18"></div>
         
-        {/* حاشية في الأعلى لمنع تداخل المحتوى مع العناصر الثابتة */}
-        <div className="h-16 xs:h-[4.5rem] sm:h-20"></div>
-        
-        {/* خلفية زخرفية متدرجة للمحتوى بأكمله */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50 via-muted/5 opacity-50 pointer-events-none z-0"></div>
-        
-        {/* المحتوى الرئيسي - تصميم أكثر احترافية */}
-        <div className="main-content-container fade-in px-1 xs:px-2 sm:px-3 md:px-4 py-2 sm:py-3 md:py-4 max-w-full sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] xl:max-w-[1100px] 2xl:max-w-[1200px] mx-auto pb-mobile-nav w-full relative z-10">
-          <div className="backdrop-blur-sm bg-background/70 dark:bg-background/60 rounded-xl border border-border/40 shadow-lg overflow-hidden">
+        {/* المحتوى الرئيسي مع padding مناسب */}
+        <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6 max-w-7xl mx-auto w-full">
+          <div className="bg-background/95 backdrop-blur-sm rounded-lg border shadow-sm p-4 md:p-6">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/transactions" component={Transactions} />

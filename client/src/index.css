@@ -1321,4 +1321,33 @@ input[type="number"] {
       padding-right: 1rem;
     }
   }
+
+  /* منع التداخل مع شريط القوائم في جميع الأحجام */
+  .no-sidebar-overlap {
+    margin-top: 0 !important;
+    padding-top: 1.25rem !important;
+  }
+
+  @media (max-width: 768px) {
+    .no-sidebar-overlap {
+      padding-top: 1.5rem !important;
+    }
+    
+    main {
+      padding-top: 1.5rem !important;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .no-sidebar-overlap {
+      padding-top: 1rem !important;
+    }
+  }
+
+  /* ضمان عدم تداخل المحتوى مع العناصر الثابتة */
+  .main-content-safe {
+    margin-top: 0;
+    padding-top: clamp(1rem, 3vh, 2rem);
+    min-height: calc(100vh - 4rem);
+  }
 }
