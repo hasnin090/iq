@@ -794,24 +794,62 @@ export default function Receivables() {
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>لا توجد دفعات مسجلة من قسم المستحقات</p>
-                    <Button
-                      onClick={() => setShowDetails(false)}
-                      className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      إغلاق
-                    </Button>
                   </div>
                 )}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 فشل في تحميل البيانات
-                <Button
-                  onClick={() => setShowDetails(false)}
-                  className="mt-4 bg-gray-600 hover:bg-gray-700 text-white"
-                >
-                  إغلاق
-                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">لم يتم تسجيل أي تسديدات لهذا المستحق حتى الآن</p>
+                        <Button
+                          onClick={() => {
+                            setShowDetails(false);
+                            mainForm.setValue("operationType", "payment");
+                            mainForm.setValue("receivableId", selectedReceivable?.id);
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Plus className="w-4 h-4 ml-1" />
+                          إضافة أول تسديد
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* أزرار الإجراءات المحسنة */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <Button
+                    onClick={() => {
+                      setShowDetails(false);
+                      mainForm.setValue("operationType", "payment");
+                      mainForm.setValue("receivableId", selectedReceivable?.id);
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={selectedReceivable && selectedReceivable.paidAmount >= selectedReceivable.totalAmount}
+                  >
+                    <DollarSign className="w-4 h-4 ml-1" />
+                    إضافة تسديد جديد
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDetails(false)}
+                    className="flex-1 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <X className="w-4 h-4 ml-1" />
+                    إغلاق
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                <p className="text-red-500">فشل في تحميل تفاصيل المستحق</p>
               </div>
             )}
           </div>
