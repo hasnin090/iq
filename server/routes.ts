@@ -3182,29 +3182,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "المستحق غير موجود" });
       }
 
-      // جلب جميع عمليات الدفع المتعلقة بهذا المستحق
-      // البحث في جدول المعاملات عن العمليات المرتبطة بهذا المستحق
-      const transactions = await storage.listTransactions();
-
-      // تصفية المعاملات للحصول على الدفعات فقط
-      const paymentTransactions = transactions.filter((transaction: any) => 
-        transaction.description && (
-          transaction.description.includes(`دفعة ${payment.beneficiaryName}`) ||
-          transaction.description.includes(`دفعة مستحق: ${payment.beneficiaryName}`) ||
-          transaction.description.includes(payment.beneficiaryName)
-        )
-      );
-
-      // إنشاء قائمة الدفعات
-      const payments = paymentTransactions.map((transaction: any) => ({
-        id: transaction.id,
-        amount: transaction.amount,
-        paymentDate: transaction.date,
-        createdAt: transaction.createdAt,
-        notes: transaction.description,
-        paidBy: transaction.createdBy || 'غير محدد',
-        userName: transaction.userName || 'غير محدد'
-      }));
+      // جلب العمليات من قسم المستحقات فقط (دفتر الأستاذ)
+      const deferredExpenseType = await storage.getExpenseTypeByName('دفعات آجلة');
+      let payments: any[] = [];
+      
+      if (deferredExpenseType) {
+        const ledgerEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
+        
+        // تصفية السجلات للحصول على دفعات هذا المستفيد فقط
+        const beneficiaryEntries = ledgerEntries.filter(entry => {
+          const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/);
+          const beneficiaryName = match ? match[1] : '';
+          return beneficiaryName === payment.beneficiaryName;
+        });
+        
+        // تحويل السجلات إلى تنسيق الدفعات
+        payments = beneficiaryEntries.map((entry: any) => ({
+          id: entry.id,
+          amount: entry.amount,
+          paymentDate: entry.date,
+          createdAt: entry.createdAt,
+          notes: entry.description,
+          paidBy: 'قسم المستحقات',
+          userName: 'نظام المستحقات'
+        }));
+      }
 
       // ترتيب الدفعات حسب التاريخ (الأحدث أولاً)
       payments.sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
