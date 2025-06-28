@@ -722,123 +722,39 @@ export default function Receivables() {
         )}
       </div>
 
-      {/* نافذة تفاصيل المستحق المحسنة */}
+      {/* نافذة تفاصيل المستحق - بسيطة ومنظمة */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden bg-gray-50 dark:bg-gray-900" dir="rtl">
-          <DialogHeader className="border-b pb-4 mb-6">
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                <Receipt className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <div className="text-xl">{selectedReceivable?.beneficiaryName}</div>
-                <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
-                  سجل تسديد الدفعات المستحقة
-                </div>
-              </div>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden" dir="rtl">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              تفاصيل المستحق - {selectedReceivable?.beneficiaryName}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="overflow-y-auto max-h-[calc(95vh-120px)] px-1">
+          <div className="overflow-y-auto max-h-[calc(80vh-80px)]">
             {isLoadingDetails ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
-                <span className="text-gray-600 dark:text-gray-400">جاري تحميل تفاصيل المدفوعات...</span>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                <span className="mr-3 text-gray-600">جاري التحميل...</span>
               </div>
             ) : receivableDetails ? (
-              <div className="space-y-6">
-                {/* بطاقة المعلومات الأساسية المحسنة */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* معلومات المستحق */}
-                  <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                        <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        معلومات المستحق
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 dark:text-gray-400 text-sm">اسم المستفيد:</span>
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">{receivableDetails.beneficiaryName}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 dark:text-gray-400 text-sm">المبلغ الإجمالي:</span>
-                          <span className="font-bold text-blue-600 dark:text-blue-400 text-lg">
-                            {receivableDetails.totalAmount?.toLocaleString()} د.ع
-                          </span>
-                        </div>
-                        {receivableDetails.dueDate && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400 text-sm">تاريخ الاستحقاق:</span>
-                            <span className="text-gray-900 dark:text-gray-100">
-                              {new Date(receivableDetails.dueDate).toLocaleDateString('ar-EG')}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 dark:text-gray-400 text-sm">الحالة:</span>
-                          <Badge 
-                            variant={receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'default' : 
-                                   receivableDetails.paidAmount > 0 ? 'secondary' : 'destructive'}
-                            className="text-xs"
-                          >
-                            {receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'مدفوع بالكامل' : 
-                             receivableDetails.paidAmount > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}
-                          </Badge>
-                        </div>
-                      </div>
-                      {receivableDetails.description && (
-                        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                          <span className="text-gray-600 dark:text-gray-400 text-sm block mb-2">الوصف:</span>
-                          <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
-                            {receivableDetails.description}
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+              <div className="space-y-4">
+                {/* ملخص المعلومات */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                  <h3 className="text-md font-semibold mb-3 text-gray-900 dark:text-gray-100">ملخص المستحق</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">المبلغ الإجمالي:</span>
+                      <div className="font-bold text-blue-600">{receivableDetails.totalAmount?.toLocaleString()} د.ع</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">عدد الدفعات:</span>
+                      <div className="font-semibold">{receivableDetails.payments?.length || 0}</div>
+                    </div>
+                  </div>
+                </div>
 
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">إحصائيات الدفع</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {(() => {
-                      const stats = calculateReceivableStats(receivableDetails);
-                      return (
-                        <>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">إجمالي المدفوع:</span>
-                            <span className="font-bold text-green-600">{stats.totalPaid.toLocaleString()} دينار عراقي</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">المبلغ المتبقي:</span>
-                            <span className="font-bold text-red-600">{stats.remainingAmount.toLocaleString()} دينار عراقي</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">عدد الدفعات:</span>
-                            <span className="font-medium">{stats.totalPayments} دفعة</span>
-                          </div>
-                          <div className="pt-2">
-                            <div className="flex justify-between mb-2">
-                              <span className="text-gray-600">نسبة الإنجاز:</span>
-                              <span className="font-bold">{stats.completionPercentage}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${stats.completionPercentage}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </CardContent>
-                </Card>
-              </div>
+
 
                 {/* جدول التسديدات المحسن */}
                 <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
