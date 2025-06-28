@@ -2848,12 +2848,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // جلب جميع السجلات للدفعات الآجلة
       const allDeferredEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
       
-      // جلب جميع المعاملات المالية من قاعدة البيانات
+      // جلب جميع المعاملات المالية مع أنواع المصاريف من قاعدة البيانات
       const sql = neon(process.env.DATABASE_URL!);
       const allTransactions = await sql`
-        SELECT * FROM transactions 
-        WHERE type = 'expense' 
-        ORDER BY date DESC
+        SELECT t.*, et.name as expense_type_name 
+        FROM transactions t
+        LEFT JOIN expense_types et ON t.expense_type_id = et.id
+        WHERE t.type = 'expense' 
+        ORDER BY t.date DESC
       `;
       
       // البحث عن جميع المدفوعات لهذا المستفيد في جميع المعاملات
@@ -2872,28 +2874,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentType: 'تسديد مؤكد'
       })));
       
-      // 2. المعاملات المالية التي تحتوي على اسم المستفيد (فقط التي تبدو كتسديدات مستحقة)
+      // 2. المعاملات المالية التي تحتوي على اسم المستفيد (فقط التسديدات المؤكدة للمستحقات)
       const historicalTransactions = allTransactions.filter((transaction: any) => {
         if (!transaction.description) return false;
         
         const description = transaction.description.toLowerCase();
         const beneficiaryName = receivable.beneficiaryName.toLowerCase();
         
-        // فلترة المعاملات لتشمل فقط التسديدات وليس المدفوعات النقدية العادية
-        const isSettlement = description.includes(beneficiaryName) && (
-          description.includes('مستحق') ||
-          description.includes('دفعة') ||
-          description.includes('قسط') ||
-          description.includes('تسديد') ||
-          description.includes('سداد')
+        // التحقق من وجود اسم المستفيد
+        if (!description.includes(beneficiaryName)) return false;
+        
+        // التحقق من نوع المصروف - استبعاد أنواع المصاريف العامة
+        const expenseTypeName = transaction.expense_type_name?.toLowerCase() || '';
+        const isGeneralExpenseType = (
+          expenseTypeName.includes('عام') ||
+          expenseTypeName.includes('متنوع') ||
+          expenseTypeName.includes('أخرى') ||
+          expenseTypeName.includes('نقدي') ||
+          expenseTypeName.includes('كاش')
         );
         
-        // استبعاد المعاملات النقدية البسيطة
-        const isCashTransaction = description.includes('نقدي') && 
-                                 !description.includes('مستحق') &&
-                                 !description.includes('دفعة');
+        // التحقق من أن المعاملة هي تسديد مستحق حقيقي
+        const hasSettlementKeywords = (
+          description.includes('مستحق') ||
+          description.includes('دفعة مستحق') ||
+          description.includes('قسط مستحق') ||
+          description.includes('تسديد مستحق') ||
+          description.includes('سداد مستحق') ||
+          description.includes('استحقاق') ||
+          expenseTypeName.includes('مستحق') ||
+          expenseTypeName.includes('دفعات آجلة')
+        );
         
-        return isSettlement && !isCashTransaction;
+        // استبعاد المدفوعات النقدية والمصاريف العامة بشكل صارم
+        const isCashOrGeneralPayment = (
+          description.includes('نقدي') ||
+          description.includes('كاش') ||
+          description.includes('مدفوع نقداً') ||
+          description.includes('دفع نقدي') ||
+          description.includes('مصروف عام') ||
+          description.includes('مصاريف متنوعة') ||
+          description.includes('مصاريف أخرى') ||
+          isGeneralExpenseType ||
+          // استبعاد المعاملات التي تحتوي على اسم المستفيد لكن بدون كلمات المستحقات
+          (!hasSettlementKeywords && description.includes(beneficiaryName))
+        );
+        
+        // يجب أن تكون تسديد مستحق حقيقي وليس مدفوع نقدي أو مصروف عام
+        const isValidSettlement = hasSettlementKeywords && !isCashOrGeneralPayment;
+        
+        // تسجيل للتتبع (يمكن إزالته لاحقاً)
+        if (description.includes(beneficiaryName)) {
+          console.log(`Transaction filter for ${beneficiaryName}:`, {
+            description: transaction.description,
+            expenseType: expenseTypeName,
+            hasSettlementKeywords,
+            isCashOrGeneralPayment,
+            isValidSettlement
+          });
+        }
+        
+        return isValidSettlement;
       });
       
       // تحويل المعاملات التاريخية إلى تنسيق موحد
