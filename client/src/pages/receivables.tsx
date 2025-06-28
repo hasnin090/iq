@@ -719,63 +719,83 @@ export default function Receivables() {
         )}
       </div>
 
-      {/* نافذة تفاصيل المستحق */}
+      {/* نافذة تفاصيل المستحق المحسنة */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <Receipt className="w-6 h-6 text-blue-600" />
-              تفاصيل المستحق: {selectedReceivable?.beneficiaryName}
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden bg-gray-50 dark:bg-gray-900" dir="rtl">
+          <DialogHeader className="border-b pb-4 mb-6">
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <Receipt className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <div className="text-xl">{selectedReceivable?.beneficiaryName}</div>
+                <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                  سجل تسديد الدفعات المستحقة
+                </div>
+              </div>
             </DialogTitle>
-            <DialogDescription>
-              عرض جميع العمليات والدفعات المتعلقة بهذا المستحق
-            </DialogDescription>
           </DialogHeader>
 
-          {isLoadingDetails ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-              <span className="mr-3">جاري تحميل التفاصيل...</span>
-            </div>
-          ) : receivableDetails ? (
-            <div className="space-y-6">
-              {/* معلومات أساسية */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">معلومات المستحق</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">اسم المستفيد:</span>
-                      <span className="font-medium">{receivableDetails.beneficiaryName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">المبلغ الإجمالي:</span>
-                      <span className="font-bold text-blue-600">{receivableDetails.totalAmount?.toLocaleString()} دينار عراقي</span>
-                    </div>
-                    {receivableDetails.dueDate && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">تاريخ الاستحقاق:</span>
-                        <span>{new Date(receivableDetails.dueDate).toLocaleDateString('ar-EG')}</span>
+          <div className="overflow-y-auto max-h-[calc(95vh-120px)] px-1">
+            {isLoadingDetails ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mb-4"></div>
+                <span className="text-gray-600 dark:text-gray-400">جاري تحميل تفاصيل المدفوعات...</span>
+              </div>
+            ) : receivableDetails ? (
+              <div className="space-y-6">
+                {/* بطاقة المعلومات الأساسية المحسنة */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* معلومات المستحق */}
+                  <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        معلومات المستحق
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400 text-sm">اسم المستفيد:</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{receivableDetails.beneficiaryName}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400 text-sm">المبلغ الإجمالي:</span>
+                          <span className="font-bold text-blue-600 dark:text-blue-400 text-lg">
+                            {receivableDetails.totalAmount?.toLocaleString()} د.ع
+                          </span>
+                        </div>
+                        {receivableDetails.dueDate && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400 text-sm">تاريخ الاستحقاق:</span>
+                            <span className="text-gray-900 dark:text-gray-100">
+                              {new Date(receivableDetails.dueDate).toLocaleDateString('ar-EG')}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400 text-sm">الحالة:</span>
+                          <Badge 
+                            variant={receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'default' : 
+                                   receivableDetails.paidAmount > 0 ? 'secondary' : 'destructive'}
+                            className="text-xs"
+                          >
+                            {receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'مدفوع بالكامل' : 
+                             receivableDetails.paidAmount > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}
+                          </Badge>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">الحالة:</span>
-                      <Badge variant={receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'default' : 
-                                   receivableDetails.paidAmount > 0 ? 'secondary' : 'destructive'}>
-                        {receivableDetails.paidAmount >= receivableDetails.totalAmount ? 'مدفوع بالكامل' : 
-                         receivableDetails.paidAmount > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}
-                      </Badge>
-                    </div>
-                    {receivableDetails.description && (
-                      <div className="pt-2 border-t">
-                        <span className="text-gray-600 block mb-1">الوصف:</span>
-                        <p className="text-sm">{receivableDetails.description}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      {receivableDetails.description && (
+                        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <span className="text-gray-600 dark:text-gray-400 text-sm block mb-2">الوصف:</span>
+                          <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                            {receivableDetails.description}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
                 <Card>
                   <CardHeader className="pb-3">
@@ -817,107 +837,147 @@ export default function Receivables() {
                 </Card>
               </div>
 
-              {/* جدول العمليات */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    سجل العمليات والدفعات
-                  </CardTitle>
-                  <CardDescription>
-                    جميع العمليات التي تمت على هذا المستحق مرتبة حسب التاريخ
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {receivableDetails.payments && receivableDetails.payments.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-right">رقم العملية</TableHead>
-                            <TableHead className="text-right">تاريخ الدفع</TableHead>
-                            <TableHead className="text-right">المبلغ المدفوع</TableHead>
-                            <TableHead className="text-right">المدفوع بواسطة</TableHead>
-                            <TableHead className="text-right">ملاحظات</TableHead>
-                            <TableHead className="text-right">الحالة</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {receivableDetails.payments.map((payment: any, index: number) => (
-                            <TableRow key={payment.id || index} className="hover:bg-gray-50">
-                              <TableCell className="font-medium">#{payment.id || index + 1}</TableCell>
-                              <TableCell>
-                                {new Date(payment.paymentDate || payment.createdAt).toLocaleDateString('ar-EG', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </TableCell>
-                              <TableCell>
-                                <span className="font-bold text-green-600">
-                                  {payment.amount?.toLocaleString()} دينار عراقي
-                                </span>
-                              </TableCell>
-                              <TableCell>{payment.paidBy || payment.userName || 'غير محدد'}</TableCell>
-                              <TableCell>
-                                <span className="text-sm text-gray-600">
-                                  {payment.notes || 'لا توجد ملاحظات'}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="default" className="bg-green-100 text-green-800">
-                                  <CheckCircle className="w-3 h-3 ml-1" />
-                                  مؤكد
-                                </Badge>
-                              </TableCell>
+                {/* جدول التسديدات المحسن */}
+                <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
+                  <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                      <History className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      سجل تسديدات المستحق
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-400">
+                      عرض جميع عمليات التسديد المؤكدة فقط (بدون المدفوعات النقدية العادية)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {receivableDetails.payments && receivableDetails.payments.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-50 dark:bg-gray-800/50">
+                              <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold">م</TableHead>
+                              <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold">نوع التسديد</TableHead>
+                              <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold">التاريخ</TableHead>
+                              <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold">المبلغ</TableHead>
+                              <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold">الوصف</TableHead>
+                              <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold">المسؤول</TableHead>
+                              <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold">الحالة</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-500">لا توجد عمليات دفع مسجلة لهذا المستحق بعد</p>
-                      <Button
-                        onClick={() => {
-                          setShowDetails(false);
-                          mainForm.setValue("operationType", "payment");
-                          mainForm.setValue("receivableId", selectedReceivable?.id);
-                        }}
-                        className="mt-3"
-                        size="sm"
-                      >
-                        إضافة دفعة جديدة
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                          </TableHeader>
+                          <TableBody>
+                            {receivableDetails.payments.map((payment: any, index: number) => (
+                              <TableRow 
+                                key={payment.id || index} 
+                                className="hover:bg-gray-50 dark:hover:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700"
+                              >
+                                <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                                  {index + 1}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={
+                                      payment.entryType === 'historical_settlement' 
+                                        ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-700' 
+                                        : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700'
+                                    }
+                                  >
+                                    {payment.paymentType || (payment.entryType === 'historical_settlement' ? 'تسديد تاريخي' : 'تسديد مؤكد')}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="text-sm">
+                                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                                      {new Date(payment.paymentDate || payment.date || payment.createdAt).toLocaleDateString('ar-EG', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })}
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                      {new Date(payment.paymentDate || payment.date || payment.createdAt).toLocaleTimeString('ar-EG', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="text-right">
+                                    <span className="font-bold text-green-600 dark:text-green-400 text-lg">
+                                      {payment.amount?.toLocaleString()}
+                                    </span>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">دينار عراقي</div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="max-w-xs">
+                                    <p className="text-sm text-gray-800 dark:text-gray-200 truncate" title={payment.description || payment.notes}>
+                                      {payment.description || payment.notes || 'تسديد مستحق'}
+                                    </p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                                    {payment.paidBy || payment.userName || 'النظام'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="default" className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300">
+                                    <CheckCircle className="w-3 h-3 ml-1" />
+                                    مؤكد
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <AlertCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">لا توجد تسديدات</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">لم يتم تسجيل أي تسديدات لهذا المستحق حتى الآن</p>
+                        <Button
+                          onClick={() => {
+                            setShowDetails(false);
+                            mainForm.setValue("operationType", "payment");
+                            mainForm.setValue("receivableId", selectedReceivable?.id);
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Plus className="w-4 h-4 ml-1" />
+                          إضافة أول تسديد
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-              {/* أزرار الإجراءات */}
-              <div className="flex gap-3 pt-4 border-t">
-                <Button
-                  onClick={() => {
-                    setShowDetails(false);
-                    mainForm.setValue("operationType", "payment");
-                    mainForm.setValue("receivableId", selectedReceivable?.id);
-                  }}
-                  className="flex-1"
-                  disabled={selectedReceivable && selectedReceivable.paidAmount >= selectedReceivable.totalAmount}
-                >
-                  <DollarSign className="w-4 h-4 ml-1" />
-                  إضافة دفعة جديدة
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDetails(false)}
-                  className="flex-1"
-                >
-                  إغلاق
-                </Button>
+                {/* أزرار الإجراءات المحسنة */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <Button
+                    onClick={() => {
+                      setShowDetails(false);
+                      mainForm.setValue("operationType", "payment");
+                      mainForm.setValue("receivableId", selectedReceivable?.id);
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={selectedReceivable && selectedReceivable.paidAmount >= selectedReceivable.totalAmount}
+                  >
+                    <DollarSign className="w-4 h-4 ml-1" />
+                    إضافة تسديد جديد
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDetails(false)}
+                    className="flex-1 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <X className="w-4 h-4 ml-1" />
+                    إغلاق
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (

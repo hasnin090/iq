@@ -2848,15 +2848,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // جلب جميع السجلات للدفعات الآجلة
       const allDeferredEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
       
-      // تصفية السجلات الخاصة بهذا المستحق بناءً على اسم المستفيد في الوصف
-      const receivableEntries = allDeferredEntries.filter(entry => {
+      // جلب جميع المعاملات المالية من قاعدة البيانات
+      const sql = neon(process.env.DATABASE_URL!);
+      const allTransactions = await sql`
+        SELECT * FROM transactions 
+        WHERE type = 'expense' 
+        ORDER BY date DESC
+      `;
+      
+      // البحث عن جميع المدفوعات لهذا المستفيد في جميع المعاملات
+      const receivableEntries = [];
+      
+      // 1. السجلات من دفتر الأستاذ (النظام الجديد) - دفعات مستحقة مؤكدة
+      const ledgerEntries = allDeferredEntries.filter(entry => {
         const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/);
         const beneficiaryName = match ? match[1] : '';
         return beneficiaryName === receivable.beneficiaryName;
       });
+      
+      receivableEntries.push(...ledgerEntries.map((entry: any) => ({
+        ...entry,
+        entryType: 'confirmed_settlement',
+        paymentType: 'تسديد مؤكد'
+      })));
+      
+      // 2. المعاملات المالية التي تحتوي على اسم المستفيد (فقط التي تبدو كتسديدات مستحقة)
+      const historicalTransactions = allTransactions.filter((transaction: any) => {
+        if (!transaction.description) return false;
+        
+        const description = transaction.description.toLowerCase();
+        const beneficiaryName = receivable.beneficiaryName.toLowerCase();
+        
+        // فلترة المعاملات لتشمل فقط التسديدات وليس المدفوعات النقدية العادية
+        const isSettlement = description.includes(beneficiaryName) && (
+          description.includes('مستحق') ||
+          description.includes('دفعة') ||
+          description.includes('قسط') ||
+          description.includes('تسديد') ||
+          description.includes('سداد')
+        );
+        
+        // استبعاد المعاملات النقدية البسيطة
+        const isCashTransaction = description.includes('نقدي') && 
+                                 !description.includes('مستحق') &&
+                                 !description.includes('دفعة');
+        
+        return isSettlement && !isCashTransaction;
+      });
+      
+      // تحويل المعاملات التاريخية إلى تنسيق موحد
+      const historicalEntries = historicalTransactions.map((transaction: any) => ({
+        id: `transaction-${transaction.id}`,
+        date: transaction.date,
+        description: transaction.description,
+        amount: transaction.amount,
+        entryType: 'historical_settlement',
+        paymentType: 'تسديد تاريخي',
+        projectId: transaction.projectId,
+        transactionId: transaction.id
+      }));
+      
+      receivableEntries.push(...historicalEntries);
 
-      // ترتيب السجلات حسب التاريخ (الأحدث أولاً)
-      const sortedEntries = receivableEntries.sort((a, b) => 
+      // إزالة التكرارات وترتيب السجلات حسب التاريخ (الأحدث أولاً)
+      const uniqueEntries = receivableEntries.filter((entry, index, self) => {
+        // تجنب التكرار بناءً على التاريخ والمبلغ والوصف
+        return index === self.findIndex(e => 
+          e.date === entry.date && 
+          e.amount === entry.amount && 
+          e.description === entry.description
+        );
+      });
+
+      const sortedEntries = uniqueEntries.sort((a, b) => 
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
 
