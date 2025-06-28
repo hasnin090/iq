@@ -2829,6 +2829,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ledger/deferred-payments/:receivableId", authenticate, async (req: Request, res: Response) => {
     try {
       const receivableId = parseInt(req.params.receivableId);
+      const includeAllPayments = req.query.includeAll === 'true'; // خيار لإظهار جميع المدفوعات
+      
       if (isNaN(receivableId)) {
         return res.status(400).json({ message: "معرف المستحق غير صحيح" });
       }
@@ -2920,17 +2922,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (!hasSettlementKeywords && description.includes(beneficiaryName))
         );
         
-        // يجب أن تكون تسديد مستحق حقيقي وليس مدفوع نقدي أو مصروف عام
+        // إذا كان المطلوب إظهار جميع المدفوعات، نعرض كل ما يحتوي على اسم المستفيد
+        if (includeAllPayments) {
+          return true; // إظهار جميع المعاملات التي تحتوي على اسم المستفيد
+        }
+        
+        // الفلترة الصارمة لتسديدات المستحقات فقط
         const isValidSettlement = hasSettlementKeywords && !isCashOrGeneralPayment;
         
-        // تسجيل للتتبع (يمكن إزالته لاحقاً)
+        // تسجيل مفصل للتتبع
         if (description.includes(beneficiaryName)) {
-          console.log(`Transaction filter for ${beneficiaryName}:`, {
+          console.log(`🔍 تحليل معاملة ${beneficiaryName}:`, {
+            id: transaction.id,
             description: transaction.description,
+            amount: transaction.amount,
+            date: transaction.date,
             expenseType: expenseTypeName,
             hasSettlementKeywords,
             isCashOrGeneralPayment,
-            isValidSettlement
+            isValidSettlement,
+            includeAllPayments,
+            filterResult: includeAllPayments || isValidSettlement ? '✅ مقبولة' : '❌ مرفوضة'
           });
         }
         
