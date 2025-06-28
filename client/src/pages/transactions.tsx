@@ -82,7 +82,13 @@ export default function Transactions() {
   });
 
   const handleFormSubmit = () => {
+    // تحديث شامل للكاش بعد إنشاء معاملة جديدة
     queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+    
+    // إعادة جلب البيانات فوراً لضمان التحديث
+    queryClient.refetchQueries({ queryKey: ['/api/transactions'] });
   };
 
   const [activeTab, setActiveTab] = useState<"admin" | "all" | "projects">("all");
@@ -108,7 +114,15 @@ export default function Transactions() {
         title: "تم الأرشفة بنجاح",
         description: `تم أرشفة ${data.archivedCount} معاملة مالية`,
       });
+      
+      // تحديث شامل للكاش بعد الأرشفة
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      
+      // إعادة جلب البيانات فوراً
+      queryClient.refetchQueries({ queryKey: ['/api/transactions'] });
+      
       setSelectedTransactions([]);
       setIsArchiveMode(false);
     },

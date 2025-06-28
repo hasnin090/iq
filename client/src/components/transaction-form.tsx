@@ -6,6 +6,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { useCacheManager } from '@/hooks/use-cache-manager';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -138,6 +139,7 @@ type TransactionFormValues = z.infer<typeof transactionFormSchema>;
 export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { addTransactionToCache, refreshTransactions } = useCacheManager();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [transactionType, setTransactionType] = React.useState("expense");
 
@@ -266,11 +268,26 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (newTransaction) => {
       toast({
         title: "تمت العملية بنجاح",
         description: "تم حفظ المعاملة المالية بنجاح",
       });
+      
+      // تحديث الكاش فوراً لإظهار المعاملة الجديدة
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+      
+      // إضافة المعاملة الجديدة للكاش المحلي إذا كانت متوفرة
+      if (newTransaction) {
+        queryClient.setQueryData(['/api/transactions'], (oldData: any) => {
+          if (Array.isArray(oldData)) {
+            return [newTransaction, ...oldData];
+          }
+          return [newTransaction];
+        });
+      }
+      
       // إعادة تعيين النموذج مع الحفاظ على المشروع للمستخدمين العاديين
       const resetProjectId = user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0 
         ? userProjects[0].id.toString() 
