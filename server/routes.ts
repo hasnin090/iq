@@ -2458,7 +2458,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(201).json(expenseType);
     } catch (error) {
       console.error("خطأ في إنشاء نوع المصروف:", error);
-      return res.status(500).json({ message: "خطأ في إنشاء نوع المصروف" });
+      const errorMessage = error instanceof Error ? error.message : "خطأ في إنشاء نوع المصروف";
+      return res.status(500).json({ message: errorMessage });
     }
   });
 
@@ -2510,7 +2511,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json({ success: result });
     } catch (error) {
       console.error("خطأ في حذف نوع المصروف:", error);
-      return res.status(500).json({ message: "خطأ في حذف نوع المصروف" });
+      const errorMessage = error instanceof Error ? error.message : "خطأ في حذف نوع المصروف";
+      return res.status(500).json({ message: errorMessage });
     }
   });
 

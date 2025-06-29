@@ -797,6 +797,15 @@ export class PgStorage implements IStorage {
 
   async createExpenseType(expenseType: InsertExpenseType): Promise<ExpenseType> {
     try {
+      // التحقق من عدم وجود الاسم مسبقاً
+      const existing = await this.sql`
+        SELECT id FROM expense_types WHERE name = ${expenseType.name}
+      `;
+      
+      if (existing.length > 0) {
+        throw new Error(`نوع المصروف "${expenseType.name}" موجود مسبقاً`);
+      }
+
       const result = await this.sql`
         INSERT INTO expense_types (name, description)
         VALUES (${expenseType.name}, ${expenseType.description || null})
@@ -805,6 +814,10 @@ export class PgStorage implements IStorage {
       return result[0] as ExpenseType;
     } catch (error) {
       console.error('Error creating expense type:', error);
+      // إذا كان الخطأ من قاعدة البيانات بسبب الاسم المكرر
+      if (error instanceof Error && error.message.includes('duplicate key value')) {
+        throw new Error(`نوع المصروف "${expenseType.name}" موجود مسبقاً`);
+      }
       throw error;
     }
   }
@@ -852,11 +865,24 @@ export class PgStorage implements IStorage {
 
   async deleteExpenseType(id: number): Promise<boolean> {
     try {
+      // التحقق من وجود معاملات مرتبطة
+      const linkedTransactions = await this.sql`
+        SELECT COUNT(*) as count FROM transactions WHERE expense_type_id = ${id}
+      `;
+      
+      const linkedLedgerEntries = await this.sql`
+        SELECT COUNT(*) as count FROM ledger_entries WHERE expense_type_id = ${id}
+      `;
+      
+      if (linkedTransactions[0].count > 0 || linkedLedgerEntries[0].count > 0) {
+        throw new Error(`لا يمكن حذف نوع المصروف لأنه مرتبط بـ ${linkedTransactions[0].count} معاملة و ${linkedLedgerEntries[0].count} قيد محاسبي`);
+      }
+
       const result = await this.sql`DELETE FROM expense_types WHERE id = ${id}`;
       return result.length > 0;
     } catch (error) {
       console.error('Error deleting expense type:', error);
-      return false;
+      throw error;
     }
   }
 
