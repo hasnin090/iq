@@ -393,7 +393,14 @@ export class PgStorage implements IStorage {
 
   async listTransactions(): Promise<Transaction[]> {
     try {
-      const result = await this.sql`SELECT * FROM transactions ORDER BY date DESC, id DESC`;
+      const result = await this.sql`
+        SELECT 
+          id, date, type, project_id as "projectId", description, created_by as "createdBy", 
+          amount, expense_type as "expenseType", employee_id as "employeeId", 
+          file_url as "fileUrl", file_type as "fileType", archived
+        FROM transactions 
+        ORDER BY date DESC, id DESC
+      `;
       return result as Transaction[];
     } catch (error) {
       console.error('Error listing transactions:', error);

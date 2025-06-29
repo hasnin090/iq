@@ -797,18 +797,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`User ${userId} (${userRole}) has access to projects:`, projectIds);
         console.log(`Total transactions before filtering:`, transactions.length);
+        console.log(`Sample transactions projectIds:`, transactions.slice(0, 3).map(t => ({ id: t.id, projectId: t.projectId })));
         
         // فلترة المعاملات بحيث تظهر فقط معاملات المشاريع التي يملك المستخدم وصولاً إليها
         if (projectIds.length > 0) {
-          transactions = transactions.filter(t => 
-            t.projectId && projectIds.includes(t.projectId)
-          );
+          transactions = transactions.filter(t => {
+            const hasProjectId = t.projectId !== null && t.projectId !== undefined;
+            const isAuthorized = hasProjectId && projectIds.includes(t.projectId);
+            return isAuthorized;
+          });
         } else {
           // إذا لم يكن للمستخدم مشاريع، لا يرى أي معاملات
           transactions = [];
         }
         
         console.log(`Transactions after filtering:`, transactions.length);
+        console.log(`Sample filtered transactions:`, transactions.slice(0, 3).map(t => ({ id: t.id, projectId: t.projectId })));
       }
       
       // Filter by project if specified
