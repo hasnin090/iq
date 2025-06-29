@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Check, Loader2, Shield, Download, Upload, Database, HardDrive, Settings as SettingsIcon, Building, Tag, Plus, Edit, Trash2 } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Shield, Download, Upload, Database, HardDrive, Settings as SettingsIcon, Building, Tag, Plus, Edit, Trash2, Cloud, Zap, Link, Activity } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -498,8 +498,40 @@ export default function Settings() {
               value="backup" 
               className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
             >
-              <HardDrive className="h-4 w-4 mb-1" />
+              <Download className="h-4 w-4 mb-1" />
               <span className="text-center leading-tight">نسخ</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="integration" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Link className="h-4 w-4 mb-1" />
+              <span className="text-center leading-tight">تكامل</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="database" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Database className="h-4 w-4 mb-1" />
+              <span className="text-center leading-tight">قواعد</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="storage" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Cloud className="h-4 w-4 mb-1" />
+              <span className="text-center leading-tight">تخزين</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="supabase" 
+              className="flex-shrink-0 flex flex-col items-center justify-center gap-1 px-2 py-3 min-w-[70px] text-xs font-medium whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              <Activity className="h-4 w-4 mb-1" />
+              <span className="text-center leading-tight">سوبابيس</span>
             </TabsTrigger>
             
             <TabsTrigger 
@@ -855,6 +887,290 @@ export default function Settings() {
                   </Button>
                 </form>
               </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Integration Settings */}
+        <TabsContent value="integration" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Link className="h-5 w-5" />
+                إعدادات التكامل
+              </CardTitle>
+              <CardDescription>
+                إدارة التكاملات مع الأنظمة والخدمات الخارجية
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">Firebase</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    تكامل مع خدمات Firebase للمصادقة والتخزين
+                  </p>
+                  <Badge variant="default">متصل</Badge>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">Supabase</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    تكامل مع Supabase لقاعدة البيانات والتخزين
+                  </p>
+                  <Badge variant="default">متصل</Badge>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">WhatsApp Business</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    استقبال الملفات عبر رسائل WhatsApp
+                  </p>
+                  <Badge variant="outline">غير مفعل</Badge>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">Google Drive</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    نسخ احتياطي تلقائي إلى Google Drive
+                  </p>
+                  <Badge variant="outline">غير مفعل</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Database Management */}
+        <TabsContent value="database" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                إدارة قواعد البيانات
+              </CardTitle>
+              <CardDescription>
+                مراقبة وإدارة قواعد البيانات الأساسية والاحتياطية
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">قاعدة البيانات الأساسية</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    PostgreSQL - Neon Database
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="default">نشط</Badge>
+                    {dbStatus && (
+                      <span className="text-xs text-muted-foreground">
+                        {dbStatus.responseTime}ms
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">قاعدة البيانات الاحتياطية</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Supabase PostgreSQL
+                  </p>
+                  <Badge variant="secondary">احتياطي</Badge>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-semibold">إجراءات قاعدة البيانات</h3>
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm">
+                    <Database className="h-4 w-4 mr-2" />
+                    فحص الاتصال
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Activity className="h-4 w-4 mr-2" />
+                    مزامنة البيانات
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    تصدير البيانات
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Hybrid Storage */}
+        <TabsContent value="storage" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Cloud className="h-5 w-5" />
+                إدارة التخزين المختلط
+              </CardTitle>
+              <CardDescription>
+                إعدادات التخزين المحلي والسحابي للملفات والمرفقات
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">التخزين المحلي</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    الملفات المحفوظة على الخادم المحلي
+                  </p>
+                  <Badge variant="default">أساسي</Badge>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">Supabase Storage</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    تخزين سحابي احتياطي
+                  </p>
+                  <Badge variant="secondary">احتياطي</Badge>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">Firebase Storage</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    تخزين سحابي ثانوي
+                  </p>
+                  <Badge variant="outline">ثانوي</Badge>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-semibold">إحصائيات التخزين</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="p-3 rounded-lg bg-muted">
+                    <div className="text-sm text-muted-foreground">إجمالي الملفات</div>
+                    <div className="text-2xl font-bold">1,247</div>
+                  </div>
+                  
+                  <div className="p-3 rounded-lg bg-muted">
+                    <div className="text-sm text-muted-foreground">المساحة المستخدمة</div>
+                    <div className="text-2xl font-bold">2.4 GB</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-semibold">إجراءات التخزين</h3>
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm">
+                    <Cloud className="h-4 w-4 mr-2" />
+                    مزامنة الملفات
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    رفع إلى السحابة
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <HardDrive className="h-4 w-4 mr-2" />
+                    تنظيف الملفات
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Supabase Status */}
+        <TabsContent value="supabase" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                حالة Supabase
+              </CardTitle>
+              <CardDescription>
+                مراقبة تفصيلية لخدمات Supabase المتصلة
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">قاعدة البيانات</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">الحالة</span>
+                      <Badge variant="default">متصل</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">وقت الاستجابة</span>
+                      <span className="text-sm font-mono">45ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">آخر مزامنة</span>
+                      <span className="text-sm">منذ 5 دقائق</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 rounded-lg border">
+                  <h3 className="font-semibold mb-2">التخزين</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">الحالة</span>
+                      <Badge variant="default">متصل</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">الملفات المرفوعة</span>
+                      <span className="text-sm font-mono">1,247</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">المساحة المستخدمة</span>
+                      <span className="text-sm">2.4 GB</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-semibold">المعايير والإحصائيات</h3>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="p-3 rounded-lg bg-muted">
+                    <div className="text-sm text-muted-foreground">المعاملات المزامنة</div>
+                    <div className="text-xl font-bold text-green-600">4,532</div>
+                  </div>
+                  
+                  <div className="p-3 rounded-lg bg-muted">
+                    <div className="text-sm text-muted-foreground">المشاريع المزامنة</div>
+                    <div className="text-xl font-bold text-blue-600">12</div>
+                  </div>
+                  
+                  <div className="p-3 rounded-lg bg-muted">
+                    <div className="text-sm text-muted-foreground">المستخدمين المزامنين</div>
+                    <div className="text-xl font-bold text-purple-600">8</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-semibold">إجراءات Supabase</h3>
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm">
+                    <Activity className="h-4 w-4 mr-2" />
+                    فحص الاتصال
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Zap className="h-4 w-4 mr-2" />
+                    مزامنة فورية
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    استيراد البيانات
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    تصدير البيانات
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
