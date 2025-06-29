@@ -867,7 +867,7 @@ export class PgStorage implements IStorage {
     try {
       // التحقق من وجود معاملات مرتبطة
       const linkedTransactions = await this.sql`
-        SELECT COUNT(*) as count FROM transactions WHERE expense_type_id = ${id}
+        SELECT COUNT(*) as count FROM transactions WHERE expense_type = ${id}
       `;
       
       const linkedLedgerEntries = await this.sql`
