@@ -805,8 +805,62 @@ export class MemStorage implements IStorage {
   async deleteAccountCategory(id: number): Promise<boolean> {
     return false;
   }
+
+  // Deferred Payments implementation for MemStorage
+  async getDeferredPayment(id: number): Promise<DeferredPayment | undefined> {
+    return undefined;
+  }
+
+  async createDeferredPayment(payment: InsertDeferredPayment): Promise<DeferredPayment> {
+    throw new Error("MemStorage لا يدعم الدفعات المؤجلة");
+  }
+
+  async updateDeferredPayment(id: number, payment: Partial<DeferredPayment>): Promise<DeferredPayment | undefined> {
+    return undefined;
+  }
+
+  async listDeferredPayments(): Promise<DeferredPayment[]> {
+    return [];
+  }
+
+  async deleteDeferredPayment(id: number): Promise<boolean> {
+    return false;
+  }
+
+  async payDeferredPaymentInstallment(id: number, amount: number, userId: number): Promise<{ payment: DeferredPayment; transaction?: Transaction }> {
+    throw new Error("MemStorage لا يدعم دفع أقساط الدفعات المؤجلة");
+  }
+
+  // Employees implementation for MemStorage
+  async getEmployee(id: number): Promise<Employee | undefined> {
+    return undefined;
+  }
+
+  async createEmployee(employee: InsertEmployee): Promise<Employee> {
+    throw new Error("MemStorage لا يدعم إدارة الموظفين");
+  }
+
+  async updateEmployee(id: number, employee: Partial<InsertEmployee>): Promise<Employee> {
+    throw new Error("MemStorage لا يدعم تحديث الموظفين");
+  }
+
+  async getEmployees(): Promise<Employee[]> {
+    return [];
+  }
+
+  async deleteEmployee(id: number): Promise<boolean> {
+    return false;
+  }
+
+  async getEmployeesByProject(projectId: number): Promise<Employee[]> {
+    return [];
+  }
+
+  async getActiveEmployees(): Promise<Employee[]> {
+    return [];
+  }
 }
 
 // تحديد فئة التخزين النشطة
 // يمكن تغيير هذا لاستخدام MemStorage للتطوير المحلي أو PgStorage للإنتاج
-export const storage: IStorage = pgStorage;
+export const storage: IStorage = new MemStorage();
