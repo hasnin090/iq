@@ -75,8 +75,8 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
       control={form.control}
       name="expenseType"
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>نوع المصروف</FormLabel>
+        <FormItem className="space-y-1">
+          <FormLabel className="text-sm font-medium">نوع المصروف</FormLabel>
           <Select onValueChange={(value) => {
               field.onChange(value);
               // إعادة تعيين الموظف عند تغيير نوع المصروف
@@ -91,7 +91,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
               }
             }} value={field.value}>
             <FormControl>
-              <SelectTrigger className="flex items-center justify-between px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-center text-[13px] font-normal">
+              <SelectTrigger className="w-full h-9 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-sm">
                 <SelectValue placeholder="اختر نوع المصروف" />
               </SelectTrigger>
             </FormControl>
@@ -353,31 +353,31 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   };
 
   return (
-    <Card className="border border-blue-100 dark:border-blue-900 shadow-md">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary dark:text-blue-400">
-          <PiggyBankIcon className="h-5 w-5" />
+    <Card className="border border-blue-100 dark:border-blue-900 shadow-sm">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 py-3">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-primary dark:text-blue-400">
+          <PiggyBankIcon className="h-4 w-4" />
           إضافة عملية مالية جديدة
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="p-4">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
 
             {/* الصف الأول: التاريخ ونوع العملية والمبلغ */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>التاريخ</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-medium">التاريخ</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant="outline"
-                            className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-right justify-between"
+                            className="w-full h-9 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-right justify-between text-sm"
                           >
                             {field.value ? (
                               format(field.value, "yyyy/MM/dd")
@@ -407,8 +407,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 control={form.control}
                 name="type"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>نوع العملية</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-medium">نوع العملية</FormLabel>
                     <Select onValueChange={(value) => {
                       field.onChange(value);
                       setTransactionType(value);
@@ -420,7 +420,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       }
                     }} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
+                        <SelectTrigger className="w-full h-9 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-sm">
                           <SelectValue placeholder="اختر نوع العملية" />
                         </SelectTrigger>
                       </FormControl>
@@ -462,13 +462,13 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                   }, [field.value]);
 
                   return (
-                    <FormItem>
-                      <FormLabel>المبلغ (د.ع)</FormLabel>
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-sm font-medium">المبلغ (د.ع)</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
                           placeholder="مثال: 1,000.50"
-                          className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-left"
+                          className="w-full h-9 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-left text-sm"
                           value={displayValue}
                           onChange={(e) => {
                             const value = e.target.value.replace(/[^0-9.]/g, '');
@@ -508,8 +508,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 if (expenseType !== "راتب") return null;
 
                 return (
-                  <FormItem>
-                    <FormLabel>اختر الموظف</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-medium">اختر الموظف</FormLabel>
                     <Select onValueChange={(value) => {
                       field.onChange(value);
                       const selectedEmployee = availableEmployees.find(emp => emp.id.toString() === value);
@@ -518,7 +518,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       }
                     }} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
+                        <SelectTrigger className="w-full h-9 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-sm">
                           <SelectValue placeholder="اختر الموظف" />
                         </SelectTrigger>
                       </FormControl>
@@ -555,17 +555,17 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             />
 
 
-            {/* الصف الثاني: المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
+            {/* حقل المشروع (فقط للمدير أو إذا كان للمستخدم أكثر من مشروع) */}
             {((user?.role === 'admin') || (user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 1)) && (
               <FormField
                 control={form.control}
                 name="projectId"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>المشروع</FormLabel>
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-medium">المشروع</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700">
+                        <SelectTrigger className="w-full h-9 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-sm">
                           <SelectValue placeholder="اختر المشروع" />
                         </SelectTrigger>
                       </FormControl>
@@ -588,17 +588,17 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               />
             )}
 
-            {/* الصف الثالث: الوصف */}
+            {/* حقل الوصف */}
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>وصف العملية</FormLabel>
+                <FormItem className="space-y-1">
+                  <FormLabel className="text-sm font-medium">وصف العملية</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="أدخل وصفاً مفصلاً للعملية المالية"
-                      className="w-full min-h-20 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 resize-none"
+                      className="w-full min-h-16 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 resize-none text-sm"
                       {...field}
                     />
                   </FormControl>
@@ -607,15 +607,15 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               )}
             />
 
-            {/* الصف الرابع: المرفقات */}
-            <div className="space-y-3">
+            {/* قسم المرفقات */}
+            <div className="space-y-2">
               <label className="text-sm font-medium">مرفق (اختياري)</label>
 
-              <div className="border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/20">
+              <div className="border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-md p-3 bg-blue-50/50 dark:bg-blue-900/20">
                 {selectedFile ? (
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <FileIcon className="h-5 w-5 text-blue-500" />
+                  <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-md border">
+                    <div className="flex items-center gap-2">
+                      <FileIcon className="h-4 w-4 text-blue-500" />
                       <span className="text-sm font-medium">{selectedFile.name}</span>
                       <Badge variant="secondary" className="text-xs">
                         {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
@@ -626,14 +626,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                       variant="ghost"
                       size="sm"
                       onClick={removeFile}
-                      className="h-8 w-8 p-0"
+                      className="h-6 w-6 p-0"
                     >
-                      <X className="h-4 w-4 text-red-500" />
+                      <X className="h-3 w-3 text-red-500" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center">
-                    <Paperclip className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                  <div className="text-center py-2">
+                    <Paperclip className="h-6 w-6 text-blue-400 mx-auto mb-1" />
                     <input
                       id="file-input"
                       type="file"
@@ -644,11 +644,13 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => document.getElementById('file-input')?.click()}
+                      className="text-sm"
                     >
                       اختر ملف للتحميل
                     </Button>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 mt-1">
                       الحد الأقصى 10 ميجابايت - PDF, الصور, Word, Excel
                     </p>
                   </div>
@@ -660,7 +662,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             <Button
               type="submit"
               disabled={mutation.isPending || isLoading}
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md text-sm"
             >
               {mutation.isPending ? (
                 <div className="flex items-center gap-2">
