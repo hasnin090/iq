@@ -626,8 +626,8 @@ export default function Receivables() {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {receivable.beneficiaryName}
                     </h3>
-                    <Badge variant={receivable.paidAmount >= receivable.totalAmount ? "default" : "secondary"}>
-                      {receivable.paidAmount >= receivable.totalAmount ? "مكتمل" : "معلق"}
+                    <Badge variant={(receivable.paidAmount || 0) >= (receivable.totalAmount || 0) ? "default" : "secondary"}>
+                      {(receivable.paidAmount || 0) >= (receivable.totalAmount || 0) ? "مكتمل" : "معلق"}
                     </Badge>
                   </div>
                   <Button
@@ -709,7 +709,7 @@ export default function Receivables() {
                       mainForm.setValue("receivableId", receivable.id);
                     }}
                     className="flex-1"
-                    disabled={receivable.paidAmount >= receivable.totalAmount}
+                    disabled={(receivable.paidAmount || 0) >= (receivable.totalAmount || 0)}
                   >
                     <DollarSign className="w-4 h-4 ml-1" />
                     إضافة دفعة
