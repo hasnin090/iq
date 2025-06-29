@@ -80,7 +80,7 @@ app.use((req, res, next) => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
 
-    app.use(express.static(path.resolve(__dirname, "../dist/public")));
+    app.use(express.static(path.resolve(__dirname, "public")));
     // Handle client-side routing
     app.get("*", (_req, res) => {
       res.sendFile(path.resolve(__dirname, "public", "index.html"));
