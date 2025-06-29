@@ -126,6 +126,7 @@ This is a comprehensive Arabic accounting system built with modern web technolog
 
 ## Changelog
 
+- June 29, 2025: **Settings page enhanced with new subsections** - Added four comprehensive management tabs: Integration (تكامل), Database Management (قواعد), Hybrid Storage (تخزين), and Supabase Status (سوبابيس). Each section provides detailed monitoring and control capabilities for system components with Arabic interface and professional styling.
 - June 29, 2025: **User permission system fully operational** - Successfully resolved all user access control issues. Viewer users "الحجي" and "حاتم" can now properly access their assigned project transactions (106 transactions for project 32 "الشركه الرئيسيه"). Fixed PostgreSQL query field mapping (project_id to projectId) and transaction filtering logic. System ready for production deployment.
 - June 29, 2025: **Deployment compilation errors resolved** - Fixed TypeScript syntax errors in pg-storage.ts, resolved circular dependency issues, completed MemStorage interface implementation, and corrected static file serving paths for production deployment
 - June 27, 2025: **Netlify deployment login issue resolved** - Fixed serverless authentication by implementing in-memory session management for Netlify Functions, created complete deployment package with `server-simple.js` function
