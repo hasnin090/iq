@@ -260,7 +260,7 @@ export default function Receivables() {
 
   // Filter receivables based on search and project
   const filteredReceivables = receivables.filter((receivable: DeferredPayment) => {
-    const matchesSearch = receivable.beneficiaryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = (receivable.beneficiaryName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (receivable.description && receivable.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesProject = selectedProject === "all" || 
                           (receivable.projectId && receivable.projectId.toString() === selectedProject);
@@ -644,20 +644,20 @@ export default function Receivables() {
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-green-500" />
                     <span className="text-sm text-gray-600">المستحق:</span>
-                    <span className="font-medium">{receivable.totalAmount.toLocaleString()} دينار عراقي</span>
+                    <span className="font-medium">{(receivable.totalAmount || 0).toLocaleString()} دينار عراقي</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-blue-500" />
                     <span className="text-sm text-gray-600">المدفوع:</span>
-                    <span className="font-medium">{receivable.paidAmount.toLocaleString()} دينار عراقي</span>
+                    <span className="font-medium">{(receivable.paidAmount || 0).toLocaleString()} دينار عراقي</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-orange-500" />
                     <span className="text-sm text-gray-600">المتبقي:</span>
                     <span className="font-medium">
-                      {(receivable.totalAmount - receivable.paidAmount).toLocaleString()} دينار عراقي
+                      {((receivable.totalAmount || 0) - (receivable.paidAmount || 0)).toLocaleString()} دينار عراقي
                     </span>
                   </div>
                 </div>
