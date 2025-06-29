@@ -798,8 +798,8 @@ export class PgStorage implements IStorage {
   async createExpenseType(expenseType: InsertExpenseType): Promise<ExpenseType> {
     try {
       const result = await this.sql`
-        INSERT INTO expense_types (name, description, category, requires_employee)
-        VALUES (${expenseType.name}, ${expenseType.description || null}, ${expenseType.category || 'general'}, ${expenseType.requiresEmployee || false})
+        INSERT INTO expense_types (name, description)
+        VALUES (${expenseType.name}, ${expenseType.description || null})
         RETURNING *
       `;
       return result[0] as ExpenseType;
@@ -822,13 +822,9 @@ export class PgStorage implements IStorage {
         setParts.push(`description = $${setParts.length + 1}`);
         values.push(expenseType.description);
       }
-      if (expenseType.category !== undefined) {
-        setParts.push(`category = $${setParts.length + 1}`);
-        values.push(expenseType.category);
-      }
-      if (expenseType.requiresEmployee !== undefined) {
-        setParts.push(`requires_employee = $${setParts.length + 1}`);
-        values.push(expenseType.requiresEmployee);
+      if (expenseType.isActive !== undefined) {
+        setParts.push(`is_active = $${setParts.length + 1}`);
+        values.push(expenseType.isActive);
       }
 
       if (setParts.length === 0) return this.getExpenseType(id);
