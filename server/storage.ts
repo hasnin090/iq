@@ -14,7 +14,7 @@ import {
   employees, type Employee, type InsertEmployee
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
-// Removed circular import - pgStorage will be initialized elsewhere
+import { pgStorage } from './pg-storage.js';
 
 export interface IStorage {
   // Database health check
@@ -863,4 +863,4 @@ export class MemStorage implements IStorage {
 
 // تحديد فئة التخزين النشطة
 // يمكن تغيير هذا لاستخدام MemStorage للتطوير المحلي أو PgStorage للإنتاج
-export const storage: IStorage = new MemStorage();
+export const storage: IStorage = pgStorage;
