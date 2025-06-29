@@ -5,6 +5,9 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useAuth } from '@/hooks/use-auth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +25,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CalendarIcon } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 interface Project {
   id: number;
@@ -39,10 +48,26 @@ interface ProjectListProps {
   onProjectUpdated: () => void;
 }
 
+const editProjectSchema = z.object({
+  name: z.string().min(3, "اسم المشروع يجب أن يحتوي على الأقل 3 أحرف"),
+  description: z.string().min(10, "وصف المشروع يجب أن يحتوي على الأقل 10 أحرف"),
+  startDate: z.date({
+    required_error: "تاريخ البدء مطلوب",
+  }),
+  status: z.enum(["active", "completed", "paused"], {
+    required_error: "حالة المشروع مطلوبة",
+  }),
+  progress: z.number().min(0).max(100),
+});
+
+type EditProjectFormValues = z.infer<typeof editProjectSchema>;
+
 export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectListProps) {
   const { user } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
   const { toast } = useToast();
   
   const [errorData, setErrorData] = useState<{
@@ -51,7 +76,42 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
     projectId?: number;
   } | null>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+
+  const editForm = useForm<EditProjectFormValues>({
+    resolver: zodResolver(editProjectSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      startDate: new Date(),
+      status: "active",
+      progress: 0,
+    },
+  });
   
+  const editMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: EditProjectFormValues }) => {
+      return apiRequest(`/api/projects/${id}`, 'PUT', data);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "تم التحديث بنجاح",
+        description: `تم تحديث المشروع "${data?.name || 'الجديد'}" بنجاح`,
+      });
+      setEditDialogOpen(false);
+      setProjectToEdit(null);
+      editForm.reset();
+      onProjectUpdated();
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: error instanceof Error ? error.message : "فشل في تحديث المشروع",
+      });
+      console.error("Error updating project:", error);
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => {
       return apiRequest(`/api/projects/${id}`, 'DELETE', undefined);
@@ -111,6 +171,18 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
     },
   });
   
+  const handleEditClick = (project: Project) => {
+    setProjectToEdit(project);
+    editForm.reset({
+      name: project.name,
+      description: project.description,
+      startDate: new Date(project.startDate),
+      status: project.status as "active" | "completed" | "paused",
+      progress: project.progress,
+    });
+    setEditDialogOpen(true);
+  };
+
   const handleDeleteClick = (project: Project) => {
     setProjectToDelete(project);
     setDeleteDialogOpen(true);
@@ -121,6 +193,12 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
       deleteMutation.mutate(projectToDelete.id);
     }
     setDeleteDialogOpen(false);
+  };
+
+  const onEditSubmit = (data: EditProjectFormValues) => {
+    if (projectToEdit) {
+      editMutation.mutate({ id: projectToEdit.id, data });
+    }
   };
   
   const formatDate = (dateString: string) => {
@@ -193,13 +271,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
                 <div className="flex justify-between mt-4 pt-3 border-t border-gray-100">
                   <button 
                     className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium flex items-center"
-                    onClick={() => {
-                      toast({
-                        title: "تعديل المشروع",
-                        description: `جاري تحميل المشروع: ${project.name}`,
-                      });
-                      // سيتم استبدال هذا بالتعديل الفعلي للمشروع في الإصدار القادم
-                    }}
+                    onClick={() => handleEditClick(project)}
                   >
                     <i className="fas fa-edit ml-1.5"></i>
                     تعديل
@@ -258,6 +330,178 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* نافذة تعديل المشروع */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-primary flex items-center">
+              <i className="fas fa-edit ml-2"></i>
+              تعديل المشروع
+            </DialogTitle>
+          </DialogHeader>
+          
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم المشروع</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="أدخل اسم المشروع"
+                        disabled={editMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>وصف المشروع</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        rows={3}
+                        placeholder="أدخل وصف المشروع"
+                        disabled={editMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>تاريخ البدء</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className="w-full h-10 text-right justify-between"
+                              disabled={editMutation.isPending}
+                            >
+                              {field.value ? (
+                                format(field.value, "yyyy/MM/dd")
+                              ) : (
+                                <span>اختر التاريخ</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>حالة المشروع</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value} 
+                        disabled={editMutation.isPending}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر حالة المشروع" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="active">نشط</SelectItem>
+                          <SelectItem value="paused">متوقف مؤقتاً</SelectItem>
+                          <SelectItem value="completed">مكتمل</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={editForm.control}
+                name="progress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>نسبة التقدم (%)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="0"
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        disabled={editMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditDialogOpen(false);
+                    setProjectToEdit(null);
+                    editForm.reset();
+                  }}
+                  disabled={editMutation.isPending}
+                >
+                  إلغاء
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={editMutation.isPending}
+                >
+                  {editMutation.isPending ? (
+                    <>
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                      جاري الحفظ...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-save ml-2"></i>
+                      حفظ التغييرات
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
       
       {/* مربع حوار تفاصيل خطأ الحذف */}
       <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
