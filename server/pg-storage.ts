@@ -879,7 +879,7 @@ export class PgStorage implements IStorage {
       }
 
       const result = await this.sql`DELETE FROM expense_types WHERE id = ${id}`;
-      return result.length > 0;
+      return true;
     } catch (error) {
       console.error('Error deleting expense type:', error);
       throw error;
