@@ -797,7 +797,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`User ${userId} (${userRole}) has access to projects:`, projectIds);
         console.log(`Total transactions before filtering:`, transactions.length);
-        console.log(`Sample transactions projectIds:`, transactions.slice(0, 3).map(t => ({ id: t.id, projectId: t.projectId })));
+        console.log(`Sample transaction structure:`, transactions[0] ? Object.keys(transactions[0]) : 'No transactions');
+        console.log(`Sample transactions projectIds:`, transactions.slice(0, 3).map(t => ({ 
+          id: t.id, 
+          projectId: t.projectId, 
+          project_id: (t as any).project_id 
+        })));
         
         // فلترة المعاملات بحيث تظهر فقط معاملات المشاريع التي يملك المستخدم وصولاً إليها
         if (projectIds.length > 0) {
