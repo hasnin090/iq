@@ -265,12 +265,14 @@ export class PgStorage implements IStorage {
 
   async getUserProjects(userId: number): Promise<Project[]> {
     try {
+      console.log(`PgStorage: Getting projects for user ${userId}`);
       const result = await this.sql`
         SELECT p.* FROM projects p
         JOIN user_projects up ON p.id = up.project_id
         WHERE up.user_id = ${userId}
         ORDER BY p.id DESC
       `;
+      console.log(`PgStorage: Found ${result.length} projects for user ${userId}:`, result.map(p => ({ id: p.id, name: p.name })));
       return result as Project[];
     } catch (error) {
       console.error('Error getting user projects:', error);
