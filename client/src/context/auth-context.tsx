@@ -49,33 +49,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(false); // Changed to false
   const { toast } = useToast();
 
-  // تحقق من جلسة المستخدم عند تحميل التطبيق (محسن لتجنب الطلبات المتكررة)
+  // تحقق من جلسة المستخدم مرة واحدة فقط عند تحميل التطبيق
   useEffect(() => {
+    let isMounted = true;
+    
     const checkSession = async () => {
+      if (!isMounted) return;
+      
       try {
         setIsLoading(true);
         
-        // الحصول على البيانات من التخزين المحلي أولاً
+        // استخدام البيانات المحلية إذا متوفرة
         const storedUser = localStorage.getItem('auth_user');
         if (storedUser) {
           try {
             const foundUser = JSON.parse(storedUser);
-            setUser(foundUser);
-            setIsLoading(false);
-            return; // استخدام البيانات المحلية وإيقاف الفحص
+            if (isMounted) {
+              setUser(foundUser);
+              setIsLoading(false);
+            }
+            return;
           } catch (err) {
             localStorage.removeItem('auth_user');
           }
         }
         
-        // فحص الجلسة من الخادم مرة واحدة فقط
+        // محاولة واحدة فقط للاتصال بالخادم
         try {
           const response = await fetch('/api/auth/session', {
             credentials: 'include',
-            headers: {
-              'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
           });
+          
+          if (!isMounted) return;
           
           if (response.ok) {
             const userData = await response.json();
@@ -83,20 +89,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
             localStorage.setItem('auth_user', JSON.stringify(userData));
           } else {
             setUser(null);
-            localStorage.removeItem('auth_user');
           }
         } catch (error) {
-          setUser(null);
-          localStorage.removeItem('auth_user');
+          if (isMounted) setUser(null);
         }
       } catch (error) {
-        setUser(null);
+        if (isMounted) setUser(null);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     checkSession();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // استمع لتغييرات المصادقة من Firebase (إذا كان متاحًا)
