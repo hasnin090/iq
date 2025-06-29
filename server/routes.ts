@@ -795,11 +795,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userProjects = await storage.getUserProjects(userId);
         const projectIds = userProjects.map(project => project.id);
         
-        // فلترة المعاملات بحيث تظهر فقط:
-        // معاملات المشاريع التي يملك المستخدم وصولاً إليها، واستبعاد معاملات الصندوق الرئيسي تماماً
-        transactions = transactions.filter(t => 
-          t.projectId && projectIds.includes(t.projectId)
-        );
+        console.log(`User ${userId} (${userRole}) has access to projects:`, projectIds);
+        console.log(`Total transactions before filtering:`, transactions.length);
+        
+        // فلترة المعاملات بحيث تظهر فقط معاملات المشاريع التي يملك المستخدم وصولاً إليها
+        if (projectIds.length > 0) {
+          transactions = transactions.filter(t => 
+            t.projectId && projectIds.includes(t.projectId)
+          );
+        } else {
+          // إذا لم يكن للمستخدم مشاريع، لا يرى أي معاملات
+          transactions = [];
+        }
+        
+        console.log(`Transactions after filtering:`, transactions.length);
       }
       
       // Filter by project if specified
