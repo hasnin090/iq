@@ -69,7 +69,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
   });
 
   if (transactionType !== "expense") return null;
-  
+
   return (
     <FormField
       control={form.control}
@@ -78,12 +78,18 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
         <FormItem>
           <FormLabel>نوع المصروف</FormLabel>
           <Select onValueChange={(value) => {
-            field.onChange(value);
-            // إعادة تعيين الموظف عند تغيير نوع المصروف
-            if (value !== "راتب") {
-              form.setValue("employeeId", "");
-            }
-          }} value={field.value}>
+              field.onChange(value);
+              // إعادة تعيين الموظف عند تغيير نوع المصروف
+              if (value !== "راتب") {
+                form.setValue("employeeId", "");
+              }
+              // تحديث الوصف التلقائي بناءً على نوع المصروف
+              const currentDescription = form.getValues("description");
+              if (!currentDescription || currentDescription === "مصروف عام" || 
+                  expenseTypes.some(type => type.name === currentDescription)) {
+                form.setValue("description", value);
+              }
+            }} value={field.value}>
             <FormControl>
               <SelectTrigger className="flex items-center justify-between px-3 py-2 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-full h-10 rounded-lg bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-center text-[13px] font-normal">
                 <SelectValue placeholder="اختر نوع المصروف" />
@@ -96,7 +102,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
                   {type.name}
                 </SelectItem>
               ))}
-              
+
               {/* إضافة الأنواع الافتراضية إذا لم تكن موجودة */}
               {expenseTypes.length === 0 && (
                 <>
@@ -165,7 +171,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   // جلب الموظفين حسب دور المستخدم
   const currentProjectId = form.watch('projectId');
   const isValidProjectId = currentProjectId && currentProjectId !== 'none' && currentProjectId !== '' && !isNaN(Number(currentProjectId));
-  
+
   const { data: availableEmployees = [] } = useQuery<Employee[]>({
     queryKey: user?.role === 'admin' ? ['/api/employees'] : ['/api/employees/by-project', currentProjectId],
     queryFn: async () => {
@@ -202,7 +208,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   // التحقق من وجوب اختيار مشروع للمستخدمين العاديين
   const validateProjectSelection = () => {
     const projectId = form.getValues('projectId');
-    
+
     // إذا كان المستخدم عادي وليس لديه مشروع محدد
     if (user?.role !== 'admin') {
       // إذا لم يتم تعيين مشروع تلقائياً، حاول تعيين المشروع الأول من القائمة
@@ -211,7 +217,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         form.setValue('projectId', userProjects[0].id.toString());
         return true;
       }
-      
+
       // إذا لم يكن هناك مشاريع متاحة للمستخدم
       if (!userProjects || !Array.isArray(userProjects) || userProjects.length === 0) {
         toast({
@@ -222,7 +228,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         return false;
       }
     }
-    
+
     return true;
   };
 
@@ -230,16 +236,16 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
     mutationFn: async (data: TransactionFormValues) => {
       try {
         const formData = new FormData();
-        
+
         if (selectedFile) {
           formData.append('file', selectedFile);
         }
-        
+
         formData.append('date', data.date.toISOString());
         formData.append('type', data.type);
         formData.append('amount', data.amount.toString());
         formData.append('description', data.description);
-        
+
         // إضافة نوع المصروف إذا كان النوع مصروف
         if (data.type === 'expense' && data.expenseType) {
           formData.append('expenseType', data.expenseType);
@@ -249,11 +255,11 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         if (data.type === 'expense' && data.expenseType === 'راتب' && data.employeeId) {
           formData.append('employeeId', data.employeeId);
         }
-        
+
         if (data.projectId && data.projectId !== "none") {
           formData.append('projectId', data.projectId);
         }
-        
+
         return fetch('/api/transactions', {
           method: 'POST',
           body: formData,
@@ -273,20 +279,20 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         title: "تمت العملية بنجاح",
         description: "تم حفظ المعاملة المالية بنجاح",
       });
-      
+
       // إضافة المعاملة الجديدة للكاش المحلي إذا كانت متوفرة
       if (newTransaction) {
         addTransactionToCache(newTransaction);
       }
-      
+
       // تحديث شامل للكاش
       refreshTransactions();
-      
+
       // إعادة تعيين النموذج مع الحفاظ على المشروع للمستخدمين العاديين
       const resetProjectId = user?.role !== 'admin' && userProjects && Array.isArray(userProjects) && userProjects.length > 0 
         ? userProjects[0].id.toString() 
         : "";
-        
+
       form.reset({
         date: new Date(),
         type: "expense",
@@ -357,7 +363,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
-            
+
             {/* الصف الأول: التاريخ ونوع العملية والمبلغ */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
@@ -500,7 +506,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
                 const expenseType = form.watch('expenseType') as string;
                 console.log('Current expense type:', expenseType, 'Should show employee dropdown?', expenseType === "راتب");
                 if (expenseType !== "راتب") return null;
-                
+
                 return (
                   <FormItem>
                     <FormLabel>اختر الموظف</FormLabel>
@@ -604,7 +610,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
             {/* الصف الرابع: المرفقات */}
             <div className="space-y-3">
               <label className="text-sm font-medium">مرفق (اختياري)</label>
-              
+
               <div className="border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/20">
                 {selectedFile ? (
                   <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">

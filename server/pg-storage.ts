@@ -55,24 +55,24 @@ export class PgStorage implements IStorage {
       return false;
     }
   }
-  
+
   // ======== إدارة المستخدمين ========
-  
+
   async getUser(id: number): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id));
     return result.length > 0 ? result[0] : undefined;
   }
-  
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.username, username));
     return result.length > 0 ? result[0] : undefined;
   }
-  
+
   async getUserByEmail(email: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.email, email));
     return result.length > 0 ? result[0] : undefined;
   }
-  
+
   async createUser(user: InsertUser): Promise<User> {
     // تشفير كلمة المرور قبل حفظها
     if (user.password) {
@@ -81,7 +81,7 @@ export class PgStorage implements IStorage {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
   }
-  
+
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
     // تشفير كلمة المرور الجديدة إذا تم تحديثها
     if (userData.password) {
@@ -93,11 +93,11 @@ export class PgStorage implements IStorage {
       .returning();
     return updatedUser;
   }
-  
+
   async listUsers(): Promise<User[]> {
     return await db.select().from(users);
   }
-  
+
   async deleteUser(id: number): Promise<boolean> {
     try {
       // 1. التعامل مع علاقات المستخدم مع المشاريع
@@ -109,7 +109,7 @@ export class PgStorage implements IStorage {
           );
         `);
         const exists = userProjectsExists.rows[0]?.exists === true;
-        
+
         if (exists) {
           console.log("جدول user_projects موجود، جاري حذف علاقات المستخدم");
           await db.delete(userProjects).where(eq(userProjects.userId, id));
@@ -120,7 +120,7 @@ export class PgStorage implements IStorage {
         console.error("خطأ عند التعامل مع جدول user_projects:", error);
         // استمرار التنفيذ حتى إذا فشلت هذه الخطوة
       }
-      
+
       // 2. تحديث المستندات التي قام المستخدم برفعها
       try {
         const documentsExists = await db.execute(`
@@ -130,7 +130,7 @@ export class PgStorage implements IStorage {
           );
         `);
         const exists = documentsExists.rows[0]?.exists === true;
-        
+
         if (exists) {
           console.log("جدول documents موجود، جاري تحديث المستندات");
           await db.update(documents)
@@ -142,7 +142,7 @@ export class PgStorage implements IStorage {
       } catch (error) {
         console.error("خطأ عند التعامل مع جدول documents:", error);
       }
-      
+
       // 3. تحديث المعاملات المالية التي قام المستخدم بإنشائها
       try {
         const transactionsExists = await db.execute(`
@@ -152,7 +152,7 @@ export class PgStorage implements IStorage {
           );
         `);
         const exists = transactionsExists.rows[0]?.exists === true;
-        
+
         if (exists) {
           console.log("جدول transactions موجود، جاري تحديث المعاملات");
           await db.update(transactions)
@@ -164,7 +164,7 @@ export class PgStorage implements IStorage {
       } catch (error) {
         console.error("خطأ عند التعامل مع جدول transactions:", error);
       }
-      
+
       // 4. تحديث المشاريع التي قام المستخدم بإنشائها
       try {
         const projectsExists = await db.execute(`
@@ -174,7 +174,7 @@ export class PgStorage implements IStorage {
           );
         `);
         const exists = projectsExists.rows[0]?.exists === true;
-        
+
         if (exists) {
           console.log("جدول projects موجود، جاري تحديث المشاريع");
           await db.update(projects)
@@ -186,7 +186,7 @@ export class PgStorage implements IStorage {
       } catch (error) {
         console.error("خطأ عند التعامل مع جدول projects:", error);
       }
-      
+
       // 5. تحديث صناديق المستخدم
       try {
         const fundsExists = await db.execute(`
@@ -196,7 +196,7 @@ export class PgStorage implements IStorage {
           );
         `);
         const exists = fundsExists.rows[0]?.exists === true;
-        
+
         if (exists) {
           console.log("جدول funds موجود، جاري تحديث الصناديق");
           await db.update(funds)
@@ -208,7 +208,7 @@ export class PgStorage implements IStorage {
       } catch (error) {
         console.error("خطأ عند التعامل مع جدول funds:", error);
       }
-      
+
       // 6. تحديث سجلات النشاط المرتبطة بالمستخدم
       try {
         const activityLogsExists = await db.execute(`
@@ -218,7 +218,7 @@ export class PgStorage implements IStorage {
           );
         `);
         const exists = activityLogsExists.rows[0]?.exists === true;
-        
+
         if (exists) {
           console.log("جدول activity_logs موجود، جاري تحديث سجلات النشاط");
           await db.update(activityLogs)
@@ -230,7 +230,7 @@ export class PgStorage implements IStorage {
       } catch (error) {
         console.error("خطأ عند التعامل مع جدول activity_logs:", error);
       }
-      
+
       // 7. أخيراً، حذف المستخدم
       const result = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id });
       return result.length > 0;
@@ -239,18 +239,18 @@ export class PgStorage implements IStorage {
       throw error;
     }
   }
-  
+
   async validatePassword(storedPassword: string, inputPassword: string): Promise<boolean> {
     try {
       if (!storedPassword || !inputPassword) {
         return false;
       }
-      
+
       // تحقق من قوة كلمة المرور (8 أحرف على الأقل)
       if (inputPassword.length < 8) {
         return false;
       }
-      
+
       // استخدام bcrypt للتحقق من كلمة المرور مع مستوى تشفير عالي
       const result = await bcrypt.compare(inputPassword, storedPassword);
       return result;
@@ -270,19 +270,19 @@ export class PgStorage implements IStorage {
       throw new Error('فشل في تشفير كلمة المرور');
     }
   }
-  
+
   // ======== إدارة المشاريع ========
-  
+
   async getProject(id: number): Promise<Project | undefined> {
     const result = await db.select().from(projects).where(eq(projects.id, id));
     return result.length > 0 ? result[0] : undefined;
   }
-  
+
   async createProject(project: InsertProject): Promise<Project> {
     // تحديد حقول المشروع التي سيتم إدخالها
     const { name, description, startDate, status } = project;
     const createdBy = project.createdBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
-    
+
     // إنشاء مشروع جديد بالقيم المحددة
     const [newProject] = await db.insert(projects).values({
       name,
@@ -292,10 +292,10 @@ export class PgStorage implements IStorage {
       createdBy,
       // progress تم تعيينه افتراضيًا إلى 0 في تعريف الجدول
     }).returning();
-    
+
     return newProject;
   }
-  
+
   async updateProject(id: number, projectData: Partial<Project>): Promise<Project | undefined> {
     const [updatedProject] = await db.update(projects)
       .set(projectData)
@@ -303,28 +303,28 @@ export class PgStorage implements IStorage {
       .returning();
     return updatedProject;
   }
-  
+
   async listProjects(): Promise<Project[]> {
     return await db.select().from(projects);
   }
-  
+
   async deleteProject(id: number): Promise<boolean> {
     const result = await db.delete(projects).where(eq(projects.id, id)).returning({ id: projects.id });
     return result.length > 0;
   }
-  
+
   // ======== إدارة المعاملات المالية ========
-  
+
   async getTransaction(id: number): Promise<Transaction | undefined> {
     const result = await db.select().from(transactions).where(eq(transactions.id, id));
     return result.length > 0 ? result[0] : undefined;
   }
-  
+
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     // تحديد حقول المعاملة التي سيتم إدخالها
     const { date, amount, type, expenseType, description, projectId, fileUrl, fileType } = transaction;
     const createdBy = transaction.createdBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد createdBy
-    
+
     // إنشاء معاملة جديدة بالقيم المحددة
     const [newTransaction] = await db.insert(transactions).values({
       date,
@@ -337,10 +337,10 @@ export class PgStorage implements IStorage {
       fileUrl,
       fileType
     }).returning();
-    
+
     return newTransaction;
   }
-  
+
   async updateTransaction(id: number, transactionData: Partial<Transaction>): Promise<Transaction | undefined> {
     const [updatedTransaction] = await db.update(transactions)
       .set(transactionData)
@@ -348,23 +348,23 @@ export class PgStorage implements IStorage {
       .returning();
     return updatedTransaction;
   }
-  
+
   async listTransactions(): Promise<Transaction[]> {
     return await db.select().from(transactions);
   }
-  
+
   async getTransactionsByProject(projectId: number): Promise<Transaction[]> {
     return await db.select().from(transactions).where(eq(transactions.projectId, projectId));
   }
-  
+
   async deleteTransaction(id: number): Promise<boolean> {
     try {
       // حذف روابط المستندات أولاً
       await db.delete(documentTransactionLinks).where(eq(documentTransactionLinks.transactionId, id));
-      
+
       // حذف الإدخالات المرتبطة
       await db.delete(ledgerEntries).where(eq(ledgerEntries.transactionId, id));
-      
+
       // ثم حذف المعاملة
       const result = await db.delete(transactions).where(eq(transactions.id, id)).returning({ id: transactions.id });
       return result.length > 0;
@@ -373,20 +373,20 @@ export class PgStorage implements IStorage {
       throw error;
     }
   }
-  
+
   // ======== إدارة المستندات ========
-  
+
   async getDocument(id: number): Promise<Document | undefined> {
     const result = await db.select().from(documents).where(eq(documents.id, id));
     return result.length > 0 ? result[0] : undefined;
   }
-  
+
   async createDocument(document: InsertDocument): Promise<Document> {
     // تحديد حقول المستند التي سيتم إدخالها
     const { name, description, fileUrl, fileType, projectId, isManagerDocument } = document;
     const uploadDate = document.uploadDate || new Date();
     const uploadedBy = document.uploadedBy || 1; // استخدام القيمة الافتراضية 1 إذا لم يتم تحديد uploadedBy
-    
+
     // إنشاء مستند جديد بالقيم المحددة
     const [newDocument] = await db.insert(documents).values({
       name,
@@ -398,10 +398,10 @@ export class PgStorage implements IStorage {
       uploadedBy,
       isManagerDocument: isManagerDocument || false // استخدام القيمة المحددة أو false كقيمة افتراضية
     }).returning();
-    
+
     return newDocument;
   }
-  
+
   async updateDocument(id: number, documentData: Partial<Document>): Promise<Document | undefined> {
     const [updatedDocument] = await db.update(documents)
       .set(documentData)
@@ -409,37 +409,37 @@ export class PgStorage implements IStorage {
       .returning();
     return updatedDocument;
   }
-  
+
   async listDocuments(): Promise<Document[]> {
     return await db.select().from(documents);
   }
-  
+
   async getDocumentsByProject(projectId: number): Promise<Document[]> {
     return await db.select().from(documents).where(eq(documents.projectId, projectId));
   }
-  
+
   async deleteDocument(id: number): Promise<boolean> {
     const result = await db.delete(documents).where(eq(documents.id, id)).returning({ id: documents.id });
     return result.length > 0;
   }
-  
+
   // ======== إدارة سجلات النشاط ========
-  
+
   async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
     const [newLog] = await db.insert(activityLogs).values(log).returning();
     return newLog;
   }
-  
+
   async listActivityLogs(): Promise<ActivityLog[]> {
     return await db.select().from(activityLogs).orderBy(desc(activityLogs.timestamp));
   }
-  
+
   async getActivityLogsByUser(userId: number): Promise<ActivityLog[]> {
     return await db.select().from(activityLogs)
       .where(eq(activityLogs.userId, userId))
       .orderBy(desc(activityLogs.timestamp));
   }
-  
+
   async getActivityLogsByEntity(entityType: string, entityId: number): Promise<ActivityLog[]> {
     return await db.select().from(activityLogs)
       .where(and(
@@ -448,18 +448,18 @@ export class PgStorage implements IStorage {
       ))
       .orderBy(desc(activityLogs.timestamp));
   }
-  
+
   // ======== إدارة الإعدادات ========
-  
+
   async getSetting(key: string): Promise<Setting | undefined> {
     const result = await db.select().from(settings).where(eq(settings.key, key));
     return result.length > 0 ? result[0] : undefined;
   }
-  
+
   async updateSetting(key: string, value: string): Promise<Setting | undefined> {
     // تحقق مما إذا كان الإعداد موجودًا بالفعل
     const existingSetting = await this.getSetting(key);
-    
+
     if (existingSetting) {
       // تحديث الإعداد الموجود
       const [updatedSetting] = await db.update(settings)
@@ -479,13 +479,13 @@ export class PgStorage implements IStorage {
       return newSetting;
     }
   }
-  
+
   async listSettings(): Promise<Setting[]> {
     return await db.select().from(settings);
   }
 
   // ======== إدارة علاقات المستخدمين والمشاريع ========
-  
+
   async assignUserToProject(userProject: InsertUserProject): Promise<UserProject> {
     const [newUserProject] = await db.insert(userProjects).values({
       ...userProject,
@@ -567,7 +567,7 @@ export class PgStorage implements IStorage {
   async checkUserProjectAccess(userId: number, projectId: number): Promise<boolean> {
     try {
       console.log(`checkUserProjectAccess - التحقق من صلاحيات المستخدم ${userId} للوصول إلى المشروع ${projectId}`);
-      
+
       // المدير لديه وصول لجميع المشاريع
       const user = await this.getUser(userId);
       if (user?.role === 'admin') {
@@ -583,7 +583,7 @@ export class PgStorage implements IStorage {
             eq(userProjects.projectId, projectId)
           )
         );
-      
+
       const hasAccess = result.length > 0;
       console.log(`checkUserProjectAccess - نتيجة التحقق من الصلاحيات للمستخدم ${userId}:`, hasAccess ? "مصرح" : "غير مصرح");
       return hasAccess;
@@ -595,7 +595,7 @@ export class PgStorage implements IStorage {
   }
 
   // ======== إدارة الصناديق ========
-  
+
   async getFund(id: number): Promise<Fund | undefined> {
     const result = await db.select().from(funds).where(eq(funds.id, id));
     return result.length > 0 ? result[0] : undefined;
@@ -610,9 +610,9 @@ export class PgStorage implements IStorage {
   async getFundByOwner(ownerId: number, useMainAdmin: boolean = false): Promise<Fund | undefined> {
     // إذا كانت قيمة useMainAdmin هي true، استخدم دائماً صندوق المدير الرئيسي (معرف=1)
     const effectiveOwnerId = useMainAdmin ? 1 : ownerId;
-    
+
     console.log(`getFundByOwner - البحث عن صندوق للمالك: ${effectiveOwnerId}, useMainAdmin: ${useMainAdmin}`);
-    
+
     const result = await db.select().from(funds)
       .where(
         and(
@@ -620,7 +620,7 @@ export class PgStorage implements IStorage {
           eq(funds.ownerId, effectiveOwnerId)
         )
       );
-      
+
     console.log(`getFundByOwner - نتيجة البحث:`, result.length > 0 ? "تم العثور على صندوق" : "لم يتم العثور على صندوق");
     return result.length > 0 ? result[0] : undefined;
   }
@@ -638,12 +638,12 @@ export class PgStorage implements IStorage {
 
   async createFund(fund: InsertFund): Promise<Fund> {
     const now = new Date();
-    
+
     // تحديد القيم الافتراضية للحقول الفارغة
     const projectId = fund.projectId || null;
     const ownerId = fund.ownerId || null;
     const balance = fund.balance || 0;
-    
+
     const [newFund] = await db.insert(funds).values({
       name: fund.name,
       balance,
@@ -653,7 +653,7 @@ export class PgStorage implements IStorage {
       createdAt: now,
       updatedAt: now
     }).returning();
-    
+
     return newFund;
   }
 
@@ -661,10 +661,10 @@ export class PgStorage implements IStorage {
     // الحصول على الصندوق الحالي
     const currentFund = await this.getFund(id);
     if (!currentFund) return undefined;
-    
+
     // حساب الرصيد الجديد
     const newBalance = currentFund.balance + amount;
-    
+
     // تحديث الصندوق
     const [updatedFund] = await db.update(funds)
       .set({ 
@@ -673,7 +673,7 @@ export class PgStorage implements IStorage {
       })
       .where(eq(funds.id, id))
       .returning();
-      
+
     return updatedFund;
   }
 
@@ -684,7 +684,7 @@ export class PgStorage implements IStorage {
   // عملية الإيداع: يستقطع المبلغ من حساب المدير ويذهب إلى حساب المشروع
   async processDeposit(userId: number, projectId: number, amount: number, description: string): Promise<{ transaction: Transaction, adminTransaction?: Transaction, adminFund?: Fund, projectFund?: Fund }> {
     console.log(`processDeposit - بدء عملية إيداع بواسطة المستخدم ${userId} في المشروع ${projectId} بمبلغ ${amount}`);
-    
+
     try {
       // التحقق من صلاحية المشروع
       const project = await this.getProject(projectId);
@@ -717,7 +717,7 @@ export class PgStorage implements IStorage {
 
       // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
       console.log(`processDeposit - جاري البحث عن صندوق المدير الرئيسي (المستخدم رقم 1)`);
-      
+
       // البحث عن صندوق المدير الرئيسي بشكل مباشر
       const adminFundsResult = await db.select().from(funds)
         .where(
@@ -726,10 +726,10 @@ export class PgStorage implements IStorage {
             eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
           )
         );
-        
+
       let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
       console.log(`processDeposit - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
-      
+
       if (!adminFund) {
         console.log(`processDeposit - صندوق المدير الرئيسي غير موجود، جاري إنشاء صندوق جديد`);
         // إنشاء صندوق المدير إذا لم يكن موجوداً
@@ -742,7 +742,7 @@ export class PgStorage implements IStorage {
         });
         console.log(`processDeposit - تم إنشاء صندوق المدير الرئيسي:`, JSON.stringify(adminFund));
       }
-      
+
       console.log(`processDeposit - رصيد المدير قبل العملية: ${adminFund.balance}`);
 
       // التحقق من رصيد المدير
@@ -761,14 +761,14 @@ export class PgStorage implements IStorage {
           projectId
         });
       }
-      
+
       console.log(`processDeposit - رصيد المشروع قبل العملية: ${projectFund.balance}`);
 
       // تنفيذ العملية في قاعدة البيانات كمعاملة واحدة
       try {
         // 1. خصم المبلغ من صندوق المدير - نقوم بتمرير قيمة سالبة للخصم
         const originalAdminBalance = adminFund.balance;
-        
+
         // تحديث مباشر لصندوق المدير
         const [updatedAdminFund] = await db.update(funds)
           .set({ 
@@ -777,14 +777,14 @@ export class PgStorage implements IStorage {
           })
           .where(eq(funds.id, adminFund.id))
           .returning();
-          
+
         adminFund = updatedAdminFund;
-            
+
         console.log(`processDeposit - المبلغ المخصوم من المدير: ${amount}, الرصيد قبل: ${originalAdminBalance}, الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
-    
+
         // 2. إضافة المبلغ إلى صندوق المشروع
         const originalProjectBalance = projectFund.balance;
-        
+
         // تحديث مباشر لصندوق المشروع
         const [updatedProjectFund] = await db.update(funds)
           .set({ 
@@ -793,9 +793,9 @@ export class PgStorage implements IStorage {
           })
           .where(eq(funds.id, projectFund.id))
           .returning();
-          
+
         projectFund = updatedProjectFund;
-            
+
         console.log(`processDeposit - المبلغ المضاف للمشروع: ${amount}, الرصيد قبل: ${originalProjectBalance}, الرصيد بعد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
       } catch (error) {
         console.error(`خطأ أثناء تحديث الأرصدة:`, error);
@@ -839,7 +839,7 @@ export class PgStorage implements IStorage {
         details: `إيداع مبلغ ${amount} في المشروع: ${project.name}`,
         userId
       });
-      
+
       console.log(`processDeposit - اكتمال العملية، تفاصيل النتيجة: معاملة المشروع رقم ${projectTransaction.id}, معاملة المدير رقم ${adminTransaction.id}, رصيد المدير الجديد: ${adminFund ? adminFund.balance : 'غير معروف'}, رصيد المشروع الجديد: ${projectFund ? projectFund.balance : 'غير معروف'}`);
 
       return {
@@ -857,11 +857,11 @@ export class PgStorage implements IStorage {
   // عملية السحب: يستقطع المبلغ من صندوق المشروع نفسه
   async processWithdrawal(userId: number, projectId: number, amount: number, description: string, expenseType?: string): Promise<{ transaction: Transaction, projectFund?: Fund }> {
     console.log(`processWithdrawal - بدء عملية صرف بواسطة المستخدم ${userId} من المشروع ${projectId} بمبلغ ${amount}`);
-    
+
     try {
       // التحقق من صلاحية المشروع
       const project = await this.getProject(projectId);
-      if (!project) {
+      if (!{!project) {
         console.log(`processWithdrawal - المشروع رقم ${projectId} غير موجود`);
         throw new Error("المشروع غير موجود");
       }
@@ -897,15 +897,15 @@ export class PgStorage implements IStorage {
         FROM transactions 
         WHERE project_id = $1
       `, [projectId]);
-      
+
       const actualBalance = balanceResult[0].total_income - balanceResult[0].total_expenses;
-      
+
       // البحث عن صندوق المشروع أو إنشاؤه
       let projectFund = await this.getFundByProject(projectId);
-      
+
       if (!projectFund) {
         console.log(`processWithdrawal - صندوق المشروع غير موجود للمشروع رقم ${projectId}، سيتم إنشاؤه`);
-        
+
         projectFund = await this.createFund({
           name: `صندوق المشروع: ${project.name}`,
           balance: actualBalance,
@@ -913,7 +913,7 @@ export class PgStorage implements IStorage {
           ownerId: null,
           projectId
         });
-        
+
         console.log(`processWithdrawal - تم إنشاء صندوق جديد للمشروع بمعرف: ${projectFund.id}`);
       } else {
         // تحديث رصيد الصندوق ليتطابق مع الرصيد الفعلي من المعاملات
@@ -923,11 +923,11 @@ export class PgStorage implements IStorage {
             updatedAt: new Date()
           })
           .where(eq(funds.id, projectFund.id));
-        
+
         projectFund.balance = actualBalance;
         console.log(`processWithdrawal - تم تحديث رصيد صندوق المشروع ليتطابق مع المعاملات الفعلية: ${actualBalance}`);
       }
-      
+
       console.log(`processWithdrawal - الرصيد الفعلي للمشروع: ${actualBalance}, المبلغ المطلوب: ${amount}`);
 
       // التحقق من رصيد المشروع
@@ -940,7 +940,7 @@ export class PgStorage implements IStorage {
       // إنشاء المعاملة أولاً ثم تحديث رصيد الصندوق
       try {
         const newBalance = actualBalance - amount;
-        
+
         // تحديث رصيد صندوق المشروع
         const [updatedProjectFund] = await db.update(funds)
           .set({ 
@@ -949,9 +949,9 @@ export class PgStorage implements IStorage {
           })
           .where(eq(funds.id, projectFund.id))
           .returning();
-        
+
         console.log(`processWithdrawal - خصم مبلغ ${amount} من المشروع. الرصيد قبل: ${actualBalance}، الرصيد بعد: ${newBalance}`);
-        
+
         // إنشاء معاملة جديدة
         const transaction = await this.createTransaction({
           date: new Date(),
@@ -964,7 +964,7 @@ export class PgStorage implements IStorage {
           fileUrl: null,
           fileType: null
         });
-    
+
         // إنشاء سجل نشاط
         await this.createActivityLog({
           action: "create",
@@ -973,9 +973,9 @@ export class PgStorage implements IStorage {
           details: `صرف مبلغ ${amount} من المشروع: ${project.name}`,
           userId
         });
-        
+
         console.log(`processWithdrawal - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمشروع: ${updatedProjectFund ? updatedProjectFund.balance : 'غير معروف'}`);
-        
+
         return {
           transaction,
           projectFund: updatedProjectFund
@@ -997,7 +997,7 @@ export class PgStorage implements IStorage {
   // عملية المدير: إيراد يضاف للصندوق، صرف يخصم من الصندوق
   async processAdminTransaction(userId: number, type: string, amount: number, description: string): Promise<{ transaction: Transaction, adminFund?: Fund }> {
     console.log(`processAdminTransaction - بدء عملية ${type} للمدير ${userId} بمبلغ ${amount}`);
-    
+
     try {
       // التحقق من أن المستخدم مدير
       const user = await this.getUser(userId);
@@ -1006,7 +1006,7 @@ export class PgStorage implements IStorage {
         throw new Error("المستخدم غير موجود");
       }
       console.log(`processAdminTransaction - تم العثور على المستخدم: ${user.username}, الدور: ${user.role}`);
-      
+
       if (user.role !== "admin") {
         console.log(`processAdminTransaction - المستخدم ليس مديرًا، الدور الحالي: ${user.role}`);
         throw new Error("هذه العملية متاحة للمدير فقط");
@@ -1014,7 +1014,7 @@ export class PgStorage implements IStorage {
 
       // البحث عن صندوق المدير الرئيسي (دائماً مستخدم رقم 1)
       console.log(`processAdminTransaction - جاري البحث عن صندوق المدير الرئيسي`);
-      
+
       // البحث عن صندوق المدير الرئيسي بشكل مباشر
       const adminFundsResult = await db.select().from(funds)
         .where(
@@ -1023,10 +1023,10 @@ export class PgStorage implements IStorage {
             eq(funds.ownerId, 1) // دائماً نستخدم المستخدم رقم 1 (المدير الرئيسي)
           )
         );
-        
+
       let adminFund = adminFundsResult.length > 0 ? adminFundsResult[0] : undefined;
       console.log(`processAdminTransaction - نتيجة البحث عن صندوق المدير الرئيسي:`, adminFund ? JSON.stringify(adminFund) : "غير موجود");
-      
+
       if (!adminFund) {
         // إنشاء صندوق افتراضي للمدير إذا لم يكن موجودا
         console.log(`processAdminTransaction - إنشاء صندوق مدير رئيسي جديد`);
@@ -1040,7 +1040,7 @@ export class PgStorage implements IStorage {
         console.log(`processAdminTransaction - تم إنشاء صندوق مدير رئيسي برصيد ${adminFund.balance}`);
       } else {
         console.log(`processAdminTransaction - رصيد المدير قبل العملية: ${adminFund.balance}`);
-        
+
         // التحقق من الرصيد في حالة الصرف
         if (type === "expense" && adminFund.balance < amount) {
           console.log(`processAdminTransaction - رصيد المدير غير كافي. الرصيد الحالي: ${adminFund.balance}, المبلغ المطلوب: ${amount}`);
@@ -1051,7 +1051,7 @@ export class PgStorage implements IStorage {
           // تحديث رصيد صندوق المدير مباشرة
           const originalBalance = adminFund.balance;
           const newBalance = type === "income" ? originalBalance + amount : originalBalance - amount;
-          
+
           // تحديث مباشر لصندوق المدير
           const [updatedAdminFund] = await db.update(funds)
             .set({ 
@@ -1060,9 +1060,9 @@ export class PgStorage implements IStorage {
             })
             .where(eq(funds.id, adminFund.id))
             .returning();
-            
+
           adminFund = updatedAdminFund;
-          
+
           console.log(`processAdminTransaction - ${type === "income" ? "إضافة" : "خصم"} مبلغ ${amount} ${type === "income" ? "إلى" : "من"} صندوق المدير. الرصيد قبل: ${originalBalance}، الرصيد بعد: ${adminFund ? adminFund.balance : 'غير معروف'}`);
         } catch (error) {
           console.error(`خطأ أثناء تحديث رصيد المدير:`, error);
@@ -1095,7 +1095,7 @@ export class PgStorage implements IStorage {
         details: `${type === "income" ? "إيراد" : "مصروف"} للمدير: ${amount}`,
         userId
       });
-      
+
       console.log(`processAdminTransaction - اكتمال العملية، معاملة رقم ${transaction.id}، الرصيد النهائي للمدير: ${adminFund ? adminFund.balance : 'غير معروف'}`);
 
       return {
@@ -1109,7 +1109,7 @@ export class PgStorage implements IStorage {
   }
 
   // ======== إدارة أنواع المصروفات ========
-  
+
   async getExpenseType(id: number): Promise<ExpenseType | undefined> {
     const result = await db.select().from(expenseTypes).where(eq(expenseTypes.id, id));
     return result.length > 0 ? result[0] : undefined;
@@ -1130,12 +1130,12 @@ export class PgStorage implements IStorage {
       ...expenseTypeData,
       updatedAt: new Date()
     };
-    
+
     const result = await db.update(expenseTypes)
       .set(updatedData)
       .where(eq(expenseTypes.id, id))
       .returning();
-    
+
     return result.length > 0 ? result[0] : undefined;
   }
 
@@ -1149,15 +1149,66 @@ export class PgStorage implements IStorage {
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(expenseTypes.id, id))
       .returning();
-    
+
     return result.length > 0;
   }
 
-  // ======== إدارة دفتر الأستاذ ========
-  
-  async createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry> {
-    const result = await db.insert(ledgerEntries).values(entry).returning();
-    return result[0];
+  // ======== دفتر الأستاذ ========
+
+  async classifyExpenseTransaction(transaction: Transaction, allowUpdate: boolean = false): Promise<void> {
+    try {
+      // التحقق من أن المعاملة من نوع مصروف ولها نوع محدد
+      if (transaction.type !== 'expense' || !transaction.expenseType || transaction.expenseType === 'مصروف عام') {
+        return;
+      }
+
+      // البحث عن سجل موجود في دفتر الأستاذ
+      const existingEntries = await this.listLedgerEntries();
+      const existingEntry = existingEntries.find(entry => entry.transactionId === transaction.id);
+
+      // البحث عن نوع المصروف أو إنشاؤه
+      let expenseType = await this.getExpenseTypeByName(transaction.expenseType);
+      if (!expenseType) {
+        expenseType = await this.createExpenseType({
+          name: transaction.expenseType,
+          description: `نوع مصروف تم إنشاؤه تلقائياً: ${transaction.expenseType}`,
+          isActive: true
+        });
+        console.log(`تم إنشاء نوع مصروف جديد تلقائياً: ${transaction.expenseType}`);
+      }
+
+      if (!expenseType) {
+        throw new Error(`فشل في إنشاء أو العثور على نوع المصروف: ${transaction.expenseType}`);
+      }
+
+      if (existingEntry) {
+        // تحديث السجل الموجود إذا كان مسموحاً
+        if (allowUpdate && existingEntry.expenseTypeId !== expenseType.id) {
+          await this.updateLedgerEntry(existingEntry.id, {
+            expenseTypeId: expenseType.id,
+            amount: transaction.amount,
+            description: transaction.description || '',
+            date: new Date(transaction.date)
+          });
+          console.log(`تم تحديث سجل دفتر الأستاذ للمعاملة ${transaction.id} بنوع المصروف ${expenseType.name}`);
+        }
+      } else {
+        // إنشاء سجل جديد
+        await this.createLedgerEntry({
+          date: new Date(transaction.date),
+          transactionId: transaction.id,
+          expenseTypeId: expenseType.id,
+          amount: transaction.amount,
+          description: transaction.description || '',
+          projectId: transaction.projectId,
+          entryType: 'classified'
+        });
+        console.log(`تم إنشاء سجل دفتر الأستاذ للمعاملة ${transaction.id} مع نوع المصروف ${expenseType.name}`);
+      }
+    } catch (error) {
+      console.error(`خطأ في تصنيف المعاملة ${transaction.id}:`, error);
+      throw error;
+    }
   }
 
   async updateLedgerEntry(id: number, entry: Partial<LedgerEntry>): Promise<LedgerEntry | undefined> {
@@ -1174,7 +1225,7 @@ export class PgStorage implements IStorage {
     const allEntries = await db.select().from(ledgerEntries)
       .where(eq(ledgerEntries.entryType, entryType))
       .orderBy(desc(ledgerEntries.date));
-    
+
     // تصفية السجلات للاحتفاظ فقط بالسجلات التي تحتوي على expenseTypeId
     return allEntries.filter(entry => entry.expenseTypeId !== null);
   }
@@ -1184,7 +1235,7 @@ export class PgStorage implements IStorage {
     const allEntries = await db.select().from(ledgerEntries)
       .where(eq(ledgerEntries.projectId, projectId))
       .orderBy(desc(ledgerEntries.date));
-    
+
     // تصفية السجلات للاحتفاظ فقط بالسجلات التي تحتوي على expenseTypeId
     return allEntries.filter(entry => entry.expenseTypeId !== null);
   }
@@ -1200,63 +1251,68 @@ export class PgStorage implements IStorage {
     // هذا يضمن أن العمليات تظهر في دفتر الأستاذ فقط بعد تحديد نوع المصروف يدوياً
     const allEntries = await db.select().from(ledgerEntries)
       .orderBy(desc(ledgerEntries.date));
-    
+
     // تصفية السجلات للاحتفاظ فقط بالسجلات التي تحتوي على expenseTypeId
     return allEntries.filter(entry => entry.expenseTypeId !== null);
   }
 
   // ======== دالة مساعدة لتصنيف المصروفات ========
-  
-  async classifyExpenseTransaction(transaction: Transaction, forceClassify: boolean = false): Promise<void> {
-    // التحقق من نوع المعاملة - فقط المصروفات يتم تصنيفها
-    if (transaction.type !== 'expense') {
-      return;
-    }
 
-    let entryType = 'general_expense'; // افتراضي: مصروف عام
-    let expenseTypeId = null;
-    let shouldCreateEntry = forceClassify; // إنشاء السجل فقط إذا كان مطلوباً صراحة
+  // async classifyExpenseTransaction(transaction: Transaction, forceClassify: boolean = false): Promise<void> {
+  //   // التحقق من نوع المعاملة - فقط المصروفات يتم تصنيفها
+  //   if (transaction.type !== 'expense') {
+  //     return;
+  //   }
 
-    // إذا تم تحديد نوع المصروف وليس "مصروف عام"، البحث عنه في قاعدة البيانات
-    if (transaction.expenseType && 
-        transaction.expenseType.trim() !== '' && 
-        transaction.expenseType !== 'مصروف عام') {
-      const expenseType = await this.getExpenseTypeByName(transaction.expenseType);
-      if (expenseType) {
-        entryType = 'classified'; // مصنف حسب النوع
-        expenseTypeId = expenseType.id;
-        shouldCreateEntry = true; // إنشاء سجل للمصروفات المصنفة
-      } else {
-        // إذا لم يتم العثور على نوع المصروف في قاعدة البيانات
-        entryType = 'general_expense';
-        shouldCreateEntry = forceClassify; // إنشاء سجل فقط إذا كان مطلوباً
-      }
-    } else if (transaction.expenseType === 'مصروف عام' && forceClassify) {
-      // إذا كان "مصروف عام" ومطلوب التصنيف القسري
-      entryType = 'general_expense';
-      shouldCreateEntry = true;
-    }
+  //   let entryType = 'general_expense'; // افتراضي: مصروف عام
+  //   let expenseTypeId = null;
+  //   let shouldCreateEntry = forceClassify; // إنشاء السجل فقط إذا كان مطلوباً صراحة
 
-    // إنشاء سجل في دفتر الأستاذ فقط إذا كان مطلوباً
-    if (shouldCreateEntry) {
-      await this.createLedgerEntry({
-        date: transaction.date,
-        transactionId: transaction.id,
-        expenseTypeId,
-        amount: transaction.amount,
-        description: transaction.description,
-        projectId: transaction.projectId,
-        entryType
-      });
+  //   // إذا تم تحديد نوع المصروف وليس "مصروف عام"، البحث عنه في قاعدة البيانات
+  //   if (transaction.expenseType && 
+  //       transaction.expenseType.trim() !== '' && 
+  //       transaction.expenseType !== 'مصروف عام') {
+  //     const expenseType = await this.getExpenseTypeByName(transaction.expenseType);
+  //     if (expenseType) {
+  //       entryType = 'classified'; // مصنف حسب النوع
+  //       expenseTypeId = expenseType.id;
+  //       shouldCreateEntry = true; // إنشاء سجل للمصروفات المصنفة
+  //     } else {
+  //       // إذا لم يتم العثور على نوع المصروف في قاعدة البيانات
+  //       entryType = 'general_expense';
+  //       shouldCreateEntry = forceClassify; // إنشاء سجل فقط إذا كان مطلوباً
+  //     }
+  //   } else if (transaction.expenseType === 'مصروف عام' && forceClassify) {
+  //     // إذا كان "مصروف عام" ومطلوب التصنيف القسري
+  //     entryType = 'general_expense';
+  //     shouldCreateEntry = true;
+  //   }
 
-      console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType} ${expenseTypeId ? `(نوع المصروف: ${expenseTypeId})` : '(مصروف عام)'}`);
-    } else {
-      console.log(`لم يتم تصنيف المعاملة ${transaction.id} - لا يوجد نوع مصروف محدد`);
-    }
+  //   // إنشاء سجل في دفتر الأستاذ فقط إذا كان مطلوباً
+  //   if (shouldCreateEntry) {
+  //     await this.createLedgerEntry({
+  //       date: transaction.date,
+  //       transactionId: transaction.id,
+  //       expenseTypeId,
+  //       amount: transaction.amount,
+  //       description: transaction.description,
+  //       projectId: transaction.projectId,
+  //       entryType
+  //     });
+
+  //     console.log(`تم تصنيف المعاملة ${transaction.id} كـ ${entryType} ${expenseTypeId ? `(نوع المصروف: ${expenseTypeId})` : '(مصروف عام)'}`);
+  //   } else {
+  //     console.log(`لم يتم تصنيف المعاملة ${transaction.id} - لا يوجد نوع مصروف محدد`);
+  //   }
+  // }
+
+  async createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry> {
+    const result = await db.insert(ledgerEntries).values(entry).returning();
+    return result[0];
   }
 
   // ======== إدارة تصنيفات أنواع الحسابات ========
-  
+
   async getAccountCategory(id: number): Promise<AccountCategory | undefined> {
     const result = await db.select().from(accountCategories).where(eq(accountCategories.id, id));
     return result.length > 0 ? result[0] : undefined;
@@ -1272,7 +1328,7 @@ export class PgStorage implements IStorage {
       ...categoryData,
       updatedAt: new Date()
     };
-    
+
     const result = await db.update(accountCategories)
       .set(updatedData)
       .where(eq(accountCategories.id, id))
@@ -1295,7 +1351,7 @@ export class PgStorage implements IStorage {
   }
 
   // ======== إدارة الدفعات المؤجلة ========
-  
+
   async getDeferredPayment(id: number): Promise<DeferredPayment | undefined> {
     const result = await db.select().from(deferredPayments).where(eq(deferredPayments.id, id));
     return result.length > 0 ? result[0] : undefined;
@@ -1308,9 +1364,9 @@ export class PgStorage implements IStorage {
       remainingAmount: payment.totalAmount, // المبلغ المتبقي = المبلغ الإجمالي في البداية
       paidAmount: 0 // المبلغ المدفوع = 0 في البداية
     };
-    
+
     const result = await db.insert(deferredPayments).values([paymentData]).returning();
-    
+
     // البحث عن نوع المصروف "دفعات آجلة" أو إنشاؤه
     let deferredExpenseType = await this.getExpenseTypeByName('دفعات آجلة');
     if (!deferredExpenseType) {
@@ -1320,7 +1376,7 @@ export class PgStorage implements IStorage {
         isActive: true
       });
     }
-    
+
     // إنشاء إدخال في دفتر الأستاذ تلقائياً باسم المستفيد
     const ledgerEntry = await this.createLedgerEntry({
       date: new Date(),
@@ -1331,7 +1387,7 @@ export class PgStorage implements IStorage {
       projectId: result[0].projectId,
       entryType: 'deferred'
     });
-    
+
     // إنشاء سجل نشاط
     await this.createActivityLog({
       action: "create",
@@ -1340,7 +1396,7 @@ export class PgStorage implements IStorage {
       details: `إنشاء دفعة مؤجلة: ${result[0].beneficiaryName} - ${result[0].totalAmount.toLocaleString()} دينار عراقي`,
       userId: payment.userId
     });
-    
+
     return result[0];
   }
 
@@ -1349,12 +1405,12 @@ export class PgStorage implements IStorage {
       ...paymentData,
       updatedAt: new Date()
     };
-    
+
     const result = await db.update(deferredPayments)
       .set(updatedData)
       .where(eq(deferredPayments.id, id))
       .returning();
-      
+
     return result.length > 0 ? result[0] : undefined;
   }
 
@@ -1468,11 +1524,11 @@ export class PgStorage implements IStorage {
         ...employee,
         createdBy: employee.createdBy || 1, // افتراضي للمدير
       };
-      
+
       const [newEmployee] = await db.insert(employees)
         .values(employeeData)
         .returning();
-      
+
       console.log('تم إنشاء موظف جديد:', newEmployee);
       return newEmployee;
     } catch (error) {
@@ -1488,7 +1544,7 @@ export class PgStorage implements IStorage {
     try {
       const allEmployees = await db.select().from(employees)
         .orderBy(desc(employees.createdAt));
-      
+
       console.log(`تم جلب ${allEmployees.length} موظف`);
       return allEmployees;
     } catch (error) {
@@ -1504,7 +1560,7 @@ export class PgStorage implements IStorage {
     try {
       const [employee] = await db.select().from(employees)
         .where(eq(employees.id, id));
-      
+
       return employee || null;
     } catch (error) {
       console.error('خطأ في جلب الموظف:', error);
@@ -1524,11 +1580,11 @@ export class PgStorage implements IStorage {
         })
         .where(eq(employees.id, id))
         .returning();
-      
+
       if (!updatedEmployee) {
         throw new Error('الموظف غير موجود');
       }
-      
+
       console.log('تم تحديث الموظف:', updatedEmployee);
       return updatedEmployee;
     } catch (error) {
@@ -1545,11 +1601,11 @@ export class PgStorage implements IStorage {
       const [deletedEmployee] = await db.delete(employees)
         .where(eq(employees.id, id))
         .returning();
-      
+
       if (!deletedEmployee) {
         throw new Error('الموظف غير موجود');
       }
-      
+
       console.log('تم حذف الموظف:', deletedEmployee);
       return true;
     } catch (error) {
@@ -1571,7 +1627,7 @@ export class PgStorage implements IStorage {
           )
         )
         .orderBy(employees.name);
-      
+
       console.log(`تم جلب ${projectEmployees.length} موظف للمشروع ${projectId}`);
       return projectEmployees;
     } catch (error) {
@@ -1588,7 +1644,7 @@ export class PgStorage implements IStorage {
       const activeEmployees = await db.select().from(employees)
         .where(eq(employees.active, true))
         .orderBy(employees.name);
-      
+
       console.log(`تم جلب ${activeEmployees.length} موظف نشط`);
       return activeEmployees;
     } catch (error) {

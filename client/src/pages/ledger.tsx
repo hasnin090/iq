@@ -167,7 +167,16 @@ export default function LedgerPage() {
       }
     });
     
-    return grouped;
+    // ترتيب المجموعات حسب اسم نوع المصروف
+    const sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'ar'));
+    const sortedGrouped: { [key: string]: { expenseType: ExpenseType; entries: LedgerEntry[] } } = {};
+    sortedKeys.forEach(key => {
+      sortedGrouped[key] = grouped[key];
+      // ترتيب المعاملات داخل كل مجموعة حسب التاريخ (الأحدث أولاً)
+      sortedGrouped[key].entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    });
+    
+    return sortedGrouped;
   }, [ledgerEntries, expenseTypes]);
 
   if (expenseTypesLoading || summaryLoading) {
@@ -307,11 +316,22 @@ export default function LedgerPage() {
 
       <Tabs defaultValue="summary" className="space-y-4">
         <TabsList className="grid w-full overflow-x-auto" style={{ 
-          gridTemplateColumns: `repeat(${3 + ((deferredPayments as any[])?.length || 0)}, minmax(120px, 1fr))` 
+          gridTemplateColumns: `repeat(${4 + Object.keys(groupedEntries).length + ((deferredPayments as any[])?.length || 0)}, minmax(120px, 1fr))` 
         }}>
           <TabsTrigger value="summary">الملخص</TabsTrigger>
           <TabsTrigger value="expense-types">أنواع المصروفات</TabsTrigger>
           <TabsTrigger value="entries">دفتر الأستاذ العام</TabsTrigger>
+          <TabsTrigger value="overview">نظرة شاملة</TabsTrigger>
+          {/* تبويب لكل نوع مصروف */}
+          {Object.keys(groupedEntries).map((expenseTypeName) => (
+            <TabsTrigger 
+              key={expenseTypeName} 
+              value={`expense-type-${expenseTypeName}`}
+              className="text-xs px-2 whitespace-nowrap"
+            >
+              <span className="truncate max-w-20">{expenseTypeName}</span>
+            </TabsTrigger>
+          ))}
           {/* تبويب لكل مستفيد */}
           {(deferredPayments as any[])?.map((beneficiary: any) => (
             <TabsTrigger 
@@ -422,6 +442,216 @@ export default function LedgerPage() {
                 </Card>
               </div>
             </div>
+          )}
+        </TabsContent>
+
+        {/* تبويبات أنواع المصروفات - كل نوع في تبويب منفصل */}
+        {Object.entries(groupedEntries).map(([expenseTypeName, { expenseType, entries }]) => (
+          <TabsContent key={expenseTypeName} value={`expense-type-${expenseTypeName}`} className="space-y-4">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                دفتر أستاذ: {expenseTypeName}
+              </h2>
+              <p className="text-muted-foreground">
+                جميع المعاملات المصنفة تحت نوع المصروف: {expenseTypeName}
+              </p>
+              {expenseType.description && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {expenseType.description}
+                </p>
+              )}
+            </div>
+
+            {/* إحصائيات سريعة */}
+            <div className="grid gap-4 md:grid-cols-3 mb-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">إجمالي المبلغ</CardTitle>
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {entries.reduce((sum, entry) => sum + entry.amount, 0).toLocaleString()} د.ع
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">عدد المعاملات</CardTitle>
+                  <FileText className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {entries.length}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">متوسط المعاملة</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {Math.round(entries.reduce((sum, entry) => sum + entry.amount, 0) / entries.length).toLocaleString()} د.ع
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* جدول المعاملات */}
+            <Card className="border-l-4 border-l-green-500">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-transparent">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-green-600" />
+                  سجل معاملات {expenseTypeName}
+                </CardTitle>
+                <CardDescription>
+                  جميع المعاملات المصنفة تحت هذا النوع مرتبة حسب التاريخ
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">رقم المعاملة</TableHead>
+                        <TableHead className="font-semibold">تاريخ المعاملة</TableHead>
+                        <TableHead className="font-semibold">البيان</TableHead>
+                        <TableHead className="font-semibold text-center">المشروع</TableHead>
+                        <TableHead className="font-semibold text-right">المبلغ</TableHead>
+                        <TableHead className="font-semibold text-right">الرصيد المتراكم</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(() => {
+                        let runningBalance = 0;
+                        return entries.map((entry, index) => {
+                          runningBalance += entry.amount;
+                          return (
+                            <TableRow key={entry.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                              <TableCell className="font-medium text-center">
+                                #{entry.transactionId || entry.id}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {formatDate(entry.date)}
+                              </TableCell>
+                              <TableCell>
+                                <div className="max-w-sm">
+                                  <p className="text-sm font-medium">{entry.description}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {entry.projectId ? (
+                                  <Badge variant="secondary" className="text-xs">
+                                    مشروع {entry.projectId}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-gray-400 text-xs">عام</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right font-mono font-bold text-red-600">
+                                {entry.amount.toLocaleString()} د.ع
+                              </TableCell>
+                              <TableCell className="text-right font-mono font-bold text-blue-600">
+                                {runningBalance.toLocaleString()} د.ع
+                              </TableCell>
+                            </TableRow>
+                          );
+                        });
+                      })()}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ملخص النوع */}
+            <Card className="bg-gradient-to-r from-green-600 to-green-700 text-white">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">
+                      ملخص حساب {expenseTypeName}
+                    </h3>
+                    <p className="text-green-100">
+                      إجمالي المعاملات المصنفة تحت هذا النوع
+                    </p>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-2xl font-bold mb-1">
+                      {entries.reduce((sum, entry) => sum + entry.amount, 0).toLocaleString()} د.ع
+                    </div>
+                    <div className="text-green-100">
+                      إجمالي المبلغ | {entries.length} معاملة
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ))}
+
+        {/* تبويب النظرة الشاملة */}
+        <TabsContent value="overview" className="space-y-4">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold mb-2">نظرة شاملة على جميع أنواع المصروفات</h2>
+            <p className="text-muted-foreground">ملخص سريع لجميع أنواع المصروفات وإجمالياتها</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Object.entries(groupedEntries).map(([expenseTypeName, { expenseType, entries }]) => (
+              <Card key={expenseTypeName} className="border-l-4 border-l-blue-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="text-lg">{expenseTypeName}</span>
+                    <Badge variant="secondary">{entries.length}</Badge>
+                  </CardTitle>
+                  {expenseType.description && (
+                    <CardDescription className="text-xs">
+                      {expenseType.description}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">إجمالي المبلغ</span>
+                      <span className="font-bold text-blue-600">
+                        {entries.reduce((sum, entry) => sum + entry.amount, 0).toLocaleString()} د.ع
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">متوسط المعاملة</span>
+                      <span className="font-medium">
+                        {Math.round(entries.reduce((sum, entry) => sum + entry.amount, 0) / entries.length).toLocaleString()} د.ع
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">آخر معاملة</span>
+                      <span className="text-xs">
+                        {formatDate(entries[0].date)}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {Object.keys(groupedEntries).length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium mb-2">لا توجد أنواع مصروفات مصنفة</h3>
+                <p className="text-muted-foreground">
+                  سيتم عرض أنواع المصروفات هنا بعد إنشاء معاملات وتصنيفها
+                </p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
@@ -661,6 +891,7 @@ export default function LedgerPage() {
                       description: `تم إضافة ${result.summary.added} عملية إلى دفتر الأستاذ`,
                     });
                     queryClient.invalidateQueries({ queryKey: ["/api/ledger"] });
+                    queryClient.invalidateQueries({ queryKey: ["/api/ledger/summary"] });
                   } else {
                     throw new Error("فشل في الترحيل");
                   }
@@ -678,15 +909,59 @@ export default function LedgerPage() {
               ترحيل المعاملات المصنفة
             </Button>
             <Button 
-              onClick={() => {
-                // إضافة وظيفة لتصنيف جميع المعاملات غير المصنفة
-                const unclassifiedTransactions = []; // سيتم تحديدها لاحقاً
-                // apiRequest من queryClient لتصنيف المعاملات
+              onClick={async () => {
+                try {
+                  // جلب جميع المعاملات للتصنيف
+                  const transactionsResponse = await fetch("/api/transactions");
+                  if (!transactionsResponse.ok) throw new Error("فشل في جلب المعاملات");
+                  
+                  const allTransactions = await transactionsResponse.json();
+                  const expenseTransactions = allTransactions.filter((t: any) => 
+                    t.type === 'expense' && t.expenseType && t.expenseType !== 'مصروف عام'
+                  );
+                  
+                  if (expenseTransactions.length === 0) {
+                    toast({
+                      title: "لا توجد معاملات للتصنيف",
+                      description: "جميع المعاملات مصنفة بالفعل أو لا تحتوي على نوع مصروف محدد",
+                    });
+                    return;
+                  }
+                  
+                  const transactionIds = expenseTransactions.map((t: any) => t.id);
+                  
+                  const response = await fetch("/api/ledger/classify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                      transactionIds, 
+                      forceAll: true 
+                    })
+                  });
+                  
+                  if (response.ok) {
+                    const result = await response.json();
+                    toast({
+                      title: "نجح التصنيف",
+                      description: `تم تصنيف ${result.classified} معاملة في دفتر الأستاذ`,
+                    });
+                    queryClient.invalidateQueries({ queryKey: ["/api/ledger"] });
+                    queryClient.invalidateQueries({ queryKey: ["/api/ledger/summary"] });
+                  } else {
+                    throw new Error("فشل في التصنيف");
+                  }
+                } catch (error) {
+                  toast({
+                    title: "خطأ",
+                    description: "فشل في تصنيف المعاملات",
+                    variant: "destructive",
+                  });
+                }
               }}
               variant="outline"
               className="mr-2"
             >
-              تصنيف جميع المعاملات
+              إعادة تصنيف جميع المعاملات
             </Button>
           </div>
           
