@@ -49,70 +49,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(false); // Changed to false
   const { toast } = useToast();
 
-  // تحقق من جلسة المستخدم عند تحميل التطبيق
+  // تحقق من جلسة المستخدم عند تحميل التطبيق (محسن لتجنب الطلبات المتكررة)
   useEffect(() => {
     const checkSession = async () => {
       try {
         setIsLoading(true);
         
-        // الحصول على البيانات من التخزين المحلي كحل احتياطي
+        // الحصول على البيانات من التخزين المحلي أولاً
         const storedUser = localStorage.getItem('auth_user');
-        let foundUser = null;
-        
         if (storedUser) {
           try {
-            foundUser = JSON.parse(storedUser);
+            const foundUser = JSON.parse(storedUser);
+            setUser(foundUser);
+            setIsLoading(false);
+            return; // استخدام البيانات المحلية وإيقاف الفحص
           } catch (err) {
-            // تجاهل أخطاء تحليل البيانات المحفوظة
+            localStorage.removeItem('auth_user');
           }
         }
         
+        // فحص الجلسة من الخادم مرة واحدة فقط
         try {
-          // محاولة الحصول على بيانات الجلسة من الخادم
           const response = await fetch('/api/auth/session', {
             credentials: 'include',
             headers: {
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache'
+              'Accept': 'application/json'
             }
           });
           
           if (response.ok) {
             const userData = await response.json();
-
             setUser(userData);
-            // تحديث البيانات المخزنة محلياً
             localStorage.setItem('auth_user', JSON.stringify(userData));
-            return;
           } else {
+            setUser(null);
+            localStorage.removeItem('auth_user');
           }
-        } catch (serverError) {
-          // تجاهل أخطاء الاتصال بالخادم
-        }
-        
-        // استخدام البيانات المخزنة محلياً إذا لم تنجح محاولة الخادم
-        if (foundUser) {
-          setUser(foundUser);
-          
-          // محاولة إعادة تفعيل الجلسة باستخدام البيانات المخزنة
-          try {
-            await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({
-                username: foundUser.username,
-                password: 'admin123' // استخدام كلمة مرور المدير الافتراضية للاختبار
-              }),
-              credentials: 'include'
-            });
-          } catch (e) {
-            // مواصلة استخدام البيانات المحلية حتى لو فشلت محاولة تجديد الجلسة
-          }
-        } else {
+        } catch (error) {
           setUser(null);
+          localStorage.removeItem('auth_user');
         }
       } catch (error) {
         setUser(null);

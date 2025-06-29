@@ -115,21 +115,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تسجيل متغير PgStore من وحدة connect-pg-simple
   const PostgreSQLStore = connectPgSimple(session);
   
-  // استخدام أبسط إعداد للجلسات للتجربة
+  // إعداد محسن للجلسات مع إدارة أفضل للذاكرة
   app.use(session({
-    secret: "accounting-app-secret-key",
-    resave: true,
-    saveUninitialized: true,
+    secret: process.env.SESSION_SECRET || "accounting-app-secret-key-2025",
+    resave: false,
+    saveUninitialized: false,
     cookie: { 
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'lax', // يسمح للكوكيز بالانتقال من صفحة لأخرى في نفس الدومين
-      secure: false, // تغيير إلى true في بيئة الإنتاج مع HTTPS
+      sameSite: 'lax',
+      secure: false,
       path: '/'
     },
-    // استخدام تخزين الذاكرة بشكل مؤقت للتغلب على المشكلة
     store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
+      checkPeriod: 86400000,
+      max: 1000, // حد أقصى للجلسات في الذاكرة
+      ttl: 24 * 60 * 60 * 1000 // مدة انتهاء الصلاحية
     })
   }));
   
