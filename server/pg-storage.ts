@@ -1159,6 +1159,13 @@ export class PgStorage implements IStorage {
     try {
       // التحقق من أن المعاملة من نوع مصروف ولها نوع محدد
       if (transaction.type !== 'expense' || !transaction.expenseType || transaction.expenseType === 'مصروف عام') {
+        // إذا تم تغيير نوع المعاملة إلى "مصروف عام" أو حذف نوع المصروف، نحذف السجل من دفتر الأستاذ
+        const existingEntries = await this.listLedgerEntries();
+        const existingEntry = existingEntries.find(entry => entry.transactionId === transaction.id);
+        if (existingEntry) {
+          await db.delete(ledgerEntries).where(eq(ledgerEntries.id, existingEntry.id));
+          console.log(`تم حذف سجل دفتر الأستاذ للمعاملة ${transaction.id} لأنها لم تعد مصنفة`);
+        }
         return;
       }
 
@@ -1182,15 +1189,15 @@ export class PgStorage implements IStorage {
       }
 
       if (existingEntry) {
-        // تحديث السجل الموجود إذا كان مسموحاً
-        if (allowUpdate && existingEntry.expenseTypeId !== expenseType.id) {
+        // تحديث السجل الموجود دائماً عند تغيير نوع المصروف
+        if (existingEntry.expenseTypeId !== expenseType.id || allowUpdate) {
           await this.updateLedgerEntry(existingEntry.id, {
             expenseTypeId: expenseType.id,
             amount: transaction.amount,
             description: transaction.description || '',
             date: new Date(transaction.date)
           });
-          console.log(`تم تحديث سجل دفتر الأستاذ للمعاملة ${transaction.id} بنوع المصروف ${expenseType.name}`);
+          console.log(`تم نقل المعاملة ${transaction.id} من التبويب السابق إلى تبويب ${expenseType.name}`);
         }
       } else {
         // إنشاء سجل جديد
