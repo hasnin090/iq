@@ -14,7 +14,7 @@ import {
   employees, type Employee, type InsertEmployee
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
-import { pgStorage } from './pg-storage';
+// Removed circular import - pgStorage will be initialized elsewhere
 
 export interface IStorage {
   // Database health check
