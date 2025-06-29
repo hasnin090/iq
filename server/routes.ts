@@ -2433,6 +2433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/expense-types", authenticate, async (req: Request, res: Response) => {
     try {
       const expenseTypes = await storage.listExpenseTypes();
+      // أنواع المصاريف متاحة لجميع المستخدمين المصادق عليهم
       return res.status(200).json(expenseTypes);
     } catch (error) {
       console.error("خطأ في جلب أنواع المصروفات:", error);
