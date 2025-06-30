@@ -4316,14 +4316,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "اسم الموظف مطلوب" });
       }
       
-      const sql = neon(process.env.DATABASE_URL!);
-      const result = await sql(`
-        INSERT INTO employees (name, salary, assigned_project_id, notes, created_by, active)
-        VALUES ($1, $2, $3, $4, $5, true)
-        RETURNING *
-      `, [name, salary || 0, assignedProjectId || null, notes || null, req.session.userId]);
-      
-      const employee = result[0];
+      const employee = await storage.createEmployee({
+        name: name.trim(),
+        salary: salary || 0,
+        assignedProjectId: assignedProjectId || null,
+        notes: notes || null,
+        active: true
+      });
       
       // تسجيل النشاط
       await storage.createActivityLog({
