@@ -210,7 +210,9 @@ export default function Settings() {
     mutationFn: (id: number) =>
       makeApiCall(`/api/expense-types/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
+      // إعادة تحديث جميع أنواع المصاريف
       queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
+      queryClient.refetchQueries({ queryKey: ['/api/expense-types'] });
       toast({
         title: "تم حذف نوع المصروف",
         description: "تم حذف نوع المصروف بنجاح",

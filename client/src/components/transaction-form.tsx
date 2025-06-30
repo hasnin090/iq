@@ -63,10 +63,19 @@ interface Employee {
 
 // Component for expense type field
 function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }): JSX.Element | null {
-  const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
+  const { data: expenseTypes = [], refetch } = useQuery<ExpenseType[]>({
     queryKey: ['/api/expense-types'],
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: true, // إعادة جلب البيانات عند التركيز على النافذة
   });
+
+  // إعادة جلب البيانات عند فتح القائمة المنسدلة
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      refetch();
+    }
+  };
 
   if (transactionType !== "expense") return null;
 
@@ -77,7 +86,8 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
       render={({ field }) => (
         <FormItem className="space-y-1">
           <FormLabel className="text-sm font-medium">نوع المصروف</FormLabel>
-          <Select onValueChange={(value) => {
+          <Select 
+            onValueChange={(value) => {
               field.onChange(value);
               // إعادة تعيين الموظف عند تغيير نوع المصروف
               if (value !== "راتب") {
@@ -89,7 +99,10 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
                   expenseTypes.some(type => type.name === currentDescription)) {
                 form.setValue("description", value);
               }
-            }} value={field.value}>
+            }} 
+            value={field.value}
+            onOpenChange={handleOpenChange}
+          >
             <FormControl>
               <SelectTrigger className="w-full h-9 rounded-md bg-white dark:bg-gray-700 border border-blue-100 dark:border-blue-900 hover:border-blue-300 dark:hover:border-blue-700 text-sm">
                 <SelectValue placeholder="اختر نوع المصروف" />
