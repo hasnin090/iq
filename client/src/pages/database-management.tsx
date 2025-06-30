@@ -1,38 +1,17 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, Database, Activity, Download, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { 
-  Database, 
-  Server, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  RefreshCw, 
-  Shield,
-  ArrowRightLeft,
-  RotateCw,
-  AlertCircle,
-  Cloud,
-  Upload,
-  Download
-} from 'lucide-react';
 
-interface DatabaseHealth {
-  primary: boolean;
-  backup: boolean;
-  active: 'primary' | 'backup' | 'none';
-}
-
-interface SupabaseHealth {
-  client: boolean;
-  database: boolean;
-  storage: boolean;
+interface DatabaseStatus {
+  connected: boolean;
+  responseTime: number;
+  timestamp: string;
 }
 
 export default function DatabaseManagement() {
@@ -40,499 +19,173 @@ export default function DatabaseManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // التحقق من صلاحيات المدير
+  // Check if user has admin permissions
   if (!user || user.role !== 'admin') {
     return (
-      <div className="w-full max-w-full overflow-x-hidden">
-        <div className="py-4 md:py-6 px-3 md:px-4 pb-mobile-nav-large">
-          <Card className="text-center p-8">
-            <CardContent>
-              <Shield className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-xl font-bold text-muted-foreground mb-2">إدارة قواعد البيانات</h2>
-              <p className="text-muted-foreground">هذا القسم مخصص للمديرين فقط</p>
-              <p className="text-sm text-muted-foreground mt-2">يحتوي على أدوات إدارة قواعد البيانات الحساسة</p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>غير مصرح</AlertTitle>
+          <AlertDescription>
+            ليس لديك صلاحيات كافية للوصول إلى هذه الصفحة. يرجى التواصل مع مدير النظام.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
-  // جلب حالة قواعد البيانات
-  const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
-    queryKey: ['/api/database/health'],
+  // Data queries
+  const { data: dbStatus, isLoading } = useQuery<DatabaseStatus>({
+    queryKey: ['/api/database/status'],
     refetchInterval: 30000,
+    enabled: !!user && user.role === 'admin'
   });
 
-  // جلب حالة Supabase
-  const { data: supabaseData, isLoading: supabaseLoading, refetch: refetchSupabase } = useQuery({
-    queryKey: ['/api/supabase/health'],
-    refetchInterval: 30000,
-  });
-
-  // تهيئة قاعدة البيانات الاحتياطية
-  const initBackupMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/database/init-backup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('فشل في تهيئة قاعدة البيانات الاحتياطية');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "تم بنجاح",
-        description: "تم تهيئة قاعدة البيانات الاحتياطية",
-      });
-      refetchHealth();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل في تهيئة قاعدة البيانات الاحتياطية",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // التبديل بين قواعد البيانات
-  const switchDatabaseMutation = useMutation({
-    mutationFn: async (target: 'primary' | 'backup') => {
-      const response = await fetch('/api/database/switch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target }),
-      });
-      if (!response.ok) throw new Error('فشل في التبديل بين قواعد البيانات');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "تم التبديل بنجاح",
-        description: data.message,
-      });
-      refetchHealth();
-      queryClient.invalidateQueries();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في التبديل",
-        description: error.message || "فشل في التبديل بين قواعد البيانات",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // مزامنة البيانات
-  const syncDatabaseMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/database/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('فشل في مزامنة البيانات');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "تمت المزامنة",
-        description: "تم مزامنة البيانات إلى قاعدة البيانات الاحتياطية بنجاح",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في المزامنة",
-        description: error.message || "فشل في مزامنة البيانات",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const health: DatabaseHealth = healthData?.health || { primary: false, backup: false, active: 'none' };
-  const supabaseHealth: SupabaseHealth = supabaseData?.health || { client: false, database: false, storage: false };
-
-  // Supabase mutations
-  const initSupabaseMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/supabase/init', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('فشل في تهيئة Supabase');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "تم بنجاح",
-        description: "تم تهيئة Supabase",
-      });
-      refetchSupabase();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ",
-        description: error.message || "فشل في تهيئة Supabase",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const syncToSupabaseMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/supabase/sync-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('فشل في مزامنة البيانات');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "تمت المزامنة",
-        description: "تم مزامنة البيانات إلى Supabase بنجاح",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في المزامنة",
-        description: error.message || "فشل في مزامنة البيانات",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const migrateFilesMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/supabase/migrate-files', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('فشل في نقل الملفات');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "تم نقل الملفات",
-        description: `نجح: ${data.results?.success || 0}, فشل: ${data.results?.failed || 0}`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في نقل الملفات",
-        description: error.message || "فشل في نقل الملفات",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateUrlsMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/supabase/update-file-urls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('فشل في تحديث الروابط');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "تم التحديث",
-        description: "تم تحديث روابط الملفات بنجاح",
-      });
-      queryClient.invalidateQueries();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في التحديث",
-        description: error.message || "فشل في تحديث الروابط",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const getStatusIcon = (isHealthy: boolean) => {
-    return isHealthy ? (
-      <CheckCircle className="w-5 h-5 text-green-600" />
-    ) : (
-      <XCircle className="w-5 h-5 text-red-600" />
-    );
+  // API helper function
+  const makeApiCall = async (url: string, options: RequestInit = {}) => {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'حدث خطأ غير متوقع' }));
+      throw new Error(error.message || 'حدث خطأ في العملية');
+    }
+    
+    return response.json();
   };
 
-  const getStatusBadge = (isHealthy: boolean) => {
-    return (
-      <Badge variant={isHealthy ? "default" : "destructive"} className="text-xs">
-        {isHealthy ? "متاحة" : "غير متاحة"}
-      </Badge>
-    );
+  // Mutations
+  const backupMutation = useMutation({
+    mutationFn: () => makeApiCall('/api/backup/create', { method: 'POST' }),
+    onSuccess: (data: any) => {
+      toast({
+        title: "تم إنشاء النسخة الاحتياطية",
+        description: `تم إنشاء النسخة الاحتياطية بنجاح: ${data.backupPath}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "خطأ في النسخ الاحتياطي",
+        description: error.message,
+      });
+    },
+  });
+
+  const handleCreateBackup = () => {
+    backupMutation.mutate();
   };
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden">
-      <div className="py-4 md:py-6 px-3 md:px-4 pb-mobile-nav-large">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-[hsl(var(--primary))] flex items-center gap-2 md:gap-3">
-            <Database className="text-[hsl(var(--primary))] w-6 h-6 md:w-8 md:h-8" />
-            إدارة قواعد البيانات
-          </h1>
-          <p className="text-[hsl(var(--muted-foreground))] mt-2 text-sm md:text-base">
-            مراقبة والتحكم في قواعد البيانات الرئيسية والاحتياطية ونظام Supabase
-          </p>
+    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-blue-600 rounded-2xl mb-4">
+          <Database className="h-8 w-8 text-white" />
         </div>
+        <h1 className="text-3xl font-bold mb-2">إدارة قواعد البيانات</h1>
+        <p className="text-muted-foreground">مراقبة حالة قاعدة البيانات وإدارة النسخ الاحتياطية</p>
+      </div>
 
-        {/* حالة النظام */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
-          {/* قاعدة البيانات الرئيسية */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Server className="w-5 h-5 text-blue-600" />
-                قاعدة البيانات الرئيسية
-              </CardTitle>
-              <CardDescription>القاعدة الأساسية للنظام</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">الحالة:</span>
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(health.primary)}
-                  {getStatusBadge(health.primary)}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">نشطة:</span>
-                <Badge variant={health.active === 'primary' ? "default" : "secondary"}>
-                  {health.active === 'primary' ? "نعم" : "لا"}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* قاعدة البيانات الاحتياطية */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="w-5 h-5 text-green-600" />
-                قاعدة البيانات الاحتياطية
-              </CardTitle>
-              <CardDescription>النسخة الاحتياطية للطوارئ</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">الحالة:</span>
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(health.backup)}
-                  {getStatusBadge(health.backup)}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">نشطة:</span>
-                <Badge variant={health.active === 'backup' ? "default" : "secondary"}>
-                  {health.active === 'backup' ? "نعم" : "لا"}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Supabase */}
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Cloud className="w-5 h-5 text-purple-600" />
-                Supabase
-              </CardTitle>
-              <CardDescription>التخزين السحابي والنسخ الاحتياطي</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">العميل:</span>
-                  {getStatusBadge(supabaseHealth.client)}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">قاعدة البيانات:</span>
-                  {getStatusBadge(supabaseHealth.database)}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">التخزين:</span>
-                  {getStatusBadge(supabaseHealth.storage)}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {isLoading && (
+        <div className="text-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">جاري تحميل البيانات...</p>
         </div>
+      )}
 
-        {/* أدوات إدارة قواعد البيانات المحلية */}
-        <Card className="shadow-lg mb-6">
+      <div className="space-y-6">
+        {/* Database Status */}
+        <Card>
           <CardHeader>
-            <CardTitle className="text-xl">أدوات إدارة قواعد البيانات المحلية</CardTitle>
-            <CardDescription>إدارة والتحكم في قواعد البيانات الرئيسية والاحتياطية</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* تهيئة قاعدة البيانات الاحتياطية */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">تهيئة الاحتياطية</h3>
-                <p className="text-xs text-muted-foreground">
-                  إعداد قاعدة البيانات الاحتياطية للاستخدام
-                </p>
-                <Button
-                  onClick={() => initBackupMutation.mutate()}
-                  disabled={initBackupMutation.isPending || health.backup}
-                  className="w-full"
-                  size="sm"
-                >
-                  <Database className="w-4 h-4 mr-2" />
-                  {initBackupMutation.isPending ? 'جاري التهيئة...' : 'تهيئة الاحتياطية'}
-                </Button>
-              </div>
-
-              {/* التبديل إلى الرئيسية */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">التبديل للرئيسية</h3>
-                <p className="text-xs text-muted-foreground">
-                  العودة إلى قاعدة البيانات الرئيسية
-                </p>
-                <Button
-                  onClick={() => switchDatabaseMutation.mutate('primary')}
-                  disabled={switchDatabaseMutation.isPending || !health.primary || health.active === 'primary'}
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                >
-                  <ArrowRightLeft className="w-4 h-4 mr-2" />
-                  {switchDatabaseMutation.isPending ? 'جاري التبديل...' : 'للرئيسية'}
-                </Button>
-              </div>
-
-              {/* التبديل للاحتياطية */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">التبديل للاحتياطية</h3>
-                <p className="text-xs text-muted-foreground">
-                  التبديل إلى قاعدة البيانات الاحتياطية
-                </p>
-                <Button
-                  onClick={() => switchDatabaseMutation.mutate('backup')}
-                  disabled={switchDatabaseMutation.isPending || !health.backup || health.active === 'backup'}
-                  variant="destructive"
-                  className="w-full"
-                  size="sm"
-                >
-                  <ArrowRightLeft className="w-4 h-4 mr-2" />
-                  {switchDatabaseMutation.isPending ? 'جاري التبديل...' : 'للاحتياطية'}
-                </Button>
-              </div>
-
-              {/* مزامنة البيانات */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">مزامنة البيانات</h3>
-                <p className="text-xs text-muted-foreground">
-                  نسخ البيانات من الرئيسية للاحتياطية
-                </p>
-                <Button
-                  onClick={() => syncDatabaseMutation.mutate()}
-                  disabled={syncDatabaseMutation.isPending || !health.primary || !health.backup}
-                  variant="secondary"
-                  className="w-full"
-                  size="sm"
-                >
-                  <RotateCw className="w-4 h-4 mr-2" />
-                  {syncDatabaseMutation.isPending ? 'جاري المزامنة...' : 'مزامنة الآن'}
-                </Button>
+            <div className="flex items-center gap-3">
+              <Database className="h-6 w-6 text-primary" />
+              <div>
+                <CardTitle>حالة قاعدة البيانات</CardTitle>
+                <CardDescription>معلومات الاتصال وأداء قاعدة البيانات</CardDescription>
               </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {dbStatus?.connected ? (
+                    <>
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <Badge variant="default" className="bg-green-100 text-green-800">
+                        متصل
+                      </Badge>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-5 w-5 text-red-500" />
+                      <Badge variant="destructive">
+                        غير متصل
+                      </Badge>
+                    </>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">حالة الاتصال</p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-blue-500" />
+                  <span className="font-medium">
+                    {dbStatus?.responseTime ? `${dbStatus.responseTime} ms` : '--'}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">زمن الاستجابة</p>
+              </div>
+            </div>
+            
+            {dbStatus?.timestamp && (
+              <div className="mt-4 text-sm text-muted-foreground">
+                آخر فحص: {new Date(dbStatus.timestamp).toLocaleString('ar-EG')}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* أدوات إدارة Supabase */}
-        <Card className="shadow-lg">
+        {/* Backup Management */}
+        <Card>
           <CardHeader>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Cloud className="w-6 h-6 text-purple-600" />
-              أدوات إدارة Supabase
-            </CardTitle>
-            <CardDescription>إدارة التخزين السحابي ونقل الملفات إلى Supabase</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* تهيئة Supabase */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">تهيئة Supabase</h3>
-                <p className="text-xs text-muted-foreground">
-                  إعداد الاتصال مع خدمات Supabase
-                </p>
-                <Button
-                  onClick={() => initSupabaseMutation.mutate()}
-                  disabled={initSupabaseMutation.isPending}
-                  className="w-full"
-                  size="sm"
-                >
-                  <Cloud className="w-4 h-4 mr-2" />
-                  {initSupabaseMutation.isPending ? 'جاري التهيئة...' : 'تهيئة Supabase'}
-                </Button>
-              </div>
-
-              {/* مزامنة البيانات إلى Supabase */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">مزامنة البيانات</h3>
-                <p className="text-xs text-muted-foreground">
-                  نسخ جميع البيانات إلى قاعدة بيانات Supabase
-                </p>
-                <Button
-                  onClick={() => syncToSupabaseMutation.mutate()}
-                  disabled={syncToSupabaseMutation.isPending || !supabaseHealth.database}
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {syncToSupabaseMutation.isPending ? 'جاري المزامنة...' : 'مزامنة البيانات'}
-                </Button>
-              </div>
-
-              {/* نقل الملفات */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">نقل الملفات</h3>
-                <p className="text-xs text-muted-foreground">
-                  رفع جميع الملفات المحلية إلى تخزين Supabase
-                </p>
-                <Button
-                  onClick={() => migrateFilesMutation.mutate()}
-                  disabled={migrateFilesMutation.isPending || !supabaseHealth.storage}
-                  variant="secondary"
-                  className="w-full"
-                  size="sm"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  {migrateFilesMutation.isPending ? 'جاري النقل...' : 'نقل الملفات'}
-                </Button>
-              </div>
-
-              {/* تحديث الروابط */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">تحديث الروابط</h3>
-                <p className="text-xs text-muted-foreground">
-                  تحديث روابط الملفات لتشير إلى Supabase
-                </p>
-                <Button
-                  onClick={() => updateUrlsMutation.mutate()}
-                  disabled={updateUrlsMutation.isPending || !supabaseHealth.storage}
-                  variant="destructive"
-                  className="w-full"
-                  size="sm"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  {updateUrlsMutation.isPending ? 'جاري التحديث...' : 'تحديث الروابط'}
-                </Button>
+            <div className="flex items-center gap-3">
+              <Download className="h-6 w-6 text-primary" />
+              <div>
+                <CardTitle>النسخ الاحتياطي</CardTitle>
+                <CardDescription>إدارة النسخ الاحتياطية للنظام</CardDescription>
               </div>
             </div>
-
-            {/* تحذير مهم */}
-            <Alert className="mt-6 border-amber-200 bg-amber-50">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
-                <strong>مهم:</strong> تأكد من إعداد متغيرات البيئة الخاصة بـ Supabase قبل استخدام هذه الأدوات. 
-                يُنصح بعمل نسخة احتياطية محلية قبل نقل الملفات.
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">إنشاء نسخة احتياطية جديدة</h3>
+                <p className="text-sm text-muted-foreground">
+                  سيتم إنشاء نسخة احتياطية كاملة من البيانات والملفات
+                </p>
+              </div>
+              <Button onClick={handleCreateBackup} disabled={backupMutation.isPending}>
+                {backupMutation.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                )}
+                <Download className="h-4 w-4 mr-2" />
+                إنشاء نسخة احتياطية
+              </Button>
+            </div>
+            
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>معلومة</AlertTitle>
+              <AlertDescription>
+                يتم إنشاء نسخ احتياطية تلقائية كل 12 ساعة. يمكنك إنشاء نسخة احتياطية يدوية في أي وقت.
               </AlertDescription>
             </Alert>
           </CardContent>

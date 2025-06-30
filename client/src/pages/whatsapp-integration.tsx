@@ -1,418 +1,463 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, MessageSquare, Phone, CheckCircle, XCircle, Loader2, Settings, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Smartphone, MessageCircle, FileImage, Settings, CheckCircle, XCircle, Copy, ExternalLink } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+
+// Schema definitions
+const whatsappConfigSchema = z.object({
+  phoneNumberId: z.string().min(1, 'معرف رقم الهاتف مطلوب'),
+  accessToken: z.string().min(1, 'رمز الوصول مطلوب'),
+  webhookVerifyToken: z.string().min(1, 'رمز التحقق مطلوب'),
+  businessAccountId: z.string().min(1, 'معرف الحساب التجاري مطلوب'),
+});
+
+interface WhatsAppConfig {
+  enabled: boolean;
+  phoneNumberId?: string;
+  accessToken?: string;
+  webhookVerifyToken?: string;
+  businessAccountId?: string;
+  webhookUrl?: string;
+  lastSync?: string;
+}
+
+interface WhatsAppStatus {
+  connected: boolean;
+  phoneNumber?: string;
+  businessName?: string;
+  lastMessage?: string;
+  messagesReceived: number;
+  filesReceived: number;
+}
+
+type WhatsAppConfigValues = z.infer<typeof whatsappConfigSchema>;
 
 export default function WhatsAppIntegration() {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [settings, setSettings] = useState({
-    accessToken: '',
-    phoneNumberId: '',
-    verifyToken: '',
-    webhookUrl: '',
-    autoRespond: true,
-    allowedFileTypes: ['image', 'document', 'audio', 'video']
-  });
-  const [stats, setStats] = useState({
-    totalMessages: 0,
-    filesReceived: 0,
-    lastMessage: null as Date | null
+  const queryClient = useQueryClient();
+
+  // Check if user has admin permissions
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>غير مصرح</AlertTitle>
+          <AlertDescription>
+            ليس لديك صلاحيات كافية للوصول إلى هذه الصفحة. يرجى التواصل مع مدير النظام.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Data queries
+  const { data: whatsappConfig, isLoading } = useQuery<WhatsAppConfig>({
+    queryKey: ['/api/whatsapp/config'],
+    enabled: !!user && user.role === 'admin'
   });
 
-  useEffect(() => {
-    loadSettings();
-    loadStats();
-  }, []);
+  const { data: whatsappStatus } = useQuery<WhatsAppStatus>({
+    queryKey: ['/api/whatsapp/status'],
+    enabled: !!user && user.role === 'admin' && whatsappConfig?.enabled,
+    refetchInterval: 30000
+  });
 
-  const loadSettings = async () => {
-    try {
-      // تحميل إعدادات WhatsApp من النظام
-      const response = await fetch('/api/settings');
-      if (response.ok) {
-        const allSettings = await response.json();
-        // استخراج إعدادات WhatsApp
-        // هذا مجرد مثال - ستحتاج لتخزين الإعدادات الفعلية
-      }
-    } catch (error) {
-      console.error('خطأ في تحميل الإعدادات:', error);
+  // Form
+  const configForm = useForm<WhatsAppConfigValues>({
+    resolver: zodResolver(whatsappConfigSchema),
+    defaultValues: {
+      phoneNumberId: whatsappConfig?.phoneNumberId || '',
+      accessToken: whatsappConfig?.accessToken || '',
+      webhookVerifyToken: whatsappConfig?.webhookVerifyToken || '',
+      businessAccountId: whatsappConfig?.businessAccountId || '',
+    },
+  });
+
+  // API helper function
+  const makeApiCall = async (url: string, options: RequestInit = {}) => {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'حدث خطأ غير متوقع' }));
+      throw new Error(error.message || 'حدث خطأ في العملية');
     }
+    
+    return response.json();
   };
 
-  const loadStats = async () => {
-    try {
-      // تحميل إحصائيات WhatsApp
-      // يمكن إضافة endpoint خاص للإحصائيات
-    } catch (error) {
-      console.error('خطأ في تحميل الإحصائيات:', error);
-    }
-  };
-
-  const testConnection = async () => {
-    if (!settings.accessToken || !settings.phoneNumberId) {
-      toast({
-        title: "معلومات ناقصة",
-        description: "يرجى إدخال Access Token و Phone Number ID",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/whatsapp/test', {
+  // Mutations
+  const updateConfigMutation = useMutation({
+    mutationFn: (data: WhatsAppConfigValues) =>
+      makeApiCall('/api/whatsapp/config', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          accessToken: settings.accessToken,
-          phoneNumberId: settings.phoneNumberId
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setIsConnected(true);
-        toast({
-          title: "نجح الاتصال",
-          description: "تم الاتصال بـ WhatsApp Business API بنجاح",
-        });
-      } else {
-        setIsConnected(false);
-        toast({
-          title: "فشل الاتصال",
-          description: data.message || "تعذر الاتصال بـ WhatsApp Business API",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      setIsConnected(false);
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
       toast({
-        title: "خطأ في الشبكة",
-        description: "تعذر الاتصال بالخادم",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const saveSettings = async () => {
-    try {
-      // حفظ إعدادات WhatsApp
-      toast({
-        title: "تم الحفظ",
+        title: "تم حفظ الإعدادات",
         description: "تم حفظ إعدادات WhatsApp بنجاح",
       });
-    } catch (error) {
+      queryClient.invalidateQueries({ queryKey: ['/api/whatsapp/config'] });
+    },
+    onError: (error: Error) => {
       toast({
-        title: "خطأ في الحفظ",
-        description: "فشل في حفظ الإعدادات",
         variant: "destructive",
+        title: "خطأ",
+        description: error.message,
       });
-    }
+    },
+  });
+
+  const toggleEnabledMutation = useMutation({
+    mutationFn: (enabled: boolean) =>
+      makeApiCall('/api/whatsapp/toggle', {
+        method: 'POST',
+        body: JSON.stringify({ enabled }),
+      }),
+    onSuccess: () => {
+      toast({
+        title: "تم تحديث الحالة",
+        description: "تم تحديث حالة تكامل WhatsApp",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/whatsapp/config'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: error.message,
+      });
+    },
+  });
+
+  const testConnectionMutation = useMutation({
+    mutationFn: () => makeApiCall('/api/whatsapp/test', { method: 'POST' }),
+    onSuccess: () => {
+      toast({
+        title: "اختبار ناجح",
+        description: "تم اختبار الاتصال بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "فشل الاختبار",
+        description: error.message,
+      });
+    },
+  });
+
+  // Event handlers
+  function onConfigSubmit(values: WhatsAppConfigValues) {
+    updateConfigMutation.mutate(values);
+  }
+
+  const handleToggleEnabled = (enabled: boolean) => {
+    toggleEnabledMutation.mutate(enabled);
   };
 
-  const copyWebhookUrl = () => {
-    const webhookUrl = `${window.location.origin}/api/whatsapp/webhook`;
-    navigator.clipboard.writeText(webhookUrl);
-    toast({
-      title: "تم النسخ",
-      description: "تم نسخ رابط الـ webhook",
-    });
+  const handleTestConnection = () => {
+    testConnectionMutation.mutate();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 to-green-50/30 dark:from-gray-900 dark:to-gray-800" dir="rtl">
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* العنوان - متجاوب */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[hsl(var(--primary))] flex items-center gap-2 sm:gap-3">
-              <Smartphone className="w-6 h-6 sm:w-8 sm:h-8 text-[hsl(var(--primary))]" />
-              <span className="break-words">تكامل WhatsApp</span>
-            </h1>
-            <p className="text-sm sm:text-base text-[hsl(var(--muted-foreground))]">
-              استقبال وإدارة الملفات عبر WhatsApp Business API
-            </p>
-          </div>
-
-          <div className="flex justify-start sm:justify-end">
-            <Badge 
-              variant={isConnected ? "default" : "destructive"} 
-              className="flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm"
-            >
-              {isConnected ? <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" /> : <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />}
-              {isConnected ? 'متصل' : 'غير متصل'}
-            </Badge>
-          </div>
+    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-blue-600 rounded-2xl mb-4">
+          <MessageSquare className="h-8 w-8 text-white" />
         </div>
-
-        {/* الشبكة الأساسية - متجاوبة */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-          {/* بطاقة الإعدادات - محسنة للموبايل */}
-          <Card className="w-full">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <Settings className="w-5 h-5 shrink-0" />
-                <span>إعدادات الاتصال</span>
-              </CardTitle>
-              <CardDescription className="text-sm">
-                قم بإعداد بيانات WhatsApp Business API
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 sm:space-y-5">
-              {/* Access Token */}
-              <div className="space-y-2">
-                <Label htmlFor="accessToken" className="text-sm font-medium">
-                  Access Token
-                </Label>
-                <Input
-                  id="accessToken"
-                  type="password"
-                  placeholder="إدخل Access Token"
-                  value={settings.accessToken}
-                  onChange={(e) => setSettings({...settings, accessToken: e.target.value})}
-                  className="w-full text-sm"
-                />
-              </div>
-
-              {/* Phone Number ID */}
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumberId" className="text-sm font-medium">
-                  Phone Number ID
-                </Label>
-                <Input
-                  id="phoneNumberId"
-                  placeholder="إدخل Phone Number ID"
-                  value={settings.phoneNumberId}
-                  onChange={(e) => setSettings({...settings, phoneNumberId: e.target.value})}
-                  className="w-full text-sm"
-                />
-              </div>
-
-              {/* Verify Token */}
-              <div className="space-y-2">
-                <Label htmlFor="verifyToken" className="text-sm font-medium">
-                  Verify Token
-                </Label>
-                <Input
-                  id="verifyToken"
-                  placeholder="إدخل Verify Token"
-                  value={settings.verifyToken}
-                  onChange={(e) => setSettings({...settings, verifyToken: e.target.value})}
-                  className="w-full text-sm"
-                />
-              </div>
-
-              {/* Webhook URL */}
-              <div className="space-y-2">
-                <Label htmlFor="webhookUrl" className="text-sm font-medium">
-                  Webhook URL
-                </Label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    id="webhookUrl"
-                    value={`${window.location.origin}/api/whatsapp/webhook`}
-                    readOnly
-                    className="bg-gray-50 text-sm flex-1 min-w-0"
-                  />
-                  <Button variant="outline" size="sm" onClick={copyWebhookUrl} className="shrink-0">
-                    <Copy className="w-4 h-4" />
-                    <span className="hidden sm:inline mr-1">نسخ</span>
-                  </Button>
-                </div>
-              </div>
-
-              {/* الرد التلقائي */}
-              <div className="flex items-center justify-between py-2">
-                <Label htmlFor="autoRespond" className="text-sm font-medium">
-                  الرد التلقائي
-                </Label>
-                <Switch
-                  id="autoRespond"
-                  checked={settings.autoRespond}
-                  onCheckedChange={(checked) => setSettings({...settings, autoRespond: checked})}
-                />
-              </div>
-
-              {/* أزرار الإجراءات */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                <Button 
-                  onClick={testConnection} 
-                  variant="outline" 
-                  className="w-full sm:flex-1 text-sm"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                      جاري الاختبار...
-                    </>
-                  ) : (
-                    'اختبار الاتصال'
-                  )}
-                </Button>
-                <Button onClick={saveSettings} className="w-full sm:flex-1 text-sm">
-                  حفظ الإعدادات
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* بطاقة الإحصائيات - محسنة للموبايل */}
-          <Card className="w-full">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <MessageCircle className="w-5 h-5 shrink-0" />
-                <span>إحصائيات WhatsApp</span>
-              </CardTitle>
-              <CardDescription className="text-sm">
-                معلومات حول الرسائل والملفات المستلمة
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 sm:space-y-5">
-              {/* إحصائيات الاستخدام */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="text-center p-4 sm:p-5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {stats.totalMessages}
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    إجمالي الرسائل
-                  </div>
-                </div>
-
-                <div className="text-center p-4 sm:p-5 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
-                    {stats.filesReceived}
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    الملفات المستلمة
-                  </div>
-                </div>
-              </div>
-
-              {/* آخر رسالة */}
-              {stats.lastMessage && (
-                <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                    آخر رسالة:
-                  </div>
-                  <div className="font-medium text-sm sm:text-base mt-1">
-                    {stats.lastMessage.toLocaleString('ar-SA')}
-                  </div>
-                </div>
-              )}
-
-              {/* أنواع الملفات المدعومة */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">أنواع الملفات المدعومة:</Label>
-                <div className="flex flex-wrap gap-2">
-                  {settings.allowedFileTypes.map((type) => (
-                    <Badge 
-                      key={type} 
-                      variant="secondary" 
-                      className="text-xs px-2 py-1 whitespace-nowrap"
-                    >
-                      {type === 'image' ? '📷 صور' : 
-                       type === 'document' ? '📄 مستندات' :
-                       type === 'audio' ? '🎵 صوتيات' :
-                       type === 'video' ? '🎬 فيديو' : type}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <h1 className="text-3xl font-bold mb-2">تكامل WhatsApp</h1>
+        <p className="text-muted-foreground">إعداد وإدارة تكامل WhatsApp Business API</p>
       </div>
 
-        {/* تعليمات الإعداد - بطاقة كاملة العرض */}
-        <Card className="xl:col-span-2">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <ExternalLink className="w-5 h-5 shrink-0" />
-              <span>تعليمات الإعداد</span>
-            </CardTitle>
+      {isLoading && (
+        <div className="text-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">جاري تحميل البيانات...</p>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        {/* Status Overview */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-6 w-6 text-primary" />
+                <div>
+                  <CardTitle>حالة التكامل</CardTitle>
+                  <CardDescription>نظرة عامة على حالة WhatsApp Business</CardDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={whatsappConfig?.enabled || false}
+                  onCheckedChange={handleToggleEnabled}
+                  disabled={toggleEnabledMutation.isPending}
+                />
+                <Badge variant={whatsappConfig?.enabled ? "default" : "secondary"}>
+                  {whatsappConfig?.enabled ? "مفعل" : "معطل"}
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          
+          {whatsappConfig?.enabled && (
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    {whatsappStatus?.connected ? (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    <span className="font-medium">
+                      {whatsappStatus?.connected ? "متصل" : "غير متصل"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">حالة الاتصال</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-5 w-5 text-blue-500" />
+                    <span className="font-medium">
+                      {whatsappStatus?.phoneNumber || '--'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">رقم الهاتف</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-green-500" />
+                    <span className="font-medium">
+                      {whatsappStatus?.messagesReceived || 0}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">رسائل مستلمة</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-purple-500" />
+                    <span className="font-medium">
+                      {whatsappStatus?.filesReceived || 0}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">ملفات مستلمة</p>
+                </div>
+              </div>
+              
+              {whatsappStatus?.businessName && (
+                <div className="mt-4 text-sm text-muted-foreground">
+                  اسم النشاط التجاري: {whatsappStatus.businessName}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+
+        {/* Configuration */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Settings className="h-6 w-6 text-primary" />
+              <div>
+                <CardTitle>إعدادات التكامل</CardTitle>
+                <CardDescription>تكوين WhatsApp Business API</CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6 text-sm sm:text-base">
-              {/* خطوات الإعداد */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-[hsl(var(--primary))] border-b pb-2">
-                  خطوات إعداد WhatsApp Business API:
-                </h3>
-                <ol className="space-y-3 pr-4">
-                  <li className="flex items-start gap-2">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                    <span>قم بإنشاء حساب في <strong>Facebook Developers</strong></span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                    <span>أنشئ تطبيق جديد واختر <strong>WhatsApp Business</strong></span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                    <span>احصل على <strong>Access Token</strong> و <strong>Phone Number ID</strong></span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-sm font-bold">4</span>
-                    <div className="space-y-2">
-                      <span>اذهب إلى إعدادات Webhook وأدخل:</span>
-                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg space-y-2 text-xs sm:text-sm">
-                        <div>
-                          <strong>Webhook URL:</strong>
-                          <code className="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-xs ml-2 break-all">
-                            {window.location.origin}/api/whatsapp/webhook
-                          </code>
-                        </div>
-                        <div><strong>Verify Token:</strong> أدخل أي نص واستخدمه في الإعدادات أعلاه</div>
-                        <div><strong>Webhook Fields:</strong> حدد "messages"</div>
-                      </div>
+            <Form {...configForm}>
+              <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={configForm.control}
+                    name="phoneNumberId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>معرف رقم الهاتف</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="123456789" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="businessAccountId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>معرف الحساب التجاري</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="987654321" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={configForm.control}
+                  name="accessToken"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>رمز الوصول</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="password" 
+                          placeholder="EAAxxxxxxxxxxxxxxxxxxxx"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={configForm.control}
+                  name="webhookVerifyToken"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>رمز التحقق</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="password" 
+                          placeholder="my_verify_token_123"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {whatsappConfig?.webhookUrl && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">رابط Webhook</label>
+                    <div className="p-3 bg-muted rounded-md">
+                      <code className="text-sm">{whatsappConfig.webhookUrl}</code>
                     </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-sm font-bold">5</span>
-                    <span>احفظ الإعدادات واختبر الاتصال</span>
-                  </li>
+                    <p className="text-xs text-muted-foreground">
+                      استخدم هذا الرابط في إعدادات Webhook في Meta Developer Console
+                    </p>
+                  </div>
+                )}
+                
+                <div className="flex gap-2">
+                  <Button 
+                    type="submit" 
+                    disabled={updateConfigMutation.isPending}
+                  >
+                    {updateConfigMutation.isPending && (
+                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                    )}
+                    حفظ الإعدادات
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleTestConnection}
+                    disabled={testConnectionMutation.isPending || !whatsappConfig?.enabled}
+                  >
+                    {testConnectionMutation.isPending && (
+                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                    )}
+                    <Send className="h-4 w-4 mr-2" />
+                    اختبار الاتصال
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+
+        {/* Setup Instructions */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-6 w-6 text-primary" />
+              <div>
+                <CardTitle>تعليمات الإعداد</CardTitle>
+                <CardDescription>خطوات تكوين WhatsApp Business API</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>متطلبات التكامل</AlertTitle>
+                <AlertDescription>
+                  للحصول على تكامل WhatsApp Business API، ستحتاج إلى:
+                  <ul className="mt-2 list-disc list-inside space-y-1">
+                    <li>حساب Meta Business</li>
+                    <li>تطبيق مطور في Meta Developer Console</li>
+                    <li>رقم هاتف معتمد للأعمال</li>
+                    <li>إذن WhatsApp Business API</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-4">
+                <h4 className="font-medium">خطوات الإعداد:</h4>
+                <ol className="space-y-2 text-sm text-muted-foreground">
+                  <li>1. سجل في Meta Developer Console وأنشئ تطبيق جديد</li>
+                  <li>2. أضف منتج WhatsApp Business API إلى التطبيق</li>
+                  <li>3. احصل على معرف رقم الهاتف ورمز الوصول</li>
+                  <li>4. قم بتكوين Webhook باستخدام الرابط المقدم أعلاه</li>
+                  <li>5. أدخل البيانات في الحقول أعلاه واحفظ الإعدادات</li>
+                  <li>6. اختبر الاتصال للتأكد من صحة الإعداد</li>
                 </ol>
               </div>
-
-              {/* كيفية الاستخدام */}
-              <div className="space-y-4 border-t pt-4">
-                <h3 className="text-lg font-semibold text-[hsl(var(--primary))] border-b pb-2">
-                  كيفية الاستخدام:
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 shrink-0"></div>
-                      <span className="text-sm">أرسل أي ملف عبر WhatsApp للرقم المسجل</span>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 shrink-0"></div>
-                      <span className="text-sm">سيتم حفظ الملف تلقائياً في قسم المستندات</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 shrink-0"></div>
-                      <span className="text-sm">يمكن إضافة وصف للملف عبر caption الرسالة</span>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 shrink-0"></div>
-                      <span className="text-sm">ستحصل على رسالة تأكيد عند نجاح الحفظ</span>
-                    </div>
-                  </div>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <h4 className="font-medium">الميزات المتاحة</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• استقبال الرسائل والملفات</li>
+                    <li>• ربط الملفات بالمعاملات تلقائياً</li>
+                    <li>• إشعارات فورية للرسائل الجديدة</li>
+                    <li>• تصنيف تلقائي للمرفقات</li>
+                  </ul>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-medium">أنواع الملفات المدعومة</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• الصور (JPG, PNG, GIF)</li>
+                    <li>• المستندات (PDF, DOC, XLS)</li>
+                    <li>• الصوتيات (MP3, WAV, OGG)</li>
+                    <li>• مقاطع الفيديو (MP4, MOV)</li>
+                  </ul>
                 </div>
               </div>
             </div>
