@@ -195,18 +195,18 @@ export default function SupabaseStatus() {
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  {getStatusIcon(supabaseHealth?.storage.available || false)}
+                  {getStatusIcon(supabaseHealth?.storage?.available || false)}
                   <span className="font-medium">
-                    {supabaseHealth?.storage.available ? 'متاح' : 'غير متاح'}
+                    {supabaseHealth?.storage?.available ? 'متاح' : 'غير متاح'}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">إمكانية الرفع</p>
               </div>
             </div>
             
-            {supabaseHealth?.storage.lastCheck && (
+            {supabaseHealth?.storage?.lastCheck && (
               <div className="mt-4 text-sm text-muted-foreground">
-                آخر فحص: {new Date(supabaseHealth.storage.lastCheck).toLocaleString('ar-EG')}
+                آخر فحص: {new Date(supabaseHealth.storage?.lastCheck).toLocaleString('ar-EG')}
               </div>
             )}
           </CardContent>
