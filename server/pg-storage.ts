@@ -1045,11 +1045,22 @@ export class PgStorage implements IStorage {
         
         // إذا لم نجد تطابق بعد التقليم، نبحث بالمحتوى المشترك
         if (expenseTypeResult.length === 0) {
-          console.log(`No trimmed match found, trying partial match...`);
+          console.log(`No trimmed match found, trying case-insensitive match...`);
           expenseTypeResult = await this.sql`
             SELECT id, name FROM expense_types 
-            WHERE (TRIM(name) LIKE '%' || TRIM(${transaction.expenseType}) || '%' 
-                  OR TRIM(${transaction.expenseType}) LIKE '%' || TRIM(name) || '%')
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(${transaction.expenseType})) 
+            AND is_active = true
+            LIMIT 1
+          `;
+        }
+        
+        // إذا لم نجد تطابق، نحاول البحث الجزئي
+        if (expenseTypeResult.length === 0) {
+          console.log(`No case-insensitive match found, trying partial match...`);
+          expenseTypeResult = await this.sql`
+            SELECT id, name FROM expense_types 
+            WHERE (LOWER(TRIM(name)) LIKE '%' || LOWER(TRIM(${transaction.expenseType})) || '%' 
+                  OR LOWER(TRIM(${transaction.expenseType})) LIKE '%' || LOWER(TRIM(name)) || '%')
             AND is_active = true
             LIMIT 1
           `;
