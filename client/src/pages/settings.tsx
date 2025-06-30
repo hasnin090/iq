@@ -4,11 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Check, Loader2, Shield, Download, Upload, Database, HardDrive, Settings as SettingsIcon, Building, Tag, Plus, Edit, Trash2, Cloud, Zap, Link, Activity, ChevronDown, ChevronRight } from 'lucide-react';
+import { AlertCircle, Loader2, Shield, Settings as SettingsIcon, Tag, Plus, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,11 +27,6 @@ const passwordChangeSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const accountCategorySchema = z.object({
-  name: z.string().min(1, 'اسم التصنيف مطلوب'),
-  description: z.string().optional(),
-});
-
 const expenseTypeSchema = z.object({
   name: z.string().min(1, 'اسم نوع المصروف مطلوب'),
   description: z.string().optional(),
@@ -45,16 +40,6 @@ interface Setting {
   description?: string;
 }
 
-interface AccountCategory {
-  id: number;
-  name: string;
-  description?: string;
-  active: boolean;
-  createdBy: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface ExpenseType {
   id: number;
   name: string;
@@ -64,13 +49,7 @@ interface ExpenseType {
   updatedAt: string;
 }
 
-interface DatabaseStatus {
-  connected: boolean;
-  responseTime: number;
-}
-
 type PasswordChangeValues = z.infer<typeof passwordChangeSchema>;
-type AccountCategoryValues = z.infer<typeof accountCategorySchema>;
 type ExpenseTypeValues = z.infer<typeof expenseTypeSchema>;
 
 export default function Settings() {
@@ -78,20 +57,12 @@ export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Collapsible states for dropdown sections
+  // Collapsible states
   const [isGeneralOpen, setIsGeneralOpen] = useState(true);
   const [isExpenseTypesOpen, setIsExpenseTypesOpen] = useState(false);
-  const [isSystemOpen, setIsSystemOpen] = useState(false);
-  const [isBackupOpen, setIsBackupOpen] = useState(false);
-  const [isIntegrationOpen, setIsIntegrationOpen] = useState(false);
-  const [isDatabaseOpen, setIsDatabaseOpen] = useState(false);
-  const [isStorageOpen, setIsStorageOpen] = useState(false);
-  const [isSupabaseOpen, setIsSupabaseOpen] = useState(false);
   const [isSecurityOpen, setIsSecurityOpen] = useState(false);
   
   // Dialog states
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<AccountCategory | null>(null);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpenseType, setEditingExpenseType] = useState<ExpenseType | null>(null);
 
@@ -116,17 +87,6 @@ export default function Settings() {
     enabled: !!user && user.role === 'admin'
   });
 
-  const { data: dbStatus } = useQuery<DatabaseStatus>({
-    queryKey: ['/api/database/status'],
-    refetchInterval: 30000,
-    enabled: !!user && user.role === 'admin'
-  });
-
-  const { data: accountCategories = [] } = useQuery<AccountCategory[]>({
-    queryKey: ['/api/account-categories'],
-    enabled: !!user && user.role === 'admin'
-  });
-
   const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
     queryKey: ['/api/expense-types'],
     enabled: !!user && user.role === 'admin'
@@ -139,14 +99,6 @@ export default function Settings() {
       currentPassword: '',
       newPassword: '',
       confirmPassword: '',
-    },
-  });
-
-  const categoryForm = useForm<AccountCategoryValues>({
-    resolver: zodResolver(accountCategorySchema),
-    defaultValues: {
-      name: '',
-      description: '',
     },
   });
 
@@ -189,75 +141,6 @@ export default function Settings() {
         description: "تم تغيير كلمة المرور بنجاح",
       });
       passwordForm.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
-  });
-
-  const createCategoryMutation = useMutation({
-    mutationFn: (data: AccountCategoryValues) =>
-      makeApiCall('/api/account-categories', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
-      toast({
-        title: "تم إنشاء التصنيف",
-        description: "تم إنشاء تصنيف الحساب بنجاح",
-      });
-      categoryForm.reset();
-      setIsDialogOpen(false);
-      setEditingCategory(null);
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
-  });
-
-  const updateCategoryMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: AccountCategoryValues }) =>
-      makeApiCall(`/api/account-categories/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
-      toast({
-        title: "تم تحديث التصنيف",
-        description: "تم تحديث تصنيف الحساب بنجاح",
-      });
-      categoryForm.reset();
-      setIsDialogOpen(false);
-      setEditingCategory(null);
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: error.message,
-      });
-    },
-  });
-
-  const deleteCategoryMutation = useMutation({
-    mutationFn: (id: number) =>
-      makeApiCall(`/api/account-categories/${id}`, { method: 'DELETE' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
-      toast({
-        title: "تم حذف التصنيف",
-        description: "تم حذف تصنيف الحساب بنجاح",
-      });
     },
     onError: (error: Error) => {
       toast({
@@ -337,44 +220,10 @@ export default function Settings() {
     },
   });
 
-  const backupMutation = useMutation({
-    mutationFn: () => makeApiCall('/api/backup/create', { method: 'POST' }),
-    onSuccess: (data: any) => {
-      toast({
-        title: "تم إنشاء النسخة الاحتياطية",
-        description: `تم إنشاء النسخة الاحتياطية بنجاح: ${data.backupPath}`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "خطأ في النسخ الاحتياطي",
-        description: error.message,
-      });
-    },
-  });
-
   // Event handlers
   function onPasswordChangeSubmit(values: PasswordChangeValues) {
     changePasswordMutation.mutate(values);
   }
-
-  function onCategorySubmit(values: AccountCategoryValues) {
-    if (editingCategory) {
-      updateCategoryMutation.mutate({ id: editingCategory.id, data: values });
-    } else {
-      createCategoryMutation.mutate(values);
-    }
-  }
-
-  const handleEditCategory = (category: AccountCategory) => {
-    setEditingCategory(category);
-    categoryForm.reset({
-      name: category.name,
-      description: category.description || '',
-    });
-    setIsDialogOpen(true);
-  };
 
   function onExpenseTypeSubmit(values: ExpenseTypeValues) {
     if (editingExpenseType) {
@@ -393,10 +242,6 @@ export default function Settings() {
     setIsExpenseDialogOpen(true);
   };
 
-  const handleCreateBackup = () => {
-    backupMutation.mutate();
-  };
-
   const handleSaveSetting = async (key: string, value: string) => {
     try {
       await makeApiCall('/api/settings', {
@@ -404,7 +249,6 @@ export default function Settings() {
         body: JSON.stringify({ key, value }),
       });
       
-      // Invalidate and refetch settings
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
       
       toast({
@@ -427,8 +271,8 @@ export default function Settings() {
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-blue-600 rounded-2xl mb-4">
           <SettingsIcon className="h-8 w-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold mb-2">إعدادات النظام</h1>
-        <p className="text-muted-foreground">إدارة شاملة لجميع إعدادات النظام والحسابات والأمان</p>
+        <h1 className="text-3xl font-bold mb-2">الإعدادات العامة</h1>
+        <p className="text-muted-foreground">إدارة معلومات الشركة وأنواع المصاريف والأمان</p>
       </div>
 
       {isLoading && (
@@ -448,7 +292,7 @@ export default function Settings() {
                   <div className="flex items-center gap-3">
                     <SettingsIcon className="h-6 w-6 text-primary" />
                     <div>
-                      <CardTitle>الإعدادات العامة</CardTitle>
+                      <CardTitle>معلومات الشركة</CardTitle>
                       <CardDescription>إعدادات الشركة والمعلومات الأساسية</CardDescription>
                     </div>
                   </div>
@@ -598,478 +442,65 @@ export default function Settings() {
                   </Dialog>
                 </div>
                 
-                <div className="rounded-md border">
+                <div className="border rounded-lg">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>الاسم</TableHead>
-                        <TableHead>الوصف</TableHead>
-                        <TableHead>الحالة</TableHead>
-                        <TableHead>الإجراءات</TableHead>
+                        <TableHead className="text-right">الاسم</TableHead>
+                        <TableHead className="text-right">الوصف</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">تاريخ الإنشاء</TableHead>
+                        <TableHead className="text-right">الإجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {expenseTypes.map((expenseType) => (
-                        <TableRow key={expenseType.id}>
-                          <TableCell className="font-medium">{expenseType.name}</TableCell>
-                          <TableCell>{expenseType.description || '-'}</TableCell>
-                          <TableCell>
-                            <Badge variant={expenseType.isActive ? "default" : "secondary"}>
-                              {expenseType.isActive ? 'نشط' : 'غير نشط'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditExpenseType(expenseType)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => deleteExpenseTypeMutation.mutate(expenseType.id)}
-                                disabled={deleteExpenseTypeMutation.isPending}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                      {expenseTypes.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                            لا توجد أنواع مصاريف. أضف نوع مصروف جديد للبدء.
                           </TableCell>
                         </TableRow>
-                      ))}
+                      ) : (
+                        expenseTypes.map((expenseType) => (
+                          <TableRow key={expenseType.id}>
+                            <TableCell className="font-medium">{expenseType.name}</TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {expenseType.description || 'لا يوجد وصف'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={expenseType.isActive ? 'default' : 'secondary'}>
+                                {expenseType.isActive ? 'نشط' : 'غير نشط'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {new Date(expenseType.createdAt).toLocaleDateString('ar-EG')}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditExpenseType(expenseType)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteExpenseTypeMutation.mutate(expenseType.id)}
+                                  disabled={deleteExpenseTypeMutation.isPending}
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* System Status */}
-        <Collapsible open={isSystemOpen} onOpenChange={setIsSystemOpen}>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Database className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle>حالة النظام</CardTitle>
-                      <CardDescription>مراقبة حالة قاعدة البيانات والاتصالات</CardDescription>
-                    </div>
-                  </div>
-                  {isSystemOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <CardContent className="space-y-4">
-                {dbStatus && (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
-                      <span>حالة قاعدة البيانات</span>
-                      <Badge variant={dbStatus.connected ? "default" : "destructive"}>
-                        {dbStatus.connected ? 'متصلة' : 'غير متصلة'}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
-                      <span>وقت الاستجابة</span>
-                      <Badge variant="outline">
-                        {dbStatus.responseTime}ms
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Backup Settings */}
-        <Collapsible open={isBackupOpen} onOpenChange={setIsBackupOpen}>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Download className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle>النسخ الاحتياطي</CardTitle>
-                      <CardDescription>إدارة النسخ الاحتياطية للنظام</CardDescription>
-                    </div>
-                  </div>
-                  {isBackupOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-green-600">
-                        <Download className="h-5 w-5" />
-                        إنشاء نسخة احتياطية
-                      </CardTitle>
-                      <CardDescription>
-                        إنشاء نسخة احتياطية من جميع بيانات النظام
-                      </CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <Button 
-                        onClick={handleCreateBackup}
-                        disabled={backupMutation.isPending}
-                        className="w-full"
-                      >
-                        {backupMutation.isPending && (
-                          <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                        )}
-                        إنشاء نسخة احتياطية
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Integration Settings */}
-        <Collapsible open={isIntegrationOpen} onOpenChange={setIsIntegrationOpen}>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Link className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle>إعدادات التكامل</CardTitle>
-                      <CardDescription>إدارة التكاملات مع الأنظمة والخدمات الخارجية</CardDescription>
-                    </div>
-                  </div>
-                  {isIntegrationOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">Firebase</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      تكامل مع خدمات Firebase للمصادقة والتخزين
-                    </p>
-                    <Badge variant="default">متصل</Badge>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">Supabase</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      تكامل مع Supabase لقاعدة البيانات والتخزين
-                    </p>
-                    <Badge variant="default">متصل</Badge>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">WhatsApp Business</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      استقبال الملفات عبر رسائل WhatsApp
-                    </p>
-                    <Badge variant="outline">غير مفعل</Badge>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">Google Drive</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      نسخ احتياطي تلقائي إلى Google Drive
-                    </p>
-                    <Badge variant="outline">غير مفعل</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Database Management */}
-        <Collapsible open={isDatabaseOpen} onOpenChange={setIsDatabaseOpen}>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Database className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle>إدارة قواعد البيانات</CardTitle>
-                      <CardDescription>مراقبة وإدارة قواعد البيانات الأساسية والاحتياطية</CardDescription>
-                    </div>
-                  </div>
-                  {isDatabaseOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">قاعدة البيانات الأساسية</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      PostgreSQL - Neon Database
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="default">نشط</Badge>
-                      {dbStatus && (
-                        <span className="text-xs text-muted-foreground">
-                          {dbStatus.responseTime}ms
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">قاعدة البيانات الاحتياطية</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Supabase PostgreSQL
-                    </p>
-                    <Badge variant="secondary">احتياطي</Badge>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="font-semibold">إجراءات قاعدة البيانات</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" size="sm">
-                      <Database className="h-4 w-4 mr-2" />
-                      فحص الاتصال
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Activity className="h-4 w-4 mr-2" />
-                      مزامنة البيانات
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      تصدير البيانات
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Hybrid Storage */}
-        <Collapsible open={isStorageOpen} onOpenChange={setIsStorageOpen}>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Cloud className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle>إدارة التخزين المختلط</CardTitle>
-                      <CardDescription>إعدادات التخزين المحلي والسحابي للملفات والمرفقات</CardDescription>
-                    </div>
-                  </div>
-                  {isStorageOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">التخزين المحلي</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      الملفات المحفوظة على الخادم المحلي
-                    </p>
-                    <Badge variant="default">أساسي</Badge>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">Supabase Storage</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      تخزين سحابي احتياطي
-                    </p>
-                    <Badge variant="secondary">احتياطي</Badge>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">Firebase Storage</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      تخزين سحابي ثانوي
-                    </p>
-                    <Badge variant="outline">ثانوي</Badge>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="font-semibold">إحصائيات التخزين</h3>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="p-3 rounded-lg bg-muted">
-                      <div className="text-sm text-muted-foreground">إجمالي الملفات</div>
-                      <div className="text-2xl font-bold">1,247</div>
-                    </div>
-                    
-                    <div className="p-3 rounded-lg bg-muted">
-                      <div className="text-sm text-muted-foreground">المساحة المستخدمة</div>
-                      <div className="text-2xl font-bold">2.4 GB</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="font-semibold">إجراءات التخزين</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" size="sm">
-                      <Cloud className="h-4 w-4 mr-2" />
-                      مزامنة الملفات
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      رفع إلى السحابة
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <HardDrive className="h-4 w-4 mr-2" />
-                      تنظيف الملفات
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-
-        {/* Supabase Status */}
-        <Collapsible open={isSupabaseOpen} onOpenChange={setIsSupabaseOpen}>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Activity className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle>حالة Supabase</CardTitle>
-                      <CardDescription>مراقبة تفصيلية لخدمات Supabase المتصلة</CardDescription>
-                    </div>
-                  </div>
-                  {isSupabaseOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">قاعدة البيانات</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">الحالة</span>
-                        <Badge variant="default">متصل</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">وقت الاستجابة</span>
-                        <span className="text-sm font-mono">45ms</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">آخر مزامنة</span>
-                        <span className="text-sm">منذ 5 دقائق</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg border">
-                    <h3 className="font-semibold mb-2">التخزين</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">الحالة</span>
-                        <Badge variant="default">متصل</Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">الملفات المرفوعة</span>
-                        <span className="text-sm font-mono">1,247</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm">المساحة المستخدمة</span>
-                        <span className="text-sm">2.4 GB</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="font-semibold">المعايير والإحصائيات</h3>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="p-3 rounded-lg bg-muted">
-                      <div className="text-sm text-muted-foreground">المعاملات المزامنة</div>
-                      <div className="text-xl font-bold text-green-600">4,532</div>
-                    </div>
-                    
-                    <div className="p-3 rounded-lg bg-muted">
-                      <div className="text-sm text-muted-foreground">المشاريع المزامنة</div>
-                      <div className="text-xl font-bold text-blue-600">12</div>
-                    </div>
-                    
-                    <div className="p-3 rounded-lg bg-muted">
-                      <div className="text-sm text-muted-foreground">المستخدمين المزامنين</div>
-                      <div className="text-xl font-bold text-purple-600">8</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="font-semibold">إجراءات Supabase</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button variant="outline" size="sm">
-                      <Activity className="h-4 w-4 mr-2" />
-                      فحص الاتصال
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Zap className="h-4 w-4 mr-2" />
-                      مزامنة فورية
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      استيراد البيانات
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      تصدير البيانات
-                    </Button>
-                  </div>
                 </div>
               </CardContent>
             </CollapsibleContent>
@@ -1199,18 +630,21 @@ function SettingField({ settings, settingKey, label, type = 'text', onSave, isSa
           type={type}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder={`أدخل ${label}`}
+          placeholder={`أدخل ${label.toLowerCase()}`}
+          className="flex-1"
         />
         <Button
           onClick={handleSave}
           disabled={isSaving || value === currentValue}
-          variant={saved ? "default" : "outline"}
           size="sm"
+          variant={saved ? "default" : "outline"}
         >
-          {saved ? (
-            <Check className="h-4 w-4" />
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : saved ? (
+            'تم الحفظ'
           ) : (
-            "حفظ"
+            'حفظ'
           )}
         </Button>
       </div>
