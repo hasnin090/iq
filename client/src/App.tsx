@@ -14,7 +14,7 @@ import Archive from "@/pages/archive";
 import Reports from "@/pages/reports";
 import Activities from "@/pages/activities";
 import Settings from "@/pages/settings";
-import Ledger from "@/pages/ledger";
+import LedgerSimple from "@/pages/ledger-simple";
 import Receivables from "@/pages/receivables";
 import DatabaseManagement from "@/pages/database-management";
 import HybridStorage from "@/pages/hybrid-storage";
@@ -132,7 +132,7 @@ function AppRoutes() {
               </Route>
               <Route path="/activities" component={Activities} />
               <Route path="/settings" component={Settings} />
-              <Route path="/ledger" component={Ledger} />
+              <Route path="/ledger" component={Reports} />
               <Route path="/receivables" component={Receivables} />
               <Route path="/database-management">
                 {user?.role === 'admin' ? <DatabaseManagement /> : <NotFound />}
