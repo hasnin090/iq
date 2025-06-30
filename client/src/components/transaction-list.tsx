@@ -42,6 +42,14 @@ interface Project {
   name: string;
 }
 
+interface ExpenseType {
+  id: number;
+  name: string;
+  description?: string;
+  is_active?: boolean;
+  isActive?: boolean;
+}
+
 interface TransactionListProps {
   transactions: Transaction[];
   projects: Project[];
@@ -88,7 +96,7 @@ export function TransactionList({
   const { user } = useAuth();
 
   // جلب أنواع المصاريف
-  const { data: expenseTypes = [] } = useQuery<Array<{id: number; name: string; isActive: boolean}>>({
+  const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
     queryKey: ['/api/expense-types'],
     staleTime: 30 * 1000, // 30 seconds
   });
@@ -610,7 +618,7 @@ export function TransactionList({
                         <SelectContent>
                           <SelectItem value="مصروف عام">مصروف عام</SelectItem>
                           {expenseTypes
-                            .filter(type => type.isActive && type.name !== "مصروف عام")
+                            .filter(type => (type.is_active !== false && type.isActive !== false) && type.name !== "مصروف عام")
                             .map(type => (
                               <SelectItem key={type.id} value={type.name}>
                                 {type.name}

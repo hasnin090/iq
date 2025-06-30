@@ -48,7 +48,8 @@ interface ExpenseType {
   id: number;
   name: string;
   description?: string;
-  isActive: boolean;
+  is_active?: boolean;
+  isActive?: boolean;
 }
 
 interface Employee {
@@ -126,7 +127,7 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
                   <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
                     أنواع المصاريف ({expenseTypes.length})
                   </div>
-                  {expenseTypes.filter(type => type.isActive !== false).map((type) => (
+                  {expenseTypes.filter(type => (type.is_active !== false && type.isActive !== false)).map((type) => (
                     <SelectItem key={`db-${type.id}`} value={type.name}>
                       <div className="flex items-center gap-2">
                         <span>📋</span>
