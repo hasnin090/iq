@@ -120,6 +120,7 @@ function AppRoutes() {
               <Route path="/" component={Dashboard} />
               <Route path="/transactions" component={Transactions} />
               <Route path="/projects" component={Projects} />
+              <Route path="/projects/details/:id" component={Projects} />
               <Route path="/users" component={Users} />
               <Route path="/employees">
                 {user?.role === 'admin' ? <Employees /> : <NotFound />}
@@ -131,6 +132,7 @@ function AppRoutes() {
               </Route>
               <Route path="/activities" component={Activities} />
               <Route path="/settings" component={Settings} />
+              <Route path="/ledger" component={Ledger} />
               <Route path="/receivables" component={Receivables} />
               <Route path="/database-management">
                 {user?.role === 'admin' ? <DatabaseManagement /> : <NotFound />}
