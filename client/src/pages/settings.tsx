@@ -493,12 +493,12 @@ export default function Settings() {
                           name="newPassword"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الجديدة</FormLabel>
+                              <FormLabel className="text-sm font-semibold text-foreground">كلمة المرور الجديدة</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="password" 
                                   {...field} 
-                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                  className="bg-background border-border focus:border-orange-400 focus:ring-orange-200"
                                   placeholder="كلمة مرور قوية"
                                 />
                               </FormControl>
@@ -512,12 +512,12 @@ export default function Settings() {
                           name="confirmPassword"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-sm font-semibold text-gray-700">تأكيد كلمة المرور</FormLabel>
+                              <FormLabel className="text-sm font-semibold text-foreground">تأكيد كلمة المرور</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="password" 
                                   {...field} 
-                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                  className="bg-background border-border focus:border-orange-400 focus:ring-orange-200"
                                   placeholder="إعادة كتابة كلمة المرور"
                                 />
                               </FormControl>
@@ -552,27 +552,27 @@ export default function Settings() {
 
         {/* 3. Expense Types Section */}
         <Collapsible open={isExpenseTypesOpen} onOpenChange={setIsExpenseTypesOpen}>
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-green-50/30">
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-background to-green-50/30 dark:from-background dark:to-green-950/20">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-green-50/50 transition-all duration-200 rounded-t-lg">
+              <CardHeader className="cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/30 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
                       <Tag className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl text-gray-800">أنواع المصاريف</CardTitle>
-                      <CardDescription className="text-gray-600">تصنيفات ذكية للمعاملات المالية</CardDescription>
+                      <CardTitle className="text-xl text-foreground">أنواع المصاريف</CardTitle>
+                      <CardDescription className="text-muted-foreground">تصنيفات ذكية للمعاملات المالية</CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    <div className="px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
                       {expenseTypes?.length || 0} نوع
                     </div>
                     {isExpenseTypesOpen ? (
-                      <ChevronDown className="h-5 w-5 text-green-600" />
+                      <ChevronDown className="h-5 w-5 text-green-600 dark:text-green-400" />
                     ) : (
-                      <ChevronRight className="h-5 w-5 text-green-600" />
+                      <ChevronRight className="h-5 w-5 text-green-600 dark:text-green-400" />
                     )}
                   </div>
                 </div>
@@ -582,29 +582,29 @@ export default function Settings() {
             <CollapsibleContent>
               <CardContent className="pt-0 pb-6">
                 {/* Quick Stats */}
-                <div className="bg-green-50/50 border border-green-200 rounded-lg p-4 mb-6">
+                <div className="bg-green-50/50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/50 rounded-lg p-4 mb-6">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div className="space-y-1">
-                      <div className="text-2xl font-bold text-green-700">{expenseTypes?.length || 0}</div>
-                      <div className="text-xs text-green-600">إجمالي الأنواع</div>
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-300">{expenseTypes?.length || 0}</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">إجمالي الأنواع</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl font-bold text-green-700">
-                        {expenseTypes?.filter(et => et.isActive || et.is_active).length || 0}
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                        {expenseTypes?.filter(et => et.isActive).length || 0}
                       </div>
-                      <div className="text-xs text-green-600">الأنواع النشطة</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">الأنواع النشطة</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl font-bold text-green-700">
-                        {expenseTypes?.filter(et => !(et.isActive || et.is_active)).length || 0}
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                        {expenseTypes?.filter(et => !et.isActive).length || 0}
                       </div>
-                      <div className="text-xs text-green-600">الأنواع المعطلة</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">الأنواع المعطلة</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl font-bold text-green-700">
-                        {Math.round(((expenseTypes?.filter(et => et.isActive || et.is_active).length || 0) / Math.max(expenseTypes?.length || 1, 1)) * 100)}%
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                        {Math.round(((expenseTypes?.filter(et => et.isActive).length || 0) / Math.max(expenseTypes?.length || 1, 1)) * 100)}%
                       </div>
-                      <div className="text-xs text-green-600">معدل النشاط</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">معدل النشاط</div>
                     </div>
                   </div>
                 </div>
