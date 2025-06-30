@@ -361,19 +361,7 @@ function CompanyName() {
                       <span className="text-sm">المستحقات</span>
                     </Link>
                     
-                    <Link
-                      href="/ledger"
-                      className={`flex items-center space-x-reverse space-x-2 px-3 py-2 rounded-lg no-flicker touch-target ${
-                        location === "/ledger" 
-                          ? "bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] font-medium border-r-2 border-[hsl(var(--primary))]" 
-                          : "text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-600"
-                      } transition-all duration-200`}
-                    >
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center bg-green-100 dark:bg-gray-600">
-                        <i className="fas fa-book text-xs"></i>
-                      </div>
-                      <span className="text-sm">دفتر الأستاذ</span>
-                    </Link>
+
                   </div>
                 </div>
               </div>
