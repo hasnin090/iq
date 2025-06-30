@@ -126,6 +126,22 @@ export default function LedgerPage() {
     },
   });
 
+  // إعادة تصنيف المعاملات حسب أنواع المصاريف الجديدة
+  const reclassifyTransactionsMutation = useMutation({
+    mutationFn: () => apiRequest("/api/ledger/reclassify-transactions", "POST", {}),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ledger"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ledger/summary"] });
+      toast({ 
+        title: "تم إعادة التصنيف بنجاح", 
+        description: `تم إعادة تصنيف ${data.summary.reclassified} معاملة` 
+      });
+    },
+    onError: () => {
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إعادة تصنيف المعاملات", variant: "destructive" });
+    },
+  });
+
   const onSubmit = (data: ExpenseTypeForm) => {
     createExpenseTypeMutation.mutate(data);
   };
@@ -198,13 +214,27 @@ export default function LedgerPage() {
           <p className="text-muted-foreground">نظام تصنيف المصروفات والمتفرقات</p>
         </div>
         
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="ml-2 h-4 w-4" />
-              إضافة نوع مصروف
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => reclassifyTransactionsMutation.mutate()}
+            disabled={reclassifyTransactionsMutation.isPending}
+            variant="outline"
+          >
+            {reclassifyTransactionsMutation.isPending ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary ml-2"></div>
+            ) : (
+              <FileText className="ml-2 h-4 w-4" />
+            )}
+            إعادة تصنيف المعاملات
+          </Button>
+          
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="ml-2 h-4 w-4" />
+                إضافة نوع مصروف
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>إضافة نوع مصروف جديد</DialogTitle>
