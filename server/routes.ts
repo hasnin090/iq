@@ -959,7 +959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // عمليات مصروفات للمدير يمكن أن تكون على الصندوق الرئيسي أو المشاريع
           if (projectId) {
             // عملية صرف من المشروع
-            result = await storage.processWithdrawal(userId, projectId, amount, description);
+            result = await storage.processWithdrawal(userId, projectId, amount, description, expenseType);
           } else {
             // عملية صرف من الصندوق الرئيسي
             result = await storage.processAdminTransaction(userId, type, amount, description);
