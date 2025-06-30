@@ -1357,8 +1357,8 @@ export class PgStorage implements IStorage {
   async createEmployee(employee: InsertEmployee): Promise<Employee> {
     try {
       const result = await this.sql`
-        INSERT INTO employees (name, position, salary, project_id, hire_date, status, contact_info)
-        VALUES (${employee.name}, ${employee.position}, ${employee.salary}, ${employee.projectId || null}, ${employee.hireDate}, ${employee.status || 'active'}, ${JSON.stringify(employee.contactInfo || {})})
+        INSERT INTO employees (name, salary, assigned_project_id, active, hire_date, notes, created_by)
+        VALUES (${employee.name}, ${employee.salary || 0}, ${employee.assignedProjectId || null}, ${employee.active !== false}, ${employee.hireDate || new Date()}, ${employee.notes || null}, ${1})
         RETURNING *
       `;
       return result[0] as Employee;
@@ -1377,30 +1377,30 @@ export class PgStorage implements IStorage {
         setParts.push(`name = $${setParts.length + 1}`);
         values.push(employee.name);
       }
-      if (employee.position !== undefined) {
-        setParts.push(`position = $${setParts.length + 1}`);
-        values.push(employee.position);
-      }
       if (employee.salary !== undefined) {
         setParts.push(`salary = $${setParts.length + 1}`);
         values.push(employee.salary);
       }
-      if (employee.projectId !== undefined) {
-        setParts.push(`project_id = $${setParts.length + 1}`);
-        values.push(employee.projectId);
+      if (employee.assignedProjectId !== undefined) {
+        setParts.push(`assigned_project_id = $${setParts.length + 1}`);
+        values.push(employee.assignedProjectId);
       }
-      if (employee.status !== undefined) {
-        setParts.push(`status = $${setParts.length + 1}`);
-        values.push(employee.status);
+      if (employee.active !== undefined) {
+        setParts.push(`active = $${setParts.length + 1}`);
+        values.push(employee.active);
       }
-      if (employee.contactInfo !== undefined) {
-        setParts.push(`contact_info = $${setParts.length + 1}`);
-        values.push(JSON.stringify(employee.contactInfo));
+      if (employee.hireDate !== undefined) {
+        setParts.push(`hire_date = $${setParts.length + 1}`);
+        values.push(employee.hireDate);
+      }
+      if (employee.notes !== undefined) {
+        setParts.push(`notes = $${setParts.length + 1}`);
+        values.push(employee.notes);
       }
 
       if (setParts.length === 0) throw new Error('No fields to update');
 
-      const query = `UPDATE employees SET ${setParts.join(', ')} WHERE id = $${setParts.length + 1} RETURNING *`;
+      const query = `UPDATE employees SET ${setParts.join(', ')}, updated_at = NOW() WHERE id = $${setParts.length + 1} RETURNING *`;
       values.push(id);
       
       const result = await this.sql(query, values);
