@@ -139,12 +139,34 @@ export default function Reports() {
   });
 
 
+  // Helper function to get account type for a transaction
+  const getTransactionAccountType = (transaction: any) => {
+    if (!Array.isArray(ledgerEntries) || !Array.isArray(expenseTypes)) return 'unclassified';
+    
+    const ledgerEntry = ledgerEntries.find((entry: any) => 
+      entry.transactionId === transaction.id || entry.transaction_id === transaction.id
+    );
+    
+    if (ledgerEntry && (ledgerEntry.expenseTypeId || ledgerEntry.expense_type_id)) {
+      const expenseTypeId = ledgerEntry.expenseTypeId || ledgerEntry.expense_type_id;
+      const expenseType = expenseTypes.find((type: any) => type.id === expenseTypeId);
+      if (expenseType) {
+        return expenseType.name;
+      }
+    }
+    return 'unclassified';
+  };
+
   // فلترة المعاملات - فقط العمليات المصنفة في دفتر الأستاذ
   const filteredTransactions = useMemo(() => {
     // تصفية المعاملات للاحتفاظ فقط بالمصنفة في دفتر الأستاذ
     const classifiedTransactions = transactions.filter(transaction => {
       if (!Array.isArray(ledgerEntries)) return false;
-      return ledgerEntries.some((entry: any) => entry.transactionId === transaction.id && entry.expenseTypeId);
+      // التحقق من كلا الحقلين transactionId و transaction_id
+      return ledgerEntries.some((entry: any) => 
+        (entry.transactionId === transaction.id || entry.transaction_id === transaction.id) && 
+        (entry.expenseTypeId || entry.expense_type_id)
+      );
     });
     
     // Debug logging
@@ -173,18 +195,7 @@ export default function Reports() {
         matchesDate = transactionDate >= monthAgo;
       }
 
-      // البحث عن نوع المصروف من دفتر الأستاذ
-      let accountType = 'unclassified';
-      if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
-        const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
-        if (ledgerEntry && ledgerEntry.expenseTypeId) {
-          const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
-          if (expenseType) {
-            accountType = expenseType.name;
-          }
-        }
-      }
-      
+      const accountType = getTransactionAccountType(transaction);
       const matchesAccountType = selectedAccountType === 'all' || accountType === selectedAccountType;
       
       return matchesSearch && matchesProject && matchesDate && matchesAccountType;
@@ -194,17 +205,7 @@ export default function Reports() {
   // فلترة المعاملات لحساب معين
   const getTransactionsByAccountType = (accountType: string) => {
     return filteredTransactions.filter(transaction => {
-      // البحث عن نوع المصروف من دفتر الأستاذ
-      let transactionAccountType = 'unclassified';
-      if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
-        const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
-        if (ledgerEntry && ledgerEntry.expenseTypeId) {
-          const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
-          if (expenseType) {
-            transactionAccountType = expenseType.name;
-          }
-        }
-      }
+      const transactionAccountType = getTransactionAccountType(transaction);
       return transactionAccountType === accountType;
     });
   };
@@ -221,17 +222,7 @@ export default function Reports() {
     
     // تجميع المعاملات حسب نوع الحساب
     filteredTransactions.forEach(transaction => {
-      // البحث عن نوع المصروف من دفتر الأستاذ
-      let accountType = 'unclassified';
-      if (Array.isArray(ledgerEntries) && Array.isArray(expenseTypes)) {
-        const ledgerEntry = ledgerEntries.find((entry: any) => entry.transactionId === transaction.id);
-        if (ledgerEntry && ledgerEntry.expenseTypeId) {
-          const expenseType = expenseTypes.find((type: any) => type.id === ledgerEntry.expenseTypeId);
-          if (expenseType) {
-            accountType = expenseType.name;
-          }
-        }
-      }
+      const accountType = getTransactionAccountType(transaction);
       
       if (!summary[accountType]) {
         summary[accountType] = {
