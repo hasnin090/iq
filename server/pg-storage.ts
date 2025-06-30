@@ -324,7 +324,23 @@ export class PgStorage implements IStorage {
         RETURNING *
       `;
       
-      const createdTransaction = result[0] as Transaction;
+      const rawTransaction = result[0];
+      
+      // تحويل أسماء الأعمدة من snake_case إلى camelCase
+      const createdTransaction: Transaction = {
+        id: rawTransaction.id,
+        date: rawTransaction.date,
+        type: rawTransaction.type,
+        amount: rawTransaction.amount,
+        description: rawTransaction.description,
+        projectId: rawTransaction.project_id,
+        createdBy: rawTransaction.created_by,
+        expenseType: rawTransaction.expense_type,
+        employeeId: rawTransaction.employee_id,
+        fileUrl: rawTransaction.file_url,
+        fileType: rawTransaction.file_type,
+        archived: rawTransaction.archived
+      };
       
       // التصنيف التلقائي للمصروفات في دفتر الأستاذ
       if (createdTransaction.type === 'expense' && createdTransaction.expenseType) {
