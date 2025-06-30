@@ -114,7 +114,7 @@ export default function SupabaseStatus() {
                     خدمات Supabase
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {supabaseHealth?.overall.message || 'جاري التحقق من الحالة...'}
+                    {supabaseHealth?.overall?.message || 'جاري التحقق من الحالة...'}
                   </p>
                 </div>
               </div>
@@ -140,9 +140,9 @@ export default function SupabaseStatus() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  {getStatusIcon(supabaseHealth?.database.connected || false)}
+                  {getStatusIcon(supabaseHealth?.database?.connected || false)}
                   <span className="font-medium">
-                    {supabaseHealth?.database.connected ? 'متصل' : 'غير متصل'}
+                    {supabaseHealth?.database?.connected ? 'متصل' : 'غير متصل'}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">حالة الاتصال</p>
@@ -152,8 +152,8 @@ export default function SupabaseStatus() {
                 <div className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-blue-500" />
                   <span className="font-medium">
-                    {supabaseHealth?.database.responseTime ? 
-                      `${supabaseHealth.database.responseTime} ms` : 
+                    {supabaseHealth?.database?.responseTime ? 
+                      `${supabaseHealth.database?.responseTime} ms` : 
                       '--'
                     }
                   </span>
@@ -162,9 +162,9 @@ export default function SupabaseStatus() {
               </div>
             </div>
             
-            {supabaseHealth?.database.lastCheck && (
+            {supabaseHealth?.database?.lastCheck && (
               <div className="mt-4 text-sm text-muted-foreground">
-                آخر فحص: {new Date(supabaseHealth.database.lastCheck).toLocaleString('ar-EG')}
+                آخر فحص: {new Date(supabaseHealth.database?.lastCheck).toLocaleString('ar-EG')}
               </div>
             )}
           </CardContent>
@@ -185,9 +185,9 @@ export default function SupabaseStatus() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  {getStatusIcon(supabaseHealth?.storage.connected || false)}
+                  {getStatusIcon(supabaseHealth?.storage?.connected || false)}
                   <span className="font-medium">
-                    {supabaseHealth?.storage.connected ? 'متصل' : 'غير متصل'}
+                    {supabaseHealth?.storage?.connected ? 'متصل' : 'غير متصل'}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">حالة الاتصال</p>
