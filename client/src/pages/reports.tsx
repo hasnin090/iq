@@ -353,10 +353,22 @@ export default function Reports() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 gap-1 h-auto p-1">
+          <TabsList className="grid w-full overflow-x-auto" style={{ 
+            gridTemplateColumns: `repeat(${3 + Object.keys(accountSummary).length}, minmax(120px, 1fr))` 
+          }}>
             <TabsTrigger value="ledger" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">دفتر الأستاذ</TabsTrigger>
             <TabsTrigger value="summary" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">ملخص الحسابات</TabsTrigger>
             <TabsTrigger value="details" className="text-xs md:text-sm px-2 py-2 whitespace-nowrap">التفاصيل</TabsTrigger>
+            {/* تبويب لكل نوع حساب */}
+            {Object.keys(accountSummary).map((accountType) => (
+              <TabsTrigger 
+                key={accountType} 
+                value={`account-type-${accountType}`}
+                className="text-xs px-2 whitespace-nowrap"
+              >
+                <span className="truncate max-w-20">{getAccountTypeName(accountType)}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {/* أدوات الفلترة المحاسبية */}
@@ -985,6 +997,81 @@ export default function Reports() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* تبويبات ديناميكية لكل نوع حساب */}
+          {Object.entries(accountSummary).map(([accountType, data]) => (
+            <TabsContent key={accountType} value={`account-type-${accountType}`} className="space-y-6 animate-fade-in">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Calculator className="w-6 h-6 text-[hsl(var(--primary))]" />
+                    {getAccountTypeName(accountType)}
+                  </CardTitle>
+                  <CardDescription>
+                    عرض تفصيلي لجميع معاملات {getAccountTypeName(accountType)} ({data.count} معاملة)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* إحصائيات سريعة */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-6">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">عدد المعاملات</p>
+                      <p className="text-2xl font-bold text-primary">{data.count}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">إجمالي المبلغ</p>
+                      <p className="text-2xl font-bold text-primary">{formatCurrency(data.total)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">متوسط المعاملة</p>
+                      <p className="text-2xl font-bold text-primary">{formatCurrency(data.total / data.count)}</p>
+                    </div>
+                  </div>
+
+                  {/* جدول المعاملات */}
+                  <div className="table-container mobile-archive-table">
+                    <Table className="w-full text-xs md:text-sm">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-center">التاريخ</TableHead>
+                          <TableHead className="text-center">الوصف</TableHead>
+                          <TableHead className="text-center">المشروع</TableHead>
+                          <TableHead className="text-center">المبلغ</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {getTransactionsByAccountType(accountType).map((transaction) => {
+                          const project = projects.find(p => p.id === transaction.projectId);
+                          return (
+                            <TableRow key={transaction.id} className="hover:bg-muted/50">
+                              <TableCell className="text-center">
+                                {format(new Date(transaction.date), 'yyyy/MM/dd', { locale: ar })}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="truncate max-w-[150px]">
+                                  {transaction.description || 'لا يوجد وصف'}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="truncate max-w-[100px]">
+                                  {project?.name || 'الصندوق الرئيسي'}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center font-semibold">
+                                <span className={transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}>
+                                  {formatCurrency(transaction.amount)}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
 
