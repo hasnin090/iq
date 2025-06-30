@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -8,12 +8,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2, Activity, Calculator, FileSpreadsheet, Eye } from 'lucide-react'
+import { BookOpen, Download, Search, Calendar, Filter, TrendingUp, TrendingDown, DollarSign, Building2, Activity, Calculator, FileSpreadsheet, Eye, AlertCircle, RefreshCw } from 'lucide-react'
 import { format } from 'date-fns'
 import { ar } from 'date-fns/locale'
 import * as XLSX from 'xlsx'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
+import { apiRequest } from '@/lib/queryClient'
 import type { Transaction, Project, User } from '@/types'
 
 const formatCurrency = (amount: number) => {
@@ -85,6 +86,7 @@ const getAccountTypeName = (accountType: string): string => {
 export default function Reports() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('ledger');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
@@ -92,6 +94,22 @@ export default function Reports() {
   const [selectedAccountType, setSelectedAccountType] = useState<string>('all');
   const [dialogAccountType, setDialogAccountType] = useState<string | null>(null);
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
+
+  // إعادة تصنيف المعاملات حسب أنواع المصاريف الجديدة
+  const reclassifyTransactionsMutation = useMutation({
+    mutationFn: () => apiRequest("/api/ledger/reclassify-transactions", "POST", {}),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ledger"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      toast({ 
+        title: "تم إعادة التصنيف بنجاح", 
+        description: `تم إعادة تصنيف ${data.summary.reclassified} معاملة` 
+      });
+    },
+    onError: () => {
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إعادة تصنيف المعاملات", variant: "destructive" });
+    },
+  });
 
   // جلب البيانات
   const { data: transactions = [] } = useQuery<Transaction[]>({
@@ -413,6 +431,41 @@ export default function Reports() {
 
           {/* تبويب دفتر الأستاذ - العرض المحاسبي */}
           <TabsContent value="ledger" className="space-y-6 animate-fade-in">
+            {/* تحذير عدم وجود معاملات مصنفة */}
+            {Object.keys(accountSummary).length === 0 && (
+              <Card className="border-orange-200 bg-orange-50/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <AlertCircle className="h-6 w-6 text-orange-600 mt-1 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-orange-800 mb-2">لا توجد معاملات مصنفة</h3>
+                      <p className="text-orange-700 text-sm mb-4">
+                        يبدو أن المعاملات الموجودة لم يتم تصنيفها في دفتر الأستاذ بعد. 
+                        لعرض التقارير، يجب أولاً تصنيف المعاملات حسب أنواع المصاريف.
+                      </p>
+                      <Button 
+                        onClick={() => reclassifyTransactionsMutation.mutate()}
+                        disabled={reclassifyTransactionsMutation.isPending}
+                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                      >
+                        {reclassifyTransactionsMutation.isPending ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            جاري التصنيف...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            تصنيف المعاملات الآن
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* ملخص الحسابات المحاسبية */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {Object.entries(accountSummary).map(([accountType, data]) => (
