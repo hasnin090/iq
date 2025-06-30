@@ -102,9 +102,9 @@ export default function SupabaseStatus() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {supabaseHealth?.overall.status === 'healthy' ? (
+                {supabaseHealth?.overall?.status === 'healthy' ? (
                   <CheckCircle className="h-8 w-8 text-green-500" />
-                ) : supabaseHealth?.overall.status === 'degraded' ? (
+                ) : supabaseHealth?.overall?.status === 'degraded' ? (
                   <AlertCircle className="h-8 w-8 text-yellow-500" />
                 ) : (
                   <XCircle className="h-8 w-8 text-red-500" />
@@ -118,7 +118,9 @@ export default function SupabaseStatus() {
                   </p>
                 </div>
               </div>
-              {supabaseHealth?.overall.status && getStatusBadge(supabaseHealth.overall.status)}
+              <div>
+                {supabaseHealth?.overall?.status ? getStatusBadge(supabaseHealth.overall.status) : <Badge variant="secondary">جاري التحميل...</Badge>}
+              </div>
             </div>
           </CardContent>
         </Card>
