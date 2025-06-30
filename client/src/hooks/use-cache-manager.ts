@@ -16,6 +16,15 @@ export function useCacheManager() {
   }, []);
 
   /**
+   * تحديث كاش دفتر الأستاذ والتقارير
+   */
+  const invalidateLedger = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['/api/ledger'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/ledger/summary'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/ledger/deferred-payments'] });
+  }, []);
+
+  /**
    * تحديث كاش الموظفين
    */
   const invalidateEmployees = useCallback(() => {
@@ -103,12 +112,14 @@ export function useCacheManager() {
    */
   const refreshTransactions = useCallback(() => {
     invalidateTransactions();
+    invalidateLedger();
     refetchTransactions();
-  }, [invalidateTransactions, refetchTransactions]);
+  }, [invalidateTransactions, invalidateLedger, refetchTransactions]);
 
   return {
     // تحديث الكاش
     invalidateTransactions,
+    invalidateLedger,
     invalidateEmployees,
     invalidateExpenseTypes,
     invalidateProjects,
