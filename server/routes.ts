@@ -2705,7 +2705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createActivityLog({
         action: "update",
         entityType: "ledger",
-        entityId: 0,
+        entityId: 1,
         details: `إعادة تصنيف ${reclassifiedCount} معاملة في دفتر الأستاذ`,
         userId: req.session.userId as number
       });
