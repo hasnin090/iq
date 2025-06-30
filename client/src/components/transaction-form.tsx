@@ -282,9 +282,10 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
         formData.append('amount', data.amount.toString());
         formData.append('description', data.description);
 
-        // إضافة نوع المصروف إذا كان النوع مصروف
+        // إضافة نوع المصروف إذا كان النوع مصروف - يتم التصنيف التلقائي
         if (data.type === 'expense' && data.expenseType) {
           formData.append('expenseType', data.expenseType);
+          formData.append('autoClassify', 'true'); // تفعيل التصنيف التلقائي
         }
 
         // إضافة معرف الموظف إذا كان نوع المصروف راتب
