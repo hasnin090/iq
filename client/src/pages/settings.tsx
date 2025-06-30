@@ -688,99 +688,33 @@ export default function Settings() {
                   </Dialog>
                 </div>
                 
-                {/* Enhanced Table */}
-                <div className="bg-white border border-green-200 rounded-lg shadow-sm overflow-hidden">
-                  <div className="bg-green-50/50 border-b border-green-200 px-6 py-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-semibold text-green-800">قائمة أنواع المصاريف</h4>
-                      <div className="text-xs text-green-600">
-                        {expenseTypes?.length || 0} نوع مصروف مسجل
-                      </div>
-                    </div>
-                  </div>
-                  
+                {/* Simple Table */}
+                <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50/50">
-                        <TableHead className="text-right font-semibold text-gray-700">
-                          <div className="flex items-center gap-2">
-                            <Tag className="h-4 w-4 text-green-600" />
-                            اسم النوع
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-right font-semibold text-gray-700">الوصف</TableHead>
-                        <TableHead className="text-right font-semibold text-gray-700 text-center">الحالة</TableHead>
-                        <TableHead className="text-right font-semibold text-gray-700">تاريخ الإنشاء</TableHead>
-                        <TableHead className="text-center font-semibold text-gray-700">الإجراءات</TableHead>
+                      <TableRow>
+                        <TableHead className="text-right">اسم نوع المصروف</TableHead>
+                        <TableHead className="text-center">الإجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {expenseTypes.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-12">
-                            <div className="flex flex-col items-center gap-3 text-gray-500">
-                              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                                <Tag className="h-8 w-8 text-green-400" />
-                              </div>
-                              <div className="space-y-1">
-                                <p className="font-medium">لا توجد أنواع مصاريف</p>
-                                <p className="text-sm">أضف نوع مصروف جديد للبدء في التصنيف</p>
-                              </div>
-                            </div>
+                          <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
+                            لا توجد أنواع مصاريف. أضف نوع مصروف جديد للبدء.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        expenseTypes.map((expenseType, index) => (
-                          <TableRow key={expenseType.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50/30"}>
-                            <TableCell className="font-semibold text-gray-800">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                  <span className="text-xs font-bold text-green-700">
-                                    {expenseType.name.charAt(0)}
-                                  </span>
-                                </div>
-                                {expenseType.name}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-gray-600 max-w-xs">
-                              <div className="truncate" title={expenseType.description || 'لا يوجد وصف'}>
-                                {expenseType.description || (
-                                  <span className="text-gray-400 italic">لا يوجد وصف</span>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Badge 
-                                variant={(expenseType.isActive || expenseType.is_active) ? 'default' : 'secondary'}
-                                className={(expenseType.isActive || expenseType.is_active) 
-                                  ? 'bg-green-100 text-green-700 border-green-200' 
-                                  : 'bg-gray-100 text-gray-600 border-gray-200'
-                                }
-                              >
-                                {(expenseType.isActive || expenseType.is_active) ? '🟢 نشط' : '🔴 معطل'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-gray-500">
-                              <div className="space-y-1">
-                                <div className="text-sm font-medium">
-                                  {new Date(expenseType.createdAt).toLocaleDateString('ar-EG')}
-                                </div>
-                                <div className="text-xs text-gray-400">
-                                  {new Date(expenseType.createdAt).toLocaleTimeString('ar-EG', { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit' 
-                                  })}
-                                </div>
-                              </div>
-                            </TableCell>
+                        expenseTypes.map((expenseType) => (
+                          <TableRow key={expenseType.id}>
+                            <TableCell className="font-medium">{expenseType.name}</TableCell>
                             <TableCell>
-                              <div className="flex items-center justify-center gap-1">
+                              <div className="flex items-center justify-center gap-2">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleEditExpenseType(expenseType)}
-                                  className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 text-gray-600"
-                                  title="تعديل"
+                                  className="h-8 w-8 p-0"
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
@@ -789,8 +723,7 @@ export default function Settings() {
                                   size="sm"
                                   onClick={() => deleteExpenseTypeMutation.mutate(expenseType.id)}
                                   disabled={deleteExpenseTypeMutation.isPending}
-                                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 text-gray-600"
-                                  title="حذف"
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                                 >
                                   {deleteExpenseTypeMutation.isPending ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
