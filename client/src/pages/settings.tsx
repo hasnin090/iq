@@ -334,7 +334,7 @@ export default function Settings() {
       )}
 
       <div className="space-y-6">
-        {/* Company Information Section */}
+        {/* 1. Company Information Section */}
         <Collapsible open={isGeneralOpen} onOpenChange={setIsGeneralOpen} defaultOpen>
           <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-blue-50/30">
             <CollapsibleTrigger asChild>
@@ -429,7 +429,128 @@ export default function Settings() {
           </Card>
         </Collapsible>
 
-        {/* Expense Types Section */}
+        {/* 2. Security Settings Section */}
+        <Collapsible open={isSecurityOpen} onOpenChange={setIsSecurityOpen}>
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-orange-50/30">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-orange-50/50 transition-all duration-200 rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+                      <Shield className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl text-gray-800">الأمان وكلمة المرور</CardTitle>
+                      <CardDescription className="text-gray-600">حماية الحساب وإدارة كلمات المرور</CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                      محمي
+                    </div>
+                    {isSecurityOpen ? (
+                      <ChevronDown className="h-5 w-5 text-orange-600" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-orange-600" />
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent>
+              <CardContent className="pt-6">
+                <div className="bg-orange-50/50 border border-orange-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="h-5 w-5 text-orange-600" />
+                    <h3 className="text-lg font-semibold text-orange-800">تغيير كلمة المرور</h3>
+                  </div>
+                  
+                  <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(onPasswordChangeSubmit)} className="space-y-5">
+                      <FormField
+                        control={passwordForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الحالية</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="password" 
+                                {...field} 
+                                className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                placeholder="أدخل كلمة المرور الحالية"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الجديدة</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="password" 
+                                  {...field} 
+                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                  placeholder="كلمة مرور قوية"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-semibold text-gray-700">تأكيد كلمة المرور</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="password" 
+                                  {...field} 
+                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                  placeholder="إعادة كتابة كلمة المرور"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-orange-200">
+                        <div className="text-xs text-gray-500">
+                          يُنصح باستخدام كلمة مرور قوية تحتوي على أرقام وحروف ورموز
+                        </div>
+                        <Button 
+                          type="submit" 
+                          disabled={changePasswordMutation.isPending}
+                          className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md"
+                        >
+                          {changePasswordMutation.isPending && (
+                            <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                          )}
+                          تحديث كلمة المرور
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* 3. Expense Types Section */}
         <Collapsible open={isExpenseTypesOpen} onOpenChange={setIsExpenseTypesOpen}>
           <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-green-50/30">
             <CollapsibleTrigger asChild>
@@ -599,126 +720,7 @@ export default function Settings() {
           </Card>
         </Collapsible>
 
-        {/* Security Settings Section */}
-        <Collapsible open={isSecurityOpen} onOpenChange={setIsSecurityOpen}>
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-orange-50/30">
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-orange-50/50 transition-all duration-200 rounded-t-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
-                      <Shield className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl text-gray-800">الأمان وكلمة المرور</CardTitle>
-                      <CardDescription className="text-gray-600">حماية الحساب وإدارة كلمات المرور</CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                      محمي
-                    </div>
-                    {isSecurityOpen ? (
-                      <ChevronDown className="h-5 w-5 text-orange-600" />
-                    ) : (
-                      <ChevronRight className="h-5 w-5 text-orange-600" />
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <CardContent className="pt-6">
-                <div className="bg-orange-50/50 border border-orange-200 rounded-lg p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Shield className="h-5 w-5 text-orange-600" />
-                    <h3 className="text-lg font-semibold text-orange-800">تغيير كلمة المرور</h3>
-                  </div>
-                  
-                  <Form {...passwordForm}>
-                    <form onSubmit={passwordForm.handleSubmit(onPasswordChangeSubmit)} className="space-y-5">
-                      <FormField
-                        control={passwordForm.control}
-                        name="currentPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الحالية</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="password" 
-                                {...field} 
-                                className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
-                                placeholder="أدخل كلمة المرور الحالية"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <FormField
-                          control={passwordForm.control}
-                          name="newPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الجديدة</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="password" 
-                                  {...field} 
-                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
-                                  placeholder="كلمة مرور قوية"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={passwordForm.control}
-                          name="confirmPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm font-semibold text-gray-700">تأكيد كلمة المرور</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="password" 
-                                  {...field} 
-                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
-                                  placeholder="إعادة كتابة كلمة المرور"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between pt-4 border-t border-orange-200">
-                        <div className="text-xs text-gray-500">
-                          يُنصح باستخدام كلمة مرور قوية تحتوي على أرقام وحروف ورموز
-                        </div>
-                        <Button 
-                          type="submit" 
-                          disabled={changePasswordMutation.isPending}
-                          className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md"
-                        >
-                          {changePasswordMutation.isPending && (
-                            <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                          )}
-                          تحديث كلمة المرور
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+
       </div>
     </div>
   );
