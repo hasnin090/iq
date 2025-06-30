@@ -1024,14 +1024,25 @@ export class PgStorage implements IStorage {
       let expenseTypeId: number | null = null;
       
       if (transaction.expenseType) {
+        console.log(`Looking up expense type: "${transaction.expenseType}"`);
         const expenseTypeResult = await this.sql`
-          SELECT id FROM expense_types 
+          SELECT id, name FROM expense_types 
           WHERE name = ${transaction.expenseType} AND is_active = true
           LIMIT 1
         `;
         
+        console.log(`Expense type lookup result:`, expenseTypeResult);
+        
         if (expenseTypeResult.length > 0) {
           expenseTypeId = expenseTypeResult[0].id;
+          console.log(`Found expense type ID: ${expenseTypeId}`);
+        } else {
+          console.log(`No expense type found for: "${transaction.expenseType}"`);
+          // Let's also check all expense types to debug
+          const allExpenseTypes = await this.sql`
+            SELECT id, name FROM expense_types WHERE is_active = true
+          `;
+          console.log(`All active expense types:`, allExpenseTypes);
         }
       }
 
