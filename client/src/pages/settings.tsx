@@ -283,45 +283,45 @@ export default function Settings() {
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
               الإعدادات العامة
             </h1>
-            <p className="text-gray-500 mt-1">إدارة شاملة لإعدادات النظام والشركة</p>
+            <p className="text-muted-foreground mt-1">إدارة شاملة لإعدادات النظام والشركة</p>
           </div>
         </div>
         
         {/* Quick Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800/50">
             <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">معلومات الشركة</span>
+              <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">معلومات الشركة</span>
             </div>
-            <p className="text-xs text-blue-600 mt-1">4 إعدادات أساسية</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">4 إعدادات أساسية</p>
           </div>
           
-          <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+          <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800/50">
             <div className="flex items-center gap-2">
-              <Tag className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium text-green-700">أنواع المصاريف</span>
+              <Tag className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium text-green-700 dark:text-green-300">أنواع المصاريف</span>
             </div>
-            <p className="text-xs text-green-600 mt-1">{expenseTypes?.length || 0} نوع مصروف</p>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">{expenseTypes?.length || 0} نوع مصروف</p>
           </div>
           
-          <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800/50">
             <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-orange-600" />
-              <span className="text-sm font-medium text-orange-700">الأمان</span>
+              <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              <span className="text-sm font-medium text-orange-700 dark:text-orange-300">الأمان</span>
             </div>
-            <p className="text-xs text-orange-600 mt-1">كلمة المرور</p>
+            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">كلمة المرور</p>
           </div>
           
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800/50">
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
-              <span className="text-sm font-medium text-purple-700">المستخدمين</span>
+              <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <span className="text-sm font-medium text-purple-700 dark:text-purple-300">المستخدمين</span>
             </div>
-            <p className="text-xs text-purple-600 mt-1">إدارة الصلاحيات</p>
+            <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">إدارة الصلاحيات</p>
           </div>
         </div>
       </div>
@@ -336,27 +336,27 @@ export default function Settings() {
       <div className="space-y-6">
         {/* 1. Company Information Section */}
         <Collapsible open={isGeneralOpen} onOpenChange={setIsGeneralOpen} defaultOpen>
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-blue-50/30">
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-background to-blue-50/30 dark:from-background dark:to-blue-950/20">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-blue-50/50 transition-all duration-200 rounded-t-lg">
+              <CardHeader className="cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
                       <Building2 className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl text-gray-800">معلومات الشركة</CardTitle>
-                      <CardDescription className="text-gray-600">البيانات الأساسية ومعلومات التواصل</CardDescription>
+                      <CardTitle className="text-xl text-foreground">معلومات الشركة</CardTitle>
+                      <CardDescription className="text-muted-foreground">البيانات الأساسية ومعلومات التواصل</CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                    <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
                       4 إعدادات
                     </div>
                     {isGeneralOpen ? (
-                      <ChevronDown className="h-5 w-5 text-blue-600" />
+                      <ChevronDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     ) : (
-                      <ChevronRight className="h-5 w-5 text-blue-600" />
+                      <ChevronRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     )}
                   </div>
                 </div>
@@ -367,8 +367,8 @@ export default function Settings() {
               <CardContent className="pt-0 pb-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-blue-600" />
+                    <label className="text-sm font-semibold text-foreground dark:text-foreground flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       اسم الشركة
                     </label>
                     <SettingField 
@@ -381,8 +381,8 @@ export default function Settings() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-blue-600" />
+                    <label className="text-sm font-semibold text-foreground dark:text-foreground flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       عنوان الشركة
                     </label>
                     <SettingField 
@@ -395,8 +395,8 @@ export default function Settings() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-blue-600" />
+                    <label className="text-sm font-semibold text-foreground dark:text-foreground flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       هاتف الشركة
                     </label>
                     <SettingField 
@@ -410,8 +410,8 @@ export default function Settings() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-blue-600" />
+                    <label className="text-sm font-semibold text-foreground dark:text-foreground flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       البريد الإلكتروني
                     </label>
                     <SettingField 
@@ -431,27 +431,27 @@ export default function Settings() {
 
         {/* 2. Security Settings Section */}
         <Collapsible open={isSecurityOpen} onOpenChange={setIsSecurityOpen}>
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-orange-50/30">
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-background to-orange-50/30 dark:from-background dark:to-orange-950/20">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-orange-50/50 transition-all duration-200 rounded-t-lg">
+              <CardHeader className="cursor-pointer hover:bg-orange-50/50 dark:hover:bg-orange-950/30 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
                       <Shield className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl text-gray-800">الأمان وكلمة المرور</CardTitle>
-                      <CardDescription className="text-gray-600">حماية الحساب وإدارة كلمات المرور</CardDescription>
+                      <CardTitle className="text-xl text-foreground">الأمان وكلمة المرور</CardTitle>
+                      <CardDescription className="text-muted-foreground">حماية الحساب وإدارة كلمات المرور</CardDescription>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                    <div className="px-3 py-1 bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-full text-xs font-medium">
                       محمي
                     </div>
                     {isSecurityOpen ? (
-                      <ChevronDown className="h-5 w-5 text-orange-600" />
+                      <ChevronDown className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                     ) : (
-                      <ChevronRight className="h-5 w-5 text-orange-600" />
+                      <ChevronRight className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                     )}
                   </div>
                 </div>
@@ -460,10 +460,10 @@ export default function Settings() {
             
             <CollapsibleContent>
               <CardContent className="pt-6">
-                <div className="bg-orange-50/50 border border-orange-200 rounded-lg p-6">
+                <div className="bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/50 rounded-lg p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <Shield className="h-5 w-5 text-orange-600" />
-                    <h3 className="text-lg font-semibold text-orange-800">تغيير كلمة المرور</h3>
+                    <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                    <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200">تغيير كلمة المرور</h3>
                   </div>
                   
                   <Form {...passwordForm}>
@@ -473,12 +473,12 @@ export default function Settings() {
                         name="currentPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الحالية</FormLabel>
+                            <FormLabel className="text-sm font-semibold text-foreground">كلمة المرور الحالية</FormLabel>
                             <FormControl>
                               <Input 
                                 type="password" 
                                 {...field} 
-                                className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                className="bg-background border-border focus:border-orange-400 focus:ring-orange-200"
                                 placeholder="أدخل كلمة المرور الحالية"
                               />
                             </FormControl>
