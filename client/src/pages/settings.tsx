@@ -580,9 +580,41 @@ export default function Settings() {
             </CollapsibleTrigger>
             
             <CollapsibleContent>
-              <CardContent className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">أنواع المصاريف</h3>
+              <CardContent className="pt-0 pb-6">
+                {/* Quick Stats */}
+                <div className="bg-green-50/50 border border-green-200 rounded-lg p-4 mb-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-green-700">{expenseTypes?.length || 0}</div>
+                      <div className="text-xs text-green-600">إجمالي الأنواع</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-green-700">
+                        {expenseTypes?.filter(et => et.isActive || et.is_active).length || 0}
+                      </div>
+                      <div className="text-xs text-green-600">الأنواع النشطة</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-green-700">
+                        {expenseTypes?.filter(et => !(et.isActive || et.is_active)).length || 0}
+                      </div>
+                      <div className="text-xs text-green-600">الأنواع المعطلة</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold text-green-700">
+                        {Math.round(((expenseTypes?.filter(et => et.isActive || et.is_active).length || 0) / Math.max(expenseTypes?.length || 1, 1)) * 100)}%
+                      </div>
+                      <div className="text-xs text-green-600">معدل النشاط</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Header Section */}
+                <div className="flex justify-between items-center mb-6">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold text-gray-800">إدارة أنواع المصاريف</h3>
+                    <p className="text-sm text-gray-600">تصنيف وتنظيم المعاملات المالية حسب النوع</p>
+                  </div>
                   <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
                     <DialogTrigger asChild>
                       <Button 
@@ -590,9 +622,10 @@ export default function Settings() {
                           setEditingExpenseType(null);
                           expenseTypeForm.reset({ name: '', description: '' });
                         }}
+                        className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md"
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        إضافة نوع مصروف
+                        إضافة نوع جديد
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
@@ -655,46 +688,99 @@ export default function Settings() {
                   </Dialog>
                 </div>
                 
-                <div className="border rounded-lg">
+                {/* Enhanced Table */}
+                <div className="bg-white border border-green-200 rounded-lg shadow-sm overflow-hidden">
+                  <div className="bg-green-50/50 border-b border-green-200 px-6 py-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-green-800">قائمة أنواع المصاريف</h4>
+                      <div className="text-xs text-green-600">
+                        {expenseTypes?.length || 0} نوع مصروف مسجل
+                      </div>
+                    </div>
+                  </div>
+                  
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">الاسم</TableHead>
-                        <TableHead className="text-right">الوصف</TableHead>
-                        <TableHead className="text-right">الحالة</TableHead>
-                        <TableHead className="text-right">تاريخ الإنشاء</TableHead>
-                        <TableHead className="text-right">الإجراءات</TableHead>
+                      <TableRow className="bg-gray-50/50">
+                        <TableHead className="text-right font-semibold text-gray-700">
+                          <div className="flex items-center gap-2">
+                            <Tag className="h-4 w-4 text-green-600" />
+                            اسم النوع
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">الوصف</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700 text-center">الحالة</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">تاريخ الإنشاء</TableHead>
+                        <TableHead className="text-center font-semibold text-gray-700">الإجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {expenseTypes.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            لا توجد أنواع مصاريف. أضف نوع مصروف جديد للبدء.
+                          <TableCell colSpan={5} className="text-center py-12">
+                            <div className="flex flex-col items-center gap-3 text-gray-500">
+                              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                <Tag className="h-8 w-8 text-green-400" />
+                              </div>
+                              <div className="space-y-1">
+                                <p className="font-medium">لا توجد أنواع مصاريف</p>
+                                <p className="text-sm">أضف نوع مصروف جديد للبدء في التصنيف</p>
+                              </div>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        expenseTypes.map((expenseType) => (
-                          <TableRow key={expenseType.id}>
-                            <TableCell className="font-medium">{expenseType.name}</TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {expenseType.description || 'لا يوجد وصف'}
+                        expenseTypes.map((expenseType, index) => (
+                          <TableRow key={expenseType.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50/30"}>
+                            <TableCell className="font-semibold text-gray-800">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                  <span className="text-xs font-bold text-green-700">
+                                    {expenseType.name.charAt(0)}
+                                  </span>
+                                </div>
+                                {expenseType.name}
+                              </div>
                             </TableCell>
-                            <TableCell>
-                              <Badge variant={(expenseType.isActive || expenseType.is_active) ? 'default' : 'secondary'}>
-                                {(expenseType.isActive || expenseType.is_active) ? 'نشط' : 'غير نشط'}
+                            <TableCell className="text-gray-600 max-w-xs">
+                              <div className="truncate" title={expenseType.description || 'لا يوجد وصف'}>
+                                {expenseType.description || (
+                                  <span className="text-gray-400 italic">لا يوجد وصف</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge 
+                                variant={(expenseType.isActive || expenseType.is_active) ? 'default' : 'secondary'}
+                                className={(expenseType.isActive || expenseType.is_active) 
+                                  ? 'bg-green-100 text-green-700 border-green-200' 
+                                  : 'bg-gray-100 text-gray-600 border-gray-200'
+                                }
+                              >
+                                {(expenseType.isActive || expenseType.is_active) ? '🟢 نشط' : '🔴 معطل'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {new Date(expenseType.createdAt).toLocaleDateString('ar-EG')}
+                            <TableCell className="text-gray-500">
+                              <div className="space-y-1">
+                                <div className="text-sm font-medium">
+                                  {new Date(expenseType.createdAt).toLocaleDateString('ar-EG')}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  {new Date(expenseType.createdAt).toLocaleTimeString('ar-EG', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </div>
+                              </div>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center justify-center gap-1">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleEditExpenseType(expenseType)}
-                                  className="h-8 w-8 p-0"
+                                  className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 text-gray-600"
+                                  title="تعديل"
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
@@ -703,9 +789,14 @@ export default function Settings() {
                                   size="sm"
                                   onClick={() => deleteExpenseTypeMutation.mutate(expenseType.id)}
                                   disabled={deleteExpenseTypeMutation.isPending}
-                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 text-gray-600"
+                                  title="حذف"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  {deleteExpenseTypeMutation.isPending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                  )}
                                 </Button>
                               </div>
                             </TableCell>
