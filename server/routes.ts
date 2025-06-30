@@ -2671,6 +2671,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // إعادة تصنيف المعاملات الموجودة حسب أنواع المصاريف الجديدة
+  app.post("/api/ledger/reclassify-transactions", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log('بدء إعادة تصنيف المعاملات حسب أنواع المصاريف الجديدة...');
+      
+      // جلب جميع المعاملات من نوع مصروف التي لها expenseType
+      const transactions = await storage.listTransactions();
+      const expenseTransactions = transactions.filter(t => 
+        t.type === 'expense' && 
+        t.expenseType && 
+        t.expenseType !== 'مصروف عام'
+      );
+      
+      let reclassifiedCount = 0;
+      let skippedCount = 0;
+      const errors: string[] = [];
+      
+      console.log(`تم العثور على ${expenseTransactions.length} معاملة مصروف مع أنواع مصاريف محددة`);
+      
+      for (const transaction of expenseTransactions) {
+        try {
+          // استخدام دالة التصنيف الموجودة مع إجبار إعادة التصنيف
+          await storage.classifyExpenseTransaction(transaction, true);
+          reclassifiedCount++;
+          console.log(`تم إعادة تصنيف المعاملة ${transaction.id} - ${transaction.description}`);
+        } catch (error) {
+          errors.push(`خطأ في إعادة تصنيف المعاملة ${transaction.id}: ${error}`);
+          skippedCount++;
+        }
+      }
+      
+      await storage.createActivityLog({
+        action: "update",
+        entityType: "ledger",
+        entityId: 0,
+        details: `إعادة تصنيف ${reclassifiedCount} معاملة في دفتر الأستاذ`,
+        userId: req.session.userId as number
+      });
+      
+      return res.status(200).json({
+        message: 'تم إنهاء عملية إعادة التصنيف',
+        summary: {
+          totalExpenseTransactions: expenseTransactions.length,
+          reclassified: reclassifiedCount,
+          skipped: skippedCount,
+          errors: errors.length
+        },
+        errors: errors
+      });
+      
+    } catch (error) {
+      console.error("خطأ في إعادة تصنيف المعاملات:", error);
+      return res.status(500).json({ message: "خطأ في إعادة تصنيف المعاملات" });
+    }
+  });
+
   // تقرير المصروفات المصنفة مقابل المتفرقات
   app.get("/api/ledger/summary", authenticate, async (req: Request, res: Response) => {
     try {

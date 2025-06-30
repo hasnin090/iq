@@ -942,7 +942,7 @@ export class PgStorage implements IStorage {
   async getLedgerEntriesByType(entryType: string): Promise<LedgerEntry[]> {
     try {
       const result = await this.sql`
-        SELECT * FROM ledger_entries WHERE entry_type = ${entryType} ORDER BY entry_date DESC
+        SELECT * FROM ledger_entries WHERE entry_type = ${entryType} ORDER BY date DESC
       `;
       return result as LedgerEntry[];
     } catch (error) {
@@ -954,7 +954,7 @@ export class PgStorage implements IStorage {
   async getLedgerEntriesByProject(projectId: number): Promise<LedgerEntry[]> {
     try {
       const result = await this.sql`
-        SELECT * FROM ledger_entries WHERE project_id = ${projectId} ORDER BY entry_date DESC
+        SELECT * FROM ledger_entries WHERE project_id = ${projectId} ORDER BY date DESC
       `;
       return result as LedgerEntry[];
     } catch (error) {
@@ -966,7 +966,7 @@ export class PgStorage implements IStorage {
   async getLedgerEntriesByExpenseType(expenseTypeId: number): Promise<LedgerEntry[]> {
     try {
       const result = await this.sql`
-        SELECT * FROM ledger_entries WHERE expense_type_id = ${expenseTypeId} ORDER BY entry_date DESC
+        SELECT * FROM ledger_entries WHERE expense_type_id = ${expenseTypeId} ORDER BY date DESC
       `;
       return result as LedgerEntry[];
     } catch (error) {
@@ -977,7 +977,7 @@ export class PgStorage implements IStorage {
 
   async listLedgerEntries(): Promise<LedgerEntry[]> {
     try {
-      const result = await this.sql`SELECT * FROM ledger_entries ORDER BY entry_date DESC`;
+      const result = await this.sql`SELECT * FROM ledger_entries ORDER BY date DESC`;
       return result as LedgerEntry[];
     } catch (error) {
       console.error('Error listing ledger entries:', error);
@@ -986,8 +986,84 @@ export class PgStorage implements IStorage {
   }
 
   async classifyExpenseTransaction(transaction: Transaction, forceClassify: boolean = false): Promise<void> {
-    // Implementation for expense classification
-    console.log(`PgStorage: Classifying transaction ${transaction.id} - ${transaction.description}`);
+    try {
+      console.log(`PgStorage: Classifying transaction ${transaction.id} - ${transaction.description}`);
+      
+      // فقط للمصروفات
+      if (transaction.type !== 'expense') {
+        return;
+      }
+
+      // البحث عن نوع المصروف
+      let expenseTypeId: number | null = null;
+      
+      if (transaction.expenseType) {
+        const expenseTypeResult = await this.sql`
+          SELECT id FROM expense_types 
+          WHERE name = ${transaction.expenseType} AND is_active = true
+          LIMIT 1
+        `;
+        
+        if (expenseTypeResult.length > 0) {
+          expenseTypeId = expenseTypeResult[0].id;
+        }
+      }
+
+      // التحقق من وجود قيد سابق
+      const existingEntry = await this.sql`
+        SELECT id FROM ledger_entries 
+        WHERE transaction_id = ${transaction.id}
+        LIMIT 1
+      `;
+
+      if (existingEntry.length > 0 && !forceClassify) {
+        console.log(`Transaction ${transaction.id} already has ledger entry`);
+        return;
+      }
+
+      // إنشاء قيد في دفتر الأستاذ
+      const ledgerEntry = {
+        date: new Date(transaction.date),
+        transactionId: transaction.id,
+        expenseTypeId: expenseTypeId,
+        amount: transaction.amount,
+        description: transaction.description,
+        projectId: transaction.projectId || null,
+        entryType: expenseTypeId ? 'classified' : 'miscellaneous'
+      };
+
+      if (existingEntry.length > 0) {
+        // تحديث القيد الموجود
+        await this.sql`
+          UPDATE ledger_entries 
+          SET 
+            expense_type_id = ${expenseTypeId},
+            entry_type = ${ledgerEntry.entryType},
+            amount = ${ledgerEntry.amount},
+            description = ${ledgerEntry.description},
+            project_id = ${ledgerEntry.projectId}
+          WHERE transaction_id = ${transaction.id}
+        `;
+        console.log(`Updated ledger entry for transaction ${transaction.id}`);
+      } else {
+        // إنشاء قيد جديد
+        await this.sql`
+          INSERT INTO ledger_entries (
+            date, transaction_id, expense_type_id, amount, 
+            description, project_id, entry_type
+          ) VALUES (
+            ${ledgerEntry.date}, ${ledgerEntry.transactionId}, ${ledgerEntry.expenseTypeId},
+            ${ledgerEntry.amount}, ${ledgerEntry.description}, ${ledgerEntry.projectId},
+            ${ledgerEntry.entryType}
+          )
+        `;
+        console.log(`Created new ledger entry for transaction ${transaction.id} with type: ${ledgerEntry.entryType}`);
+      }
+
+    } catch (error) {
+      console.error('Error classifying expense transaction:', error);
+      throw error;
+    }
   }
 
   async getAccountCategory(id: number): Promise<AccountCategory | undefined> {
