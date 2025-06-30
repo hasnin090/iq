@@ -146,6 +146,12 @@ export default function Reports() {
       if (!Array.isArray(ledgerEntries)) return false;
       return ledgerEntries.some((entry: any) => entry.transactionId === transaction.id && entry.expenseTypeId);
     });
+    
+    // Debug logging
+    console.log('Total transactions:', transactions.length);
+    console.log('Ledger entries:', ledgerEntries.length);
+    console.log('Classified transactions:', classifiedTransactions.length);
+    console.log('Expense types:', expenseTypes.length);
 
     return classifiedTransactions.filter(transaction => {
       const matchesSearch = (transaction.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
