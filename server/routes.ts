@@ -1046,14 +1046,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // تصنيف المعاملة تلقائياً في دفتر الأستاذ إذا كان لها نوع مصروف محدد
+      console.log(`تحقق من التصنيف التلقائي: نوع المصروف = "${result.transaction?.expenseType}"`);
       if (result.transaction && result.transaction.expenseType && result.transaction.expenseType !== 'مصروف عام') {
         try {
+          console.log(`بدء التصنيف التلقائي للمعاملة ${result.transaction.id} مع نوع المصروف: ${result.transaction.expenseType}`);
           await storage.classifyExpenseTransaction(result.transaction, false);
-          console.log(`تم تصنيف المعاملة ${result.transaction.id} تلقائياً في دفتر الأستاذ`);
+          console.log(`✅ تم تصنيف المعاملة ${result.transaction.id} تلقائياً في دفتر الأستاذ`);
         } catch (classifyError) {
-          console.error('خطأ في التصنيف التلقائي:', classifyError);
+          console.error('❌ خطأ في التصنيف التلقائي:', classifyError);
           // لا نوقف العملية إذا فشل التصنيف
         }
+      } else {
+        console.log(`❌ لم يتم التصنيف التلقائي: نوع المصروف غير مناسب أو مفقود`);
       }
       
       return res.status(201).json(result.transaction);
