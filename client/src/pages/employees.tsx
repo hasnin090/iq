@@ -276,7 +276,7 @@ export default function Employees() {
               {employees.map((employee) => (
                 <div
                   key={employee.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 gap-4"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 gap-4 transition-all duration-300 hover:shadow-md hover:scale-[1.02] animate-in slide-in-from-bottom-2 fade-in-50"
                 >
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
