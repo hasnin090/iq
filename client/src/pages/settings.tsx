@@ -475,8 +475,8 @@ export default function Settings() {
                               {expenseType.description || 'لا يوجد وصف'}
                             </TableCell>
                             <TableCell>
-                              <Badge variant={expenseType.isActive ? 'default' : 'secondary'}>
-                                {expenseType.isActive ? 'نشط' : 'غير نشط'}
+                              <Badge variant={(expenseType.isActive || expenseType.is_active) ? 'default' : 'secondary'}>
+                                {(expenseType.isActive || expenseType.is_active) ? 'نشط' : 'غير نشط'}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-muted-foreground">
