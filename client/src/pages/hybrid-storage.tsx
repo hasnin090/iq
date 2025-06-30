@@ -113,8 +113,8 @@ export default function HybridStorage() {
                     <Badge variant="default">أساسي</Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    {getProviderIcon(storageInfo.primary)}
-                    <span className="font-medium">{getProviderName(storageInfo.primary)}</span>
+                    {getProviderIcon(storageInfo?.primary || 'local')}
+                    <span className="font-medium">{getProviderName(storageInfo?.primary || 'local')}</span>
                   </div>
                   <p className="text-sm text-muted-foreground">مزود التخزين الأساسي</p>
                 </div>
@@ -124,20 +124,22 @@ export default function HybridStorage() {
                     <Badge variant="secondary">احتياطي</Badge>
                   </div>
                   <div className="space-y-1">
-                    {storageInfo.backups.map((backup, index) => (
+                    {storageInfo?.backups?.map((backup, index) => (
                       <div key={index} className="flex items-center gap-2">
                         {getProviderIcon(backup)}
                         <span className="text-sm">{getProviderName(backup)}</span>
                       </div>
-                    ))}
+                    )) || (
+                      <div className="text-sm text-muted-foreground">لا توجد مزودات احتياطية</div>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground">مزودات التخزين الاحتياطية</p>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Badge variant={storageInfo.local ? "default" : "secondary"}>
-                      {storageInfo.local ? "نشط" : "غير نشط"}
+                    <Badge variant={storageInfo?.local ? "default" : "secondary"}>
+                      {storageInfo?.local ? "نشط" : "غير نشط"}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2">
