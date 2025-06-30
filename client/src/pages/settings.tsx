@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Loader2, Shield, Settings as SettingsIcon, Tag, Plus, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { AlertCircle, Loader2, Shield, Settings as SettingsIcon, Tag, Plus, Edit, Trash2, ChevronDown, ChevronRight, Building2, Users, MapPin, Phone, Mail } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -272,14 +272,58 @@ export default function Settings() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-blue-600 rounded-2xl mb-4">
-          <SettingsIcon className="h-8 w-8 text-white" />
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      {/* Modern Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="relative">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <SettingsIcon className="h-7 w-7 text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              الإعدادات العامة
+            </h1>
+            <p className="text-gray-500 mt-1">إدارة شاملة لإعدادات النظام والشركة</p>
+          </div>
         </div>
-        <h1 className="text-3xl font-bold mb-2">الإعدادات العامة</h1>
-        <p className="text-muted-foreground">إدارة معلومات الشركة وأنواع المصاريف والأمان</p>
+        
+        {/* Quick Stats Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-medium text-blue-700">معلومات الشركة</span>
+            </div>
+            <p className="text-xs text-blue-600 mt-1">4 إعدادات أساسية</p>
+          </div>
+          
+          <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+            <div className="flex items-center gap-2">
+              <Tag className="h-5 w-5 text-green-600" />
+              <span className="text-sm font-medium text-green-700">أنواع المصاريف</span>
+            </div>
+            <p className="text-xs text-green-600 mt-1">{expenseTypes?.length || 0} نوع مصروف</p>
+          </div>
+          
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-orange-600" />
+              <span className="text-sm font-medium text-orange-700">الأمان</span>
+            </div>
+            <p className="text-xs text-orange-600 mt-1">كلمة المرور</p>
+          </div>
+          
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-600" />
+              <span className="text-sm font-medium text-purple-700">المستخدمين</span>
+            </div>
+            <p className="text-xs text-purple-600 mt-1">إدارة الصلاحيات</p>
+          </div>
+        </div>
       </div>
 
       {isLoading && (
@@ -289,86 +333,127 @@ export default function Settings() {
         </div>
       )}
 
-      <div className="space-y-4">
-        {/* General Settings */}
-        <Collapsible open={isGeneralOpen} onOpenChange={setIsGeneralOpen}>
-          <Card>
+      <div className="space-y-6">
+        {/* Company Information Section */}
+        <Collapsible open={isGeneralOpen} onOpenChange={setIsGeneralOpen} defaultOpen>
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-blue-50/30">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-blue-50/50 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <SettingsIcon className="h-6 w-6 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                      <Building2 className="h-6 w-6 text-white" />
+                    </div>
                     <div>
-                      <CardTitle>معلومات الشركة</CardTitle>
-                      <CardDescription>إعدادات الشركة والمعلومات الأساسية</CardDescription>
+                      <CardTitle className="text-xl text-gray-800">معلومات الشركة</CardTitle>
+                      <CardDescription className="text-gray-600">البيانات الأساسية ومعلومات التواصل</CardDescription>
                     </div>
                   </div>
-                  {isGeneralOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                      4 إعدادات
+                    </div>
+                    {isGeneralOpen ? (
+                      <ChevronDown className="h-5 w-5 text-blue-600" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-blue-600" />
+                    )}
+                  </div>
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
             
             <CollapsibleContent>
-              <CardContent className="space-y-6">
+              <CardContent className="pt-0 pb-6">
                 <div className="grid gap-6 md:grid-cols-2">
-                  <SettingField 
-                    settings={settings}
-                    settingKey="company_name"
-                    label="اسم الشركة"
-                    onSave={handleSaveSetting}
-                    isSaving={false}
-                  />
-                  <SettingField 
-                    settings={settings}
-                    settingKey="company_address"
-                    label="عنوان الشركة"
-                    onSave={handleSaveSetting}
-                    isSaving={false}
-                  />
-                  <SettingField 
-                    settings={settings}
-                    settingKey="company_phone"
-                    label="هاتف الشركة"
-                    type="tel"
-                    onSave={handleSaveSetting}
-                    isSaving={false}
-                  />
-                  <SettingField 
-                    settings={settings}
-                    settingKey="company_email"
-                    label="بريد الشركة الإلكتروني"
-                    type="email"
-                    onSave={handleSaveSetting}
-                    isSaving={false}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-blue-600" />
+                      اسم الشركة
+                    </label>
+                    <SettingField 
+                      settings={settings}
+                      settingKey="company_name"
+                      label=""
+                      onSave={handleSaveSetting}
+                      isSaving={false}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      عنوان الشركة
+                    </label>
+                    <SettingField 
+                      settings={settings}
+                      settingKey="company_address"
+                      label=""
+                      onSave={handleSaveSetting}
+                      isSaving={false}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-blue-600" />
+                      هاتف الشركة
+                    </label>
+                    <SettingField 
+                      settings={settings}
+                      settingKey="company_phone"
+                      label=""
+                      type="tel"
+                      onSave={handleSaveSetting}
+                      isSaving={false}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-blue-600" />
+                      البريد الإلكتروني
+                    </label>
+                    <SettingField 
+                      settings={settings}
+                      settingKey="company_email"
+                      label=""
+                      type="email"
+                      onSave={handleSaveSetting}
+                      isSaving={false}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </CollapsibleContent>
           </Card>
         </Collapsible>
 
-        {/* Expense Types */}
+        {/* Expense Types Section */}
         <Collapsible open={isExpenseTypesOpen} onOpenChange={setIsExpenseTypesOpen}>
-          <Card>
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-green-50/30">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-green-50/50 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Tag className="h-6 w-6 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
+                      <Tag className="h-6 w-6 text-white" />
+                    </div>
                     <div>
-                      <CardTitle>أنواع المصاريف</CardTitle>
-                      <CardDescription>إدارة تصنيفات المصاريف في النظام</CardDescription>
+                      <CardTitle className="text-xl text-gray-800">أنواع المصاريف</CardTitle>
+                      <CardDescription className="text-gray-600">تصنيفات ذكية للمعاملات المالية</CardDescription>
                     </div>
                   </div>
-                  {isExpenseTypesOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                      {expenseTypes?.length || 0} نوع
+                    </div>
+                    {isExpenseTypesOpen ? (
+                      <ChevronDown className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-green-600" />
+                    )}
+                  </div>
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
@@ -514,82 +599,122 @@ export default function Settings() {
           </Card>
         </Collapsible>
 
-        {/* Security Settings */}
+        {/* Security Settings Section */}
         <Collapsible open={isSecurityOpen} onOpenChange={setIsSecurityOpen}>
-          <Card>
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-white to-orange-50/30">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-orange-50/50 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Shield className="h-6 w-6 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+                      <Shield className="h-6 w-6 text-white" />
+                    </div>
                     <div>
-                      <CardTitle>الأمان وكلمة المرور</CardTitle>
-                      <CardDescription>إعدادات الأمان وتغيير كلمة المرور</CardDescription>
+                      <CardTitle className="text-xl text-gray-800">الأمان وكلمة المرور</CardTitle>
+                      <CardDescription className="text-gray-600">حماية الحساب وإدارة كلمات المرور</CardDescription>
                     </div>
                   </div>
-                  {isSecurityOpen ? (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  )}
+                  <div className="flex items-center gap-2">
+                    <div className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                      محمي
+                    </div>
+                    {isSecurityOpen ? (
+                      <ChevronDown className="h-5 w-5 text-orange-600" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-orange-600" />
+                    )}
+                  </div>
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
             
             <CollapsibleContent>
-              <CardContent>
-                <Form {...passwordForm}>
-                  <form onSubmit={passwordForm.handleSubmit(onPasswordChangeSubmit)} className="space-y-4">
-                    <FormField
-                      control={passwordForm.control}
-                      name="currentPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>كلمة المرور الحالية</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={passwordForm.control}
-                      name="newPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>كلمة المرور الجديدة</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={passwordForm.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>تأكيد كلمة المرور الجديدة</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button type="submit" disabled={changePasswordMutation.isPending}>
-                      {changePasswordMutation.isPending && (
-                        <Loader2 className="h-4 w-4 animate-spin ml-2" />
-                      )}
-                      تغيير كلمة المرور
-                    </Button>
-                  </form>
-                </Form>
+              <CardContent className="pt-6">
+                <div className="bg-orange-50/50 border border-orange-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="h-5 w-5 text-orange-600" />
+                    <h3 className="text-lg font-semibold text-orange-800">تغيير كلمة المرور</h3>
+                  </div>
+                  
+                  <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(onPasswordChangeSubmit)} className="space-y-5">
+                      <FormField
+                        control={passwordForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الحالية</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="password" 
+                                {...field} 
+                                className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                placeholder="أدخل كلمة المرور الحالية"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-semibold text-gray-700">كلمة المرور الجديدة</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="password" 
+                                  {...field} 
+                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                  placeholder="كلمة مرور قوية"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-semibold text-gray-700">تأكيد كلمة المرور</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="password" 
+                                  {...field} 
+                                  className="bg-white border-gray-200 focus:border-orange-400 focus:ring-orange-200"
+                                  placeholder="إعادة كتابة كلمة المرور"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-4 border-t border-orange-200">
+                        <div className="text-xs text-gray-500">
+                          يُنصح باستخدام كلمة مرور قوية تحتوي على أرقام وحروف ورموز
+                        </div>
+                        <Button 
+                          type="submit" 
+                          disabled={changePasswordMutation.isPending}
+                          className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md"
+                        >
+                          {changePasswordMutation.isPending && (
+                            <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                          )}
+                          تحديث كلمة المرور
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </div>
               </CardContent>
             </CollapsibleContent>
           </Card>
