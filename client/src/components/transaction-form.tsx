@@ -63,16 +63,20 @@ interface Employee {
 
 // Component for expense type field
 function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }): JSX.Element | null {
-  const { data: expenseTypes = [], refetch } = useQuery<ExpenseType[]>({
+  const { data: expenseTypes = [], refetch, isLoading, error } = useQuery<ExpenseType[]>({
     queryKey: ['/api/expense-types'],
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: true, // إعادة جلب البيانات عند التركيز على النافذة
   });
 
+  // تسجيل البيانات لأغراض التطوير
+  console.log('ExpenseTypes data:', expenseTypes, 'Loading:', isLoading, 'Error:', error);
+
   // إعادة جلب البيانات عند فتح القائمة المنسدلة
   const handleOpenChange = (open: boolean) => {
     if (open) {
+      console.log('Dropdown opened, refetching expense types...');
       refetch();
     }
   };
@@ -109,18 +113,37 @@ function ExpenseTypeField({ transactionType, form }: { transactionType: string; 
               </SelectTrigger>
             </FormControl>
             <SelectContent className="max-h-[300px] overflow-y-auto">
-              {/* الأنواع من قاعدة البيانات */}
-              {expenseTypes.filter(type => type.isActive).map((type) => (
-                <SelectItem key={type.id} value={type.name}>
-                  {type.name}
-                </SelectItem>
-              ))}
-
-              {/* إضافة الأنواع الافتراضية إذا لم تكن موجودة */}
-              {expenseTypes.length === 0 && (
+              {isLoading ? (
+                <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                  جاري تحميل أنواع المصاريف...
+                </div>
+              ) : error ? (
+                <div className="px-2 py-4 text-center text-sm text-red-500">
+                  خطأ في تحميل أنواع المصاريف
+                </div>
+              ) : expenseTypes && expenseTypes.length > 0 ? (
                 <>
                   <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
-                    الأنواع الأساسية
+                    أنواع المصاريف ({expenseTypes.length})
+                  </div>
+                  {expenseTypes.filter(type => type.isActive !== false).map((type) => (
+                    <SelectItem key={`db-${type.id}`} value={type.name}>
+                      <div className="flex items-center gap-2">
+                        <span>📋</span>
+                        <span>{type.name}</span>
+                        {type.description && (
+                          <span className="text-xs text-muted-foreground">
+                            - {type.description}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
+                    الأنواع الأساسية (لا توجد أنواع مخصصة)
                   </div>
                   <SelectItem value="راتب">💰 راتب</SelectItem>
                   <SelectItem value="أجور عمال">🔨 أجور عمال</SelectItem>
