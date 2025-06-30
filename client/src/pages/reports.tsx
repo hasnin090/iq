@@ -216,9 +216,23 @@ export default function Reports() {
     setAccountDialogOpen(true);
   };
 
-  // تجميع الحسابات حسب النوع
+  // تجميع الحسابات حسب النوع - تشمل جميع أنواع المصروفات حتى بدون معاملات
   const accountSummary = useMemo(() => {
     const summary: Record<string, { transactions: Transaction[], total: number, count: number }> = {};
+    
+    // إضافة جميع أنواع المصروفات من قاعدة البيانات
+    if (Array.isArray(expenseTypes)) {
+      expenseTypes.forEach((expenseType: any) => {
+        const typeName = expenseType.name;
+        if (!summary[typeName]) {
+          summary[typeName] = {
+            transactions: [],
+            total: 0,
+            count: 0
+          };
+        }
+      });
+    }
     
     // تجميع المعاملات حسب نوع الحساب
     filteredTransactions.forEach(transaction => {

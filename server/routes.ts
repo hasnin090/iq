@@ -2454,6 +2454,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `إضافة نوع مصروف جديد: ${expenseType.name}`,
         userId: req.session.userId as number
       });
+
+      // التحقق من وجود معاملات غير مصنفة وترحيلها تلقائياً
+      try {
+        // البحث عن المعاملات التي تحتوي على كلمات مفتاحية تتطابق مع نوع المصروف الجديد
+        const transactions = await storage.listTransactions();
+        const unclassifiedTransactions = transactions.filter(transaction => {
+          // البحث في وصف المعاملة عن كلمات تتطابق مع نوع المصروف
+          const description = (transaction.description || '').toLowerCase();
+          const expenseTypeName = expenseType.name.toLowerCase();
+          
+          // البحث عن تطابق في الوصف
+          return description.includes(expenseTypeName) || 
+                 expenseTypeName.includes(description.split(' ')[0]); // تطابق أول كلمة
+        });
+
+        // ترحيل المعاملات المناسبة إلى دفتر الأستاذ
+        for (const transaction of unclassifiedTransactions) {
+          await storage.createLedgerEntry({
+            transactionId: transaction.id,
+            expenseTypeId: expenseType.id,
+            projectId: transaction.projectId,
+            amount: transaction.amount,
+            entryType: transaction.type,
+            description: `ترحيل تلقائي إلى نوع المصروف: ${expenseType.name}`,
+            date: new Date(transaction.date)
+          });
+        }
+
+        if (unclassifiedTransactions.length > 0) {
+          await storage.createActivityLog({
+            action: "auto_classify",
+            entityType: "expense_type",
+            entityId: expenseType.id,
+            details: `تم ترحيل ${unclassifiedTransactions.length} معاملة تلقائياً إلى نوع المصروف: ${expenseType.name}`,
+            userId: req.session.userId as number
+          });
+        }
+      } catch (autoClassifyError) {
+        console.error("خطأ في الترحيل التلقائي:", autoClassifyError);
+        // لا نتوقف في حالة فشل الترحيل التلقائي
+      }
       
       return res.status(201).json(expenseType);
     } catch (error) {
