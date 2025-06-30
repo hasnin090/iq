@@ -1025,20 +1025,44 @@ export class PgStorage implements IStorage {
       
       if (transaction.expenseType) {
         console.log(`Looking up expense type: "${transaction.expenseType}"`);
-        const expenseTypeResult = await this.sql`
+        
+        // البحث أولاً بالتطابق الدقيق
+        let expenseTypeResult = await this.sql`
           SELECT id, name FROM expense_types 
           WHERE name = ${transaction.expenseType} AND is_active = true
           LIMIT 1
         `;
         
+        // إذا لم نجد تطابق دقيق، نبحث بتجاهل المسافات الإضافية
+        if (expenseTypeResult.length === 0) {
+          console.log(`No exact match found, trying with trimmed names...`);
+          expenseTypeResult = await this.sql`
+            SELECT id, name FROM expense_types 
+            WHERE TRIM(name) = TRIM(${transaction.expenseType}) AND is_active = true
+            LIMIT 1
+          `;
+        }
+        
+        // إذا لم نجد تطابق بعد التقليم، نبحث بالمحتوى المشترك
+        if (expenseTypeResult.length === 0) {
+          console.log(`No trimmed match found, trying partial match...`);
+          expenseTypeResult = await this.sql`
+            SELECT id, name FROM expense_types 
+            WHERE (TRIM(name) LIKE '%' || TRIM(${transaction.expenseType}) || '%' 
+                  OR TRIM(${transaction.expenseType}) LIKE '%' || TRIM(name) || '%')
+            AND is_active = true
+            LIMIT 1
+          `;
+        }
+        
         console.log(`Expense type lookup result:`, expenseTypeResult);
         
         if (expenseTypeResult.length > 0) {
           expenseTypeId = expenseTypeResult[0].id;
-          console.log(`Found expense type ID: ${expenseTypeId}`);
+          console.log(`Found expense type ID: ${expenseTypeId} for name: "${expenseTypeResult[0].name}"`);
         } else {
           console.log(`No expense type found for: "${transaction.expenseType}"`);
-          // Let's also check all expense types to debug
+          // سجل جميع أنواع المصاريف المتاحة للتشخيص
           const allExpenseTypes = await this.sql`
             SELECT id, name FROM expense_types WHERE is_active = true
           `;
