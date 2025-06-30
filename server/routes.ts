@@ -147,6 +147,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // تحديث آخر نشاط بدون فحص انتهاء الصلاحية
     req.session.lastActivity = new Date().toISOString();
+    
+    // إضافة معلومات المستخدم إلى الطلب
+    (req as any).user = {
+      id: req.session.userId,
+      username: req.session.username,
+      role: req.session.role
+    };
+    
     next();
   };
 
@@ -4236,12 +4244,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/employees", authenticate, async (req: Request, res: Response) => {
     try {
       const userRole = (req as any).user?.role;
+      console.log(`محاولة جلب الموظفين - دور المستخدم: ${userRole}`);
       
       if (userRole === 'admin') {
         const employees = await storage.getEmployees();
         console.log(`تم جلب ${employees.length} موظف للمدير`);
         res.json(employees);
       } else {
+        console.log(`المستخدم ليس مدير - الدور: ${userRole}`);
         // المستخدم العادي يحصل على قائمة فارغة لأنه يجب أن يختار مشروع أولاً
         res.json([]);
       }
