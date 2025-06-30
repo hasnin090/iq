@@ -17,7 +17,7 @@ import Settings from "@/pages/settings";
 import Ledger from "@/pages/ledger";
 import Receivables from "@/pages/receivables";
 import DatabaseManagement from "@/pages/database-management";
-import HybridStorageManagement from "@/pages/hybrid-storage-management";
+import HybridStorage from "@/pages/hybrid-storage";
 import SupabaseStatus from "@/pages/supabase-status";
 import FileMigration from "@/pages/file-migration";
 import DeferredPayments from './pages/deferred-payments';
@@ -136,7 +136,7 @@ function AppRoutes() {
                 {user?.role === 'admin' ? <DatabaseManagement /> : <NotFound />}
               </Route>
               <Route path="/hybrid-storage">
-                {user?.role === 'admin' ? <HybridStorageManagement /> : <NotFound />}
+                {user?.role === 'admin' ? <HybridStorage /> : <NotFound />}
               </Route>
               <Route path="/supabase-status">
                 {user?.role === 'admin' ? <SupabaseStatus /> : <NotFound />}
