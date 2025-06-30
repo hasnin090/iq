@@ -323,7 +323,21 @@ export class PgStorage implements IStorage {
         VALUES (${transaction.date}, ${transaction.type}, ${transaction.projectId || null}, ${transaction.description}, ${transaction.createdBy}, ${transaction.amount}, ${transaction.expenseType || null}, ${transaction.employeeId || null}, ${transaction.fileUrl || null}, ${transaction.fileType || null}, ${transaction.archived || false})
         RETURNING *
       `;
-      return result[0] as Transaction;
+      
+      const createdTransaction = result[0] as Transaction;
+      
+      // التصنيف التلقائي للمصروفات في دفتر الأستاذ
+      if (createdTransaction.type === 'expense' && createdTransaction.expenseType) {
+        console.log(`Auto-classifying expense transaction: ${createdTransaction.id} - ${createdTransaction.expenseType}`);
+        try {
+          await this.classifyExpenseTransaction(createdTransaction);
+        } catch (classifyError) {
+          console.error('Error auto-classifying transaction:', classifyError);
+          // لا نرمي الخطأ هنا حتى لا نمنع إنشاء المعاملة
+        }
+      }
+      
+      return createdTransaction;
     } catch (error) {
       console.error('Error creating transaction:', error);
       throw error;
@@ -382,7 +396,19 @@ export class PgStorage implements IStorage {
       values.push(id);
       
       const result = await this.sql(query, values);
-      return result[0] as Transaction | undefined;
+      const updatedTransaction = result[0] as Transaction | undefined;
+      
+      // إعادة تصنيف المعاملة إذا تم تحديث نوع المصروف
+      if (updatedTransaction && updatedTransaction.type === 'expense' && transaction.expenseType !== undefined) {
+        console.log(`Re-classifying updated expense transaction: ${updatedTransaction.id} - ${updatedTransaction.expenseType}`);
+        try {
+          await this.classifyExpenseTransaction(updatedTransaction, true); // force reclassify
+        } catch (classifyError) {
+          console.error('Error re-classifying updated transaction:', classifyError);
+        }
+      }
+      
+      return updatedTransaction;
     } catch (error) {
       console.error('Error updating transaction:', error);
       return undefined;
