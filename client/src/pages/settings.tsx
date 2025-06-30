@@ -158,7 +158,10 @@ export default function Settings() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
+      // إعادة تحديث جميع أنواع المصاريف
       queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
+      // إعادة تحديث الكاش في transaction form أيضاً
+      queryClient.refetchQueries({ queryKey: ['/api/expense-types'] });
       toast({
         title: "تم إنشاء نوع المصروف",
         description: "تم إنشاء نوع المصروف بنجاح",
@@ -183,7 +186,9 @@ export default function Settings() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
+      // إعادة تحديث جميع أنواع المصاريف
       queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
+      queryClient.refetchQueries({ queryKey: ['/api/expense-types'] });
       toast({
         title: "تم تحديث نوع المصروف",
         description: "تم تحديث نوع المصروف بنجاح",

@@ -2464,7 +2464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // تحديث نوع مصروف
-  app.put("/api/expense-types/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+  app.patch("/api/expense-types/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const updatedExpenseType = await storage.updateExpenseType(id, req.body);
