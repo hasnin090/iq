@@ -635,7 +635,22 @@ export class PgStorage implements IStorage {
   // Documents
   async getDocument(id: number): Promise<Document | undefined> {
     try {
-      const result = await this.sql`SELECT * FROM documents WHERE id = ${id}`;
+      const result = await this.sql`
+        SELECT 
+          id,
+          name,
+          description,
+          file_url as "fileUrl",
+          file_type as "fileType",
+          upload_date as "uploadDate",
+          project_id as "projectId",
+          uploaded_by as "uploadedBy",
+          is_manager_document as "isManagerDocument",
+          category,
+          tags
+        FROM documents 
+        WHERE id = ${id}
+      `;
       return result[0] as Document | undefined;
     } catch (error) {
       console.error('Error getting document:', error);
@@ -702,7 +717,22 @@ export class PgStorage implements IStorage {
 
   async listDocuments(): Promise<Document[]> {
     try {
-      const result = await this.sql`SELECT * FROM documents ORDER BY upload_date DESC`;
+      const result = await this.sql`
+        SELECT 
+          id,
+          name,
+          description,
+          file_url as "fileUrl",
+          file_type as "fileType",
+          upload_date as "uploadDate",
+          project_id as "projectId",
+          uploaded_by as "uploadedBy",
+          is_manager_document as "isManagerDocument",
+          category,
+          tags
+        FROM documents 
+        ORDER BY upload_date DESC
+      `;
       return result as Document[];
     } catch (error) {
       console.error('Error listing documents:', error);
