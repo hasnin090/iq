@@ -70,9 +70,11 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
   const { toast } = useToast();
   
+  const [forceDeleteDialogOpen, setForceDeleteDialogOpen] = useState(false);
   const [errorData, setErrorData] = useState<{
     message: string;
     transactionsCount?: number;
+    canForceDelete?: boolean;
     projectId?: number;
   } | null>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
@@ -113,8 +115,9 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => {
-      return apiRequest(`/api/projects/${id}`, 'DELETE', undefined);
+    mutationFn: ({ id, force = false }: { id: number; force?: boolean }) => {
+      const url = force ? `/api/projects/${id}?force=true` : `/api/projects/${id}`;
+      return apiRequest(url, 'DELETE', undefined);
     },
     onSuccess: (data) => {
       toast({
@@ -203,8 +206,16 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
   
   const confirmDelete = () => {
     if (projectToDelete) {
-      deleteMutation.mutate(projectToDelete.id);
+      deleteMutation.mutate({ id: projectToDelete.id, force: false });
     }
+    setDeleteDialogOpen(false);
+  };
+
+  const confirmForceDelete = () => {
+    if (projectToDelete) {
+      deleteMutation.mutate({ id: projectToDelete.id, force: true });
+    }
+    setForceDeleteDialogOpen(false);
     setDeleteDialogOpen(false);
   };
 

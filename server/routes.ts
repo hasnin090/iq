@@ -714,8 +714,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/projects/:id", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
+      const forceDelete = req.query.force === 'true';
       
-      console.log(`محاولة حذف المشروع رقم: ${id} بواسطة المستخدم: ${req.session.userId}, الدور: ${req.session.role}`);
+      console.log(`محاولة حذف المشروع رقم: ${id} بواسطة المستخدم: ${req.session.userId}, الدور: ${req.session.role}, حذف قسري: ${forceDelete}`);
       
       const project = await storage.getProject(id);
       if (!project) {
@@ -724,11 +725,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // التحقق مما إذا كان المشروع مرتبط بأي معاملات مالية
       const projectTransactions = await storage.getTransactionsByProject(id);
-      if (projectTransactions.length > 0) {
+      if (projectTransactions.length > 0 && !forceDelete) {
         return res.status(400).json({ 
           message: "لا يمكن حذف المشروع لأنه يحتوي على معاملات مالية مرتبطة به",
-          transactionsCount: projectTransactions.length
+          transactionsCount: projectTransactions.length,
+          canForceDelete: true
         });
+      }
+      
+      // إذا كان حذف قسري، قم بحذف المعاملات أولاً
+      if (forceDelete && projectTransactions.length > 0) {
+        console.log(`حذف قسري: سيتم حذف ${projectTransactions.length} معاملة مالية`);
+        for (const transaction of projectTransactions) {
+          await storage.deleteTransaction(transaction.id);
+        }
       }
       
       // التحقق مما إذا كان المشروع مرتبط بصندوق

@@ -228,11 +228,17 @@ export class PgStorage implements IStorage {
 
   async deleteProject(id: number): Promise<boolean> {
     try {
-      const result = await this.sql`DELETE FROM projects WHERE id = ${id}`;
+      console.log(`Attempting to delete project with ID: ${id}`);
+      const result = await this.sql`DELETE FROM projects WHERE id = ${id} RETURNING id`;
+      console.log(`Delete project result:`, result);
       return result.length > 0;
     } catch (error) {
       console.error('Error deleting project:', error);
-      return false;
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      throw error; // إعادة رفع الخطأ بدلاً من إرجاع false
     }
   }
 
