@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { DocumentForm } from '@/components/document-form';
 import { DocumentList, DocumentSidebar } from '@/components/document';
 import { DocumentLinker } from '@/components/document-library/document-linker';
+import { BulkFolderUpload } from '@/components/document-library/bulk-folder-upload';
 import { queryClient } from '@/lib/queryClient';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -1438,7 +1439,21 @@ export default function Documents() {
         
         <TabsContent value="link-manager" className="p-0">
           {/* مكتبة إدارة الملفات والربط اليدوي */}
-          <DocumentLinker />
+          <div className="space-y-6">
+            {/* قسم رفع المجلدات بكميات كبيرة */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-1 rounded-lg">
+              <BulkFolderUpload 
+                onUploadComplete={(documentIds) => {
+                  // تحديث المستندات بعد الرفع
+                  queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+                }}
+                className="bg-white dark:bg-background rounded-lg"
+              />
+            </div>
+            
+            {/* مكتبة الربط اليدوي */}
+            <DocumentLinker />
+          </div>
         </TabsContent>
         
         <TabsContent value="attachments" className="p-0">
