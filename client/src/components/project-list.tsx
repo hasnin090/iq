@@ -173,10 +173,23 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
   
   const handleEditClick = (project: Project) => {
     setProjectToEdit(project);
+    
+    // التحقق من صحة التاريخ قبل الاستخدام
+    let startDate: Date;
+    try {
+      startDate = project.startDate ? new Date(project.startDate) : new Date();
+      if (isNaN(startDate.getTime())) {
+        startDate = new Date();
+      }
+    } catch (error) {
+      console.error('Error parsing start date:', error);
+      startDate = new Date();
+    }
+    
     editForm.reset({
       name: project.name,
       description: project.description,
-      startDate: new Date(project.startDate),
+      startDate: startDate,
       status: project.status as "active" | "completed" | "paused",
       progress: project.progress,
     });
@@ -201,9 +214,19 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
     }
   };
   
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, 'yyyy/MM/dd', { locale: ar });
+  const formatDate = (dateString: string | Date | null | undefined) => {
+    if (!dateString) return 'غير محدد';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'تاريخ غير صحيح';
+      }
+      return format(date, 'yyyy/MM/dd', { locale: ar });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'تاريخ غير صحيح';
+    }
   };
   
   const getStatusText = (status: string) => {
