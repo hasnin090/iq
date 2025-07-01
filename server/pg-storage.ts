@@ -1472,10 +1472,56 @@ export class PgStorage implements IStorage {
         status: newStatus
       });
 
+      // إنشاء معاملة مالية لتسجيل دفع المستحق
       let transaction;
-      if (payment.projectId) {
-        const result = await this.processWithdrawal(userId, payment.projectId, amount, `دفع قسط من: ${payment.description}`);
-        transaction = result.transaction;
+      try {
+        const transactionDescription = payment.description 
+          ? `دفع قسط من: ${payment.description} (${payment.beneficiaryName})`
+          : `دفع قسط للمستفيد: ${payment.beneficiaryName}`;
+
+        if (payment.projectId) {
+          // إذا كان المستحق مرتبط بمشروع، نسجل الدفعة من صندوق المشروع
+          const result = await this.processWithdrawal(userId, payment.projectId, paymentAmount, transactionDescription);
+          transaction = result.transaction;
+        } else {
+          // إذا لم يكن مرتبط بمشروع، نسجل الدفعة كمصروف عام
+          // البحث عن نوع مصروف "دفعات آجلة" أو إنشاؤه
+          let deferredExpenseType;
+          try {
+            const existingTypes = await this.sql`SELECT * FROM expense_types WHERE name = 'دفعات آجلة' AND is_active = true LIMIT 1`;
+            if (existingTypes.length > 0) {
+              deferredExpenseType = existingTypes[0];
+            } else {
+              // إنشاء نوع المصروف إذا لم يكن موجوداً
+              const newType = await this.sql`
+                INSERT INTO expense_types (name, description, is_active, created_by)
+                VALUES ('دفعات آجلة', 'المدفوعات للمستحقات والأقساط المؤجلة', true, ${userId})
+                RETURNING *
+              `;
+              deferredExpenseType = newType[0];
+              console.log('Created new expense type for deferred payments:', deferredExpenseType);
+            }
+          } catch (error) {
+            console.error('Error getting/creating deferred expense type:', error);
+          }
+
+          const transactionData = {
+            type: 'expense' as const,
+            amount: paymentAmount,
+            description: transactionDescription,
+            date: new Date(),
+            createdBy: userId,
+            projectId: null,
+            expenseTypeId: deferredExpenseType?.id || null,
+            employeeId: null
+          };
+
+          transaction = await this.createTransaction(transactionData);
+          console.log('Created general transaction for deferred payment:', transaction);
+        }
+      } catch (transactionError) {
+        console.error('Error creating transaction for deferred payment:', transactionError);
+        // لا نفشل العملية كاملة إذا فشل تسجيل المعاملة، لكن نسجل الخطأ
       }
 
       return { payment: updatedPayment!, transaction };
