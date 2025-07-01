@@ -1286,8 +1286,34 @@ export class PgStorage implements IStorage {
   async createDeferredPayment(payment: InsertDeferredPayment): Promise<DeferredPayment> {
     try {
       const result = await this.sql`
-        INSERT INTO deferred_payments (description, total_amount, paid_amount, remaining_amount, project_id, created_by, due_date, status)
-        VALUES (${payment.description}, ${payment.totalAmount}, ${payment.paidAmount || 0}, ${payment.remainingAmount || payment.totalAmount}, ${payment.projectId || null}, ${payment.createdBy}, ${payment.dueDate || null}, ${payment.status || 'pending'})
+        INSERT INTO deferred_payments (
+          beneficiary_name, 
+          total_amount, 
+          paid_amount, 
+          remaining_amount, 
+          project_id, 
+          user_id, 
+          status,
+          description, 
+          due_date, 
+          installments, 
+          payment_frequency, 
+          notes
+        )
+        VALUES (
+          ${payment.beneficiaryName}, 
+          ${payment.totalAmount}, 
+          ${0}, 
+          ${payment.remainingAmount || payment.totalAmount}, 
+          ${payment.projectId || null}, 
+          ${payment.userId}, 
+          ${'pending'},
+          ${payment.description || null}, 
+          ${payment.dueDate || null}, 
+          ${payment.installments || 1}, 
+          ${payment.paymentFrequency || 'monthly'}, 
+          ${payment.notes || null}
+        )
         RETURNING *
       `;
       return result[0] as DeferredPayment;
@@ -1342,8 +1368,33 @@ export class PgStorage implements IStorage {
 
   async listDeferredPayments(): Promise<DeferredPayment[]> {
     try {
-      const result = await this.sql`SELECT * FROM deferred_payments ORDER BY created_at DESC`;
-      return result as DeferredPayment[];
+      const result = await this.sql`
+        SELECT 
+          dp.*,
+          p.name as project_name
+        FROM deferred_payments dp
+        LEFT JOIN projects p ON dp.project_id = p.id
+        ORDER BY dp.created_at DESC
+      `;
+      return result.map(row => ({
+        id: row.id,
+        beneficiaryName: row.beneficiary_name,
+        totalAmount: row.total_amount,
+        paidAmount: row.paid_amount,
+        remainingAmount: row.remaining_amount,
+        projectId: row.project_id,
+        userId: row.user_id,
+        status: row.status,
+        description: row.description,
+        dueDate: row.due_date,
+        installments: row.installments,
+        paymentFrequency: row.payment_frequency,
+        notes: row.notes,
+        completedAt: row.completed_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        projectName: row.project_name
+      })) as any[];
     } catch (error) {
       console.error('Error listing deferred payments:', error);
       return [];
