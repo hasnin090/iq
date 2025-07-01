@@ -743,7 +743,21 @@ export class PgStorage implements IStorage {
   async getDocumentsByProject(projectId: number): Promise<Document[]> {
     try {
       const result = await this.sql`
-        SELECT * FROM documents WHERE project_id = ${projectId} ORDER BY upload_date DESC
+        SELECT 
+          id,
+          name,
+          description,
+          file_url as "fileUrl",
+          file_type as "fileType",
+          upload_date as "uploadDate",
+          project_id as "projectId",
+          uploaded_by as "uploadedBy",
+          is_manager_document as "isManagerDocument",
+          category,
+          tags
+        FROM documents 
+        WHERE project_id = ${projectId} 
+        ORDER BY upload_date DESC
       `;
       return result as Document[];
     } catch (error) {
