@@ -145,6 +145,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
             setErrorData({
               message: errorMessage,
               transactionsCount,
+              canForceDelete: responseData.canForceDelete || false,
               projectId
             });
             setErrorDialogOpen(true);
@@ -568,18 +569,59 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
             </div>
             
             {errorData?.projectId ? (
-              <div className="pt-2 border-t flex justify-end">
-                <Button 
-                  variant="outline"
-                  className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
-                  onClick={() => {
-                    // توجيه المستخدم إلى صفحة المعاملات المالية مع تصفية المشروع المحدد
-                    window.location.href = `/transactions?projectId=${errorData.projectId}`;
-                  }}
-                >
-                  <i className="fas fa-search ml-1.5"></i>
-                  عرض المعاملات المرتبطة
-                </Button>
+              <div className="pt-2 border-t space-y-3">
+                <div className="flex justify-end">
+                  <Button 
+                    variant="outline"
+                    className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                    onClick={() => {
+                      // توجيه المستخدم إلى صفحة المعاملات المالية مع تصفية المشروع المحدد
+                      window.location.href = `/transactions?projectId=${errorData.projectId}`;
+                    }}
+                  >
+                    <i className="fas fa-search ml-1.5"></i>
+                    عرض المعاملات المرتبطة
+                  </Button>
+                </div>
+                
+                {errorData?.canForceDelete && (
+                  <div className="bg-red-50 p-3 rounded-md border border-red-200">
+                    <div className="flex items-start space-x-3">
+                      <i className="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-red-800 mb-2">حذف قسري (خطر)</h4>
+                        <p className="text-sm text-red-700 mb-3">
+                          سيتم حذف المشروع مع جميع المعاملات المالية المرتبطة به نهائياً. هذا الإجراء لا يمكن التراجع عنه.
+                        </p>
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setErrorDialogOpen(false)}
+                          >
+                            إلغاء
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              setErrorDialogOpen(false);
+                              confirmForceDelete();
+                            }}
+                            disabled={deleteMutation.isPending}
+                          >
+                            {deleteMutation.isPending ? (
+                              <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <i className="fas fa-trash ml-2"></i>
+                            )}
+                            حذف قسري
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : null}
           </div>
