@@ -1331,44 +1331,71 @@ export class PgStorage implements IStorage {
 
   async updateDeferredPayment(id: number, payment: Partial<DeferredPayment>): Promise<DeferredPayment | undefined> {
     try {
+      console.log('Updating deferred payment:', { id, payment });
+      
       const setParts = [];
       const values = [];
       
       if (payment.description !== undefined) {
-        setParts.push(`description = $${setParts.length + 1}`);
+        setParts.push(`description = $${values.length + 1}`);
         values.push(payment.description);
       }
       if (payment.totalAmount !== undefined) {
-        setParts.push(`total_amount = $${setParts.length + 1}`);
-        values.push(payment.totalAmount);
+        setParts.push(`total_amount = $${values.length + 1}`);
+        values.push(Number(payment.totalAmount));
       }
       if (payment.paidAmount !== undefined) {
-        setParts.push(`paid_amount = $${setParts.length + 1}`);
-        values.push(payment.paidAmount);
+        setParts.push(`paid_amount = $${values.length + 1}`);
+        values.push(Number(payment.paidAmount));
       }
       if (payment.remainingAmount !== undefined) {
-        setParts.push(`remaining_amount = $${setParts.length + 1}`);
-        values.push(payment.remainingAmount);
+        setParts.push(`remaining_amount = $${values.length + 1}`);
+        values.push(Number(payment.remainingAmount));
       }
       if (payment.status !== undefined) {
-        setParts.push(`status = $${setParts.length + 1}`);
+        setParts.push(`status = $${values.length + 1}`);
         values.push(payment.status);
       }
       if (payment.dueDate !== undefined) {
-        setParts.push(`due_date = $${setParts.length + 1}`);
+        setParts.push(`due_date = $${values.length + 1}`);
         values.push(payment.dueDate);
       }
 
       if (setParts.length === 0) return this.getDeferredPayment(id);
 
-      const query = `UPDATE deferred_payments SET ${setParts.join(', ')} WHERE id = $${setParts.length + 1} RETURNING *`;
       values.push(id);
+      const query = `UPDATE deferred_payments SET ${setParts.join(', ')} WHERE id = $${values.length} RETURNING *`;
+      
+      console.log('Query:', query);
+      console.log('Values:', values);
       
       const result = await this.sql(query, values);
-      return result[0] as DeferredPayment | undefined;
+      
+      if (result.length === 0) {
+        console.error('No rows returned from update');
+        return undefined;
+      }
+      
+      const updatedPayment = result[0] as any;
+      console.log('Updated payment result:', updatedPayment);
+      
+      return {
+        id: updatedPayment.id,
+        beneficiaryName: updatedPayment.beneficiary_name,
+        totalAmount: updatedPayment.total_amount,
+        paidAmount: updatedPayment.paid_amount,
+        remainingAmount: updatedPayment.remaining_amount,
+        status: updatedPayment.status,
+        description: updatedPayment.description,
+        dueDate: updatedPayment.due_date,
+        projectId: updatedPayment.project_id,
+        createdAt: updatedPayment.created_at,
+        updatedAt: updatedPayment.updated_at,
+        createdBy: updatedPayment.created_by
+      } as DeferredPayment;
     } catch (error) {
       console.error('Error updating deferred payment:', error);
-      return undefined;
+      throw error;
     }
   }
 
@@ -1419,12 +1446,25 @@ export class PgStorage implements IStorage {
 
   async payDeferredPaymentInstallment(id: number, amount: number, userId: number): Promise<{ payment: DeferredPayment; transaction?: Transaction }> {
     try {
+      console.log(`Starting payment installment for deferred payment ${id}, amount: ${amount}, user: ${userId}`);
+      
       const payment = await this.getDeferredPayment(id);
       if (!payment) throw new Error('Deferred payment not found');
 
-      const newPaidAmount = payment.paidAmount + amount;
-      const newRemainingAmount = payment.totalAmount - newPaidAmount;
+      // التأكد من أن المبالغ أرقام صحيحة
+      const currentPaidAmount = Number(payment.paidAmount) || 0;
+      const paymentAmount = Number(amount) || 0;
+      const totalAmount = Number(payment.totalAmount) || 0;
+      
+      if (isNaN(paymentAmount) || paymentAmount <= 0) {
+        throw new Error('Invalid payment amount');
+      }
+
+      const newPaidAmount = currentPaidAmount + paymentAmount;
+      const newRemainingAmount = totalAmount - newPaidAmount;
       const newStatus = newRemainingAmount <= 0 ? 'completed' : 'partial';
+
+      console.log(`Payment calculation: paid=${currentPaidAmount} + ${paymentAmount} = ${newPaidAmount}, remaining=${newRemainingAmount}, status=${newStatus}`);
 
       const updatedPayment = await this.updateDeferredPayment(id, {
         paidAmount: newPaidAmount,
