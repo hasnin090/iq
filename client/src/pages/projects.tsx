@@ -100,10 +100,10 @@ export default function Projects() {
       {/* التبويبات الرئيسية */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <TabsList className={`${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'} grid w-full max-w-lg mx-auto sm:mx-0 h-auto p-1 bg-gray-100 rounded-lg`}>
+          <TabsList className={`${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'} grid w-full max-w-lg mx-auto sm:mx-0 h-auto p-1 bg-gray-100 dark:bg-gray-800 rounded-lg`}>
             <TabsTrigger 
               value="overview" 
-              className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1"
+              className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm flex-1 text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <BarChart3 className="h-4 w-4 flex-shrink-0" />
@@ -112,7 +112,7 @@ export default function Projects() {
             </TabsTrigger>
             <TabsTrigger 
               value="list" 
-              className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1"
+              className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm flex-1 text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <FolderOpen className="h-4 w-4 flex-shrink-0" />
@@ -122,10 +122,10 @@ export default function Projects() {
             {user?.role === 'admin' && (
               <TabsTrigger 
                 value="add" 
-                className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1"
+                className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm flex-1 text-gray-700 dark:text-gray-300 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="h-4 w-4 flex-shrink-0 flex items-center justify-center bg-green-100 text-green-600 rounded-full text-xs font-bold">+</div>
+                  <div className="h-4 w-4 flex-shrink-0 flex items-center justify-center bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 rounded-full text-xs font-bold">+</div>
                   <span className="truncate">إضافة مشروع</span>
                 </div>
               </TabsTrigger>
