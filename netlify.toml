@@ -1,28 +1,25 @@
 [build]
-  command = "npm run build"
-  publish = "dist/public"
-  functions = "dist/functions"
-
-[build.environment]
-  NODE_VERSION = "18"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api-handler/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+command = "vite build"
+publish = "dist"
 
 [functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["@neondatabase/serverless", "pg", "postgres", "firebase", "firebase-admin"]
+directory = "netlify/functions"
+node_bundler = "esbuild"
+external_node_modules = ["@neondatabase/serverless", "pg", "postgres", "firebase", "firebase-admin"]
+
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/api-handler"
+status = 200
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
 
 [[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
+for = "/api/*"
+[headers.values]
+Access-Control-Allow-Origin = "*"
+Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+Access-Control-Allow-Headers = "Content-Type, Authorization"
