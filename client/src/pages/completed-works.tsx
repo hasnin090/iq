@@ -265,7 +265,7 @@ export default function CompletedWorksPage() {
                   إضافة عمل منجز
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md sm:max-w-2xl mx-4" dir="rtl">
+              <DialogContent className="w-[95vw] max-w-lg sm:max-w-2xl" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>إضافة عمل منجز جديد</DialogTitle>
                 </DialogHeader>
@@ -367,11 +367,20 @@ export default function CompletedWorksPage() {
                       )}
                     />
 
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-                      <Button type="button" variant="outline" onClick={() => setWorkDialogOpen(false)}>
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-6">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setWorkDialogOpen(false)}
+                        className="w-full sm:w-auto"
+                      >
                         إلغاء
                       </Button>
-                      <Button type="submit" disabled={createWorkMutation.isPending}>
+                      <Button 
+                        type="submit" 
+                        disabled={createWorkMutation.isPending}
+                        className="w-full sm:w-auto"
+                      >
                         {createWorkMutation.isPending ? "جاري الحفظ..." : "حفظ"}
                       </Button>
                     </div>
@@ -387,7 +396,7 @@ export default function CompletedWorksPage() {
                   رفع مستند
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md sm:max-w-2xl mx-4" dir="rtl">
+              <DialogContent className="w-[95vw] max-w-lg sm:max-w-2xl" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>رفع مستند جديد</DialogTitle>
                 </DialogHeader>
@@ -469,11 +478,20 @@ export default function CompletedWorksPage() {
                       )}
                     />
 
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-                      <Button type="button" variant="outline" onClick={() => setDocumentDialogOpen(false)}>
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-6">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setDocumentDialogOpen(false)}
+                        className="w-full sm:w-auto"
+                      >
                         إلغاء
                       </Button>
-                      <Button type="submit" disabled={createDocumentMutation.isPending}>
+                      <Button 
+                        type="submit" 
+                        disabled={createDocumentMutation.isPending}
+                        className="w-full sm:w-auto"
+                      >
                         {createDocumentMutation.isPending ? "جاري الرفع..." : "رفع"}
                       </Button>
                     </div>
