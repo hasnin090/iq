@@ -1792,8 +1792,22 @@ export class PgStorage implements IStorage {
 
   async deleteCompletedWork(id: number): Promise<boolean> {
     try {
-      const result = await this.sql`DELETE FROM completed_works WHERE id = ${id}`;
-      return result.count > 0;
+      console.log(`Starting delete process for completed work ${id}`);
+      
+      // التحقق من وجود العمل المنجز أولاً
+      const existing = await this.sql`SELECT id FROM completed_works WHERE id = ${id}`;
+      if (existing.length === 0) {
+        console.log(`Completed work ${id} not found`);
+        return false;
+      }
+      
+      // حذف العمل المنجز
+      const result = await this.sql`DELETE FROM completed_works WHERE id = ${id} RETURNING id`;
+      console.log(`Delete completed work result:`, result);
+      
+      const success = result.length > 0;
+      console.log(`Completed work ${id} deletion ${success ? 'successful' : 'failed'}`);
+      return success;
     } catch (error) {
       console.error('Error deleting completed work:', error);
       return false;
