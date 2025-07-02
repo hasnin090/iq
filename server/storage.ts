@@ -11,7 +11,9 @@ import {
   ledgerEntries, type LedgerEntry, type InsertLedgerEntry,
   accountCategories, type AccountCategory, type InsertAccountCategory,
   deferredPayments, type DeferredPayment, type InsertDeferredPayment,
-  employees, type Employee, type InsertEmployee
+  employees, type Employee, type InsertEmployee,
+  completedWorks, type CompletedWork, type InsertCompletedWork,
+  completedWorksDocuments, type CompletedWorksDocument, type InsertCompletedWorksDocument
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage.js';
@@ -873,6 +875,52 @@ export class MemStorage implements IStorage {
 
   async getActiveEmployees(): Promise<Employee[]> {
     return [];
+  }
+
+  // Completed Works - Independent section (MemStorage implementations)
+  async createCompletedWork(work: InsertCompletedWork): Promise<CompletedWork> {
+    throw new Error("MemStorage لا يدعم الأعمال المنجزة");
+  }
+
+  async listCompletedWorks(): Promise<CompletedWork[]> {
+    return [];
+  }
+
+  async getCompletedWork(id: number): Promise<CompletedWork | undefined> {
+    return undefined;
+  }
+
+  async updateCompletedWork(id: number, updates: Partial<CompletedWork>): Promise<CompletedWork | undefined> {
+    return undefined;
+  }
+
+  async deleteCompletedWork(id: number): Promise<boolean> {
+    return false;
+  }
+
+  async archiveCompletedWork(id: number): Promise<boolean> {
+    return false;
+  }
+
+  // Completed Works Documents - Independent document management (MemStorage implementations)
+  async createCompletedWorksDocument(document: InsertCompletedWorksDocument): Promise<CompletedWorksDocument> {
+    throw new Error("MemStorage لا يدعم مستندات الأعمال المنجزة");
+  }
+
+  async listCompletedWorksDocuments(): Promise<CompletedWorksDocument[]> {
+    return [];
+  }
+
+  async getCompletedWorksDocument(id: number): Promise<CompletedWorksDocument | undefined> {
+    return undefined;
+  }
+
+  async updateCompletedWorksDocument(id: number, updates: Partial<CompletedWorksDocument>): Promise<CompletedWorksDocument | undefined> {
+    return undefined;
+  }
+
+  async deleteCompletedWorksDocument(id: number): Promise<boolean> {
+    return false;
   }
 }
 
