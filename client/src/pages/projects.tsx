@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { CalendarDays, TrendingUp, Users, DollarSign, BarChart3, FolderOpen } from 'lucide-react';
+import { CalendarDays, TrendingUp, Users, DollarSign, BarChart3, FolderOpen, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Projects() {
@@ -99,13 +99,39 @@ export default function Projects() {
 
       {/* التبويبات الرئيسية */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3 mb-6">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm">نظرة عامة</TabsTrigger>
-          <TabsTrigger value="list" className="text-xs sm:text-sm">قائمة المشاريع</TabsTrigger>
-          {user?.role === 'admin' && (
-            <TabsTrigger value="add" className="text-xs sm:text-sm">إضافة مشروع</TabsTrigger>
-          )}
-        </TabsList>
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <TabsList className={`${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'} grid w-full max-w-lg mx-auto sm:mx-0 h-auto p-1 bg-gray-100 rounded-lg`}>
+            <TabsTrigger 
+              value="overview" 
+              className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <BarChart3 className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">نظرة عامة</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="list" 
+              className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <FolderOpen className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">قائمة المشاريع</span>
+              </div>
+            </TabsTrigger>
+            {user?.role === 'admin' && (
+              <TabsTrigger 
+                value="add" 
+                className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="h-4 w-4 flex-shrink-0 flex items-center justify-center bg-green-100 text-green-600 rounded-full text-xs font-bold">+</div>
+                  <span className="truncate">إضافة مشروع</span>
+                </div>
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </div>
 
         {/* نظرة عامة */}
         <TabsContent value="overview" className="space-y-4">

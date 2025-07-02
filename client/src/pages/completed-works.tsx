@@ -758,7 +758,7 @@ export default function CompletedWorksPage() {
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" asChild>
                             <a 
-                              href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `/uploads/${doc.fileUrl.replace('uploads/', '')}`} 
+                              href={doc.fileUrl && doc.fileUrl.startsWith('http') ? doc.fileUrl : `/uploads/${doc.fileUrl ? doc.fileUrl.replace('uploads/', '') : ''}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="flex items-center"
@@ -769,7 +769,7 @@ export default function CompletedWorksPage() {
                           </Button>
                           <Button size="sm" variant="outline" asChild>
                             <a 
-                              href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `/uploads/${doc.fileUrl.replace('uploads/', '')}`} 
+                              href={doc.fileUrl && doc.fileUrl.startsWith('http') ? doc.fileUrl : `/uploads/${doc.fileUrl ? doc.fileUrl.replace('uploads/', '') : ''}`} 
                               download={doc.title}
                               className="flex items-center"
                             >
