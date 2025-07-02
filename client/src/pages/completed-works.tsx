@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Upload, Trash2, FileText, Calendar, DollarSign, Tag } from "lucide-react";
+import { Plus, Upload, Trash2, FileText, Calendar, DollarSign, Tag, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const completedWorkSchema = z.object({
@@ -755,12 +755,29 @@ export default function CompletedWorksPage() {
                         <div className="text-sm text-gray-500">
                           {new Date(doc.createdAt).toLocaleDateString('ar-SA')}
                         </div>
-                        <Button size="sm" asChild>
-                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
-                            <FileText className="ml-2 h-4 w-4" />
-                            عرض
-                          </a>
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" asChild>
+                            <a 
+                              href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `/uploads/${doc.fileUrl.replace('uploads/', '')}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center"
+                            >
+                              <FileText className="ml-2 h-4 w-4" />
+                              عرض
+                            </a>
+                          </Button>
+                          <Button size="sm" variant="outline" asChild>
+                            <a 
+                              href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `/uploads/${doc.fileUrl.replace('uploads/', '')}`} 
+                              download={doc.title}
+                              className="flex items-center"
+                            >
+                              <Download className="ml-2 h-4 w-4" />
+                              تحميل
+                            </a>
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
