@@ -3233,6 +3233,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await storage.payDeferredPaymentInstallment(id, numericAmount, req.session.userId as number);
       
+      // إبطال التخزين المؤقت للمعاملات والمستحقات
+      if (result.transaction) {
+        // إبطال تخزين المعاملات المؤقت
+        req.app.locals.cache?.delete('/api/transactions');
+        req.app.locals.cache?.delete('/api/dashboard');
+        // إبطال تخزين المستحقات المؤقت
+        req.app.locals.cache?.delete('/api/deferred-payments');
+      }
+      
       return res.status(200).json(result);
     } catch (error) {
       console.error("خطأ في تسجيل الدفعة:", error);
