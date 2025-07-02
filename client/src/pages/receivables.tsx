@@ -179,6 +179,9 @@ export default function Receivables() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/deferred-payments"] });
+      // إبطال تخزين العمليات المالية والداشبورد أيضاً عند دفع قسط
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       mainForm.reset({
         operationType: "new_receivable",
         beneficiaryName: "",
