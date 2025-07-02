@@ -1539,12 +1539,32 @@ export class PgStorage implements IStorage {
             date: new Date(),
             createdBy: userId,
             projectId: null,
-            expenseTypeId: matchingExpenseType?.id || null,
+            expenseType: matchingExpenseType?.name || null,
             employeeId: null
           };
 
           transaction = await this.createTransaction(transactionData);
           console.log(`Created transaction for deferred payment: ${transaction.id} linked to expense type: ${matchingExpenseType?.name || 'none'}`);
+          
+          // إنشاء قيد دفتر الأستاذ مرتبط بنوع المصروف
+          if (matchingExpenseType && transaction) {
+            try {
+              const ledgerEntry = {
+                date: new Date(),
+                description: transactionDescription,
+                amount: paymentAmount,
+                entryType: 'expense',
+                projectId: null,
+                transactionId: transaction.id,
+                expenseTypeId: matchingExpenseType.id
+              };
+              
+              await this.createLedgerEntry(ledgerEntry);
+              console.log(`Created ledger entry for transaction ${transaction.id} with expense type ${matchingExpenseType.id}`);
+            } catch (ledgerError) {
+              console.error('Error creating ledger entry for deferred payment:', ledgerError);
+            }
+          }
         }
       } catch (transactionError) {
         console.error('Error creating transaction for deferred payment:', transactionError);
