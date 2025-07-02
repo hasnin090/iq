@@ -155,10 +155,53 @@ export class PgStorage implements IStorage {
         return false;
       }
       
-      // حذف القيود المرتبطة أولاً
-      // حذف ارتباطات المشاريع
+      // حذف القيود المرتبطة أولاً بترتيب معين
+      
+      // حذف سجلات النشاط
+      const activityLogsResult = await this.sql`DELETE FROM activity_logs WHERE user_id = ${id}`;
+      console.log(`Deleted ${activityLogsResult.length} activity logs for user ${id}`);
+      
+      // حذف روابط المستندات والمعاملات
+      const docLinksResult = await this.sql`DELETE FROM document_transaction_links WHERE linked_by = ${id}`;
+      console.log(`Deleted ${docLinksResult.length} document links for user ${id}`);
+      
+      // حذف الأعمال المنجزة والمستندات المرتبطة
+      const completedWorksDocsResult = await this.sql`DELETE FROM completed_works_documents WHERE created_by = ${id}`;
+      console.log(`Deleted ${completedWorksDocsResult.length} completed work documents for user ${id}`);
+      
+      const completedWorksResult = await this.sql`DELETE FROM completed_works WHERE created_by = ${id}`;
+      console.log(`Deleted ${completedWorksResult.length} completed works for user ${id}`);
+      
+      // حذف المدفوعات المؤجلة
+      const deferredPaymentsResult = await this.sql`DELETE FROM deferred_payments WHERE user_id = ${id}`;
+      console.log(`Deleted ${deferredPaymentsResult.length} deferred payments for user ${id}`);
+      
+      // حذف الأموال المملوكة
+      const fundsResult = await this.sql`DELETE FROM funds WHERE owner_id = ${id}`;
+      console.log(`Deleted ${fundsResult.length} funds for user ${id}`);
+      
+      // حذف ارتباطات المشاريع (assigned_by و user_id)
+      const projectLinksAssignedResult = await this.sql`DELETE FROM user_projects WHERE assigned_by = ${id}`;
+      console.log(`Deleted ${projectLinksAssignedResult.length} project assignments by user ${id}`);
+      
       const projectLinksResult = await this.sql`DELETE FROM user_projects WHERE user_id = ${id}`;
       console.log(`Deleted ${projectLinksResult.length} project links for user ${id}`);
+      
+      // تحديث created_by إلى المدير بدلاً من حذف البيانات المهمة
+      const updateTransactionsResult = await this.sql`UPDATE transactions SET created_by = 1 WHERE created_by = ${id}`;
+      console.log(`Updated ${updateTransactionsResult.length} transactions creator to admin for user ${id}`);
+      
+      const updateProjectsResult = await this.sql`UPDATE projects SET created_by = 1 WHERE created_by = ${id}`;
+      console.log(`Updated ${updateProjectsResult.length} projects creator to admin for user ${id}`);
+      
+      const updateDocumentsResult = await this.sql`UPDATE documents SET uploaded_by = 1 WHERE uploaded_by = ${id}`;
+      console.log(`Updated ${updateDocumentsResult.length} documents uploader to admin for user ${id}`);
+      
+      const updateEmployeesResult = await this.sql`UPDATE employees SET created_by = 1 WHERE created_by = ${id}`;
+      console.log(`Updated ${updateEmployeesResult.length} employees creator to admin for user ${id}`);
+      
+      const updateCategoriesResult = await this.sql`UPDATE account_categories SET created_by = 1 WHERE created_by = ${id}`;
+      console.log(`Updated ${updateCategoriesResult.length} account categories creator to admin for user ${id}`);
       
       // حذف المستخدم نفسه
       const result = await this.sql`DELETE FROM users WHERE id = ${id} RETURNING id`;
