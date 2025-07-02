@@ -51,6 +51,7 @@ export const projects = pgTable("projects", {
   description: text("description").notNull(),
   startDate: timestamp("start_date").notNull(),
   budget: integer("budget").default(0), // ميزانية المشروع
+  spent: integer("spent").default(0), // المبلغ المُنفق
   status: text("status").notNull().default("active"), // active, completed, paused
   progress: integer("progress").notNull().default(0),
   createdBy: integer("created_by").notNull().references(() => users.id),
@@ -213,6 +214,7 @@ export const insertProjectSchema = createInsertSchema(projects)
   .extend({
     startDate: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
     budget: z.number().optional().default(0), // ميزانية اختيارية
+    spent: z.number().optional().default(0), // المبلغ المُنفق اختياري
     createdBy: z.number().optional(), // سيتم تعيينه في الخلفية
   });
 

@@ -172,8 +172,8 @@ export class PgStorage implements IStorage {
   async createProject(project: InsertProject): Promise<Project> {
     try {
       const result = await this.sql`
-        INSERT INTO projects (name, description, budget, spent, created_by)
-        VALUES (${project.name}, ${project.description || null}, ${project.budget || 0}, ${project.spent || 0}, ${project.createdBy})
+        INSERT INTO projects (name, description, start_date, budget, spent, created_by)
+        VALUES (${project.name}, ${project.description || null}, ${project.startDate}, ${project.budget || 0}, ${project.spent || 0}, ${project.createdBy})
         RETURNING *
       `;
       return result[0] as Project;
