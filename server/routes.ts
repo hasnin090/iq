@@ -61,6 +61,7 @@ import { storageManager } from './storage-manager';
 import { fileMigration } from './file-migration';
 import { databaseCleanup } from './database-cleanup';
 import { simpleMigration } from './simple-migration';
+import { missingFilesFixer } from './fix-missing-files';
 import { eq, and } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -5168,6 +5169,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting completed works document:', error);
       res.status(500).json({ message: 'خطأ في حذف المستند' });
+    }
+  });
+
+  // إصلاح الملفات المفقودة
+  app.post("/api/system/fix-missing-files", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      console.log("🔧 بدء إصلاح الملفات المفقودة...");
+      const result = await missingFilesFixer.fixMissingFiles();
+      
+      // تسجيل النشاط
+      await storage.createActivityLog({
+        action: "fix_files",
+        entityType: "system",
+        entityId: 0,
+        details: `إصلاح الملفات المفقودة: ${result.fixedTransactions} معاملة و ${result.fixedDocuments} مستند`,
+        userId: req.session.userId as number
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("خطأ في إصلاح الملفات المفقودة:", error);
+      res.status(500).json({ message: "خطأ في إصلاح الملفات المفقودة" });
+    }
+  });
+
+  // تقرير الملفات المفقودة
+  app.get("/api/system/missing-files-report", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
+    try {
+      const report = await missingFilesFixer.generateMissingFilesReport();
+      res.json(report);
+    } catch (error) {
+      console.error("خطأ في إنشاء تقرير الملفات المفقودة:", error);
+      res.status(500).json({ message: "خطأ في إنشاء تقرير الملفات المفقودة" });
     }
   });
 
