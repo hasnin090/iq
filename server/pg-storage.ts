@@ -146,8 +146,27 @@ export class PgStorage implements IStorage {
 
   async deleteUser(id: number): Promise<boolean> {
     try {
-      const result = await this.sql`DELETE FROM users WHERE id = ${id}`;
-      return result.length > 0;
+      console.log(`Starting delete process for user ${id}`);
+      
+      // التحقق من وجود المستخدم أولاً
+      const existing = await this.sql`SELECT id FROM users WHERE id = ${id}`;
+      if (existing.length === 0) {
+        console.log(`User ${id} not found`);
+        return false;
+      }
+      
+      // حذف القيود المرتبطة أولاً
+      // حذف ارتباطات المشاريع
+      const projectLinksResult = await this.sql`DELETE FROM user_projects WHERE user_id = ${id}`;
+      console.log(`Deleted ${projectLinksResult.length} project links for user ${id}`);
+      
+      // حذف المستخدم نفسه
+      const result = await this.sql`DELETE FROM users WHERE id = ${id} RETURNING id`;
+      console.log(`Delete user result:`, result);
+      
+      const success = result.length > 0;
+      console.log(`User ${id} deletion ${success ? 'successful' : 'failed'}`);
+      return success;
     } catch (error) {
       console.error('Error deleting user:', error);
       return false;
