@@ -3276,30 +3276,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "المستحق غير موجود" });
       }
 
-      // جلب العمليات من قسم المستحقات فقط (دفتر الأستاذ)
-      const deferredExpenseType = await storage.getExpenseTypeByName('دفعات آجلة');
+      // جلب العمليات المالية المرتبطة بهذا المستفيد
       let payments: any[] = [];
       
-      if (deferredExpenseType) {
-        const ledgerEntries = await storage.getLedgerEntriesByExpenseType(deferredExpenseType.id);
-        
-        // تصفية السجلات للحصول على دفعات هذا المستفيد فقط
-        const beneficiaryEntries = ledgerEntries.filter(entry => {
-          const match = entry.description.match(/دفعة مستحق: (.+?) - قسط/);
-          const beneficiaryName = match ? match[1] : '';
-          return beneficiaryName === payment.beneficiaryName;
+      try {
+        // جلب العمليات المالية التي تحتوي على اسم المستفيد في الوصف
+        const allTransactions = await storage.listTransactions();
+        const beneficiaryTransactions = allTransactions.filter((transaction: any) => {
+          const description = transaction.description || '';
+          // البحث عن مختلف أنماط دفعات المستحقات
+          return (
+            description.includes(`دفع قسط للمستفيد: ${payment.beneficiaryName}`) ||
+            description.includes(`دفع قسط من: ${payment.description} (${payment.beneficiaryName})`) ||
+            description.includes(`دفعة مستحق: ${payment.beneficiaryName}`)
+          );
         });
         
-        // تحويل السجلات إلى تنسيق الدفعات
-        payments = beneficiaryEntries.map((entry: any) => ({
-          id: entry.id,
-          amount: entry.amount,
-          paymentDate: entry.date,
-          createdAt: entry.createdAt,
-          notes: entry.description,
-          paidBy: 'قسم المستحقات',
-          userName: 'نظام المستحقات'
+        // تحويل المعاملات إلى تنسيق الدفعات
+        payments = beneficiaryTransactions.map((transaction: any) => ({
+          id: transaction.id,
+          amount: transaction.amount,
+          paymentDate: transaction.date,
+          createdAt: transaction.createdAt || transaction.date,
+          notes: transaction.description,
+          paidBy: 'نظام المعاملات المالية',
+          userName: 'نظام المستحقات',
+          transactionId: transaction.id
         }));
+        
+        console.log(`Found ${payments.length} payments for beneficiary: ${payment.beneficiaryName}`);
+      } catch (error) {
+        console.error('Error fetching payments for beneficiary:', error);
       }
 
       // ترتيب الدفعات حسب التاريخ (الأحدث أولاً)

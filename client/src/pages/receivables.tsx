@@ -182,6 +182,12 @@ export default function Receivables() {
       // إبطال تخزين العمليات المالية والداشبورد أيضاً عند دفع قسط
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      // إبطال تخزين تفاصيل المستحق المفتوح حالياً
+      if (selectedReceivable) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/deferred-payments", selectedReceivable.id, "details"] 
+        });
+      }
       mainForm.reset({
         operationType: "new_receivable",
         beneficiaryName: "",
