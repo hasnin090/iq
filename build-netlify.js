@@ -80,7 +80,7 @@ const __dirname = dirname(__filename);
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server/:splat"
+  to = "/.netlify/functions/server-simple/:splat"
   status = 200
 
 [[redirects]]
@@ -102,22 +102,20 @@ const __dirname = dirname(__filename);
     
     fs.writeFileSync('netlify.toml', netlifyConfig)
     
-    // 4. إنشاء دالة Netlify للخادم
-    console.log('🔧 إنشاء دالة Netlify...')
+    // 4. نسخ دالة Netlify الجديدة
+    console.log('🔧 نسخ دالة Netlify المحسنة...')
     const functionsDir = 'dist/functions'
     if (!fs.existsSync(functionsDir)) {
       fs.mkdirSync(functionsDir, { recursive: true })
     }
     
-    const netlifyHandler = `import { app } from '../index.js';
-import serverless from 'serverless-http';
-
-const handler = serverless(app);
-
-export { handler };
-`
-    
-    fs.writeFileSync(path.join(functionsDir, 'server.js'), netlifyHandler)
+    // نسخ server-simple.js إلى dist/functions
+    if (fs.existsSync('functions/server-simple.js')) {
+      fs.copyFileSync('functions/server-simple.js', path.join(functionsDir, 'server-simple.js'))
+      console.log('✅ تم نسخ server-simple.js')
+    } else {
+      console.warn('⚠️ ملف functions/server-simple.js غير موجود')
+    }
     
     // 5. إنشاء package.json للإنتاج
     console.log('📋 إنشاء package.json للإنتاج...')
