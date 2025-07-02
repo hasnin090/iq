@@ -470,15 +470,23 @@ export class PgStorage implements IStorage {
 
   async deleteTransaction(id: number): Promise<boolean> {
     try {
+      console.log(`Starting delete process for transaction ${id}`);
+      
       // أولاً: حذف جميع القيود المرتبطة من جدول ledger_entries
-      await this.sql`DELETE FROM ledger_entries WHERE transaction_id = ${id}`;
+      const ledgerResult = await this.sql`DELETE FROM ledger_entries WHERE transaction_id = ${id}`;
+      console.log(`Deleted ${ledgerResult.count || 0} ledger entries for transaction ${id}`);
       
       // ثانياً: حذف جميع الروابط من جدول document_transaction_links
-      await this.sql`DELETE FROM document_transaction_links WHERE transaction_id = ${id}`;
+      const linksResult = await this.sql`DELETE FROM document_transaction_links WHERE transaction_id = ${id}`;
+      console.log(`Deleted ${linksResult.count || 0} document links for transaction ${id}`);
       
       // ثالثاً: حذف المعاملة نفسها
-      const result = await this.sql`DELETE FROM transactions WHERE id = ${id}`;
-      return result.length > 0;
+      const result = await this.sql`DELETE FROM transactions WHERE id = ${id} RETURNING id`;
+      console.log(`Delete transaction result:`, result);
+      
+      const success = result.length > 0;
+      console.log(`Transaction ${id} deletion ${success ? 'successful' : 'failed'}`);
+      return success;
     } catch (error) {
       console.error('Error deleting transaction:', error);
       return false;
