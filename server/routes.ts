@@ -115,7 +115,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // تسجيل متغير PgStore من وحدة connect-pg-simple
   const PostgreSQLStore = connectPgSimple(session);
   
-  // إعداد محسن للجلسات مع إدارة أفضل للذاكرة
+  // إعداد محسن للجلسات مع PostgreSQL Store للثبات
+  let sessionStore;
+  
+  try {
+    // استخدام PostgreSQL Store للحفاظ على الجلسات عبر إعادة التشغيل
+    sessionStore = new PostgreSQLStore({
+      pool: db,
+      tableName: 'session',
+      createTableIfMissing: true,
+      schemaName: 'public',
+      ttl: 24 * 60 * 60 // 24 hours
+    });
+    console.log("استخدام PostgreSQL Store للجلسات");
+  } catch (error) {
+    // Fallback إلى Memory Store في حالة فشل PostgreSQL
+    console.warn("فشل PostgreSQL Store، استخدام Memory Store:", error);
+    sessionStore = new MemoryStoreSession({
+      checkPeriod: 86400000,
+      max: 1000,
+      ttl: 24 * 60 * 60 * 1000
+    });
+  }
+
   app.use(session({
     secret: process.env.SESSION_SECRET || "accounting-app-secret-key-2025",
     resave: false,
@@ -127,11 +149,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secure: false,
       path: '/'
     },
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000,
-      max: 1000, // حد أقصى للجلسات في الذاكرة
-      ttl: 24 * 60 * 60 * 1000 // مدة انتهاء الصلاحية
-    })
+    store: sessionStore,
+    name: 'accounting.sid' // اسم مميز للجلسة
   }));
   
   // middleware للجلسة (تم إزالة التسجيل المفرط لتحسين الأداء)
@@ -2658,6 +2677,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // جلب جميع مدخلات دفتر الأستاذ (alias route)
+  app.get("/api/ledger-entries", authenticate, async (req: Request, res: Response) => {
+    try {
+      const entryType = req.query.type as string;
+      const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
+      const expenseTypeId = req.query.expenseTypeId ? parseInt(req.query.expenseTypeId as string) : undefined;
+      
+      let ledgerEntries;
+      
+      if (entryType) {
+        ledgerEntries = await storage.getLedgerEntriesByType(entryType);
+      } else if (projectId) {
+        ledgerEntries = await storage.getLedgerEntriesByProject(projectId);
+      } else if (expenseTypeId) {
+        ledgerEntries = await storage.getLedgerEntriesByExpenseType(expenseTypeId);
+      } else {
+        ledgerEntries = await storage.listLedgerEntries();
+      }
+      
+      return res.status(200).json(ledgerEntries);
+    } catch (error) {
+      console.error("خطأ في جلب دفتر الأستاذ:", error);
+      return res.status(500).json({ message: "خطأ في جلب دفتر الأستاذ" });
+    }
+  });
+
   // ترحيل المعاملات المصنفة تلقائياً إلى دفتر الأستاذ
   app.post("/api/ledger/migrate-classified", authenticate, authorize(["admin"]), async (req: Request, res: Response) => {
     try {
@@ -3238,6 +3283,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("خطأ في جلب الدفعات المؤجلة:", error);
       return res.status(500).json({ message: "خطأ في جلب الدفعات المؤجلة" });
+    }
+  });
+
+  // جلب جميع المستحقات (alias route)
+  app.get("/api/receivables", authenticate, async (req: Request, res: Response) => {
+    try {
+      const payments = await storage.listDeferredPayments();
+      return res.status(200).json(payments);
+    } catch (error) {
+      console.error("خطأ في جلب المستحقات:", error);
+      return res.status(500).json({ message: "خطأ في جلب المستحقات" });
     }
   });
 
