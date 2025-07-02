@@ -468,6 +468,13 @@ export class PgStorage implements IStorage {
 
   async deleteTransaction(id: number): Promise<boolean> {
     try {
+      // أولاً: حذف جميع القيود المرتبطة من جدول ledger_entries
+      await this.sql`DELETE FROM ledger_entries WHERE transaction_id = ${id}`;
+      
+      // ثانياً: حذف جميع الروابط من جدول document_transaction_links
+      await this.sql`DELETE FROM document_transaction_links WHERE transaction_id = ${id}`;
+      
+      // ثالثاً: حذف المعاملة نفسها
       const result = await this.sql`DELETE FROM transactions WHERE id = ${id}`;
       return result.length > 0;
     } catch (error) {
