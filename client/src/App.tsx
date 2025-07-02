@@ -154,6 +154,9 @@ function AppRoutes() {
               <Route path="/system-management">
                 {user?.role === 'admin' ? <SystemManagement /> : <NotFound />}
               </Route>
+              <Route path="/completed-works">
+                {user?.role === 'admin' || user?.role === 'manager' ? <CompletedWorks /> : <NotFound />}
+              </Route>
               <Route component={NotFound} />
             </Switch>
           </div>

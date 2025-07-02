@@ -5001,11 +5001,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let fileType = null;
       
       if (req.file) {
-        fileUrl = await uploadFile(
-          req.file,
+        fileUrl = await localUpload(
+          req.file.path,
           `completed-works/${Date.now()}-${req.file.originalname}`,
           req.file.mimetype,
-          { source: 'completed_works', userId: req.session.userId }
+          { source: 'completed_works', userId: req.session.userId?.toString() || '' }
         );
         fileType = req.file.mimetype;
       }
@@ -5081,11 +5081,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'الملف مطلوب' });
       }
 
-      const fileUrl = await uploadFile(
-        req.file,
+      const fileUrl = await localUpload(
+        req.file.path,
         `completed-works-docs/${Date.now()}-${req.file.originalname}`,
         req.file.mimetype,
-        { source: 'completed_works_documents', userId: req.session.userId }
+        { source: 'completed_works_documents', userId: req.session.userId?.toString() || '' }
       );
 
       const documentData = {

@@ -444,6 +444,23 @@ function CompanyName() {
                   <span className="text-sm sm:text-base">التقارير</span>
                 </Link>
               )}
+
+              {/* قسم الأعمال المنجزة - مخصص للمدير والمدراء فقط */}
+              {(user?.role === 'admin' || user?.role === 'manager') && (
+                <Link
+                  href="/completed-works"
+                  className={`flex items-center space-x-reverse space-x-3 px-3 py-2.5 rounded-xl no-flicker touch-target ${
+                    location === "/completed-works" 
+                      ? "bg-[hsl(var(--primary))] text-white font-semibold shadow-md" 
+                      : "text-[hsl(var(--primary))] hover:bg-blue-50 hover:scale-102"
+                  } transition-all duration-200 transform`}
+                >
+                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center no-flicker ${location === "/completed-works" ? "bg-white/20 text-white" : "bg-blue-100"}`}>
+                    <i className="fas fa-tasks"></i>
+                  </div>
+                  <span className="text-sm sm:text-base">الأعمال المنجزة</span>
+                </Link>
+              )}
             </nav>
           </div>
           
