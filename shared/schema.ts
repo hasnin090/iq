@@ -153,9 +153,12 @@ export const ledgerEntries = pgTable("ledger_entries", {
   expenseTypeId: integer("expense_type_id").references(() => expenseTypes.id),
   accountName: text("account_name"), // اسم الحساب للربط مع المستحقات
   amount: integer("amount").notNull(),
+  debitAmount: integer("debit_amount").default(0), // المبلغ المدين
+  creditAmount: integer("credit_amount").default(0), // المبلغ الدائن
   description: text("description").notNull(),
   projectId: integer("project_id").references(() => projects.id),
   entryType: text("entry_type").notNull(), // "classified" أو "miscellaneous" أو "deferred"
+  entryDate: timestamp("entry_date").defaultNow(), // تاريخ الإدخال
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -290,6 +293,9 @@ export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries)
   .extend({
     transactionId: z.number().nullable().optional(),
     accountName: z.string().optional(), // اسم الحساب اختياري
+    debitAmount: z.number().optional().default(0), // المبلغ المدين
+    creditAmount: z.number().optional().default(0), // المبلغ الدائن
+    entryDate: z.union([z.string(), z.date()]).optional(), // تاريخ الإدخال
   });
 
 export const insertAccountCategorySchema = createInsertSchema(accountCategories)
