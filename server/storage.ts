@@ -124,6 +124,21 @@ export interface IStorage {
   deleteEmployee(id: number): Promise<boolean>;
   getEmployeesByProject(projectId: number): Promise<Employee[]>;
   getActiveEmployees(): Promise<Employee[]>;
+
+  // Completed Works - Independent section
+  createCompletedWork(work: InsertCompletedWork): Promise<CompletedWork>;
+  listCompletedWorks(): Promise<CompletedWork[]>;
+  getCompletedWork(id: number): Promise<CompletedWork | undefined>;
+  updateCompletedWork(id: number, updates: Partial<CompletedWork>): Promise<CompletedWork | undefined>;
+  deleteCompletedWork(id: number): Promise<boolean>;
+  archiveCompletedWork(id: number): Promise<boolean>;
+
+  // Completed Works Documents - Independent document management
+  createCompletedWorksDocument(document: InsertCompletedWorksDocument): Promise<CompletedWorksDocument>;
+  listCompletedWorksDocuments(): Promise<CompletedWorksDocument[]>;
+  getCompletedWorksDocument(id: number): Promise<CompletedWorksDocument | undefined>;
+  updateCompletedWorksDocument(id: number, updates: Partial<CompletedWorksDocument>): Promise<CompletedWorksDocument | undefined>;
+  deleteCompletedWorksDocument(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {

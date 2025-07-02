@@ -1706,6 +1706,182 @@ export class PgStorage implements IStorage {
       return [];
     }
   }
+
+  // Completed Works - Independent section
+  async createCompletedWork(work: InsertCompletedWork): Promise<CompletedWork> {
+    try {
+      const result = await this.sql`
+        INSERT INTO completed_works (title, description, amount, date, category, file_url, file_type, created_by)
+        VALUES (${work.title}, ${work.description || null}, ${work.amount || null}, ${work.date}, ${work.category || null}, ${work.fileUrl || null}, ${work.fileType || null}, ${work.createdBy})
+        RETURNING *
+      `;
+      return result[0] as CompletedWork;
+    } catch (error) {
+      console.error('Error creating completed work:', error);
+      throw error;
+    }
+  }
+
+  async listCompletedWorks(): Promise<CompletedWork[]> {
+    try {
+      const result = await this.sql`
+        SELECT cw.*, u.name as creator_name
+        FROM completed_works cw
+        LEFT JOIN users u ON cw.created_by = u.id
+        WHERE cw.status = 'active'
+        ORDER BY cw.created_at DESC
+      `;
+      return result as CompletedWork[];
+    } catch (error) {
+      console.error('Error listing completed works:', error);
+      return [];
+    }
+  }
+
+  async getCompletedWork(id: number): Promise<CompletedWork | undefined> {
+    try {
+      const result = await this.sql`
+        SELECT cw.*, u.name as creator_name
+        FROM completed_works cw
+        LEFT JOIN users u ON cw.created_by = u.id
+        WHERE cw.id = ${id}
+      `;
+      return result[0] as CompletedWork | undefined;
+    } catch (error) {
+      console.error('Error getting completed work:', error);
+      return undefined;
+    }
+  }
+
+  async updateCompletedWork(id: number, updates: Partial<CompletedWork>): Promise<CompletedWork | undefined> {
+    try {
+      const setParts = [];
+      if (updates.title !== undefined) setParts.push(`title = '${updates.title}'`);
+      if (updates.description !== undefined) setParts.push(`description = '${updates.description}'`);
+      if (updates.amount !== undefined) setParts.push(`amount = ${updates.amount}`);
+      if (updates.date !== undefined) setParts.push(`date = '${updates.date}'`);
+      if (updates.category !== undefined) setParts.push(`category = '${updates.category}'`);
+      if (updates.fileUrl !== undefined) setParts.push(`file_url = '${updates.fileUrl}'`);
+      if (updates.fileType !== undefined) setParts.push(`file_type = '${updates.fileType}'`);
+
+      if (setParts.length === 0) return undefined;
+
+      const result = await this.sql`
+        UPDATE completed_works 
+        SET ${this.sql.unsafe(setParts.join(', '))}, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+      
+      return result[0] as CompletedWork | undefined;
+    } catch (error) {
+      console.error('Error updating completed work:', error);
+      return undefined;
+    }
+  }
+
+  async deleteCompletedWork(id: number): Promise<boolean> {
+    try {
+      const result = await this.sql`DELETE FROM completed_works WHERE id = ${id}`;
+      return result.count > 0;
+    } catch (error) {
+      console.error('Error deleting completed work:', error);
+      return false;
+    }
+  }
+
+  async archiveCompletedWork(id: number): Promise<boolean> {
+    try {
+      const result = await this.sql`
+        UPDATE completed_works 
+        SET status = 'archived', updated_at = NOW()
+        WHERE id = ${id}
+      `;
+      return result.count > 0;
+    } catch (error) {
+      console.error('Error archiving completed work:', error);
+      return false;
+    }
+  }
+
+  // Completed Works Documents - Independent document management
+  async createCompletedWorksDocument(document: InsertCompletedWorksDocument): Promise<CompletedWorksDocument> {
+    try {
+      const result = await this.sql`
+        INSERT INTO completed_works_documents (title, description, file_url, file_type, file_size, category, tags, created_by)
+        VALUES (${document.title}, ${document.description || null}, ${document.fileUrl}, ${document.fileType}, ${document.fileSize || null}, ${document.category || null}, ${document.tags || null}, ${document.createdBy})
+        RETURNING *
+      `;
+      return result[0] as CompletedWorksDocument;
+    } catch (error) {
+      console.error('Error creating completed works document:', error);
+      throw error;
+    }
+  }
+
+  async listCompletedWorksDocuments(): Promise<CompletedWorksDocument[]> {
+    try {
+      const result = await this.sql`
+        SELECT cwd.*, u.name as creator_name
+        FROM completed_works_documents cwd
+        LEFT JOIN users u ON cwd.created_by = u.id
+        ORDER BY cwd.created_at DESC
+      `;
+      return result as CompletedWorksDocument[];
+    } catch (error) {
+      console.error('Error listing completed works documents:', error);
+      return [];
+    }
+  }
+
+  async getCompletedWorksDocument(id: number): Promise<CompletedWorksDocument | undefined> {
+    try {
+      const result = await this.sql`
+        SELECT cwd.*, u.name as creator_name
+        FROM completed_works_documents cwd
+        LEFT JOIN users u ON cwd.created_by = u.id
+        WHERE cwd.id = ${id}
+      `;
+      return result[0] as CompletedWorksDocument | undefined;
+    } catch (error) {
+      console.error('Error getting completed works document:', error);
+      return undefined;
+    }
+  }
+
+  async updateCompletedWorksDocument(id: number, updates: Partial<CompletedWorksDocument>): Promise<CompletedWorksDocument | undefined> {
+    try {
+      const setParts = [];
+      if (updates.title !== undefined) setParts.push(`title = '${updates.title}'`);
+      if (updates.description !== undefined) setParts.push(`description = '${updates.description}'`);
+      if (updates.category !== undefined) setParts.push(`category = '${updates.category}'`);
+      if (updates.tags !== undefined) setParts.push(`tags = '${updates.tags}'`);
+
+      if (setParts.length === 0) return undefined;
+
+      const result = await this.sql`
+        UPDATE completed_works_documents 
+        SET ${this.sql.unsafe(setParts.join(', '))}, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `;
+      
+      return result[0] as CompletedWorksDocument | undefined;
+    } catch (error) {
+      console.error('Error updating completed works document:', error);
+      return undefined;
+    }
+  }
+
+  async deleteCompletedWorksDocument(id: number): Promise<boolean> {
+    try {
+      const result = await this.sql`DELETE FROM completed_works_documents WHERE id = ${id}`;
+      return result.count > 0;
+    } catch (error) {
+      console.error('Error deleting completed works document:', error);
+      return false;
+    }
+  }
 }
 
 export const pgStorage = new PgStorage();

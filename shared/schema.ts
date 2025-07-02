@@ -343,3 +343,54 @@ export const loginSchema = z.object({
 });
 
 export type LoginCredentials = z.infer<typeof loginSchema>;
+
+// Completed Works - Independent section for manager-only operations
+export const completedWorks = pgTable("completed_works", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  amount: integer("amount"), // Optional amount, doesn't affect system balance
+  date: timestamp("date").notNull(),
+  category: text("category"), // Optional categorization
+  status: text("status").notNull().default("active"), // active, archived
+  fileUrl: text("file_url"), // Attached file if any
+  fileType: text("file_type"), // File type if any
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Completed Works Documents - Independent document management
+export const completedWorksDocuments = pgTable("completed_works_documents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  fileUrl: text("file_url").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size"),
+  category: text("category"), // Optional categorization
+  tags: text("tags"), // Comma-separated tags for organization
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Completed Works schemas
+export const insertCompletedWorkSchema = createInsertSchema(completedWorks)
+  .omit({ id: true, createdBy: true, createdAt: true, updatedAt: true })
+  .extend({
+    date: z.union([z.string(), z.date()]),
+    amount: z.number().optional().nullable(),
+  });
+
+export const insertCompletedWorksDocumentSchema = createInsertSchema(completedWorksDocuments)
+  .omit({ id: true, createdBy: true, createdAt: true, updatedAt: true })
+  .extend({
+    fileSize: z.number().optional().nullable(),
+  });
+
+export type InsertCompletedWork = z.infer<typeof insertCompletedWorkSchema>;
+export type CompletedWork = typeof completedWorks.$inferSelect;
+
+export type InsertCompletedWorksDocument = z.infer<typeof insertCompletedWorksDocumentSchema>;
+export type CompletedWorksDocument = typeof completedWorksDocuments.$inferSelect;
