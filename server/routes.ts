@@ -4982,5 +4982,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('⚠️ خطأ في تهيئة Supabase:', error);
   }
 
+  // Completed Works routes - Manager only section
+  app.get('/api/completed-works', authenticate, authorize(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const works = await storage.listCompletedWorks();
+      res.json(works);
+    } catch (error) {
+      console.error('Error fetching completed works:', error);
+      res.status(500).json({ message: 'خطأ في استرجاع الأعمال المنجزة' });
+    }
+  });
+
+  app.post('/api/completed-works', authenticate, authorize(['admin', 'manager']), upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const { title, description, amount, date, category } = req.body;
+      
+      let fileUrl = null;
+      let fileType = null;
+      
+      if (req.file) {
+        fileUrl = await uploadFile(
+          req.file,
+          `completed-works/${Date.now()}-${req.file.originalname}`,
+          req.file.mimetype,
+          { source: 'completed_works', userId: req.session.userId }
+        );
+        fileType = req.file.mimetype;
+      }
+
+      const workData = {
+        title,
+        description: description || null,
+        amount: amount ? parseInt(amount) : null,
+        date: new Date(date),
+        category: category || null,
+        fileUrl,
+        fileType,
+        createdBy: req.session.userId as number
+      };
+
+      const work = await storage.createCompletedWork(workData);
+      res.status(201).json(work);
+    } catch (error) {
+      console.error('Error creating completed work:', error);
+      res.status(500).json({ message: 'خطأ في إنشاء العمل المنجز' });
+    }
+  });
+
+  app.put('/api/completed-works/:id', authenticate, authorize(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const work = await storage.updateCompletedWork(parseInt(id), updates);
+      if (!work) {
+        return res.status(404).json({ message: 'العمل المنجز غير موجود' });
+      }
+      
+      res.json(work);
+    } catch (error) {
+      console.error('Error updating completed work:', error);
+      res.status(500).json({ message: 'خطأ في تحديث العمل المنجز' });
+    }
+  });
+
+  app.delete('/api/completed-works/:id', authenticate, authorize(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteCompletedWork(parseInt(id));
+      
+      if (!success) {
+        return res.status(404).json({ message: 'العمل المنجز غير موجود' });
+      }
+      
+      res.json({ message: 'تم حذف العمل المنجز بنجاح' });
+    } catch (error) {
+      console.error('Error deleting completed work:', error);
+      res.status(500).json({ message: 'خطأ في حذف العمل المنجز' });
+    }
+  });
+
+  // Completed Works Documents routes
+  app.get('/api/completed-works-documents', authenticate, authorize(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const documents = await storage.listCompletedWorksDocuments();
+      res.json(documents);
+    } catch (error) {
+      console.error('Error fetching completed works documents:', error);
+      res.status(500).json({ message: 'خطأ في استرجاع مستندات الأعمال المنجزة' });
+    }
+  });
+
+  app.post('/api/completed-works-documents', authenticate, authorize(['admin', 'manager']), upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const { title, description, category, tags } = req.body;
+      
+      if (!req.file) {
+        return res.status(400).json({ message: 'الملف مطلوب' });
+      }
+
+      const fileUrl = await uploadFile(
+        req.file,
+        `completed-works-docs/${Date.now()}-${req.file.originalname}`,
+        req.file.mimetype,
+        { source: 'completed_works_documents', userId: req.session.userId }
+      );
+
+      const documentData = {
+        title,
+        description: description || null,
+        fileUrl,
+        fileType: req.file.mimetype,
+        fileSize: req.file.size,
+        category: category || null,
+        tags: tags || null,
+        createdBy: req.session.userId as number
+      };
+
+      const document = await storage.createCompletedWorksDocument(documentData);
+      res.status(201).json(document);
+    } catch (error) {
+      console.error('Error creating completed works document:', error);
+      res.status(500).json({ message: 'خطأ في إنشاء مستند الأعمال المنجزة' });
+    }
+  });
+
+  app.delete('/api/completed-works-documents/:id', authenticate, authorize(['admin', 'manager']), async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteCompletedWorksDocument(parseInt(id));
+      
+      if (!success) {
+        return res.status(404).json({ message: 'المستند غير موجود' });
+      }
+      
+      res.json({ message: 'تم حذف المستند بنجاح' });
+    } catch (error) {
+      console.error('Error deleting completed works document:', error);
+      res.status(500).json({ message: 'خطأ في حذف المستند' });
+    }
+  });
+
   return httpServer;
 }

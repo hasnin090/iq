@@ -23,6 +23,7 @@ import FileMigration from "@/pages/file-migration";
 import DeferredPayments from './pages/deferred-payments';
 import WhatsAppIntegration from './pages/whatsapp-integration';
 import SystemManagement from './pages/system-management';
+import CompletedWorks from './pages/completed-works';
 
 import { useAuth } from "./hooks/use-auth";
 import { AuthProvider } from "./context/auth-context";

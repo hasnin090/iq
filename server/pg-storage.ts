@@ -13,7 +13,9 @@ import {
   ledgerEntries, type LedgerEntry, type InsertLedgerEntry,
   accountCategories, type AccountCategory, type InsertAccountCategory,
   deferredPayments, type DeferredPayment, type InsertDeferredPayment,
-  employees, type Employee, type InsertEmployee
+  employees, type Employee, type InsertEmployee,
+  completedWorks, type CompletedWork, type InsertCompletedWork,
+  completedWorksDocuments, type CompletedWorksDocument, type InsertCompletedWorksDocument
 } from '@shared/schema';
 import { IStorage } from './storage';
 
