@@ -3256,6 +3256,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const payment = await storage.createDeferredPayment(validatedData);
       
+      // إنشاء نوع مصروف تلقائياً لهذا المستحق في قسم التقارير
+      try {
+        console.log(`Creating automatic expense type for receivable: ${validatedData.beneficiaryName}`);
+        
+        // فحص إذا كان نوع المصروف موجود مسبقاً
+        const existingExpenseTypes = await storage.listExpenseTypes();
+        const existingType = existingExpenseTypes.find(et => 
+          et.name.trim().toLowerCase() === validatedData.beneficiaryName.trim().toLowerCase()
+        );
+        
+        if (!existingType) {
+          // إنشاء نوع مصروف جديد
+          const expenseTypeData = {
+            name: validatedData.beneficiaryName,
+            description: `نوع مصروف تم إنشاؤه تلقائياً للمستحق: ${validatedData.beneficiaryName}`,
+            createdBy: req.session.userId as number,
+            active: true
+          };
+          
+          const newExpenseType = await storage.createExpenseType(expenseTypeData);
+          console.log(`Created expense type ${newExpenseType.id} for receivable: ${validatedData.beneficiaryName}`);
+          
+          // سجل العملية في سجل الأنشطة
+          await storage.createActivityLog({
+            action: "create",
+            entityType: "expense_type",
+            entityId: newExpenseType.id,
+            details: `إنشاء تلقائي لنوع مصروف "${validatedData.beneficiaryName}" عند إنشاء مستحق`,
+            userId: req.session.userId as number
+          });
+        } else {
+          console.log(`Expense type already exists for: ${validatedData.beneficiaryName}`);
+        }
+      } catch (expenseTypeError) {
+        console.error('Error creating automatic expense type:', expenseTypeError);
+        // لا نوقف العملية الأساسية إذا فشل إنشاء نوع المصروف
+      }
+      
       return res.status(201).json(payment);
     } catch (error) {
       if (error instanceof z.ZodError) {

@@ -1494,24 +1494,42 @@ export class PgStorage implements IStorage {
           transaction = result.transaction;
         } else {
           // إذا لم يكن مرتبط بمشروع، نسجل الدفعة كمصروف عام
-          // البحث عن نوع مصروف "دفعات آجلة" أو إنشاؤه
-          let deferredExpenseType;
+          // البحث عن نوع المصروف المحدد لهذا المستحق
+          let matchingExpenseType;
           try {
-            const existingTypes = await this.sql`SELECT * FROM expense_types WHERE name = 'دفعات آجلة' AND is_active = true LIMIT 1`;
+            const beneficiaryName = (payment as any).beneficiary_name || payment.beneficiaryName;
+            console.log(`Looking for expense type matching beneficiary: ${beneficiaryName}`);
+            
+            // البحث عن نوع مصروف مطابق للمستفيد
+            const existingTypes = await this.sql`
+              SELECT * FROM expense_types 
+              WHERE LOWER(TRIM(name)) = LOWER(TRIM(${beneficiaryName})) 
+              AND is_active = true 
+              LIMIT 1
+            `;
+            
             if (existingTypes.length > 0) {
-              deferredExpenseType = existingTypes[0];
+              matchingExpenseType = existingTypes[0];
+              console.log(`Found matching expense type: ${matchingExpenseType.name} (ID: ${matchingExpenseType.id})`);
             } else {
-              // إنشاء نوع المصروف إذا لم يكن موجوداً
-              const newType = await this.sql`
-                INSERT INTO expense_types (name, description, is_active, created_by)
-                VALUES ('دفعات آجلة', 'المدفوعات للمستحقات والأقساط المؤجلة', true, ${userId})
-                RETURNING *
-              `;
-              deferredExpenseType = newType[0];
-              console.log('Created new expense type for deferred payments:', deferredExpenseType);
+              // البحث عن نوع مصروف "دفعات آجلة" كاحتياطي
+              const fallbackTypes = await this.sql`SELECT * FROM expense_types WHERE name = 'دفعات آجلة' AND is_active = true LIMIT 1`;
+              if (fallbackTypes.length > 0) {
+                matchingExpenseType = fallbackTypes[0];
+                console.log(`Using fallback expense type: دفعات آجلة`);
+              } else {
+                // إنشاء نوع المصروف الاحتياطي إذا لم يكن موجوداً
+                const newType = await this.sql`
+                  INSERT INTO expense_types (name, description, is_active, created_by)
+                  VALUES ('دفعات آجلة', 'المدفوعات للمستحقات والأقساط المؤجلة', true, ${userId})
+                  RETURNING *
+                `;
+                matchingExpenseType = newType[0];
+                console.log('Created fallback expense type for deferred payments:', matchingExpenseType);
+              }
             }
           } catch (error) {
-            console.error('Error getting/creating deferred expense type:', error);
+            console.error('Error getting/creating expense type:', error);
           }
 
           const transactionData = {
@@ -1521,12 +1539,12 @@ export class PgStorage implements IStorage {
             date: new Date(),
             createdBy: userId,
             projectId: null,
-            expenseTypeId: deferredExpenseType?.id || null,
+            expenseTypeId: matchingExpenseType?.id || null,
             employeeId: null
           };
 
           transaction = await this.createTransaction(transactionData);
-          console.log('Created general transaction for deferred payment:', transaction);
+          console.log(`Created transaction for deferred payment: ${transaction.id} linked to expense type: ${matchingExpenseType?.name || 'none'}`);
         }
       } catch (transactionError) {
         console.error('Error creating transaction for deferred payment:', transactionError);
