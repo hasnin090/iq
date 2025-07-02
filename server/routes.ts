@@ -3280,17 +3280,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let payments: any[] = [];
       
       try {
+        // استخدام الاسم الصحيح للمستفيد - قد يكون في beneficiaryName أو beneficiary_name
+        const beneficiaryName = payment.beneficiaryName || (payment as any).beneficiary_name || '';
+        console.log(`Looking for payments for beneficiary: "${beneficiaryName}"`);
+        
         // جلب العمليات المالية التي تحتوي على اسم المستفيد في الوصف
         const allTransactions = await storage.listTransactions();
+        console.log(`Total transactions: ${allTransactions.length}`);
+        
         const beneficiaryTransactions = allTransactions.filter((transaction: any) => {
           const description = transaction.description || '';
           // البحث عن مختلف أنماط دفعات المستحقات
-          return (
-            description.includes(`دفع قسط للمستفيد: ${payment.beneficiaryName}`) ||
-            description.includes(`دفع قسط من: ${payment.description} (${payment.beneficiaryName})`) ||
-            description.includes(`دفعة مستحق: ${payment.beneficiaryName}`)
-          );
+          const patterns = [
+            `دفع قسط للمستفيد: ${beneficiaryName}`,
+            `دفع قسط من: ${payment.description} (${beneficiaryName})`,
+            `دفعة مستحق: ${beneficiaryName}`
+          ];
+          
+          const matches = patterns.some(pattern => description.includes(pattern));
+          if (matches) {
+            console.log(`Found matching transaction: ${transaction.id} - ${description}`);
+          }
+          return matches;
         });
+        
+        console.log(`Found ${beneficiaryTransactions.length} matching transactions`);
         
         // تحويل المعاملات إلى تنسيق الدفعات
         payments = beneficiaryTransactions.map((transaction: any) => ({
@@ -3304,7 +3318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           transactionId: transaction.id
         }));
         
-        console.log(`Found ${payments.length} payments for beneficiary: ${payment.beneficiaryName}`);
+        console.log(`Final payments array: ${payments.length} items`);
       } catch (error) {
         console.error('Error fetching payments for beneficiary:', error);
       }
