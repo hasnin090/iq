@@ -1475,9 +1475,11 @@ export class PgStorage implements IStorage {
       // إنشاء معاملة مالية لتسجيل دفع المستحق
       let transaction;
       try {
+        // استخدام اسم المستفيد من beneficiary_name
+        const beneficiaryName = (payment as any).beneficiary_name || payment.beneficiaryName || 'غير محدد';
         const transactionDescription = payment.description 
-          ? `دفع قسط من: ${payment.description} (${payment.beneficiaryName})`
-          : `دفع قسط للمستفيد: ${payment.beneficiaryName}`;
+          ? `دفع قسط من: ${payment.description} (${beneficiaryName})`
+          : `دفع قسط للمستفيد: ${beneficiaryName}`;
 
         if (payment.projectId) {
           // إذا كان المستحق مرتبط بمشروع، نسجل الدفعة من صندوق المشروع
