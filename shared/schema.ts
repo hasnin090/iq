@@ -50,6 +50,7 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   startDate: timestamp("start_date").notNull(),
+  budget: integer("budget").default(0), // ميزانية المشروع
   status: text("status").notNull().default("active"), // active, completed, paused
   progress: integer("progress").notNull().default(0),
   createdBy: integer("created_by").notNull().references(() => users.id),
@@ -149,6 +150,7 @@ export const ledgerEntries = pgTable("ledger_entries", {
   date: timestamp("date").notNull(),
   transactionId: integer("transaction_id").references(() => transactions.id),
   expenseTypeId: integer("expense_type_id").references(() => expenseTypes.id),
+  accountName: text("account_name"), // اسم الحساب للربط مع المستحقات
   amount: integer("amount").notNull(),
   description: text("description").notNull(),
   projectId: integer("project_id").references(() => projects.id),
@@ -210,6 +212,7 @@ export const insertProjectSchema = createInsertSchema(projects)
   .omit({ id: true, progress: true })
   .extend({
     startDate: z.coerce.date(), // تحويل التاريخ تلقائياً من السلسلة النصية
+    budget: z.number().optional().default(0), // ميزانية اختيارية
     createdBy: z.number().optional(), // سيتم تعيينه في الخلفية
   });
 
@@ -284,6 +287,7 @@ export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries)
   .omit({ id: true, createdAt: true })
   .extend({
     transactionId: z.number().nullable().optional(),
+    accountName: z.string().optional(), // اسم الحساب اختياري
   });
 
 export const insertAccountCategorySchema = createInsertSchema(accountCategories)
