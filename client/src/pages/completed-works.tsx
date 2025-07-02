@@ -265,83 +265,46 @@ export default function CompletedWorksPage() {
                   إضافة عمل منجز
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-lg sm:max-w-2xl" dir="rtl">
-                <DialogHeader>
-                  <DialogTitle>إضافة عمل منجز جديد</DialogTitle>
+              <DialogContent className="w-[95vw] max-w-lg sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+                <DialogHeader className="pb-4">
+                  <DialogTitle className="text-xl font-bold">إضافة عمل منجز جديد</DialogTitle>
                 </DialogHeader>
                 <Form {...workForm}>
-                  <form onSubmit={workForm.handleSubmit(onWorkSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <form onSubmit={workForm.handleSubmit(onWorkSubmit)} className="space-y-6">
+                    {/* معلومات أساسية */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">معلومات العمل</h3>
+                      
                       <FormField
                         control={workForm.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>العنوان</FormLabel>
+                            <FormLabel className="text-sm font-medium">عنوان العمل *</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="عنوان العمل المنجز" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={workForm.control}
-                        name="category"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>التصنيف</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="تصنيف العمل" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={workForm.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>الوصف</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} placeholder="وصف تفصيلي للعمل المنجز" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={workForm.control}
-                        name="amount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>المبلغ (اختياري)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                value={field.value || ''}
-                                onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                                placeholder="0"
+                              <Input 
+                                {...field} 
+                                placeholder="أدخل عنوان العمل المنجز" 
+                                className="mt-1"
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={workForm.control}
-                        name="date"
+                        name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>التاريخ</FormLabel>
+                            <FormLabel className="text-sm font-medium">وصف العمل</FormLabel>
                             <FormControl>
-                              <Input type="date" {...field} />
+                              <Textarea 
+                                {...field} 
+                                placeholder="أدخل وصفاً تفصيلياً للعمل المنجز" 
+                                className="mt-1 min-h-[100px]"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -349,39 +312,117 @@ export default function CompletedWorksPage() {
                       />
                     </div>
 
-                    <FormField
-                      control={workForm.control}
-                      name="file"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>مرفق (اختياري)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="file"
-                              onChange={e => field.onChange(e.target.files)}
-                              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* تفاصيل إضافية */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">التفاصيل</h3>
+                      
+                      <div className="grid grid-cols-1 gap-4">
+                        <FormField
+                          control={workForm.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">التصنيف</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="مثل: تطوير، تصميم، استشارة" 
+                                  className="mt-1"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField
+                            control={workForm.control}
+                            name="amount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm font-medium">المبلغ (اختياري)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    {...field}
+                                    value={field.value || ''}
+                                    onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                    placeholder="0"
+                                    className="mt-1"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={workForm.control}
+                            name="date"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm font-medium">تاريخ العمل</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="date" 
+                                    {...field} 
+                                    className="mt-1"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* رفع مرفق */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">المرفقات</h3>
+                      
+                      <FormField
+                        control={workForm.control}
+                        name="file"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">مرفق (اختياري)</FormLabel>
+                            <FormControl>
+                              <div className="mt-1">
+                                <Input
+                                  type="file"
+                                  onChange={e => field.onChange(e.target.files)}
+                                  accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+                                  className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  يمكنك رفع صور، PDF، أو ملفات Office
+                                </p>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* أزرار التحكم */}
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t">
                       <Button 
                         type="button" 
                         variant="outline" 
                         onClick={() => setWorkDialogOpen(false)}
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto px-6 py-2"
                       >
                         إلغاء
                       </Button>
                       <Button 
                         type="submit" 
                         disabled={createWorkMutation.isPending}
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto px-6 py-2 bg-green-600 hover:bg-green-700"
                       >
-                        {createWorkMutation.isPending ? "جاري الحفظ..." : "حفظ"}
+                        {createWorkMutation.isPending ? "جاري الحفظ..." : "حفظ العمل"}
                       </Button>
                     </div>
                   </form>
@@ -396,62 +437,46 @@ export default function CompletedWorksPage() {
                   رفع مستند
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-lg sm:max-w-2xl" dir="rtl">
-                <DialogHeader>
-                  <DialogTitle>رفع مستند جديد</DialogTitle>
+              <DialogContent className="w-[95vw] max-w-lg sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+                <DialogHeader className="pb-4">
+                  <DialogTitle className="text-xl font-bold">رفع مستند جديد</DialogTitle>
                 </DialogHeader>
                 <Form {...documentForm}>
-                  <form onSubmit={documentForm.handleSubmit(onDocumentSubmit)} className="space-y-4">
-                    <FormField
-                      control={documentForm.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>عنوان المستند</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="عنوان المستند" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={documentForm.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>الوصف</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} placeholder="وصف المستند" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <form onSubmit={documentForm.handleSubmit(onDocumentSubmit)} className="space-y-6">
+                    {/* معلومات أساسية */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">المعلومات الأساسية</h3>
+                      
                       <FormField
                         control={documentForm.control}
-                        name="category"
+                        name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>التصنيف</FormLabel>
+                            <FormLabel className="text-sm font-medium">عنوان المستند *</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="تصنيف المستند" />
+                              <Input 
+                                {...field} 
+                                placeholder="أدخل عنوان المستند" 
+                                className="mt-1"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={documentForm.control}
-                        name="tags"
+                        name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>العلامات</FormLabel>
+                            <FormLabel className="text-sm font-medium">وصف المستند</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="علامات مفصولة بفاصلة" />
+                              <Textarea 
+                                {...field} 
+                                placeholder="أدخل وصفاً مختصراً للمستند" 
+                                className="mt-1 min-h-[80px]"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -459,40 +484,95 @@ export default function CompletedWorksPage() {
                       />
                     </div>
 
-                    <FormField
-                      control={documentForm.control}
-                      name="file"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>الملف *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="file"
-                              onChange={e => field.onChange(e.target.files)}
-                              accept="*/*"
-                              required
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* تصنيف وعلامات */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">التصنيف والعلامات</h3>
+                      
+                      <div className="grid grid-cols-1 gap-4">
+                        <FormField
+                          control={documentForm.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">التصنيف</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="مثل: عقود، تقارير، مراسلات" 
+                                  className="mt-1"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={documentForm.control}
+                          name="tags"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">العلامات</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="علامات مفصولة بفاصلة، مثل: مهم، عاجل، 2025" 
+                                  className="mt-1"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
 
-                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-6">
+                    {/* رفع الملف */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">الملف</h3>
+                      
+                      <FormField
+                        control={documentForm.control}
+                        name="file"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">اختر الملف *</FormLabel>
+                            <FormControl>
+                              <div className="mt-1">
+                                <Input
+                                  type="file"
+                                  onChange={e => field.onChange(e.target.files)}
+                                  accept="*/*"
+                                  required
+                                  className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  يمكنك رفع أي نوع من الملفات (PDF، Word، Excel، صور، إلخ)
+                                </p>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* أزرار التحكم */}
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t">
                       <Button 
                         type="button" 
                         variant="outline" 
                         onClick={() => setDocumentDialogOpen(false)}
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto px-6 py-2"
                       >
                         إلغاء
                       </Button>
                       <Button 
                         type="submit" 
                         disabled={createDocumentMutation.isPending}
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700"
                       >
-                        {createDocumentMutation.isPending ? "جاري الرفع..." : "رفع"}
+                        {createDocumentMutation.isPending ? "جاري الرفع..." : "رفع المستند"}
                       </Button>
                     </div>
                   </form>
