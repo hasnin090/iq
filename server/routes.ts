@@ -118,25 +118,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // إعداد محسن للجلسات مع PostgreSQL Store للثبات
   let sessionStore;
   
-  try {
-    // استخدام PostgreSQL Store للحفاظ على الجلسات عبر إعادة التشغيل
-    sessionStore = new PostgreSQLStore({
-      pool: db,
-      tableName: 'session',
-      createTableIfMissing: true,
-      schemaName: 'public',
-      ttl: 24 * 60 * 60 // 24 hours
-    });
-    console.log("استخدام PostgreSQL Store للجلسات");
-  } catch (error) {
-    // Fallback إلى Memory Store في حالة فشل PostgreSQL
-    console.warn("فشل PostgreSQL Store، استخدام Memory Store:", error);
-    sessionStore = new MemoryStoreSession({
-      checkPeriod: 86400000,
-      max: 1000,
-      ttl: 24 * 60 * 60 * 1000
-    });
-  }
+  // استخدام Memory Store المحسن مع إعدادات متقدمة  
+  sessionStore = new MemoryStoreSession({
+    checkPeriod: 86400000, // فحص كل 24 ساعة
+    max: 5000, // حد أقصى أعلى للجلسات
+    ttl: 24 * 60 * 60 * 1000, // 24 ساعة
+    dispose: (key: string, value: any) => {
+      console.log(`تم حذف الجلسة: ${key}`);
+    },
+    stale: false // عدم إرجاع جلسات منتهية الصلاحية
+  });
+  console.log("استخدام Memory Store المحسن للجلسات");
 
   app.use(session({
     secret: process.env.SESSION_SECRET || "accounting-app-secret-key-2025",
