@@ -1182,9 +1182,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "غير مصرح لك بحذف هذه المعاملة" });
       }
       
+      // فحص إذا كانت هذه المعاملة مرتبطة بدفعة مستحق
+      let relatedReceivableId = null;
+      if (transaction.description) {
+        // البحث عن أنماط دفعات المستحقات
+        const patterns = [
+          /دفع قسط للمستفيد: (.+?)$/,
+          /دفع قسط من: .+? \((.+?)\)/,
+          /دفعة مستحق: (.+?) -/
+        ];
+        
+        for (const pattern of patterns) {
+          const match = transaction.description.match(pattern);
+          if (match) {
+            const beneficiaryName = match[1];
+            console.log(`Found deferred payment transaction for beneficiary: ${beneficiaryName}`);
+            
+            // البحث عن المستحق المرتبط
+            const allReceivables = await storage.listDeferredPayments();
+            const relatedReceivable = allReceivables.find(r => r.beneficiaryName === beneficiaryName);
+            if (relatedReceivable) {
+              relatedReceivableId = relatedReceivable.id;
+              console.log(`Found related receivable ID: ${relatedReceivableId}`);
+              break;
+            }
+          }
+        }
+      }
+      
       const result = await storage.deleteTransaction(id);
       
       if (result) {
+        // إذا كانت المعاملة مرتبطة بدفعة مستحق، نحديث بيانات المستحق
+        if (relatedReceivableId && transaction.amount) {
+          try {
+            const receivable = await storage.getDeferredPayment(relatedReceivableId);
+            if (receivable) {
+              const newPaidAmount = Math.max(0, (receivable.paidAmount || 0) - transaction.amount);
+              const newRemainingAmount = (receivable.totalAmount || 0) - newPaidAmount;
+              const newStatus = newRemainingAmount <= 0 ? 'completed' : newPaidAmount > 0 ? 'partial' : 'pending';
+              
+              await storage.updateDeferredPayment(relatedReceivableId, {
+                paidAmount: newPaidAmount,
+                remainingAmount: newRemainingAmount,
+                status: newStatus
+              });
+              
+              console.log(`Updated receivable ${relatedReceivableId}: paid=${newPaidAmount}, remaining=${newRemainingAmount}, status=${newStatus}`);
+            }
+          } catch (updateError) {
+            console.error('Error updating receivable after transaction deletion:', updateError);
+          }
+        }
+        
         await storage.createActivityLog({
           action: "delete",
           entityType: "transaction",
@@ -1196,6 +1246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(200).json({ success: result });
     } catch (error) {
+      console.error('Error deleting transaction:', error);
       return res.status(500).json({ message: "خطأ في حذف المعاملة" });
     }
   });
