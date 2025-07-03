@@ -1,25 +1,29 @@
 [build]
-command = "vite build"
-publish = "dist"
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [functions]
-directory = "netlify/functions"
-node_bundler = "esbuild"
-external_node_modules = ["@neondatabase/serverless", "pg", "postgres", "firebase", "firebase-admin"]
-
-[[redirects]]
-from = "/api/*"
-to = "/.netlify/functions/api-handler"
-status = 200
-
-[[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
+  node_bundler = "esbuild"
 
 [[headers]]
-for = "/api/*"
-[headers.values]
-Access-Control-Allow-Origin = "*"
-Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-Access-Control-Allow-Headers = "Content-Type, Authorization"
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;"
