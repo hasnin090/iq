@@ -56,8 +56,8 @@ cp netlify.toml your-netlify-repo/
 - Site Settings > Environment Variables
 - أضف:
 ```
-DATABASE_URL=postgresql://neondb_owner:npg_K3GhydV6TgLq@ep-misty-bird-a49ia057.us-east-1.aws.neon.tech/neondb?sslmode=require
-SESSION_SECRET=mGzuXRphb7Azj6n54peqJqKyxENEzqFJ
+DATABASE_URL=postgresql://username:password@host:port/database?sslmode=require
+SESSION_SECRET=your-32-character-or-longer-secret-key
 ```
 
 ### 3️⃣ انشر التحديثات
