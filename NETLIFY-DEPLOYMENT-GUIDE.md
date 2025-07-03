@@ -26,8 +26,8 @@ dist/
 #### Environment variables:
 أضف المتغيرات التالية:
 ```
-DATABASE_URL=postgresql://neondb_owner:npg_K3GhydV6TgLq@ep-misty-bird-a49ia057.us-east-1.aws.neon.tech/neondb?sslmode=require
-SESSION_SECRET=mGzuXRphb7Azj6n54peqJqKyxENEzqFJ
+DATABASE_URL=postgresql://your_username:your_password@your_host:5432/your_database?sslmode=require
+SESSION_SECRET=your_random_session_secret_here
 ```
 
 ### 3. اختبار الوظائف
