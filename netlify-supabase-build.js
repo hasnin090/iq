@@ -1,4 +1,24 @@
-<!DOCTYPE html>
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// إنشاء مجلد public للنشر
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+
+// إنشاء مجلد netlify/functions
+const functionsDir = path.join(__dirname, 'netlify', 'functions');
+if (!fs.existsSync(functionsDir)) {
+  fs.mkdirSync(functionsDir, { recursive: true });
+}
+
+// إنشاء ملف HTML الرئيسي
+const indexHtml = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -382,4 +402,190 @@
         );
     </script>
 </body>
-</html>
+</html>`;
+
+fs.writeFileSync(path.join(publicDir, 'index.html'), indexHtml);
+
+// إنشاء ملف _redirects للتوجيه
+const redirects = `# Netlify redirects
+/api/* /.netlify/functions/api/:splat 200
+/* /index.html 200`;
+
+fs.writeFileSync(path.join(publicDir, '_redirects'), redirects);
+
+// إنشاء دالة Netlify الرئيسية
+const netlifyFunction = `const { neon } = require('@neondatabase/serverless');
+
+const sql = neon(process.env.DATABASE_URL);
+
+exports.handler = async (event, context) => {
+    // CORS Headers
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Content-Type': 'application/json'
+    };
+
+    // Handle preflight requests
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers,
+            body: ''
+        };
+    }
+
+    try {
+        const path = event.path.replace('/.netlify/functions/api', '');
+        const method = event.httpMethod;
+        
+        // Database status endpoint
+        if (path === '/database/status' && method === 'GET') {
+            const start = Date.now();
+            await sql\`SELECT 1\`;
+            const responseTime = Date.now() - start;
+            
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    connected: true,
+                    responseTime,
+                    timestamp: new Date().toISOString()
+                })
+            };
+        }
+        
+        // Users endpoint
+        if (path === '/users' && method === 'GET') {
+            const users = await sql\`SELECT id, username, name, email, role FROM users\`;
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(users)
+            };
+        }
+        
+        // Transactions endpoint
+        if (path === '/transactions' && method === 'GET') {
+            const transactions = await sql\`
+                SELECT t.*, p.name as project_name, u.name as created_by_name
+                FROM transactions t
+                LEFT JOIN projects p ON t.project_id = p.id
+                LEFT JOIN users u ON t.created_by = u.id
+                ORDER BY t.created_at DESC
+                LIMIT 50
+            \`;
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(transactions)
+            };
+        }
+        
+        // Dashboard stats endpoint
+        if (path === '/dashboard' && method === 'GET') {
+            const [incomeResult, expenseResult, transactionCount] = await Promise.all([
+                sql\`SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = 'income'\`,
+                sql\`SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = 'expense'\`,
+                sql\`SELECT COUNT(*) as count FROM transactions\`
+            ]);
+            
+            const totalIncome = Number(incomeResult[0]?.total || 0);
+            const totalExpenses = Number(expenseResult[0]?.total || 0);
+            const balance = totalIncome - totalExpenses;
+            
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    totalIncome,
+                    totalExpenses,
+                    balance,
+                    transactionCount: Number(transactionCount[0]?.count || 0)
+                })
+            };
+        }
+        
+        // Projects endpoint
+        if (path === '/projects' && method === 'GET') {
+            const projects = await sql\`
+                SELECT p.*, u.name as created_by_name
+                FROM projects p
+                LEFT JOIN users u ON p.created_by = u.id
+                ORDER BY p.created_at DESC
+            \`;
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(projects)
+            };
+        }
+        
+        return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({ error: 'Endpoint not found' })
+        };
+        
+    } catch (error) {
+        console.error('Function error:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: 'Internal server error' })
+        };
+    }
+};`;
+
+fs.writeFileSync(path.join(functionsDir, 'api.js'), netlifyFunction);
+
+// إنشاء ملف package.json للدوال
+const functionsPackageJson = {
+    "name": "accounting-system-functions",
+    "version": "1.0.0",
+    "dependencies": {
+        "@neondatabase/serverless": "^0.9.0",
+        "@supabase/supabase-js": "^2.0.0"
+    }
+};
+
+fs.writeFileSync(path.join(functionsDir, 'package.json'), JSON.stringify(functionsPackageJson, null, 2));
+
+// إنشاء ملف netlify.toml المحدث
+const netlifyConfig = `[build]
+  command = "node netlify-supabase-build.js"
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"`;
+
+fs.writeFileSync(path.join(__dirname, 'netlify.toml'), netlifyConfig);
+
+console.log('✅ تم إنشاء ملفات Netlify + Supabase بنجاح!');
+console.log('📁 الملفات المنشأة:');
+console.log('  - public/index.html (واجهة المستخدم)');
+console.log('  - public/_redirects (إعدادات التوجيه)');
+console.log('  - netlify/functions/api.js (دوال الواجهة الخلفية)');
+console.log('  - netlify.toml (إعدادات Netlify)');
+console.log('');
+console.log('🔧 المتطلبات التالية:');
+console.log('  1. إنشاء مشروع Supabase جديد');
+console.log('  2. إنشاء الجداول المطلوبة في قاعدة البيانات');
+console.log('  3. تحديث معلومات الاتصال في الكود');
+console.log('  4. رفع المشروع إلى Netlify');
