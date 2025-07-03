@@ -71,3 +71,34 @@ replit.nix
 
 # Lock files (optional - remove if you want to keep them)
 package-lock.json
+
+# Session and cookie files
+cookies*.txt
+
+# Attached assets and temporary files
+attached_assets/
+
+# Netlify build files
+netlify-*/
+netlify*.tar.gz
+netlify*.toml
+
+# Function builds
+functions/
+
+# Documentation files (if you want to keep them private)
+COMPREHENSIVE_*.md
+FINAL_*.md
+NETLIFY-*.md
+MENU_*.md
+REFACTORING_*.md
+REMAINING_*.md
+
+# Test and audit files
+*_AUDIT.md
+*_TEST.md
+*_REPORT.md
+
+# Ready files
+READY_*.md
+*-UPLOAD-*.md
