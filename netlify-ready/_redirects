@@ -1,5 +1,0 @@
-# API redirects
-/api/*  /.netlify/functions/api-handler/:splat  200
-
-# SPA fallback - كل المسارات توجه إلى index.html
-/*    /index.html   200

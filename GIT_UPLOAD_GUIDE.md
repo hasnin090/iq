@@ -19,56 +19,46 @@ cookies*.txt
 ### 2. الملفات المهمة للرفع
 - جميع ملفات الكود (client/, server/, shared/)
 - package.json و package-lock.json
-- netlify.toml
-- build.cjs
+- render.yaml (لـ Render)
+- Dockerfile و docker-compose.yml
 - vite.config.ts
 - drizzle.config.ts
 - tsconfig.json
 - README.md
 
-## خطوات الرفع
+## الأوامر السريعة للرفع
+
+```bash
+# 1. حل مشكلة Git lock إن وجدت
+rm -f .git/index.lock
+
+# 2. تحقق من الحالة
+git status
+
+# 3. أضف الملفات
+git add -A
+
+# 4. اعمل commit
+git commit -m "Clean up project and prepare for deployment"
+
+# 5. ارفع على GitHub
+git push origin main
+```
+
+## إذا لم يكن لديك مستودع
 
 ### 1. إنشاء مستودع جديد على GitHub
 1. اذهب إلى https://github.com/new
 2. اختر اسم للمستودع (مثل: arabic-accounting-system)
 3. اجعله Private إذا أردت
-4. لا تضع README أو .gitignore (لأنهم موجودين بالفعل)
+4. لا تضع README أو .gitignore (موجودين بالفعل)
 
-### 2. الأوامر في Terminal
-
+### 2. ربط المستودع
 ```bash
-# 1. تأكد من أنك في مجلد المشروع
-cd /home/runner/workspace
-
-# 2. ابدأ Git
-git init
-
-# 3. أضف جميع الملفات
-git add .
-
-# 4. اعمل commit
-git commit -m "Initial commit - Arabic Accounting System"
-
-# 5. اربط مع GitHub (استبدل YOUR_USERNAME باسم المستخدم)
-git remote add origin https://github.com/YOUR_USERNAME/arabic-accounting-system.git
-
-# 6. ارفع على GitHub
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
 git branch -M main
 git push -u origin main
 ```
-
-## للنشر على Netlify
-
-### 1. المتغيرات المطلوبة في Netlify
-أضف هذه في Site Settings > Environment Variables:
-- `DATABASE_URL` - رابط قاعدة البيانات PostgreSQL
-- `SUPABASE_URL` (اختياري)
-- `SUPABASE_KEY` (اختياري)
-- `FIREBASE_SERVICE_ACCOUNT` (اختياري)
-
-### 2. إعدادات البناء
-- Build command: `node build.cjs`
-- Publish directory: `public`
 
 ## ملاحظات مهمة
 
@@ -79,8 +69,6 @@ git push -u origin main
 ## بعد الرفع
 
 1. تأكد من ظهور جميع الملفات على GitHub
-2. اربط Netlify بالمستودع
-3. أضف المتغيرات البيئية
-4. انشر الموقع
-
-هل تريد البدء بالرفع الآن؟
+2. للنشر على Render: اتبع دليل RENDER_DEPLOYMENT_GUIDE.md
+3. للنشر على Railway: استخدم railway.json
+4. للنشر على VPS: استخدم docker-compose.yml
