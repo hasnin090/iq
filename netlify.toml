@@ -1,17 +1,19 @@
 [build]
-  command = "node build-netlify-real.js"
-  functions = "dist/functions"
+  command = "echo 'No build needed'"
   publish = "dist/public"
+  functions = "dist/functions"
 
 [build.environment]
   NODE_VERSION = "18"
 
-[functions]
-  node_bundler = "esbuild"
-
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/dashboard.html"
   status = 200
 
 [[redirects]]
