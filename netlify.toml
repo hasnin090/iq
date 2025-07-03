@@ -1,7 +1,6 @@
 [build]
-  command = "node build.cjs"
+  command = "node netlify-production-build.js"
   publish = "public"
-  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
