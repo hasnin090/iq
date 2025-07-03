@@ -1,120 +1,86 @@
-# دليل رفع التطبيق على Git
+# دليل رفع النظام على GitHub
 
-## خطوات رفع النظام المحاسبي العربي على Git
+## التحضير قبل الرفع
 
-### الخطوة 1: تهيئة Git Repository (إذا لم يكن مُهيئاً)
+### 1. التأكد من ملف .gitignore
+تأكد من وجود هذه الملفات في .gitignore:
+```
+node_modules/
+dist/
+.env
+.env.local
+uploads/
+backups/
+cookies*.txt
+*.log
+.DS_Store
+```
+
+### 2. الملفات المهمة للرفع
+- جميع ملفات الكود (client/, server/, shared/)
+- package.json و package-lock.json
+- netlify.toml
+- build.cjs
+- vite.config.ts
+- drizzle.config.ts
+- tsconfig.json
+- README.md
+
+## خطوات الرفع
+
+### 1. إنشاء مستودع جديد على GitHub
+1. اذهب إلى https://github.com/new
+2. اختر اسم للمستودع (مثل: arabic-accounting-system)
+3. اجعله Private إذا أردت
+4. لا تضع README أو .gitignore (لأنهم موجودين بالفعل)
+
+### 2. الأوامر في Terminal
+
 ```bash
+# 1. تأكد من أنك في مجلد المشروع
+cd /home/runner/workspace
+
+# 2. ابدأ Git
 git init
-```
 
-### الخطوة 2: إضافة جميع الملفات
-```bash
+# 3. أضف جميع الملفات
 git add .
-```
 
-### الخطوة 3: إنشاء أول commit
-```bash
-git commit -m "Initial commit: Arabic Accounting System
+# 4. اعمل commit
+git commit -m "Initial commit - Arabic Accounting System"
 
-Features:
-- Complete Arabic enterprise financial management system
-- React frontend with TypeScript
-- Express.js backend with PostgreSQL
-- Supabase and Firebase integration
-- Multi-role access control
-- Real-time transaction processing
-- Automatic backup system
-- Document management
-- Excel export functionality
-- Mobile responsive design"
-```
+# 5. اربط مع GitHub (استبدل YOUR_USERNAME باسم المستخدم)
+git remote add origin https://github.com/YOUR_USERNAME/arabic-accounting-system.git
 
-### الخطوة 4: ربط Repository المحلي بـ GitHub/GitLab
-```bash
-# استبدل YOUR_USERNAME و YOUR_REPOSITORY_NAME بالقيم الصحيحة
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git
-```
-
-### الخطوة 5: رفع الملفات
-```bash
+# 6. ارفع على GitHub
+git branch -M main
 git push -u origin main
 ```
 
-## إذا كان لديك Repository موجود مسبقاً:
+## للنشر على Netlify
 
-### رفع التحديثات
-```bash
-git add .
-git commit -m "Update: Latest system improvements"
-git push origin main
-```
+### 1. المتغيرات المطلوبة في Netlify
+أضف هذه في Site Settings > Environment Variables:
+- `DATABASE_URL` - رابط قاعدة البيانات PostgreSQL
+- `SUPABASE_URL` (اختياري)
+- `SUPABASE_KEY` (اختياري)
+- `FIREBASE_SERVICE_ACCOUNT` (اختياري)
 
-## ملاحظات مهمة:
+### 2. إعدادات البناء
+- Build command: `node build.cjs`
+- Publish directory: `public`
 
-### 1. المتغيرات البيئية
-- تأكد من إنشاء `.env` file في الخادم الجديد
-- لا تضع المتغيرات الحساسة في Git
-- استخدم متغيرات البيئة للمعلومات التالية:
-  ```
-  DATABASE_URL=your_postgresql_connection_string
-  SESSION_SECRET=your_session_secret
-  SUPABASE_URL=your_supabase_url
-  SUPABASE_ANON_KEY=your_supabase_key
-  ```
+## ملاحظات مهمة
 
-### 2. الملفات المحمية
-الملفات التالية محمية تلقائياً ولن يتم رفعها:
-- ✅ node_modules/
-- ✅ backups/
-- ✅ uploads/ (الملفات المرفوعة)
-- ✅ .env (المتغيرات البيئية)
-- ✅ cookies*.txt (ملفات الجلسات)
-- ✅ dist/ (ملفات البناء)
+- **لا ترفع ملف .env** - احتفظ به محلياً فقط
+- **المرفقات في uploads/** - لن تُرفع على Git
+- **النسخ الاحتياطية** - موجودة محلياً فقط
 
-### 3. بعد الرفع
-1. انسخ Repository إلى الخادم الجديد
-2. قم بتشغيل: `npm install`
-3. أنشئ `.env` file مع المتغيرات المطلوبة
-4. قم بتشغيل: `npm run build` (للإنتاج)
-5. قم بتشغيل: `npm start` أو `npm run dev`
+## بعد الرفع
 
-### 4. هيكل النظام
-```
-النظام المحاسبي العربي/
-├── client/          # واجهة React
-├── server/          # خادم Express.js
-├── shared/          # ملفات مشتركة
-├── replit-files/    # ملفات إعدادات
-└── scripts/         # نصوص المساعدة
-```
+1. تأكد من ظهور جميع الملفات على GitHub
+2. اربط Netlify بالمستودع
+3. أضف المتغيرات البيئية
+4. انشر الموقع
 
-## أوامر مفيدة:
-
-### فحص حالة Git
-```bash
-git status
-```
-
-### عرض التغييرات
-```bash
-git diff
-```
-
-### عرض سجل Commits
-```bash
-git log --oneline
-```
-
-### إنشاء Branch جديد
-```bash
-git checkout -b feature/new-feature
-```
-
----
-
-**النظام جاهز للرفع! 🚀**
-
-لأي مساعدة إضافية، راجع الملفات:
-- `README.md` - معلومات عامة
-- `replit.md` - تفاصيل تقنية
-- `package.json` - التبعيات
+هل تريد البدء بالرفع الآن؟

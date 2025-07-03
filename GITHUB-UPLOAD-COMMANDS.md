@@ -1,67 +1,54 @@
-# أوامر رفع المشروع إلى GitHub
+# أوامر رفع النظام على GitHub
 
-## الخطوات المطلوبة
-
-### 1. تحميل الملفات من مجلد dist
-يمكنك تحميل الملفات من مجلد `dist` مباشرة:
-
+## حل مشكلة Git Lock أولاً
 ```bash
-# انسخ جميع الملفات من مجلد dist إلى مجلد فارغ
-# ثم استخدم الأوامر التالية:
+rm -f .git/index.lock
+```
 
-git init
-git add .
-git commit -m "Arabic Accounting System - Netlify Ready"
-git branch -M main
-git remote add origin https://github.com/hasnin090/code01.git
+## التحقق من الحالة الحالية
+```bash
+git status
+```
+
+## إضافة الملفات الجديدة والمحدثة
+```bash
+git add build.cjs netlify.toml GIT_UPLOAD_GUIDE.md NETLIFY-FIX-GUIDE.md replit.md
+```
+
+## عمل Commit للتغييرات
+```bash
+git commit -m "Fix Netlify deployment and update documentation"
+```
+
+## رفع التغييرات إلى GitHub
+```bash
+git push
+```
+
+## إذا لم يكن لديك remote مضاف:
+```bash
+# تحقق من الـ remotes الموجودة
+git remote -v
+
+# إذا لم يكن هناك origin، أضفه:
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+
+# ثم ارفع:
 git push -u origin main
 ```
 
-### 2. أو استخدم GitHub Desktop/Web Interface
-1. اذهب إلى https://github.com/hasnin090/code01
-2. اضغط "Upload files" 
-3. اسحب جميع الملفات من مجلد `dist`
-4. اكتب commit message: "Arabic Accounting System - Netlify Ready"
-5. اضغط "Commit changes"
+## الملفات المهمة التي ستُرفع:
+- ✅ build.cjs - سكريبت بناء Netlify
+- ✅ netlify.toml - إعدادات Netlify
+- ✅ جميع ملفات النظام (client/, server/, shared/)
+- ✅ package.json و package-lock.json
+- ✅ الوثائق والأدلة
 
-### 3. الملفات المطلوبة للرفع من مجلد dist:
-```
-├── functions/
-│   ├── server.js
-│   ├── server-jwt.js
-│   └── server-simple.js
-├── public/
-│   ├── index.html
-│   ├── _redirects
-│   └── public/logo.svg
-├── shared/
-│   ├── schema.ts
-│   └── tailwind.config.ts
-├── README.md
-├── package.json
-└── netlify.toml
-```
+## الملفات التي لن تُرفع (بسبب .gitignore):
+- ❌ node_modules/
+- ❌ .env
+- ❌ uploads/ (المرفقات)
+- ❌ backups/ (النسخ الاحتياطية)
+- ❌ dist/ (ملفات البناء)
 
-## بعد رفع الملفات إلى GitHub
-
-### ربط مع Netlify:
-1. اذهب إلى netlify.com
-2. "New site from Git" → GitHub → code01
-3. إعدادات:
-   - **Build command:** (اتركه فارغ)
-   - **Publish directory:** `public`
-   - **Functions directory:** `functions`
-
-### إضافة متغيرات البيئة:
-```
-DATABASE_URL=postgresql://your_neon_database_url
-SESSION_SECRET=your_random_secret_32_chars_minimum
-```
-
-### تسجيل الدخول:
-- المستخدم: admin
-- كلمة المرور: admin123
-
----
-
-**ملاحظة:** إذا كان لديك مشاكل في git push، يمكنك استخدام GitHub web interface لرفع الملفات مباشرة.
+انسخ هذه الأوامر واحدة تلو الأخرى في Terminal!
