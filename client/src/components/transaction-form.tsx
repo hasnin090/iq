@@ -202,7 +202,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
 
   const { data: userProjects } = useQuery({
     queryKey: ['/api/user-projects'],
-    enabled: user?.role !== 'admin',
+    enabled: !!user && user?.role !== 'admin',
   });
 
   // جلب الموظفين حسب دور المستخدم
@@ -542,8 +542,7 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
               name="employeeId"
               render={({ field }) => {
                 const expenseType = form.watch('expenseType') as string;
-                console.log('Current expense type:', expenseType, 'Should show employee dropdown?', expenseType === "راتب");
-                if (expenseType !== "راتب") return null;
+                if (expenseType !== "راتب") return <></>;
 
                 return (
                   <FormItem className="space-y-1">

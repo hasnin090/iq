@@ -48,6 +48,11 @@ export function Sidebar() {
 function CompanyName() {
   const { user } = useAuth();
   
+  // إذا لم يكن هناك مستخدم، لا نقوم بأي استعلامات
+  if (!user) {
+    return <span>جاري التحميل...</span>;
+  }
+  
   const { data: settings, isLoading: isLoadingSettings } = useQuery<{ key: string; value: string }[]>({
     queryKey: ['/api/settings'],
     enabled: !!user, // تفعيل الطلب فقط عند وجود مستخدم
