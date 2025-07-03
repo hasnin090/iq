@@ -1,21 +1,20 @@
 [build]
-  command = "node netlify-simple-build.js"
+  command = "node build-netlify-real.js"
   functions = "dist/functions"
   publish = "dist/public"
 
 [build.environment]
   NODE_VERSION = "18"
 
+[functions]
+  node_bundler = "esbuild"
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
-  force = true
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[functions]
-  node_bundler = "esbuild"
