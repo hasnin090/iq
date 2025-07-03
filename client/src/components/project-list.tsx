@@ -216,8 +216,9 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
     if (projectToDelete) {
       deleteMutation.mutate({ id: projectToDelete.id, force: true });
     }
-    setForceDeleteDialogOpen(false);
+    setErrorDialogOpen(false);
     setDeleteDialogOpen(false);
+    setProjectToDelete(null);
   };
 
   const onEditSubmit = (data: EditProjectFormValues) => {
@@ -337,20 +338,22 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من رغبتك في حذف هذا المشروع؟ 
-              <ul className="mt-2 list-disc list-inside space-y-1">
-                <li>سيتم حذف جميع المستندات المرتبطة بالمشروع</li>
-                <li>سيتم إزالة جميع المستخدمين المرتبطين بالمشروع</li>
-                <li className="text-destructive font-medium">ملاحظة: لا يمكن حذف المشروع إذا كان يحتوي على معاملات مالية مرتبطة به</li>
-              </ul>
-              <div className="mt-2 text-sm bg-amber-50 dark:bg-amber-900/30 p-3 rounded-md border border-amber-200 dark:border-amber-800">
-                <p className="font-medium text-amber-800 dark:text-amber-300">
-                  <i className="fas fa-exclamation-triangle ml-1"></i>
-                  إجراء الحذف لا يمكن التراجع عنه!
-                </p>
-              </div>
+              هل أنت متأكد من رغبتك في حذف هذا المشروع؟
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-3">
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>سيتم حذف جميع المستندات المرتبطة بالمشروع</li>
+              <li>سيتم إزالة جميع المستخدمين المرتبطين بالمشروع</li>
+              <li className="text-destructive font-medium">ملاحظة: لا يمكن حذف المشروع إذا كان يحتوي على معاملات مالية مرتبطة به</li>
+            </ul>
+            <div className="text-sm bg-amber-50 dark:bg-amber-900/30 p-3 rounded-md border border-amber-200 dark:border-amber-800">
+              <p className="font-medium text-amber-800 dark:text-amber-300">
+                <i className="fas fa-exclamation-triangle ml-1"></i>
+                إجراء الحذف لا يمكن التراجع عنه!
+              </p>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
