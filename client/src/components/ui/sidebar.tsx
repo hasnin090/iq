@@ -46,12 +46,14 @@ export function Sidebar() {
 
 // مكون لعرض اسم الشركة أو اسم المشروع النشط
 function CompanyName() {
+  const { user } = useAuth();
+  
   const { data: settings, isLoading: isLoadingSettings } = useQuery<{ key: string; value: string }[]>({
     queryKey: ['/api/settings'],
+    enabled: !!user, // تفعيل الطلب فقط عند وجود مستخدم
     staleTime: 1000 * 60 * 5, // تخزين البيانات لمدة 5 دقائق قبل إعادة الطلب
     gcTime: 1000 * 60 * 10, // الاحتفاظ بالبيانات في الذاكرة لمدة 10 دقائق (gcTime يحل محل cacheTime)
   });
-  const { user } = useAuth();
   
   // جلب المشاريع في نفس المكون ليتمكن من الوصول للمشروع النشط
   const { data: userProjects, isLoading: isLoadingProjects } = useQuery<Project[]>({
