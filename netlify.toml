@@ -1,7 +1,7 @@
 [build]
-  command = "echo 'No build needed'"
-  publish = "dist/public"
-  functions = "dist/functions"
+  command = "node build.cjs"
+  publish = "public"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -10,11 +10,7 @@
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
-
-[[redirects]]
-  from = "/dashboard"
-  to = "/dashboard.html"
-  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"

@@ -1,4 +1,19 @@
-<!DOCTYPE html>
+const fs = require('fs');
+const path = require('path');
+
+console.log('Building for Netlify...');
+
+// Create directories
+if (!fs.existsSync('./public')) {
+  fs.mkdirSync('./public', { recursive: true });
+}
+
+if (!fs.existsSync('./netlify/functions')) {
+  fs.mkdirSync('./netlify/functions', { recursive: true });
+}
+
+// Create HTML file
+const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -144,4 +159,55 @@
         });
     </script>
 </body>
-</html>
+</html>`;
+
+fs.writeFileSync('./public/index.html', html);
+
+// Create redirects
+fs.writeFileSync('./public/_redirects', '/api/* /.netlify/functions/server/:splat 200\n/* /index.html 200');
+
+// Create function
+const func = `exports.handler = async (event) => {
+  const { path, httpMethod, body } = event;
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+  };
+  
+  if (httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+  
+  if (path.includes('/api/auth/login')) {
+    const { username, password } = JSON.parse(body || '{}');
+    
+    if (username === 'admin' && password === '123456') {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          user: { id: 1, username: 'admin' },
+          token: 'token_' + Date.now(),
+          message: 'Success'
+        })
+      };
+    }
+    
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ message: 'Invalid credentials' })
+    };
+  }
+  
+  return {
+    statusCode: 404,
+    headers,
+    body: JSON.stringify({ message: 'Not found' })
+  };
+};`;
+
+fs.writeFileSync('./netlify/functions/server.js', func);
+
+console.log('Build completed!');
