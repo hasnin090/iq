@@ -1,105 +1,150 @@
-# 🔍 تشخيص مشكلة اتصال قاعدة البيانات
+# 🔍 تشخيص مشكلة الاتصال بقاعدة البيانات
 
-## 📋 قائمة فحص سريعة
+## المشكلة الحالية
+تم إكمال جميع المتطلبات لكن البرنامج لا يتصل بقاعدة البيانات
 
-### 1. فحص Environment Variables في Netlify
-اذهب إلى موقعك في Netlify > Site Settings > Environment Variables وتأكد من وجود:
+## 🔧 خطوات التشخيص
+
+### الخطوة 1: فحص Environment Variables في Netlify
+1. اذهب إلى موقعك في Netlify
+2. Site Settings > Environment Variables
+3. تأكد من وجود هذه المتغيرات **بالضبط**:
 
 ```
-✅ VITE_SUPABASE_URL = https://yieyqusnciiithjtlgod.supabase.co
-✅ VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-✅ SUPABASE_SERVICE_ROLE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY  
+SUPABASE_SERVICE_ROLE_KEY
 ```
 
-### 2. فحص قاعدة البيانات في Supabase
-اذهب إلى https://supabase.com/dashboard/project/yieyqusnciiithjtlgod
-- Table Editor > تأكد من وجود: accounts, documents, document_entries, users
+⚠️ **مهم:** تأكد من عدم وجود مسافات قبل أو بعد القيم!
 
-### 3. اختبار الاتصال
-اذهب إلى: `https://your-site.netlify.app/api/db-status`
+### الخطوة 2: فحص قاعدة البيانات في Supabase
+1. اذهب إلى: https://supabase.com/dashboard/project/yieyqusnciiithjtlgod
+2. اضغط على **Table Editor**
+3. تأكد من وجود هذه الجداول:
+   - ✅ accounts
+   - ✅ documents  
+   - ✅ document_entries
 
-## 🚨 رسائل الخطأ الشائعة وحلولها
+### الخطوة 3: اختبار الاتصال
+اذهب إلى موقعك وأضف `/api/db-status` للرابط:
+```
+https://your-site.netlify.app/api/db-status
+```
 
-### "قاعدة البيانات غير متصلة"
-**السبب:** Environment Variables غير موجودة
+## 🚨 الأخطاء الشائعة وحلولها
+
+### خطأ: "قاعدة البيانات غير متصلة"
+**السبب:** Environment Variables غير صحيحة أو مفقودة
 **الحل:**
-1. تأكد من إضافة المتغيرات الثلاثة في Netlify
-2. أعد نشر الموقع بعد إضافة المتغيرات
+1. احذف جميع Environment Variables في Netlify
+2. أضفها مرة أخرى بعناية:
+   ```
+   VITE_SUPABASE_URL=https://yieyqusnciiithjtlgod.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoanRsZ29kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MTU3MDgsImV4cCI6MjA2NjA5MTcwOH0.ZBmA3i2IMNV-EDts2vn7hOFPcfVZBwJj5htsiNmrWj8
+   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoanRsZ29kIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDUxNTcwOCwiZXhwIjoyMDY2MDkxNzA4fQ.TS4-OLpBAKeFlg6Br894OVqVJ988rf0ipLTJofeEOhc
+   ```
 
-### "الجداول غير موجودة"  
-**السبب:** SQL لم يُشغل في Supabase
+### خطأ: "الجداول غير موجودة"
+**السبب:** لم يتم تشغيل SQL في Supabase
 **الحل:**
 1. اذهب إلى Supabase > SQL Editor
-2. انسخ والصق SQL المحدث من `QUICK_SUPABASE_SETUP.md`
-3. اضغط RUN
+2. انسخ والصق هذا الكود بالكامل:
 
-### "Invalid API key"
-**السبب:** مفاتيح API خاطئة
-**الحل:**
-1. انسخ المفاتيح مرة أخرى من Supabase > Settings > API
-2. استبدل القيم في Netlify Environment Variables
-3. أعد النشر
-
-## 🔧 خطوات الإصلاح السريع
-
-### الخطوة 1: إعادة تشغيل SQL في Supabase
 ```sql
--- احذف الجداول الموجودة أولاً (إذا وُجدت)
-DROP TABLE IF EXISTS document_entries CASCADE;
-DROP TABLE IF EXISTS documents CASCADE;
-DROP TABLE IF EXISTS accounts CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+-- إنشاء جدول الحسابات
+CREATE TABLE IF NOT EXISTS accounts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    balance DECIMAL(15,2) DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- ثم أنشئ الجداول من جديد باستخدام SQL من QUICK_SUPABASE_SETUP.md
+-- إنشاء جدول المعاملات
+CREATE TABLE IF NOT EXISTS documents (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    document_number VARCHAR(100) NOT NULL,
+    date DATE NOT NULL,
+    description TEXT,
+    total_debit DECIMAL(15,2) DEFAULT 0,
+    total_credit DECIMAL(15,2) DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- إنشاء جدول قيود اليومية
+CREATE TABLE IF NOT EXISTS document_entries (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+    account_id UUID REFERENCES accounts(id),
+    description TEXT,
+    debit DECIMAL(15,2) DEFAULT 0,
+    credit DECIMAL(15,2) DEFAULT 0
+);
+
+-- حذف البيانات الموجودة وإعادة إدراج البيانات التجريبية
+DELETE FROM accounts;
+INSERT INTO accounts (name, code, type) VALUES
+('النقد في الصندوق', '1101', 'أصول'),
+('البنك', '1102', 'أصول'),
+('العملاء', '1201', 'أصول'),
+('الموردين', '2101', 'خصوم'),
+('رأس المال', '3101', 'حقوق الملكية'),
+('إيرادات المبيعات', '4101', 'إيرادات'),
+('مصروفات البيع', '5201', 'مصروفات');
+
+-- تفعيل Row Level Security
+ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE document_entries ENABLE ROW LEVEL SECURITY;
+
+-- حذف السياسات الموجودة وإنشاء جديدة
+DROP POLICY IF EXISTS "Allow all" ON accounts;
+DROP POLICY IF EXISTS "Allow all" ON documents;
+DROP POLICY IF EXISTS "Allow all" ON document_entries;
+
+CREATE POLICY "Allow all operations" ON accounts FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON documents FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON document_entries FOR ALL USING (true);
 ```
 
-### الخطوة 2: إعادة إنشاء Environment Variables
-1. احذف جميع Environment Variables الموجودة في Netlify
-2. أضفها مرة أخرى واحدة تلو الأخرى
-3. تأكد من عدم وجود مسافات زائدة
+3. اضغط **RUN** وتأكد من عدم وجود أخطاء
 
-### الخطوة 3: Clear Cache وإعادة النشر
-1. Netlify > Deploys > Trigger deploy
-2. اختر "Clear cache and deploy site"
-3. انتظر حتى ينتهي البناء
+### خطأ: "مشكلة في إعادة النشر"
+**الحل:**
+1. في Netlify، اذهب إلى **Deploys**
+2. اضغط **Trigger deploy**
+3. اختر **Clear cache and deploy site**
+4. انتظر حتى ينتهي البناء (يظهر "Published")
 
-### الخطوة 4: اختبار مباشر
-```
-اذهب إلى: https://your-site.netlify.app/api/accounts
-يجب أن ترى: قائمة بالحسابات المحاسبية
+## 🔍 فحص مفصل
 
-اذهب إلى: https://your-site.netlify.app/api/documents  
-يجب أن ترى: قائمة بالقيود المحاسبية
-```
+### أرسل لي نتيجة هذه الاختبارات:
 
-## ⚡ اختبار سريع للحلول
+1. **فحص Environment Variables:**
+   - اذهب إلى Netlify > Site Settings > Environment Variables
+   - أرسل screenshot أو قائمة بأسماء المتغيرات الموجودة
 
-### اختبار 1: API Status
-```
-URL: /api/db-status
-المتوقع: "قاعدة البيانات متصلة وتعمل بشكل طبيعي"
-```
+2. **فحص Supabase Tables:**
+   - اذهب إلى Supabase > Table Editor
+   - أرسل screenshot للجداول الموجودة
 
-### اختبار 2: الحسابات
-```  
-URL: /api/accounts
-المتوقع: قائمة بالحسابات مثل "النقد في الصندوق"
-```
+3. **فحص API Status:**
+   - اذهب إلى: `your-site.netlify.app/api/db-status`
+   - أرسل الرسالة التي تظهر
 
-### اختبار 3: القيود
-```
-URL: /api/documents
-المتوقع: قائمة بالقيود المحاسبية
-```
+4. **فحص Build Log:**
+   - Netlify > Deploys > آخر deployment
+   - ابحث عن أي أخطاء وأرسلها
 
-## 📞 إذا لم تعمل الحلول
+## 🎯 حل سريع إذا لم يعمل أي شيء
 
-**أرسل لي:**
-1. نتيجة `/api/db-status`
-2. رسالة الخطأ (إن وُجدت)
-3. لقطة شاشة من Environment Variables في Netlify
-4. لقطة شاشة من Table Editor في Supabase
+1. **احذف جميع Environment Variables في Netlify**
+2. **أعد إنشاء الجداول في Supabase بالكود أعلاه**
+3. **أضف Environment Variables مرة أخرى بعناية**
+4. **انتظر 5 دقائق ثم أعد النشر**
 
 ---
-**آخر تحديث:** July 5, 2025
-**الحالة:** محدث مع API endpoints جديدة
+
+**بعد تطبيق هذه الخطوات، أخبرني بالنتائج وسأساعدك في حل أي مشكلة متبقية!**
