@@ -12,13 +12,13 @@
 6. انتظر 2-3 دقائق
 ```
 
-### 2. نسخ معلومات الاتصال
+### 2. نسخ معلومات الاتصال ✅
 ```
 من Settings > API في Supabase:
 
-Project URL: https://[project-id].supabase.co  
-anon public: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-service_role: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Project URL: https://yieyqusnciiithjtlgod.supabase.co  
+anon public: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoanRsZ29kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MTU3MDgsImV4cCI6MjA2NjA5MTcwOH0.ZBmA3i2IMNV-EDts2vn7hOFPcfVZBwJj5htsiNmrWj8
+service_role: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoanRsZ29kIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDUxNTcwOCwiZXhwIjoyMDY2MDkxNzA4fQ.TS4-OLpBAKeFlg6Br894OVqVJ988rf0ipLTJofeEOhc
 ```
 
 ### 3. تشغيل Database Schema
@@ -72,13 +72,13 @@ CREATE POLICY "Allow all" ON documents FOR ALL USING (true);
 CREATE POLICY "Allow all" ON document_entries FOR ALL USING (true);
 ```
 
-### 4. تحديث Netlify Environment Variables
+### 4. تحديث Netlify Environment Variables ✅
 ```
 Site Settings > Environment variables:
 
-VITE_SUPABASE_URL=https://[project-id].supabase.co
-VITE_SUPABASE_ANON_KEY=[anon-key-من-الخطوة-2]
-SUPABASE_SERVICE_ROLE_KEY=[service-role-key-من-الخطوة-2]
+VITE_SUPABASE_URL=https://yieyqusnciiithjtlgod.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoanRsZ29kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MTU3MDgsImV4cCI6MjA2NjA5MTcwOH0.ZBmA3i2IMNV-EDts2vn7hOFPcfVZBwJj5htsiNmrWj8
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoanRsZ29kIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDUxNTcwOCwiZXhwIjoyMDY2MDkxNzA4fQ.TS4-OLpBAKeFlg6Br894OVqVJ988rf0ipLTJofeEOhc
 ```
 
 ### 5. إعادة نشر الموقع
