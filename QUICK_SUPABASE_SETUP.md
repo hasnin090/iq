@@ -21,21 +21,18 @@ anon public: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 service_role: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoanRsZ29kIiwicm9zZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDUxNTcwOCwiZXhwIjoyMDY2MDkxNzA4fQ.TS4-OLpBAKeFlg6Br894OVqVJ988rf0ipLTJofeEOhc
 ```
 
-### 3. تشغيل Database Schema المحدث
+### 3. تشغيل Database Schema
 ```sql
 -- انسخ والصق في SQL Editor:
 
--- إنشاء جدول الحسابات
 CREATE TABLE accounts (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     code VARCHAR(50) UNIQUE NOT NULL,
     type VARCHAR(50) NOT NULL,
-    balance DECIMAL(15,2) DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- إنشاء جدول المعاملات/الوثائق
 CREATE TABLE documents (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     document_number VARCHAR(100) NOT NULL,
@@ -46,69 +43,33 @@ CREATE TABLE documents (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- إنشاء جدول قيود اليومية
 CREATE TABLE document_entries (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+    document_id UUID REFERENCES documents(id),
     account_id UUID REFERENCES accounts(id),
     description TEXT,
     debit DECIMAL(15,2) DEFAULT 0,
     credit DECIMAL(15,2) DEFAULT 0
 );
 
--- إنشاء جدول المستخدمين
-CREATE TABLE users (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    username VARCHAR(100) UNIQUE NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'user',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- إدراج بيانات تجريبية للحسابات
+-- بيانات تجريبية
 INSERT INTO accounts (name, code, type) VALUES
 ('النقد في الصندوق', '1101', 'أصول'),
 ('البنك', '1102', 'أصول'),
 ('العملاء', '1201', 'أصول'),
 ('الموردين', '2101', 'خصوم'),
 ('رأس المال', '3101', 'حقوق الملكية'),
-('الأرباح المحتجزة', '3201', 'حقوق الملكية'),
 ('إيرادات المبيعات', '4101', 'إيرادات'),
-('تكلفة البضاعة المباعة', '5101', 'مصروفات'),
-('مصروفات البيع والتوزيع', '5201', 'مصروفات'),
-('مصروفات إدارية', '5301', 'مصروفات');
+('مصروفات البيع', '5201', 'مصروفات');
 
--- إدراج مستخدم تجريبي
-INSERT INTO users (username, name, role) VALUES
-('admin', 'مدير النظام', 'admin');
-
--- إدراج قيد تجريبي
-INSERT INTO documents (document_number, date, description, total_debit, total_credit) VALUES
-('DOC-001', CURRENT_DATE, 'قيد افتتاحي', 10000, 10000);
-
--- قيود اليومية للقيد التجريبي
-INSERT INTO document_entries (document_id, account_id, description, debit, credit) VALUES
-((SELECT id FROM documents WHERE document_number = 'DOC-001'), 
- (SELECT id FROM accounts WHERE code = '1101'), 
- 'نقد في الصندوق', 5000, 0),
-((SELECT id FROM documents WHERE document_number = 'DOC-001'), 
- (SELECT id FROM accounts WHERE code = '1102'), 
- 'رصيد البنك', 5000, 0),
-((SELECT id FROM documents WHERE document_number = 'DOC-001'), 
- (SELECT id FROM accounts WHERE code = '3101'), 
- 'رأس المال الافتتاحي', 0, 10000);
-
--- تفعيل Row Level Security
+-- تفعيل الوصول العام (للتجربة)
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE document_entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- سياسات الوصول (للتجربة - تسمح بالوصول للجميع)
-CREATE POLICY "Allow all operations on accounts" ON accounts FOR ALL USING (true);
-CREATE POLICY "Allow all operations on documents" ON documents FOR ALL USING (true);
-CREATE POLICY "Allow all operations on document_entries" ON document_entries FOR ALL USING (true);
-CREATE POLICY "Allow all operations on users" ON users FOR ALL USING (true);
+CREATE POLICY "Allow all" ON accounts FOR ALL USING (true);
+CREATE POLICY "Allow all" ON documents FOR ALL USING (true);
+CREATE POLICY "Allow all" ON document_entries FOR ALL USING (true);
 ```
 
 ### 4. تحديث Netlify Environment Variables ✅
