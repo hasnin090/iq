@@ -8,7 +8,7 @@
 ### الخطوة 1: فحص Environment Variables في Netlify
 1. اذهب إلى موقعك في Netlify
 2. Site Settings > Environment Variables
-3. تأكد من وجود هذه المتغيرات **بالضبط**:
+3. تأكد من وجود هذه المتغيرات **بالضبط** (الأسماء مهمة جداً):
 
 ```
 VITE_SUPABASE_URL
@@ -16,7 +16,9 @@ VITE_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
 
-⚠️ **مهم:** تأكد من عدم وجود مسافات قبل أو بعد القيم!
+⚠️ **مهم جداً:** 
+- تأكد من عدم وجود مسافات قبل أو بعد القيم!
+- اسم المتغير الثالث يجب أن يكون `SUPABASE_SERVICE_ROLE_KEY` وليس `SUPABASE_SERVICE_ROLE`
 
 ### الخطوة 2: فحص قاعدة البيانات في Supabase
 1. اذهب إلى: https://supabase.com/dashboard/project/yieyqusnciiithjtlgod
