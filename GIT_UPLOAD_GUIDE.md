@@ -1,3 +1,40 @@
+# آخر التحديثات المدفوعة إلى Git
+
+## 📅 تاريخ التحديث
+**5 يوليو 2025** - Commit: `506bd29`
+
+## ✅ الملفات المُحدثة والمُضافة
+
+### 🏗️ ملفات البناء والنشر
+- ✅ `netlify-supabase-build.js` - سكريپت بناء نظيف ومُحدث
+- ✅ `netlify.toml` - إعدادات Netlify للنشر
+- ✅ `package.json` - تحديث dependencies و scripts
+- ✅ `vite.config.ts` - إعداد Vite للإنتاج
+
+### 🗄️ ملفات قاعدة البيانات
+- ✅ `shared/schema.ts` - إضافة export لـ eq function
+- ✅ `server/supabase-db.ts` - إصلاح استيرادات و queries
+- ✅ `server/storage.ts` - تحديث types وإصلاح errors
+- ✅ `server/routes.ts` - إضافة debitAmount و creditAmount
+- ✅ `server/pg-storage.ts` - إصلاح ledger entry creation
+- ✅ `server/vite.ts` - إصلاح allowedHosts type
+
+### 🌐 ملفات Netlify Functions
+- ✅ `netlify/functions/api.ts` - وظائف API متكاملة مع Supabase
+- ✅ `client/src/lib/supabase.ts` - عميل Supabase للواجهة
+
+### 📝 ملفات التوثيق
+- ✅ `PROJECT_STATUS_FINAL.md` - تقرير الحالة النهائية
+- ✅ `NETLIFY_DEPLOYMENT.md` - دليل النشر الشامل
+
+### 🎨 ملفات الواجهة الأمامية
+- ✅ إصلاح جميع أخطاء TypeScript الحرجة
+- ✅ تحديث imports وdependencies
+
+## 🚀 حالة المشروع: **جاهز للنشر السحابي**
+
+---
+
 # دليل رفع النظام على GitHub
 
 ## التحضير قبل الرفع
