@@ -1072,5 +1072,6 @@ export default function LedgerPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </div>
   );
 }

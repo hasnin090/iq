@@ -52,8 +52,11 @@ export default function Activities() {
       const [_, filterParams] = queryKey;
       const params = new URLSearchParams();
       
-      if (filterParams.entityType) params.append('entityType', String(filterParams.entityType));
-      if (filterParams.userId) params.append('userId', String(filterParams.userId));
+      if (filterParams && typeof filterParams === 'object') {
+        const fp = filterParams as any;
+        if (fp.entityType) params.append('entityType', String(fp.entityType));
+        if (fp.userId) params.append('userId', String(fp.userId));
+      }
       
       const response = await fetch(`/api/activity-logs?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch activity logs');
@@ -61,7 +64,7 @@ export default function Activities() {
     }
   });
   
-  const { data: users, isLoading: usersLoading } = useQuery({
+  const { data: users, isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
   });
   
@@ -75,8 +78,8 @@ export default function Activities() {
   };
   
   const getUserName = (userId: number) => {
-    if (!users) return 'غير معروف';
-    const user = users.find(u => u.id === userId);
+    if (!users || !Array.isArray(users)) return 'غير معروف';
+    const user = users.find((u: any) => u.id === userId);
     return user ? user.name : 'غير معروف';
   };
   
@@ -187,7 +190,7 @@ export default function Activities() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">كل المستخدمين</SelectItem>
-                  {!usersLoading && users?.map((user) => (
+                  {!usersLoading && Array.isArray(users) && users.map((user: any) => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.name}
                     </SelectItem>

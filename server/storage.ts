@@ -17,6 +17,8 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { pgStorage } from './pg-storage.js';
+import { eq } from "drizzle-orm";
+import { db } from './db.js';
 
 export interface IStorage {
   // Database health check
@@ -241,7 +243,8 @@ export class MemStorage implements IStorage {
       id,
       role: user.role || "user",
       permissions: [],
-      active: true
+      active: true,
+      email: user.email || null
     };
     this.usersData.set(id, newUser);
     return newUser;
@@ -399,7 +402,12 @@ export class MemStorage implements IStorage {
       ...transaction, 
       id,
       projectId: transaction.projectId || null,
-      createdBy: 1 // Default to admin user if not provided
+      createdBy: 1, // Default to admin user if not provided
+      expenseType: transaction.expenseType || null,
+      employeeId: transaction.employeeId || null,
+      fileUrl: transaction.fileUrl || null,
+      fileType: transaction.fileType || null,
+      archived: transaction.archived || false
     };
     this.transactionsData.set(id, newTransaction);
     return newTransaction;
@@ -439,7 +447,10 @@ export class MemStorage implements IStorage {
       ...document, 
       id,
       description: document.description || null,
-      projectId: document.projectId || null
+      projectId: document.projectId || null,
+      category: document.category || null,
+      isManagerDocument: document.isManagerDocument || false,
+      tags: document.tags || null
     };
     this.documentsData.set(id, newDocument);
     return newDocument;
@@ -543,7 +554,10 @@ export class MemStorage implements IStorage {
       ...fund, 
       id,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      projectId: fund.projectId || null,
+      balance: fund.balance || 0,
+      ownerId: fund.ownerId || null
     };
     this.fundsData.set(id, newFund);
     return newFund;

@@ -5,7 +5,6 @@ import session from "express-session";
 import * as path from "path";
 import pgSession from 'connect-pg-simple';
 import { backupSystem } from "./backup-system";
-import { initializeBackupDatabase } from "./backup-db";
 
 const app = express();
 app.use(express.json());

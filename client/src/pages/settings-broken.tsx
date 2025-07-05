@@ -188,10 +188,7 @@ export default function Settings() {
 
   const createCategoryMutation = useMutation({
     mutationFn: (data: AccountCategoryValues) => 
-      apiRequest('/api/account-categories', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('/api/account-categories', 'POST', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
       categoryForm.reset();
@@ -213,10 +210,7 @@ export default function Settings() {
 
   const updateCategoryMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: AccountCategoryValues }) =>
-      apiRequest(`/api/account-categories/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
+      apiRequest(`/api/account-categories/${id}`, 'PUT', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
       categoryForm.reset();
@@ -231,7 +225,7 @@ export default function Settings() {
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/account-categories/${id}`, { method: 'DELETE' }),
+      apiRequest(`/api/account-categories/${id}`, 'DELETE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/account-categories'] });
       toast({
@@ -243,10 +237,7 @@ export default function Settings() {
 
   const createExpenseTypeMutation = useMutation({
     mutationFn: (data: ExpenseTypeValues) =>
-      apiRequest('/api/expense-types', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('/api/expense-types', 'POST', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
       expenseTypeForm.reset();
@@ -261,10 +252,7 @@ export default function Settings() {
 
   const updateExpenseTypeMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ExpenseTypeValues }) =>
-      apiRequest(`/api/expense-types/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
+      apiRequest(`/api/expense-types/${id}`, 'PUT', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
       expenseTypeForm.reset();
@@ -279,7 +267,7 @@ export default function Settings() {
 
   const deleteExpenseTypeMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/expense-types/${id}`, { method: 'DELETE' }),
+      apiRequest(`/api/expense-types/${id}`, 'DELETE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
       toast({
@@ -290,7 +278,7 @@ export default function Settings() {
   });
 
   const backupMutation = useMutation({
-    mutationFn: () => apiRequest('/api/backup', { method: 'POST' }),
+    mutationFn: () => apiRequest('/api/backup', 'POST'),
     onSuccess: () => {
       toast({
         title: "تم",
@@ -356,10 +344,7 @@ export default function Settings() {
         const content = e.target?.result as string;
         const backupData = JSON.parse(content);
         
-        await apiRequest('/api/restore', {
-          method: 'POST',
-          body: JSON.stringify(backupData),
-        });
+        await apiRequest('/api/restore', 'POST', backupData);
         
         toast({
           title: "تم",

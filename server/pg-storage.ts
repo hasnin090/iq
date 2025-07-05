@@ -1625,6 +1625,8 @@ export class PgStorage implements IStorage {
                 date: new Date(),
                 description: transactionDescription,
                 amount: paymentAmount,
+                debitAmount: paymentAmount,
+                creditAmount: 0,
                 entryType: 'expense',
                 projectId: null,
                 transactionId: transaction.id,

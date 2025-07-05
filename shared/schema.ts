@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, pgEnum } from "drizzle-orm/pg-core";
+import { eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -406,3 +407,6 @@ export type CompletedWork = typeof completedWorks.$inferSelect;
 
 export type InsertCompletedWorksDocument = z.infer<typeof insertCompletedWorksDocumentSchema>;
 export type CompletedWorksDocument = typeof completedWorksDocuments.$inferSelect;
+
+// Export eq function for use in queries
+export { eq };

@@ -5,11 +5,13 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "build:netlify": "npm run build",
+    "build": "vite build",
+    "build:netlify": "vite build && node netlify-supabase-build.js",
+    "build:functions": "node scripts/build-netlify-functions.js",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@firebase/auth": "^1.10.7",
@@ -103,6 +105,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "@netlify/functions": "^4.1.9",
     "@replit/vite-plugin-cartographer": "^0.2.7",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
@@ -121,6 +124,7 @@
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
+    "terser": "^5.43.1",
     "tsx": "^4.20.3",
     "typescript": "^5.6.3",
     "vite": "^5.4.19"

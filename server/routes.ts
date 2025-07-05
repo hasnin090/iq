@@ -2561,6 +2561,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             expenseTypeId: expenseType.id,
             projectId: transaction.projectId,
             amount: transaction.amount,
+            debitAmount: transaction.type === 'expense' ? transaction.amount : 0,
+            creditAmount: transaction.type === 'income' ? transaction.amount : 0,
             entryType: transaction.type,
             description: `ترحيل تلقائي إلى نوع المصروف: ${expenseType.name}`,
             date: new Date(transaction.date)
@@ -2741,6 +2743,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               transactionId: transaction.id,
               expenseTypeId: expenseType.id,
               amount: transaction.amount,
+              debitAmount: transaction.type === 'expense' ? transaction.amount : 0,
+              creditAmount: transaction.type === 'income' ? transaction.amount : 0,
               description: transaction.description || '',
               projectId: transaction.projectId,
               entryType: 'classified'
@@ -3105,6 +3109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             transactionId: 0, // قيد ترحيل مستحق
             expenseTypeId: deferredExpenseType.id,
             amount: receivable.paidAmount,
+            debitAmount: receivable.paidAmount,
+            creditAmount: 0,
             description: `دفعة مستحق: ${receivable.beneficiaryName} - قسط مرحل من النظام`,
             projectId: receivable.projectId,
             entryType: 'classified'

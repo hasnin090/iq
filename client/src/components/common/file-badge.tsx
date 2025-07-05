@@ -1,6 +1,6 @@
 // مكون شارة نوع الملف
 import { Badge } from '@/components/ui/badge';
-import { getFileTypeIcon, getFileTypeLabel, getFileTypeBadgeClasses } from '@/utils/file-utils';
+import { getFileTypeIconName, getFileTypeLabel, getFileTypeBadgeClasses } from '@/utils/file-utils';
 
 interface FileBadgeProps {
   fileType: string;
@@ -20,7 +20,7 @@ export function FileBadge({ fileType, size = 'md' }: FileBadgeProps) {
       variant="outline" 
       className={`${getFileTypeBadgeClasses(fileType)} flex items-center ${sizeClasses[size]}`}
     >
-      {getFileTypeIcon(fileType)}
+      {getFileTypeIconName(fileType)}
       <span className="mr-1">{getFileTypeLabel(fileType)}</span>
     </Badge>
   );

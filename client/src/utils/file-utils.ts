@@ -60,6 +60,24 @@ export const getFileTypeIconName = (fileType: string): string => {
 };
 
 /**
+ * الحصول على أيقونة كبيرة مناسبة لنوع الملف
+ * @param fileType نوع الملف
+ * @returns اسم الأيقونة الكبيرة
+ */
+export const getLargeFileTypeIcon = (fileType: string): string => {
+  const type = getMainFileType(fileType);
+  
+  switch (type) {
+    case 'image': return 'FileImage';
+    case 'pdf': return 'File';
+    case 'word': return 'FileText';
+    case 'excel': return 'FileSpreadsheet';
+    case 'powerpoint': return 'Presentation';
+    default: return 'FileIcon';
+  }
+};
+
+/**
  * الحصول على صفوف التصميم المناسبة لنوع الملف
  * @param fileType نوع الملف
  * @returns سلسلة صفوف التصميم

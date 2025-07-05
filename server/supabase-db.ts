@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@shared/schema';
+import { eq } from '@shared/schema';
 import fs from 'fs';
 import path from 'path';
 
@@ -344,7 +345,7 @@ export async function updateFileUrlsToSupabase(): Promise<boolean> {
         // تحديث الرابط في قاعدة البيانات
         await db.update(schema.documents)
           .set({ fileUrl: data.publicUrl })
-          .where(schema.documents.id.eq(doc.id));
+          .where(eq(schema.documents.id, doc.id));
         
         console.log(`تم تحديث رابط المستند ${doc.id}`);
       }
@@ -363,7 +364,7 @@ export async function updateFileUrlsToSupabase(): Promise<boolean> {
         
         await db.update(schema.transactions)
           .set({ fileUrl: data.publicUrl })
-          .where(schema.transactions.id.eq(transaction.id));
+          .where(eq(schema.transactions.id, transaction.id));
         
         console.log(`تم تحديث رابط المعاملة ${transaction.id}`);
       }
