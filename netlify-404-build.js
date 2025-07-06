@@ -61,9 +61,17 @@ try {
   fs.writeFileSync(path.join(publicDestDir, '_redirects'), redirectsContent);
   console.log('🔄 تم إنشاء ملف _redirects للتوجيه');
 
-  // 4. إنشاء ملف index.html بسيط إذا لم يكن موجوداً
+  // 4. إنشاء ملف index.html من صفحة الترحيب المحسنة
   const indexPath = path.join(publicDestDir, 'index.html');
-  if (!fs.existsSync(indexPath)) {
+  const improvedWelcomePath = path.join(__dirname, 'improved-welcome-page.html');
+  
+  if (fs.existsSync(improvedWelcomePath)) {
+    // نسخ محتوى صفحة الترحيب المحسنة
+    const welcomeContent = fs.readFileSync(improvedWelcomePath, 'utf8');
+    fs.writeFileSync(indexPath, welcomeContent);
+    console.log('📄 تم نسخ صفحة الترحيب المحسنة إلى index.html');
+  } else {
+    // إنشاء صفحة بسيطة إذا لم تكن صفحة الترحيب المحسنة موجودة
     const indexContent = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -103,7 +111,7 @@ try {
 </html>`;
     
     fs.writeFileSync(indexPath, indexContent);
-    console.log('📄 تم إنشاء ملف index.html بسيط');
+    console.log('📄 تم إنشاء ملف index.html بسيط (لم يتم العثور على صفحة الترحيب المحسنة)');
   }
 
   // 5. إنشاء معلومات البناء

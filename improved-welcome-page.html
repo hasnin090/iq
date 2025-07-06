@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام المحاسبة العربي</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #e74c3c;
+      --text-color: #333;
+      --light-bg: #f8f9fa;
+      --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-color);
+      line-height: 1.6;
+      direction: rtl;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      background: var(--primary-color);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .logo {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .welcome-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: var(--card-shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      max-width: 800px;
+      width: 100%;
+    }
+    
+    h1 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+    
+    p {
+      margin-bottom: 1.5rem;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+      width: 100%;
+    }
+    
+    .feature-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: var(--card-shadow);
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+      font-size: 2.5rem;
+      color: var(--secondary-color);
+      margin-bottom: 1rem;
+    }
+    
+    .api-test {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: var(--card-shadow);
+      padding: 1.5rem;
+      margin-top: 2rem;
+      text-align: center;
+      max-width: 800px;
+      width: 100%;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: var(--secondary-color);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-top: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    
+    .btn:hover {
+      background-color: #2980b9;
+    }
+    
+    .btn-accent {
+      background-color: var(--accent-color);
+    }
+    
+    .btn-accent:hover {
+      background-color: #c0392b;
+    }
+    
+    footer {
+      background: var(--primary-color);
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      margin-top: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  
+  <!-- أيقونات Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- خط Tajawal -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="logo">نظام المحاسبة العربي</div>
+    <p>حلول محاسبية متكاملة لإدارة أعمالك بكفاءة</p>
+  </header>
+  
+  <main>
+    <div class="welcome-card">
+      <h1>مرحباً بك في نظام المحاسبة العربي</h1>
+      <p>تم تثبيت النظام بنجاح! هذه صفحة الترحيب لنظام المحاسبة العربي. يمكنك الآن بدء استخدام النظام واستكشاف ميزاته المتعددة.</p>
+      <a href="/dashboard" class="btn">الذهاب إلى لوحة التحكم</a>
+    </div>
+    
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>تقارير مالية</h3>
+        <p>تقارير شاملة ودقيقة لمتابعة الأداء المالي لمؤسستك.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h3>إدارة الفواتير</h3>
+        <p>إنشاء وإدارة الفواتير بسهولة مع دعم كامل للضرائب.</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h3>إدارة العملاء</h3>
+        <p>تنظيم بيانات العملاء والموردين بطريقة فعالة.</p>
+      </div>
+    </div>
+    
+    <div class="api-test">
+      <h2>اختبار واجهة برمجة التطبيقات (API)</h2>
+      <p>للتحقق من عمل API بشكل صحيح، يمكنك زيارة روابط الاختبار التالية:</p>
+      <a href="/api/health" class="btn" target="_blank">فحص الصحة</a>
+      <a href="/api/test" class="btn btn-accent" target="_blank">اختبار API</a>
+    </div>
+  </main>
+  
+  <footer>
+    <p>© 2025 نظام المحاسبة العربي - جميع الحقوق محفوظة</p>
+  </footer>
+  
+  <script>
+    // كود اختبار API واستعراض النتائج
+    document.addEventListener('DOMContentLoaded', function() {
+      const testApiBtn = document.querySelector('.btn-accent');
+      
+      // اختبار اتصال API عند النقر على زر الاختبار
+      testApiBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        fetch('/api/test')
+          .then(response => response.json())
+          .then(data => {
+            alert('تم الاتصال بـ API بنجاح!\n\nالرسالة: ' + data.message + '\nالوقت: ' + data.timestamp);
+            window.open('/api/test', '_blank');
+          })
+          .catch(error => {
+            alert('حدث خطأ أثناء الاتصال بـ API: ' + error.message);
+          });
+      });
+    });
+  </script>
+</body>
+</html>

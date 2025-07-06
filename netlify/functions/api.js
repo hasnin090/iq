@@ -160,5 +160,4 @@ exports.handler = async (event, context) => {
 };
 
 // Export the handler function directly
-// module.exports = { handler: exports.handler };
 // Not needed as exports.handler is already defined
