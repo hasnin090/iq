@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BookOpen, Download, Search, Calculator, FileSpreadsheet, Eye, RefreshCw } from 'lucide-react'
 import { format } from 'date-fns'
 import { ar } from 'date-fns/locale'
-import * as XLSX from 'xlsx'
+import * as ExcelJS from 'exceljs'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
 import { apiRequest } from '@/lib/queryClient'

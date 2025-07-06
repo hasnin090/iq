@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Archive, Search, Filter, Calendar, TrendingUp, TrendingDown, DollarSign, FileText, Download, Printer, Grid, List } from "lucide-react";
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { formatDate } from "@/utils/date-utils";
 
 // دالة تنسيق العملة محلياً
@@ -181,7 +181,7 @@ export default function ArchivePage() {
   };
 
   // تصدير البيانات إلى Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     const dataToExport = filteredTransactions.map((transaction, index) => ({
       'رقم المعاملة': index + 1,
       'التاريخ': formatDate(transaction.date),
@@ -192,12 +192,38 @@ export default function ArchivePage() {
       'المرفقات': transaction.attachmentUrl ? 'نعم' : 'لا'
     }));
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'المعاملات المؤرشفة');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('المعاملات المؤرشفة');
+
+    // إضافة البيانات
+    const headers = Object.keys(dataToExport[0] || {});
+    worksheet.addRow(headers);
+    
+    dataToExport.forEach(row => {
+      worksheet.addRow(Object.values(row));
+    });
+
+    // تنسيق الأعمدة
+    worksheet.columns = [
+      { header: 'رقم المعاملة', key: 'رقم المعاملة', width: 15 },
+      { header: 'التاريخ', key: 'التاريخ', width: 12 },
+      { header: 'الوصف', key: 'الوصف', width: 30 },
+      { header: 'المشروع', key: 'المشروع', width: 20 },
+      { header: 'النوع', key: 'النوع', width: 10 },
+      { header: 'المبلغ', key: 'المبلغ', width: 15 },
+      { header: 'المرفقات', key: 'المرفقات', width: 10 },
+    ];
     
     const fileName = `المعاملات_المؤرشفة_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   // طباعة البيانات مع تنسيق محسن

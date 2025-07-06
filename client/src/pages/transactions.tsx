@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Filter, ArrowDown, ArrowUp, Search, Archive, CheckSquare, Square, Download, Printer, FileSpreadsheet, Paperclip } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { formatCurrency } from '@/lib/chart-utils';
@@ -133,7 +133,7 @@ export default function Transactions() {
   }
 
   // وظيفة تصدير البيانات إلى Excel - مخصصة للمستخدمين من نوع المشاهدة
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (!filteredTransactions || filteredTransactions.length === 0) {
       toast({
         title: "لا توجد بيانات للتصدير",
@@ -179,30 +179,41 @@ export default function Transactions() {
       return baseData;
     });
 
-    // إنشاء ورقة عمل
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    
-    // تنسيق عرض الأعمدة
-    const wscols = [
-      { wch: 12 }, // التاريخ
-      { wch: 30 }, // الوصف
-      { wch: 20 }, // المشروع
-      { wch: 10 }, // النوع
-      { wch: 15 }, // نوع المصروف
-      { wch: 15 }, // المبلغ الرقمي
-      { wch: 20 }, // المبلغ المنسق
-    ];
-    worksheet['!cols'] = wscols;
+    // إنشاء كتاب عمل جديد باستخدام ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('المعاملات المالية');
 
-    // إنشاء كتاب عمل
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'المعاملات المالية');
+    // إضافة البيانات
+    const headers = Object.keys(exportData[0] || {});
+    worksheet.addRow(headers);
+    
+    exportData.forEach(row => {
+      worksheet.addRow(Object.values(row));
+    });
+
+    // تنسيق الأعمدة
+    worksheet.columns = [
+      { header: 'التاريخ', key: 'التاريخ', width: 12 },
+      { header: 'الوصف', key: 'الوصف', width: 30 },
+      { header: 'المشروع', key: 'المشروع', width: 20 },
+      { header: 'النوع', key: 'النوع', width: 10 },
+      { header: 'نوع المصروف', key: 'نوع المصروف', width: 15 },
+      { header: 'المبلغ', key: 'المبلغ', width: 15 },
+    ];
 
     // تصدير الملف
     const now = new Date();
     const dateString = format(now, 'yyyy-MM-dd-HHmmss');
     const fileName = `transactions_${dateString}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
+    
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
 
     toast({
       title: "تم التصدير بنجاح",
