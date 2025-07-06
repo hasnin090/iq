@@ -16,6 +16,35 @@ try {
     // محاولة بناء التطبيق باستخدام Vite
     execSync('npm ci && npx vite build', { stdio: 'inherit', cwd: __dirname });
     console.log('✅ تم بناء التطبيق بنجاح باستخدام Vite');
+    
+    // بعد البناء الناجح، نسخ التطبيق المبني إلى app.html
+    const publicDestDir = path.join(__dirname, 'dist', 'public');
+    const appIndexPath = path.join(publicDestDir, 'index.html');
+    const appPath = path.join(publicDestDir, 'app.html');
+    
+    if (fs.existsSync(appIndexPath)) {
+      // نسخ التطبيق الفعلي الذي يحتوي على جميع السكريبتات إلى app.html
+      fs.copyFileSync(appIndexPath, appPath);
+      console.log('📄 تم نسخ التطبيق الرئيسي (مع السكريبتات) إلى app.html');
+      
+      // التأكد من وجود ملف app.html وأنه يحتوي على السكريبتات
+      const appContent = fs.readFileSync(appPath, 'utf8');
+      if (appContent.includes('script type="module"')) {
+        console.log('✅ app.html يحتوي على السكريبتات المطلوبة');
+      } else {
+        console.log('⚠️ تحذير: app.html لا يحتوي على السكريبتات!');
+      }
+    }
+    
+    // الآن استبدال index.html بصفحة الترحيب المحسنة
+    const improvedWelcomePath = path.join(__dirname, 'improved-welcome-page.html');
+    
+    if (fs.existsSync(improvedWelcomePath)) {
+      const welcomeContent = fs.readFileSync(improvedWelcomePath, 'utf8');
+      fs.writeFileSync(appIndexPath, welcomeContent);
+      console.log('📄 تم استبدال index.html بصفحة الترحيب المحسنة');
+    }
+    
   } catch (viteError) {
     console.log('⚠️ فشل في استخدام Vite، جاري استخدام البناء البديل...');
     
@@ -72,26 +101,8 @@ try {
     }
   }
 
-  // 2. إنشاء ملف _redirects للتوجيه والاحتفاظ بصفحة الترحيب
+  // 2. إنشاء ملف _redirects للتوجيه
   const publicDestDir = path.join(__dirname, 'dist', 'public');
-  
-  // نسخ التطبيق الرئيسي إلى app.html إذا تم بناؤه بنجاح
-  const appIndexPath = path.join(publicDestDir, 'index.html');
-  const appPath = path.join(publicDestDir, 'app.html');
-  
-  if (fs.existsSync(appIndexPath)) {
-    fs.copyFileSync(appIndexPath, appPath);
-    console.log('📄 تم نسخ التطبيق الرئيسي إلى app.html');
-  }
-  
-  // استبدال index.html بصفحة الترحيب المحسنة
-  const improvedWelcomePath = path.join(__dirname, 'improved-welcome-page.html');
-  
-  if (fs.existsSync(improvedWelcomePath)) {
-    const welcomeContent = fs.readFileSync(improvedWelcomePath, 'utf8');
-    fs.writeFileSync(appIndexPath, welcomeContent);
-    console.log('📄 تم استبدال index.html بصفحة الترحيب المحسنة');
-  }
   
   const redirectsContent = `# API routes to Netlify Functions
 /api/*  /.netlify/functions/api/:splat  200
