@@ -47,6 +47,9 @@ coverage/
 # Database
 *.sqlite
 *.db
+*.sqlite3
+local.db
+database.db
 
 # Uploads (keep structure but ignore files)
 uploads/*
@@ -55,6 +58,8 @@ uploads/*
 # Backups
 backups/
 cloud-backup/
+emergency-*.json
+complete-backup-*.json
 
 # Temporary files
 tmp/
@@ -74,6 +79,7 @@ package-lock.json
 
 # Session and cookie files
 cookies*.txt
+sessions/
 
 # Attached assets and temporary files
 attached_assets/
