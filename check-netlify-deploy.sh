@@ -77,6 +77,14 @@ if [ -d netlify/functions ]; then
       echo "يجب أن تحتوي دالة API على exports.handler للعمل مع Netlify Functions"
       exit 1
     fi
+    
+    # Check for double export that can cause the Runtime.HandlerNotFound error
+    if grep -q "module.exports = { handler: exports.handler }" netlify/functions/api.js; then
+      echo "❌ خطأ: دالة API تحتوي على تصدير مزدوج قد يسبب خطأ Runtime.HandlerNotFound!"
+      echo "يجب إزالة السطر: module.exports = { handler: exports.handler }"
+      echo "لأن exports.handler تم تعريفه بالفعل"
+      exit 1
+    fi
   else
     echo "❌ دالة API (api.js) غير موجودة!"
     exit 1
