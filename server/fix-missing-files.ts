@@ -1,13 +1,32 @@
 import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 import path from 'path';
+import { db } from './db';
 
 /**
  * أداة إصلاح الملفات المفقودة وتنظيف قاعدة البيانات
  */
 export class MissingFilesFixer {
-  private sql = neon(process.env.DATABASE_URL!);
+  private sql: any = null;
   private uploadsDir = './uploads';
+  private isEnabled = false;
+
+  constructor() {
+    // استخدام قاعدة البيانات المناسبة حسب النوع
+    if (process.env.USE_SQLITE === 'true' || process.env.APP_MODE === 'development') {
+      // للـ SQLite، استخدم الاتصال الموحد
+      this.sql = db;
+      this.isEnabled = true;
+      console.log('MissingFilesFixer: Using SQLite database');
+    } else if (process.env.DATABASE_URL?.startsWith('postgresql:') && process.env.USE_SQLITE !== 'true') {
+      this.sql = neon(process.env.DATABASE_URL);
+      this.isEnabled = true;
+      console.log('MissingFilesFixer: Using PostgreSQL database');
+    } else {
+      console.log('MissingFilesFixer: Database disabled for development mode');
+      this.isEnabled = false;
+    }
+  }
 
   /**
    * فحص وإصلاح الملفات المفقودة
@@ -118,11 +137,11 @@ export class MissingFilesFixer {
    * فحص إذا كان الرابط ملف محلي
    */
   private isFileUrl(url: string): boolean {
-    return url && (
+    return Boolean(url && (
       url.includes('./uploads/') || 
       url.includes('/uploads/') ||
       url.startsWith('uploads/')
-    );
+    ));
   }
 
   /**

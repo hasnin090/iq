@@ -20,13 +20,32 @@ import {
 import { IStorage } from './storage';
 
 export class PgStorage implements IStorage {
-  private sql = neon(process.env.DATABASE_URL!);
+  private sql: any = null;
+  private isEnabled: boolean = false;
 
   constructor() {
+    // التحقق من نوع قاعدة البيانات وعدم تفعيل PgStorage للـ SQLite
+    if (process.env.DATABASE_URL?.startsWith('file:')) {
+      console.log('PgStorage: Disabled for SQLite database');
+      this.isEnabled = false;
+      return;
+    }
+    
+    if (!process.env.DATABASE_URL?.startsWith('postgresql:')) {
+      console.log('PgStorage: No valid PostgreSQL URL, disabling PgStorage');
+      this.isEnabled = false;
+      return;
+    }
+    
+    this.sql = neon(process.env.DATABASE_URL);
+    this.isEnabled = true;
     console.log('PgStorage: Connected to PostgreSQL database');
   }
 
   async checkTableExists(tableName: string): Promise<boolean> {
+    if (!this.isEnabled || !this.sql) {
+      return false;
+    }
     try {
       const result = await this.sql`
         SELECT EXISTS (

@@ -89,12 +89,12 @@ app.use((req, res, next) => {
   }
 
   // Use PORT from environment for deployment platforms like Railway
-  // Fallback to 5000 for local development
-  const port = process.env.PORT || 5000;
+  // Fallback to 3000 for local development
+  const port = process.env.PORT || 3000;
   server.listen({
     port,
-    host: "0.0.0.0",
-    reusePort: true,
+    host: "127.0.0.1", // استخدام localhost بدلاً من 0.0.0.0
+    reusePort: false,   // تعطيل reusePort للتطوير المحلي
   }, () => {
     log(`serving on port ${port}`);
     
