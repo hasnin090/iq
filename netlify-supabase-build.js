@@ -48,7 +48,20 @@ try {
   fs.writeFileSync(path.join(publicDestDir, '_redirects'), redirectsContent);
   console.log('🔄 Created _redirects file for SPA routing');
 
-  // 4. Create build info file
+  // 4. Ensure API function exists and is properly configured
+  const apiFunction = path.join(functionsDir, 'api.cjs');
+  const apiJsFunction = path.join(functionsDir, 'api.js');
+  
+  if (fs.existsSync(apiFunction)) {
+    console.log('✅ API function found (api.cjs)');
+  } else if (fs.existsSync(apiJsFunction)) {
+    console.log('✅ API function found (api.js)');
+  } else {
+    console.log('⚠️ API function not found - this will cause 404 errors');
+    console.log('📁 Functions directory contents:', fs.readdirSync(functionsDir));
+  }
+
+  // 5. Create build info file
   const buildInfo = {
     buildTime: new Date().toISOString(),
     nodeVersion: process.version,

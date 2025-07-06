@@ -81,15 +81,18 @@ attached_assets/
 # Netlify build files
 netlify-*/
 netlify*.tar.gz
-netlify*.toml
+# Allow netlify.toml configuration file
+!netlify.toml
 
-# Function builds
+# Function builds - but allow our functions directory
 functions/
+!netlify/functions/
 
 # Documentation files (if you want to keep them private)
 COMPREHENSIVE_*.md
 FINAL_*.md
-NETLIFY-*.md
+# Allow API fix documentation
+!NETLIFY_API_FIX_DOCUMENTATION.md
 MENU_*.md
 REFACTORING_*.md
 REMAINING_*.md
