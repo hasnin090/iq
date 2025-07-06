@@ -489,7 +489,7 @@ export default function Settings() {
             <TabsContent value="general" className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <SettingField
-                  settings={settings as Setting[]}
+                  settings={settings}
                   settingKey="company_name"
                   label="اسم الشركة"
                   onSave={handleSaveSetting}
@@ -497,7 +497,7 @@ export default function Settings() {
                 />
                 
                 <SettingField
-                  settings={settings as Setting[]}
+                  settings={settings}
                   settingKey="company_address"
                   label="عنوان الشركة"
                   onSave={handleSaveSetting}
