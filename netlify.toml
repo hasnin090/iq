@@ -15,18 +15,15 @@
 [build.processing]
   skip_processing = false
 
-# Function settings for .cjs files
-[functions]
-  node_bundler = "nft"
-
 # Functions configuration
 [functions]
+  node_bundler = "esbuild"
   external_node_modules = ["express"]
 
 # API routes redirect to Netlify functions (يجب أن يكون أولاً)
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api-simple/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
 # Redirect all other requests to index.html for SPA routing
