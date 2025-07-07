@@ -78,6 +78,24 @@ try {
   // 2. Run Vite build
   console.log('🏗️ Running Vite build...');
   
+  // Check and install PostCSS dependencies if missing
+  console.log('🔧 Checking PostCSS dependencies...');
+  const postcssPath = path.join(__dirname, 'node_modules', 'autoprefixer');
+  if (!fs.existsSync(postcssPath)) {
+    console.log('⚠️ Installing missing PostCSS dependencies...');
+    try {
+      execSync('npm install autoprefixer tailwindcss postcss --save-dev', { 
+        stdio: 'inherit', 
+        cwd: __dirname 
+      });
+      console.log('✅ PostCSS dependencies installed');
+    } catch (error) {
+      console.log('❌ Failed to install PostCSS dependencies');
+    }
+  } else {
+    console.log('✅ PostCSS dependencies found');
+  }
+  
   // Create Netlify-specific vite config if needed
   const netlifyViteConfig = path.join(__dirname, 'vite.config.netlify.ts');
   const originalViteConfig = path.join(__dirname, 'vite.config.ts');
