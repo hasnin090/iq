@@ -1,11 +1,11 @@
 [build]
   publish = "dist/public"
-  command = "npm ci && node netlify-build-compatible.cjs"
+  command = "npm ci && node netlify-build-simple.cjs"
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "22"
-  NPM_VERSION = "9"
+  NODE_VERSION = "20.19.0"
+  NPM_VERSION = "10"
   NODE_ENV = "production"
 
 [context.production.environment]
