@@ -9,19 +9,7 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   plugins: [
     react(),
-    // Remove Replit-specific plugins for production builds
-    // ...(process.env.NODE_ENV !== "production" &&
-    // process.env.REPL_ID !== undefined
-    //   ? [
-    //       await import("@replit/vite-plugin-cartographer").then((m) =>
-    //         m.cartographer(),
-    //       ),
-    //     ]
-    //   : []),
   ],
-  css: {
-    postcss: path.resolve(__dirname, "postcss.config.cjs"),
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
