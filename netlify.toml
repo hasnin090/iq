@@ -4,9 +4,12 @@
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "20.19.0"
+  NODE_VERSION = "20"
   NPM_VERSION = "10"
   NODE_ENV = "production"
+  # Explicitly disable Python to avoid conflicts
+  PYTHON_VERSION = ""
+  DISABLE_PYTHON = "true"
 
 [context.production.environment]
   NODE_ENV = "production"

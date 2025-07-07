@@ -10,12 +10,33 @@ console.log('========================================');
 // Check Node.js version and warn if incompatible
 const nodeVersion = process.version;
 console.log(`🔍 Node.js version: ${nodeVersion}`);
+console.log(`🔍 Platform: ${process.platform}`);
+console.log(`🔍 Architecture: ${process.arch}`);
 
 if (nodeVersion.startsWith('v18.')) {
   console.log('⚠️ Node.js 18 detected - using compatible Vite version');
+} else if (nodeVersion.startsWith('v20.')) {
+  console.log('✅ Node.js 20 detected - optimal for Vite');
 }
 
 try {
+  // 0. Verify Node.js environment
+  console.log('🔧 Verifying Node.js environment...');
+  console.log(`📍 Current working directory: ${__dirname}`);
+  console.log(`📍 Node executable: ${process.execPath}`);
+  
+  // Ensure we're not trying to use Python
+  delete process.env.PYTHON_VERSION;
+  delete process.env.PYTHON_PATH;
+  console.log('🚫 Python environment variables cleared');
+  
+  // Check if package.json exists
+  const packageJsonPath = path.join(__dirname, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
+    throw new Error('package.json not found');
+  }
+  console.log('✅ package.json found');
+  
   // 1. Clean previous builds
   console.log('🧹 Cleaning previous builds...');
   const distDir = path.join(__dirname, 'dist');
