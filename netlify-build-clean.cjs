@@ -25,36 +25,6 @@ try {
   console.log(`📍 Current working directory: ${__dirname}`);
   console.log(`📍 Node executable: ${process.execPath}`);
   
-  // Check PostCSS dependencies
-  console.log('🔍 Checking PostCSS dependencies...');
-  const requiredDeps = ['autoprefixer', 'postcss', 'tailwindcss'];
-  let missingDeps = [];
-  
-  requiredDeps.forEach(dep => {
-    const depPath = path.join(__dirname, 'node_modules', dep);
-    if (fs.existsSync(depPath)) {
-      console.log(`✅ ${dep}: found`);
-    } else {
-      missingDeps.push(dep);
-      console.log(`❌ ${dep}: missing`);
-    }
-  });
-  
-  if (missingDeps.length > 0) {
-    console.log('⚠️ Installing missing PostCSS dependencies...');
-    try {
-      execSync(`npm install ${missingDeps.join(' ')} --save-dev`, { 
-        stdio: 'inherit', 
-        cwd: __dirname 
-      });
-      console.log('✅ PostCSS dependencies installed');
-    } catch (error) {
-      console.log('❌ Failed to install dependencies:', error.message);
-    }
-  } else {
-    console.log('✅ All PostCSS dependencies found');
-  }
-  
   // Ensure we're not trying to use Python
   delete process.env.PYTHON_VERSION;
   delete process.env.PYTHON_PATH;
