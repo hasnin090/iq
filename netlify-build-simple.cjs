@@ -30,6 +30,36 @@ try {
   delete process.env.PYTHON_PATH;
   console.log('🚫 Python environment variables cleared');
   
+  // Check Supabase environment variables
+  console.log('🔍 Checking Supabase environment variables...');
+  const requiredSupabaseVars = [
+    'SUPABASE_DATABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY', 
+    'SUPABASE_ANON_KEY',
+    'SUPABASE_JWT_SECRET',
+    'PUBLIC_SUPABASE_DATABASE_URL',
+    'PUBLIC_SUPABASE_ANON_KEY'
+  ];
+  
+  let missingVars = [];
+  requiredSupabaseVars.forEach(varName => {
+    if (!process.env[varName]) {
+      missingVars.push(varName);
+    } else {
+      console.log(`✅ ${varName}: configured`);
+    }
+  });
+  
+  if (missingVars.length > 0) {
+    console.log('⚠️ Missing Supabase environment variables:');
+    missingVars.forEach(varName => {
+      console.log(`❌ ${varName}: not set`);
+    });
+    console.log('📋 Please set these variables in Netlify Dashboard');
+  } else {
+    console.log('✅ All Supabase environment variables are configured');
+  }
+  
   // Check if package.json exists
   const packageJsonPath = path.join(__dirname, 'package.json');
   if (!fs.existsSync(packageJsonPath)) {
