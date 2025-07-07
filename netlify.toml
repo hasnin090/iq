@@ -1,6 +1,6 @@
 [build]
   publish = "dist/public"
-  command = "npm ci && node netlify-404-build.js"
+  command = "npm ci && node netlify-build-safe.cjs"
   functions = "netlify/functions"
 
 [build.environment]
