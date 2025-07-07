@@ -4,19 +4,17 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('🚀 Netlify Build - Simplified & Reliable');
-console.log('========================================');
-
-// Check Node.js version and warn if incompatible
-const nodeVersion = process.version;
-console.log(`🔍 Node.js version: ${nodeVersion}`);
-
-if (nodeVersion.startsWith('v18.')) {
-  console.log('⚠️ Node.js 18 detected - using compatible Vite version');
-}
+console.log('🚀 Netlify Build - Emergency Fallback');
+console.log('====================================');
 
 try {
-  // 1. Clean previous builds
+  // 1. Environment check
+  console.log('🔍 Environment Info:');
+  console.log(`Node version: ${process.version}`);
+  console.log(`Working directory: ${__dirname}`);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+
+  // 2. Clean previous builds
   console.log('🧹 Cleaning previous builds...');
   const distDir = path.join(__dirname, 'dist');
   if (fs.existsSync(distDir)) {
@@ -24,48 +22,78 @@ try {
     console.log('✅ Previous build cleaned');
   }
 
-  // 2. Run Vite build
-  console.log('🏗️ Running Vite build...');
+  // 3. Force install compatible Vite version for any Node.js
+  console.log('🔧 Installing compatible Vite version...');
+  const nodeVersion = parseInt(process.version.slice(1).split('.')[0]);
   
-  // For Node 18, use legacy Vite build approach
-  if (nodeVersion.startsWith('v18.')) {
-    console.log('🔧 Using Node 18 compatible build approach...');
-    try {
-      execSync('npm install vite@4.5.5 @vitejs/plugin-react@4.3.3 --save-dev --force', { 
-        stdio: 'inherit', 
-        cwd: __dirname 
-      });
-      console.log('✅ Installed Node 18 compatible Vite');
-    } catch (error) {
-      console.log('⚠️ Using existing Vite installation');
-    }
+  let viteVersion = 'vite@^4.5.5'; // Compatible with Node 14+
+  let reactPluginVersion = '@vitejs/plugin-react@^4.0.4';
+  
+  if (nodeVersion >= 18) {
+    viteVersion = 'vite@^5.4.10'; // Better for Node 18+
+    reactPluginVersion = '@vitejs/plugin-react@^4.3.3';
   }
   
-  // Try different approaches to run vite build
+  console.log(`Installing ${viteVersion} for Node ${process.version}`);
+  
+  try {
+    execSync(`npm install ${viteVersion} ${reactPluginVersion} --save-dev --force`, { 
+      stdio: 'inherit', 
+      cwd: __dirname 
+    });
+    console.log('✅ Compatible Vite installed');
+  } catch (installError) {
+    console.log('⚠️ Direct install failed, trying uninstall first...');
+    execSync('npm uninstall vite @vitejs/plugin-react', { stdio: 'pipe', cwd: __dirname });
+    execSync(`npm install ${viteVersion} ${reactPluginVersion} --save-dev --force`, { 
+      stdio: 'inherit', 
+      cwd: __dirname 
+    });
+    console.log('✅ Compatible Vite installed after cleanup');
+  }
+
+  // 4. Verify Vite installation
+  console.log('✅ Verifying Vite installation...');
+  const viteBinPath = path.join(__dirname, 'node_modules', '.bin', 'vite');
+  const viteModulePath = path.join(__dirname, 'node_modules', 'vite');
+  
+  console.log(`Vite binary exists: ${fs.existsSync(viteBinPath)}`);
+  console.log(`Vite module exists: ${fs.existsSync(viteModulePath)}`);
+
+  // 5. Build with multiple fallback methods
+  console.log('🏗️ Running Vite build...');
+  
   const buildCommands = [
     'npm run build',
-    'npx vite@4.5.5 build',
-    './node_modules/.bin/vite build',
-    'node ./node_modules/vite/bin/vite.js build'
+    'npx vite build',
+    `${viteBinPath} build`,
+    `node ${path.join(__dirname, 'node_modules', 'vite', 'bin', 'vite.js')} build`
   ];
 
   let buildSuccess = false;
-  for (const buildCommand of buildCommands) {
-    console.log(`📝 Trying: ${buildCommand}`);
+  
+  for (let i = 0; i < buildCommands.length; i++) {
+    const command = buildCommands[i];
+    console.log(`📝 Trying (${i + 1}/${buildCommands.length}): ${command}`);
+    
     try {
-      execSync(buildCommand, { 
+      execSync(command, { 
         stdio: 'inherit', 
         cwd: __dirname,
         env: {
           ...process.env,
-          NODE_ENV: 'production'
+          NODE_ENV: 'production',
+          FORCE_COLOR: '0'
         }
       });
-      console.log('✅ Vite build completed successfully');
+      console.log('✅ Build completed successfully');
       buildSuccess = true;
       break;
     } catch (error) {
-      console.log(`❌ Command failed: ${buildCommand}`);
+      console.log(`❌ Command failed: ${command}`);
+      if (i === buildCommands.length - 1) {
+        console.log('Error details:', error.message);
+      }
     }
   }
 
@@ -73,7 +101,7 @@ try {
     throw new Error('All build commands failed');
   }
 
-  // 3. Verify build output
+  // 6. Verify build output
   const publicDir = path.join(__dirname, 'dist', 'public');
   if (!fs.existsSync(publicDir)) {
     throw new Error('Build output directory not found');
@@ -86,35 +114,27 @@ try {
 
   console.log('✅ Build verification passed');
 
-  // 4. Read built index.html
+  // 7. Post-process files (same as netlify-build-simple.cjs)
   let indexContent = fs.readFileSync(indexPath, 'utf8');
   console.log('📄 Built index.html read successfully');
 
-  // 5. Find main JS file
+  // 8. Find main JS and CSS files
   const assetsDir = path.join(publicDir, 'assets');
   let mainJsFile = null;
+  let mainCssFile = null;
   
   if (fs.existsSync(assetsDir)) {
     const assetFiles = fs.readdirSync(assetsDir);
     mainJsFile = assetFiles.find(file => file.startsWith('index-') && file.endsWith('.js'));
+    mainCssFile = assetFiles.find(file => file.startsWith('index-') && file.endsWith('.css'));
     console.log(`📦 Main JS file: ${mainJsFile || 'not found'}`);
+    console.log(`🎨 Main CSS file: ${mainCssFile || 'not found'}`);
   }
 
-  // 6. Ensure script tag exists
-  if (mainJsFile && !indexContent.includes(`src="/assets/${mainJsFile}"`)) {
-    console.log('⚠️ Adding missing script tag...');
-    const scriptTag = `    <script type="module" crossorigin src="/assets/${mainJsFile}"></script>`;
-    indexContent = indexContent.replace('</body>', `${scriptTag}\n  </body>`);
-    console.log('✅ Script tag added');
-  } else if (mainJsFile) {
-    console.log('✅ Script tag already exists');
-  }
-
-  // 7. Create app.html (main application)
+  // 9. Create app.html (main application)
   console.log('📱 Creating app.html...');
   const appHtmlPath = path.join(publicDir, 'app.html');
   
-  // Add meta tags for better SEO and functionality
   const enhancedAppContent = indexContent
     .replace('<title>نظام المحاسبة</title>', '<title>نظام المحاسبة العربي - التطبيق</title>')
     .replace('</head>', `    <meta name="description" content="نظام محاسبة عربي شامل للشركات والمؤسسات">
@@ -125,7 +145,7 @@ try {
   fs.writeFileSync(appHtmlPath, enhancedAppContent);
   console.log('✅ app.html created');
 
-  // 8. Create welcome page as index.html
+  // 10. Create welcome page as index.html
   console.log('🎨 Creating welcome page...');
   const welcomeContent = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -201,7 +221,7 @@ try {
   fs.writeFileSync(indexPath, welcomeContent);
   console.log('✅ Welcome page created');
 
-  // 9. Create/update _redirects
+  // 11. Create/update _redirects
   console.log('🔄 Setting up redirects...');
   const redirectsContent = `# API routes
 /api/*  /.netlify/functions/api/:splat  200
@@ -226,7 +246,7 @@ try {
   fs.writeFileSync(path.join(publicDir, '_redirects'), redirectsContent);
   console.log('✅ Redirects configured');
 
-  // 10. Create manifest.json for PWA
+  // 12. Create manifest.json for PWA
   console.log('📱 Creating PWA manifest...');
   const manifest = {
     name: "نظام المحاسبة العربي",
@@ -243,7 +263,7 @@ try {
   fs.writeFileSync(path.join(publicDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
   console.log('✅ PWA manifest created');
 
-  // 11. Final verification
+  // 13. Final verification
   console.log('🔍 Final verification...');
   
   const appContent = fs.readFileSync(appHtmlPath, 'utf8');
@@ -260,6 +280,7 @@ try {
   console.log('\n🎉 Build completed successfully!');
   console.log('📁 Output: dist/public');
   console.log('🌐 Ready for Netlify deployment');
+  console.log(`📊 Node.js version used: ${process.version}`);
 
 } catch (error) {
   console.error('\n❌ Build failed:', error.message);
