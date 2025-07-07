@@ -1,10 +1,10 @@
 [build]
   publish = "dist/public"
-  command = "npm ci && node netlify-build-robust.cjs"
+  command = "npm ci && node netlify-build-compatible.cjs"
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "22"
   NPM_VERSION = "9"
   NODE_ENV = "production"
 
