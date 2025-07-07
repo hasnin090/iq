@@ -18,7 +18,20 @@ try {
 
   // 2. Run Vite build
   console.log('🏗️ Running Vite build...');
-  execSync('npm run build', { 
+  
+  // Try different approaches to run vite build
+  let buildCommand;
+  const vitePath = path.join(__dirname, 'node_modules', '.bin', 'vite');
+  
+  if (fs.existsSync(vitePath)) {
+    buildCommand = `${vitePath} build`;
+  } else {
+    // Fallback to npx
+    buildCommand = 'npx vite build';
+  }
+  
+  console.log(`📝 Using build command: ${buildCommand}`);
+  execSync(buildCommand, { 
     stdio: 'inherit', 
     cwd: __dirname,
     env: {
