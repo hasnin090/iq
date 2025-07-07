@@ -10,6 +10,8 @@
   # Explicitly disable Python to avoid conflicts
   PYTHON_VERSION = ""
   DISABLE_PYTHON = "true"
+  # Use Netlify-specific Vite config
+  VITE_CONFIG_FILE = "vite.config.netlify.ts"
   
   # متغيرات Supabase - يجب إعدادها في Netlify Dashboard
   # Supabase variables - must be set in Netlify Dashboard

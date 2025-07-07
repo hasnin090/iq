@@ -9,15 +9,6 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   plugins: [
     react(),
-    // Remove Replit-specific plugins for production builds
-    // ...(process.env.NODE_ENV !== "production" &&
-    // process.env.REPL_ID !== undefined
-    //   ? [
-    //       await import("@replit/vite-plugin-cartographer").then((m) =>
-    //         m.cartographer(),
-    //       ),
-    //     ]
-    //   : []),
   ],
   resolve: {
     alias: {
@@ -39,7 +30,7 @@ export default defineConfig({
         }
       }
     },
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemap for production to reduce size
     minify: 'terser',
     terserOptions: {
       compress: {

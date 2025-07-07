@@ -78,6 +78,14 @@ try {
   // 2. Run Vite build
   console.log('🏗️ Running Vite build...');
   
+  // Create Netlify-specific vite config if needed
+  const netlifyViteConfig = path.join(__dirname, 'vite.config.netlify.ts');
+  const originalViteConfig = path.join(__dirname, 'vite.config.ts');
+  
+  if (fs.existsSync(netlifyViteConfig)) {
+    console.log('🔧 Using Netlify-specific Vite configuration');
+  }
+  
   // For Node 18, use legacy Vite build approach
   if (nodeVersion.startsWith('v18.')) {
     console.log('🔧 Using Node 18 compatible build approach...');
@@ -94,11 +102,14 @@ try {
   
   // Try different approaches to run vite build
   const buildCommands = [
+    // Use Netlify-specific config first
+    fs.existsSync(netlifyViteConfig) ? `npx vite build --config vite.config.netlify.ts` : null,
     'npm run build',
+    'npx vite build',
     'npx vite@4.5.5 build',
     './node_modules/.bin/vite build',
     'node ./node_modules/vite/bin/vite.js build'
-  ];
+  ].filter(Boolean); // Remove null entries
 
   let buildSuccess = false;
   for (const buildCommand of buildCommands) {
