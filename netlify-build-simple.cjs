@@ -2,7 +2,39 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+con  // Check and install PostCSS dependencies if missing
+  console.log('🔧 Checking PostCSS dependencies...');
+  const postcssPath = path.join(__dirname, 'node_modules', 'autoprefixer');
+  if (!fs.existsSync(postcssPath)) {
+    console.log('⚠️ Installing missing PostCSS dependencies...');
+    try {
+      execSync('npm install postcss autoprefixer tailwindcss --save-dev', { 
+        stdio: 'inherit', 
+        cwd: __dirname 
+      });
+      console.log('✅ PostCSS dependencies installed');
+    } catch (error) {
+      console.log('⚠️ Using existing PostCSS installation');
+    }
+  } else {
+    console.log('✅ PostCSS dependencies found');
+  }
+  
+  // Ensure PostCSS config exists and is correct
+  const postcssConfigPath = path.join(__dirname, 'postcss.config.cjs');
+  if (!fs.existsSync(postcssConfigPath)) {
+    console.log('⚠️ Creating PostCSS config...');
+    const postcssConfig = `module.exports = {
+  plugins: [
+    require('tailwindcss')('./shared/tailwind.config.ts'),
+    require('autoprefixer'),
+  ],
+};`;
+    fs.writeFileSync(postcssConfigPath, postcssConfig);
+    console.log('✅ PostCSS config created');
+  } else {
+    console.log('✅ PostCSS config found');
+  } require('child_process');
 
 console.log('🚀 Netlify Build - Simplified & Reliable');
 console.log('========================================');
