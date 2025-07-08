@@ -25,64 +25,10 @@ try {
   console.log(`📍 Current working directory: ${__dirname}`);
   console.log(`📍 Node executable: ${process.execPath}`);
   
-  // Check PostCSS dependencies
-  console.log('🔍 Checking PostCSS dependencies...');
-  const requiredDeps = ['autoprefixer', 'postcss', 'tailwindcss'];
-  let missingDeps = [];
-  
-  requiredDeps.forEach(dep => {
-    const depPath = path.join(__dirname, 'node_modules', dep);
-    if (fs.existsSync(depPath)) {
-      console.log(`✅ ${dep}: found`);
-    } else {
-      missingDeps.push(dep);
-      console.log(`❌ ${dep}: missing`);
-    }
-  });
-  
-  if (missingDeps.length > 0) {
-    console.log('⚠️ Installing missing PostCSS dependencies...');
-    try {
-      // تثبيت التبعيات كـ production dependencies لضمان التوفر في Netlify
-      execSync(`npm install ${missingDeps.join(' ')} --save`, { 
-        stdio: 'inherit', 
-        cwd: __dirname 
-      });
-      console.log('✅ PostCSS dependencies installed as production dependencies');
-    } catch (error) {
-      console.error('❌ Failed to install PostCSS dependencies:', error);
-      process.exit(1);
-    }
-  } else {
-    console.log('✅ All PostCSS dependencies found');
-  }
-
-  // التحقق من وجود ملف postcss.config.cjs
-  console.log('🔍 Checking PostCSS configuration...');
-  const postCssConfigPath = path.join(__dirname, 'postcss.config.cjs');
-  if (!fs.existsSync(postCssConfigPath)) {
-    console.log('⚠️ Creating postcss.config.cjs...');
-    const postCssConfig = `module.exports = {
-  plugins: [
-    require('tailwindcss')('./shared/tailwind.config.ts'),
-    require('autoprefixer'),
-  ],
-};\n`;
-    fs.writeFileSync(postCssConfigPath, postCssConfig);
-    console.log('✅ postcss.config.cjs created');
-  } else {
-    console.log('✅ postcss.config.cjs exists');
-  }
-
-  // التحقق من وجود ملف vite.config.netlify.ts
-  console.log('🔍 Checking Vite configuration...');
-  const viteConfigPath = path.join(__dirname, 'vite.config.netlify.ts');
-  if (!fs.existsSync(viteConfigPath)) {
-    console.error('❌ vite.config.netlify.ts not found');
-    process.exit(1);
-  } else {
-    console.log('✅ vite.config.netlify.ts exists');
-  }
+  // Ensure we're not trying to use Python
+  delete process.env.PYTHON_VERSION;
+  delete process.env.PYTHON_PATH;
+  console.log('🚫 Python environment variables cleared');
   
   // Check Supabase environment variables
   console.log('🔍 Checking Supabase environment variables...');

@@ -111,7 +111,10 @@
     "ws": "^8.18.0",
     "yet-another-react-lightbox": "^3.22.0",
     "zod": "^3.23.8",
-    "zod-validation-error": "^3.4.0"
+    "zod-validation-error": "^3.4.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@netlify/functions": "^4.1.9",
@@ -125,12 +128,9 @@
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",
-    "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.0",
-    "postcss": "^8.5.6",
     "postcss-cli": "^11.0.1",
-    "tailwindcss": "^3.4.17",
     "terser": "^5.43.1",
     "tsx": "^4.20.3",
     "typescript": "^5.6.3"
