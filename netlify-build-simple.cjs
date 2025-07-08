@@ -49,16 +49,37 @@ try {
       });
       console.log('✅ PostCSS dependencies installed');
     } catch (error) {
-      console.log('❌ Failed to install dependencies:', error.message);
+      console.error('❌ Failed to install PostCSS dependencies:', error);
+      process.exit(1);
     }
-  } else {
-    console.log('✅ All PostCSS dependencies found');
   }
-  
-  // Ensure we're not trying to use Python
-  delete process.env.PYTHON_VERSION;
-  delete process.env.PYTHON_PATH;
-  console.log('🚫 Python environment variables cleared');
+
+  // التحقق من وجود ملف postcss.config.cjs
+  console.log('🔍 Checking PostCSS configuration...');
+  const postCssConfigPath = path.join(__dirname, 'postcss.config.cjs');
+  if (!fs.existsSync(postCssConfigPath)) {
+    console.log('⚠️ Creating postcss.config.cjs...');
+    const postCssConfig = `module.exports = {
+  plugins: [
+    require('tailwindcss')('./shared/tailwind.config.ts'),
+    require('autoprefixer'),
+  ],
+};\n`;
+    fs.writeFileSync(postCssConfigPath, postCssConfig);
+    console.log('✅ postcss.config.cjs created');
+  } else {
+    console.log('✅ postcss.config.cjs exists');
+  }
+
+  // التحقق من وجود ملف vite.config.netlify.ts
+  console.log('🔍 Checking Vite configuration...');
+  const viteConfigPath = path.join(__dirname, 'vite.config.netlify.ts');
+  if (!fs.existsSync(viteConfigPath)) {
+    console.error('❌ vite.config.netlify.ts not found');
+    process.exit(1);
+  } else {
+    console.log('✅ vite.config.netlify.ts exists');
+  }
   
   // Check Supabase environment variables
   console.log('🔍 Checking Supabase environment variables...');
