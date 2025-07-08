@@ -27,7 +27,7 @@ try {
   
   // Check PostCSS dependencies
   console.log('🔍 Checking PostCSS dependencies...');
-  const requiredDeps = ['autoprefixer', 'postcss', 'tailwindcss'];
+  const requiredDeps = ['autoprefixer', 'postcss', 'tailwindcss', '@tailwindcss/typography'];
   let missingDeps = [];
   
   requiredDeps.forEach(dep => {
