@@ -10,21 +10,30 @@ console.log(`Database mode: ${process.env.USE_SQLITE === 'true' ? 'SQLite' : 'Po
 
 let db: any;
 
-// التحقق من وضع قاعدة البيانات
-if (process.env.USE_SQLITE === 'true' || process.env.APP_MODE === 'development') {
-  // استخدام SQLite للتطوير المحلي
+// التحقق من وضع قاعدة البيانات - أولوية لـ Supabase
+if (process.env.DATABASE_URL?.startsWith('postgresql:') && process.env.USE_SQLITE !== 'true') {
+  // استخدام PostgreSQL/Supabase كأولوية
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    db = drizzleNeon(sql, { schema });
+    console.log('✅ Using PostgreSQL/Supabase database');
+    console.log('🔗 Database URL:', process.env.DATABASE_URL.substring(0, 50) + '...');
+  } catch (error) {
+    console.error('❌ Failed to connect to PostgreSQL/Supabase:', (error as Error).message);
+    console.log('🔄 Falling back to SQLite...');
+    const sqlite = new Database('./database.db');
+    db = drizzle(sqlite, { schema });
+    console.log('✅ Using fallback SQLite database');
+  }
+} else if (process.env.USE_SQLITE === 'true') {
+  // استخدام SQLite عند التفعيل الصريح فقط
   const sqliteUrl = process.env.SQLITE_DATABASE_PATH || './database.db';
   const sqlite = new Database(sqliteUrl);
   db = drizzle(sqlite, { schema });
-  console.log('✅ Using SQLite database for local development');
-} else if (process.env.DATABASE_URL?.startsWith('postgresql:')) {
-  // استخدام PostgreSQL/Neon للإنتاج
-  const sql = neon(process.env.DATABASE_URL);
-  db = drizzleNeon(sql, { schema });
-  console.log('✅ Using PostgreSQL/Neon database');
+  console.log('✅ Using SQLite database (forced by USE_SQLITE=true)');
 } else {
   // في حالة عدم وجود إعداد صحيح، استخدم SQLite كافتراضي
-  console.warn('⚠️ Database configuration not found, using fallback SQLite');
+  console.warn('⚠️ No valid database configuration found, using fallback SQLite');
   const sqlite = new Database('./database.db');
   db = drizzle(sqlite, { schema });
   console.log('✅ Using fallback SQLite database');
