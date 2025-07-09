@@ -13,7 +13,7 @@ let db: any;
 // التحقق من وضع قاعدة البيانات
 if (process.env.USE_SQLITE === 'true' || process.env.APP_MODE === 'development') {
   // استخدام SQLite للتطوير المحلي
-  const sqliteUrl = process.env.SQLITE_DATABASE_PATH || './local.db';
+  const sqliteUrl = process.env.SQLITE_DATABASE_PATH || './database.db';
   const sqlite = new Database(sqliteUrl);
   db = drizzle(sqlite, { schema });
   console.log('✅ Using SQLite database for local development');
@@ -25,7 +25,7 @@ if (process.env.USE_SQLITE === 'true' || process.env.APP_MODE === 'development')
 } else {
   // في حالة عدم وجود إعداد صحيح، استخدم SQLite كافتراضي
   console.warn('⚠️ Database configuration not found, using fallback SQLite');
-  const sqlite = new Database('./local.db');
+  const sqlite = new Database('./database.db');
   db = drizzle(sqlite, { schema });
   console.log('✅ Using fallback SQLite database');
 }

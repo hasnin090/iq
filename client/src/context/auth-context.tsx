@@ -124,7 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('Login error:', error);
       
       // في حالة فشل الاتصال، نسمح بدخول demo
-      if (username === 'admin' && password === 'admin') {
+      if (username === 'admin' && password === 'admin123') {
         const demoUser: User = {
           id: 1,
           username: 'admin',
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       toast({
         title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم. للوضع التجريبي: admin/admin",
+        description: "تعذر الاتصال بالخادم. للوضع التجريبي: admin/admin123",
         variant: "destructive",
       });
       return null;

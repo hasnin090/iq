@@ -225,9 +225,16 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.usersData.values()).find(
-      (user) => user.username === username
-    );
+    try {
+      const result = await db.select().from(users).where(eq(users.username, username));
+      return result[0] || undefined;
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      // Fallback to memory storage
+      return Array.from(this.usersData.values()).find(
+        (user) => user.username === username
+      );
+    }
   }
   
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -940,4 +947,4 @@ export class MemStorage implements IStorage {
 
 // تحديد فئة التخزين النشطة
 // يمكن تغيير هذا لاستخدام MemStorage للتطوير المحلي أو PgStorage للإنتاج
-export const storage: IStorage = pgStorage;
+export const storage: IStorage = process.env.DATABASE_URL?.startsWith('postgresql:') ? pgStorage : new MemStorage();
