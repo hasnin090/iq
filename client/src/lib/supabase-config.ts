@@ -1,8 +1,8 @@
 // Supabase configuration for Arabic Accounting System
 export const supabaseConfig = {
-  // Supabase URL and anon key
-  url: process.env.VITE_SUPABASE_URL || 'https://yieyqusnciiithjtlgod.supabase.co',
-  anonKey: process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZXlxdXNuY2lpaXRoamRsZ29kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYwNjE5NDQsImV4cCI6MjA1MTYzNzk0NH0.PWwLKV-TaFAA2ZpOKHGjJp3yEhUH4B3FJMzDL7gB1Rk',
+  // Supabase URL and anon key - مُحدث مع المفاتيح الصحيحة
+  url: process.env.VITE_SUPABASE_URL || 'https://jcoekbaahgjympmnuilr.supabase.co',
+  anonKey: process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjb2VrYmFhaGdqeW1wbW51aWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTA1MDcsImV4cCI6MjA2NzYyNjUwN30.CGwebOhh_c4buoX_Uh111zzo8H3p4Ak_p3v3V0LcjRA',
   
   // Database configuration
   auth: {
