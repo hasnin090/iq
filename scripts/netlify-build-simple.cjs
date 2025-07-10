@@ -7,6 +7,10 @@ const { execSync } = require('child_process');
 console.log('🚀 Netlify Build - Simplified & Reliable');
 console.log('========================================');
 
+// تحديد مجلد الجذر (المجلد الأصل للمشروع)
+const rootDir = path.join(__dirname, '..');
+console.log(`📍 Project root: ${rootDir}`);
+
 // Check Node.js version and warn if incompatible
 const nodeVersion = process.version;
 console.log(`🔍 Node.js version: ${nodeVersion}`);
@@ -22,7 +26,7 @@ if (nodeVersion.startsWith('v18.')) {
 try {
   // 0. Verify Node.js environment
   console.log('🔧 Verifying Node.js environment...');
-  console.log(`📍 Current working directory: ${__dirname}`);
+  console.log(`📍 Current working directory: ${rootDir}`);
   console.log(`📍 Node executable: ${process.execPath}`);
   
   // Check PostCSS dependencies
@@ -31,7 +35,7 @@ try {
   let missingDeps = [];
   
   requiredDeps.forEach(dep => {
-    const depPath = path.join(__dirname, 'node_modules', dep);
+    const depPath = path.join(rootDir, 'node_modules', dep);
     if (fs.existsSync(depPath)) {
       console.log(`✅ ${dep}: found`);
     } else {
@@ -46,7 +50,7 @@ try {
       // تثبيت التبعيات كـ production dependencies لضمان التوفر في Netlify
       execSync(`npm install ${missingDeps.join(' ')} --save`, { 
         stdio: 'inherit', 
-        cwd: __dirname 
+        cwd: rootDir 
       });
       console.log('✅ PostCSS dependencies installed as production dependencies');
     } catch (error) {
@@ -59,7 +63,7 @@ try {
 
   // التحقق من وجود ملف postcss.config.cjs
   console.log('🔍 Checking PostCSS configuration...');
-  const postCssConfigPath = path.join(__dirname, 'postcss.config.cjs');
+  const postCssConfigPath = path.join(rootDir, 'postcss.config.cjs');
   if (!fs.existsSync(postCssConfigPath)) {
     console.log('⚠️ Creating postcss.config.cjs...');
     const postCssConfig = `module.exports = {
@@ -76,7 +80,7 @@ try {
 
   // التحقق من وجود ملف vite.config.netlify.ts
   console.log('🔍 Checking Vite configuration...');
-  const viteConfigPath = path.join(__dirname, 'vite.config.netlify.ts');
+  const viteConfigPath = path.join(rootDir, 'vite.config.netlify.ts');
   if (!fs.existsSync(viteConfigPath)) {
     console.error('❌ vite.config.netlify.ts not found');
     process.exit(1);
@@ -115,7 +119,7 @@ try {
   }
   
   // Check if package.json exists
-  const packageJsonPath = path.join(__dirname, 'package.json');
+  const packageJsonPath = path.join(rootDir, 'package.json');
   if (!fs.existsSync(packageJsonPath)) {
     throw new Error('package.json not found');
   }
@@ -123,7 +127,7 @@ try {
   
   // 1. Clean previous builds
   console.log('🧹 Cleaning previous builds...');
-  const distDir = path.join(__dirname, 'dist');
+  const distDir = path.join(rootDir, 'dist');
   if (fs.existsSync(distDir)) {
     fs.rmSync(distDir, { recursive: true, force: true });
     console.log('✅ Previous build cleaned');
@@ -133,7 +137,7 @@ try {
   console.log('🏗️ Running Vite build...');
   
   // Check for Netlify-specific config
-  const netlifyViteConfig = path.join(__dirname, 'vite.config.netlify.ts');
+  const netlifyViteConfig = path.join(rootDir, 'vite.config.netlify.ts');
   if (fs.existsSync(netlifyViteConfig)) {
     console.log('🔧 Using Netlify-specific Vite configuration');
   }
@@ -144,7 +148,7 @@ try {
     try {
       execSync('npm install vite@4.5.5 @vitejs/plugin-react@4.3.3 --save-dev --force', { 
         stdio: 'inherit', 
-        cwd: __dirname 
+        cwd: rootDir 
       });
       console.log('✅ Installed Node 18 compatible Vite');
     } catch (error) {
@@ -169,7 +173,7 @@ try {
     try {
       execSync(buildCommand, { 
         stdio: 'inherit', 
-        cwd: __dirname,
+        cwd: rootDir,
         env: {
           ...process.env,
           NODE_ENV: 'production'
@@ -188,7 +192,7 @@ try {
   }
 
   // 3. Verify build output
-  const publicDir = path.join(__dirname, 'dist', 'public');
+  const publicDir = path.join(rootDir, 'dist', 'public');
   if (!fs.existsSync(publicDir)) {
     throw new Error('Build output directory not found');
   }
