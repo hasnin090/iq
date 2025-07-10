@@ -18,7 +18,6 @@ import LedgerSimple from "@/pages/ledger-simple";
 import Receivables from "@/pages/receivables";
 import DatabaseManagement from "@/pages/database-management";
 import HybridStorage from "@/pages/hybrid-storage";
-import SupabaseStatus from "@/pages/supabase-status";
 import FileMigration from "@/pages/file-migration";
 import DeferredPayments from './pages/deferred-payments';
 import WhatsAppIntegration from './pages/whatsapp-integration';
@@ -140,9 +139,6 @@ function AppRoutes() {
               </Route>
               <Route path="/hybrid-storage">
                 {user?.role === 'admin' ? <HybridStorage /> : <NotFound />}
-              </Route>
-              <Route path="/supabase-status">
-                {user?.role === 'admin' ? <SupabaseStatus /> : <NotFound />}
               </Route>
               <Route path="/file-migration">
                 {user?.role === 'admin' ? <FileMigration /> : <NotFound />}
