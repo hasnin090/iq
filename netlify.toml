@@ -1,7 +1,6 @@
 [build]
   publish = "dist/public"
   command = "npm ci && node scripts/netlify-build-simple.cjs"
-  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -14,8 +13,6 @@
   # ✅ هذه القيم تُقرأ الآن من لوحة Netlify فقط:
   # VITE_SUPABASE_URL ← موجودة في Dashboard
   # VITE_SUPABASE_ANON_KEY ← موجودة في Dashboard
-  # VITE_API_BASE_URL ← موجودة في Dashboard
-  # VITE_APP_ENV ← موجودة في Dashboard
 
 [context.production.environment]
   NODE_ENV = "production"
@@ -25,24 +22,74 @@
   NODE_ENV = "preview"
   VITE_APP_ENV = "preview"
 
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["express", "cors", "helmet"]
-
-# التوجيهات
+# توجيهات SPA - جميع المسارات تذهب إلى التطبيق
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  from = "/app"
+  to = "/app.html"
   status = 200
 
+[[redirects]]
+  from = "/app/*"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard/*"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/transactions"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/transactions/*"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/customers"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/customers/*"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/reports"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/reports/*"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/settings"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/settings/*"
+  to = "/app.html"
+  status = 200
+
+# الصفحة الرئيسية للترحيب
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# ... باقي التوجيهات كما هي بدون تغيير ...
-
-# رؤوس الأمان والـ cache والـ PWA
+# رؤوس الأمان والأداء
 [[headers]]
   for = "/*"
   [headers.values]
