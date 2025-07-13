@@ -31,11 +31,12 @@ const demoUsers = [
 
 // Netlify Functions API handler (JavaScript version)
 const handler = async (event, context) => {
-  // Handle CORS
+  // Handle CORS with proper headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
     'Content-Type': 'application/json',
   };
 
@@ -123,6 +124,8 @@ async function handleLogin(event, headers) {
   try {
     const { username, password } = JSON.parse(event.body);
 
+    console.log('Login attempt:', { username, password: '***' }); // Log for debugging
+
     if (!username || !password) {
       return {
         statusCode: 400,
@@ -138,6 +141,8 @@ async function handleLogin(event, headers) {
       // Remove password from response
       const { password: _, ...userResponse } = user;
       
+      console.log('User found:', userResponse); // Log successful login
+      
       return {
         statusCode: 200,
         headers,
@@ -145,19 +150,20 @@ async function handleLogin(event, headers) {
       };
     }
 
-    // If no demo user found, check if we should try database connection
-    // For now, return authentication error
+    console.log('Invalid credentials for user:', username); // Log failed login
+    
+    // If no demo user found, return authentication error
     return {
       statusCode: 401,
       headers,
       body: JSON.stringify({ 
         error: 'اسم المستخدم أو كلمة المرور غير صحيحة',
-        hint: 'للتجربة استخدم: admin/admin123 أو manager/manager123'
+        message: 'للتجربة استخدم: admin/admin123 أو manager/manager123 أو user/user123'
       }),
     };
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login parsing error:', error);
     return {
       statusCode: 400,
       headers,

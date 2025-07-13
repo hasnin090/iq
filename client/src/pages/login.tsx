@@ -168,14 +168,22 @@ export default function LoginPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-4 h-4 text-blue-600" />
-                  <span className="font-medium text-blue-900">حساب تجريبي</span>
+                  <span className="font-medium text-blue-900">حسابات تجريبية</span>
                 </div>
-                <p className="text-sm text-blue-700 mb-2">
+                <p className="text-sm text-blue-700 mb-3">
                   للتجربة والاطلاع على النظام:
                 </p>
-                <div className="text-xs text-blue-600 font-mono bg-white/50 p-2 rounded">
-                  اسم المستخدم: admin<br />
-                  كلمة المرور: admin123
+                
+                <div className="space-y-2">
+                  <div className="text-xs text-blue-600 font-mono bg-white/70 p-2 rounded">
+                    <strong>المدير:</strong> admin / admin123
+                  </div>
+                  <div className="text-xs text-blue-600 font-mono bg-white/70 p-2 rounded">
+                    <strong>مدير المشاريع:</strong> manager / manager123
+                  </div>
+                  <div className="text-xs text-blue-600 font-mono bg-white/70 p-2 rounded">
+                    <strong>مستخدم عادي:</strong> user / user123
+                  </div>
                 </div>
               </div>
 

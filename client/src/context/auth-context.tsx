@@ -114,6 +114,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     
     try {
+      console.log('Attempting login for:', username); // Debug log
+      
       // محاولة تسجيل الدخول عبر API
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -124,8 +126,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify({ username, password }),
       });
       
+      console.log('Login response status:', response.status); // Debug log
+      
       if (response.ok) {
         const userData = await response.json();
+        console.log('Login successful:', userData); // Debug log
+        
         setUser(userData);
         localStorage.setItem('auth_user', JSON.stringify(userData));
         
@@ -140,42 +146,69 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return userData;
       } else {
         const errorData = await response.json();
+        console.log('Login failed:', errorData); // Debug log
+        
         toast({
           title: "خطأ في تسجيل الدخول",
-          description: errorData.message || "اسم المستخدم أو كلمة المرور غير صحيحة",
+          description: errorData.message || errorData.error || "اسم المستخدم أو كلمة المرور غير صحيحة",
           variant: "destructive",
         });
         return null;
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login network error:', error);
       
-      // في حالة فشل الاتصال، نسمح بدخول demo
-      if (username === 'admin' && password === 'admin123') {
-        const demoUser: User = {
+      // في حالة فشل الاتصال، نسمح بدخول demo المحلي
+      const demoUsers = [
+        {
           id: 1,
           username: 'admin',
+          password: 'admin123',
           name: 'المدير العام',
           email: 'admin@example.com',
           role: 'admin',
           permissions: ['manage_all']
-        };
+        },
+        {
+          id: 2,
+          username: 'manager',
+          password: 'manager123',
+          name: 'مدير المشاريع',
+          email: 'manager@example.com',
+          role: 'manager',
+          permissions: ['view_reports', 'manage_projects']
+        },
+        {
+          id: 3,
+          username: 'user',
+          password: 'user123',
+          name: 'المستخدم العادي',
+          email: 'user@example.com',
+          role: 'user',
+          permissions: ['view_basic']
+        }
+      ];
+      
+      const demoUser = demoUsers.find(u => u.username === username && u.password === password);
+      
+      if (demoUser) {
+        const { password: _, ...userResponse } = demoUser;
         
-        setUser(demoUser);
-        localStorage.setItem('auth_user', JSON.stringify(demoUser));
+        setUser(userResponse);
+        localStorage.setItem('auth_user', JSON.stringify(userResponse));
         localStorage.setItem('auth_token', 'demo_' + Date.now());
         
         toast({
-          title: "تم تسجيل الدخول (وضع تجريبي)",
-          description: `مرحباً ${demoUser.name}`,
+          title: "تم تسجيل الدخول (وضع محلي)",
+          description: `مرحباً ${userResponse.name}`,
         });
         
-        return demoUser;
+        return userResponse;
       }
       
       toast({
         title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم. للوضع التجريبي: admin/admin123",
+        description: "تعذر الاتصال بالخادم. المستخدمون المتاحون: admin/admin123, manager/manager123, user/user123",
         variant: "destructive",
       });
       return null;
