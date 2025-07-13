@@ -64,7 +64,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
         
-        // للبيئة السحابية - عدم محاولة الاتصال بالخادم في البداية
+        // للبيئة السحابية - عدم محاولة الاتصال بالخادم في البداية إلا إذا كان هناك token
+        const authToken = localStorage.getItem('auth_token');
+        if (authToken) {
+          try {
+            const response = await fetch('/api/auth/check', {
+              headers: {
+                'Authorization': `Bearer ${authToken}`
+              },
+              credentials: 'include',
+            });
+            
+            if (response.ok) {
+              const userData = await response.json();
+              if (isMounted) {
+                setUser(userData);
+              }
+            } else {
+              localStorage.removeItem('auth_token');
+            }
+          } catch (error) {
+            console.log('Auth check failed, continuing with offline mode');
+            localStorage.removeItem('auth_token');
+          }
+        }
+        
         if (isMounted) {
           setIsLoading(false);
         }
@@ -105,6 +129,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(userData);
         localStorage.setItem('auth_user', JSON.stringify(userData));
         
+        // Store a simple auth token for session management
+        localStorage.setItem('auth_token', 'demo_' + Date.now());
+        
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: `مرحباً ${userData.name}`,
@@ -136,6 +163,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         setUser(demoUser);
         localStorage.setItem('auth_user', JSON.stringify(demoUser));
+        localStorage.setItem('auth_token', 'demo_' + Date.now());
         
         toast({
           title: "تم تسجيل الدخول (وضع تجريبي)",
@@ -176,6 +204,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('auth_token');
     
     // محاولة تسجيل الخروج من الخادم
     fetch('/api/auth/logout', {

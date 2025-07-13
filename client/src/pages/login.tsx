@@ -175,7 +175,7 @@ export default function LoginPage() {
                 </p>
                 <div className="text-xs text-blue-600 font-mono bg-white/50 p-2 rounded">
                   اسم المستخدم: admin<br />
-                  كلمة المرور: admin
+                  كلمة المرور: admin123
                 </div>
               </div>
 

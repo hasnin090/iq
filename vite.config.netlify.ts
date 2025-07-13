@@ -26,4 +26,7 @@ export default defineConfig({
   define: {
     'process.env': process.env,
   },
+  envPrefix: 'VITE_',
+  // Ensure environment variables are available to the client
+  envDir: './',
 });

@@ -15,12 +15,12 @@
   
   # متغيرات Supabase - يجب إعدادها في Netlify Dashboard
   # Supabase variables - must be set in Netlify Dashboard
-  # SUPABASE_DATABASE_URL = "https://yieyqusnciiithjtlgod.supabase.co"
+  VITE_SUPABASE_URL = "https://yieyqusnciiithjtlgod.supabase.co"
+  # VITE_SUPABASE_ANON_KEY = "your-anon-key"
   # SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key"  
-  # SUPABASE_ANON_KEY = "your-anon-key"
   # SUPABASE_JWT_SECRET = "your-jwt-secret"
-  # PUBLIC_SUPABASE_DATABASE_URL = "https://yieyqusnciiithjtlgod.supabase.co"
-  # PUBLIC_SUPABASE_ANON_KEY = "your-anon-key"
+  VITE_API_BASE_URL = "/.netlify/functions"
+  VITE_APP_ENV = "production"
 
 [context.production.environment]
   NODE_ENV = "production"
@@ -40,78 +40,98 @@
   to = "/.netlify/functions/api/:splat"
   status = 200
 
-# توجيهات التطبيق الرئيسي
+# توجيهات التطبيق الرئيسي - إعادة توجيه جميع المسارات إلى index.html لـ SPA
 [[redirects]]
   from = "/app"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/app/*"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/dashboard"
-  to = "/app.html" 
+  to = "/index.html" 
   status = 200
 
 [[redirects]]
   from = "/dashboard/*"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/transactions"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/transactions/*"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/customers"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/customers/*"
-  to = "/app.html"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/projects"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/projects/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/users"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/users/*"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/reports"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/reports/*"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/settings"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/settings/*"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/documents"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
 [[redirects]]
   from = "/documents/*"
-  to = "/app.html"
+  to = "/index.html"
   status = 200
 
-# صفحة الترحيب fallback
+# صفحة الترحيب fallback - لدعم SPA routing
 [[redirects]]
   from = "/*"
   to = "/index.html"

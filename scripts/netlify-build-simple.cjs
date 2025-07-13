@@ -88,16 +88,30 @@ try {
     console.log('✅ vite.config.netlify.ts exists');
   }
   
-  // Check Supabase environment variables
-  console.log('🔍 Checking Supabase environment variables...');
-  const requiredSupabaseVars = [
-    'SUPABASE_DATABASE_URL',
-    'SUPABASE_SERVICE_ROLE_KEY', 
-    'SUPABASE_ANON_KEY',
-    'SUPABASE_JWT_SECRET',
-    'PUBLIC_SUPABASE_DATABASE_URL',
-    'PUBLIC_SUPABASE_ANON_KEY'
+  // Check Vite environment variables
+  console.log('🔍 Checking environment variables...');
+  const requiredViteVars = [
+    'VITE_SUPABASE_URL',
+    'VITE_SUPABASE_ANON_KEY'
   ];
+  
+  let missingVars = [];
+  requiredViteVars.forEach(varName => {
+    if (!process.env[varName]) {
+      missingVars.push(varName);
+      console.log(`⚠️ Missing: ${varName}`);
+    } else {
+      console.log(`✅ Found: ${varName}`);
+    }
+  });
+  
+  if (missingVars.length > 0) {
+    console.log('⚠️ Some environment variables are missing, but continuing with build...');
+    console.log('📝 Make sure to set these in Netlify dashboard:');
+    missingVars.forEach(varName => {
+      console.log(`   - ${varName}`);
+    });
+  }
   
   let missingVars = [];
   requiredSupabaseVars.forEach(varName => {
