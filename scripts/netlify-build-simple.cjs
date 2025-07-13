@@ -95,37 +95,42 @@ try {
     'VITE_SUPABASE_ANON_KEY'
   ];
   
-  let missingVars = [];
+  let missingViteVars = [];
   requiredViteVars.forEach(varName => {
     if (!process.env[varName]) {
-      missingVars.push(varName);
+      missingViteVars.push(varName);
       console.log(`⚠️ Missing: ${varName}`);
     } else {
       console.log(`✅ Found: ${varName}`);
     }
   });
   
-  if (missingVars.length > 0) {
+  if (missingViteVars.length > 0) {
     console.log('⚠️ Some environment variables are missing, but continuing with build...');
     console.log('📝 Make sure to set these in Netlify dashboard:');
-    missingVars.forEach(varName => {
+    missingViteVars.forEach(varName => {
       console.log(`   - ${varName}`);
     });
   }
   
-  let missingVars = [];
+  // Additional check for Supabase configuration
+  console.log('🔍 Verifying Supabase configuration...');
+  const requiredSupabaseVars = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'];
+  let missingSupabaseVars = [];
+  
   requiredSupabaseVars.forEach(varName => {
     if (!process.env[varName]) {
-      missingVars.push(varName);
+      missingSupabaseVars.push(varName);
+      console.log(`❌ ${varName}: not set`);
     } else {
       console.log(`✅ ${varName}: configured`);
     }
   });
   
-  if (missingVars.length > 0) {
+  if (missingSupabaseVars.length > 0) {
     console.log('⚠️ Missing Supabase environment variables:');
-    missingVars.forEach(varName => {
-      console.log(`❌ ${varName}: not set`);
+    missingSupabaseVars.forEach(varName => {
+      console.log(`   - ${varName}`);
     });
     console.log('📋 Please set these variables in Netlify Dashboard');
   } else {
