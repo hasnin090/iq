@@ -6,9 +6,11 @@ import React, {
   useContext
 } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface User {
-  id: number;
+  id: string;
   username: string;
   name: string;
   email: string;
@@ -19,7 +21,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<User | null>;
+  login: (email: string, password: string) => Promise<User | null>;
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
 }
@@ -49,43 +51,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!isMounted) return;
       
       try {
-        // استخدام البيانات المحلية إذا متوفرة
-        const storedUser = localStorage.getItem('auth_user');
-        if (storedUser) {
-          try {
-            const foundUser = JSON.parse(storedUser);
-            if (isMounted) {
-              setUser(foundUser);
-              setIsLoading(false);
-            }
-            return;
-          } catch (err) {
-            localStorage.removeItem('auth_user');
-          }
-        }
+        // التحقق من جلسة Supabase الحالية
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        // للبيئة السحابية - عدم محاولة الاتصال بالخادم في البداية إلا إذا كان هناك token
-        const authToken = localStorage.getItem('auth_token');
-        if (authToken) {
-          try {
-            const response = await fetch('/api/auth/check', {
-              headers: {
-                'Authorization': `Bearer ${authToken}`
-              },
-              credentials: 'include',
-            });
-            
-            if (response.ok) {
-              const userData = await response.json();
-              if (isMounted) {
-                setUser(userData);
-              }
-            } else {
-              localStorage.removeItem('auth_token');
+        if (error) {
+          console.error('Session check error:', error);
+          if (isMounted) {
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        if (session?.user) {
+          // تحويل مستخدم Supabase إلى تنسيق التطبيق
+          const user: User = {
+            id: session.user.id,
+            username: session.user.email?.split('@')[0] || 'user',
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'مستخدم',
+            email: session.user.email || '',
+            role: session.user.user_metadata?.role || 'user',
+            permissions: session.user.user_metadata?.permissions || ['view_basic']
+          };
+          
+          if (isMounted) {
+            setUser(user);
+            localStorage.setItem('auth_user', JSON.stringify(user));
+          }
+        } else {
+          // محاولة استخدام البيانات المحلية كحل احتياطي
+          const storedUser = localStorage.getItem('auth_user');
+          if (storedUser && isMounted) {
+            try {
+              const foundUser = JSON.parse(storedUser);
+              setUser(foundUser);
+            } catch (err) {
+              localStorage.removeItem('auth_user');
             }
-          } catch (error) {
-            console.log('Auth check failed, continuing with offline mode');
-            localStorage.removeItem('auth_token');
           }
         }
         
@@ -101,114 +102,143 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     };
     
+    // إعداد listener لتغييرات المصادقة
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          const user: User = {
+            id: session.user.id,
+            username: session.user.email?.split('@')[0] || 'user',
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'مستخدم',
+            email: session.user.email || '',
+            role: session.user.user_metadata?.role || 'user',
+            permissions: session.user.user_metadata?.permissions || ['view_basic']
+          };
+          
+          setUser(user);
+          localStorage.setItem('auth_user', JSON.stringify(user));
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          localStorage.removeItem('auth_user');
+        }
+      }
+    );
+    
     // تأخير بسيط لتجنب التحديث السريع للحالة
     const timer = setTimeout(checkSession, 100);
     
     return () => {
       isMounted = false;
       clearTimeout(timer);
+      subscription.unsubscribe();
     };
   }, []);
 
-  const login = async (username: string, password: string): Promise<User | null> => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     setIsLoading(true);
     
     try {
-      console.log('Attempting login for:', username); // Debug log
+      console.log('Attempting Supabase login for:', email);
       
-      // محاولة تسجيل الدخول عبر API
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ username, password }),
+      // محاولة تسجيل الدخول عبر Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
       
-      console.log('Login response status:', response.status); // Debug log
-      
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('Login successful:', userData); // Debug log
+      if (error) {
+        console.error('Supabase login error:', error);
         
-        setUser(userData);
-        localStorage.setItem('auth_user', JSON.stringify(userData));
+        // في حالة فشل Supabase، نجرب النظام التجريبي المحلي
+        const demoUsers = [
+          {
+            id: '1',
+            username: 'admin',
+            email: 'admin@example.com',
+            password: 'admin123',
+            name: 'المدير العام',
+            role: 'admin',
+            permissions: ['manage_all']
+          },
+          {
+            id: '2',
+            username: 'manager',
+            email: 'manager@example.com', 
+            password: 'manager123',
+            name: 'مدير المشاريع',
+            role: 'manager',
+            permissions: ['view_reports', 'manage_projects']
+          },
+          {
+            id: '3',
+            username: 'user',
+            email: 'user@example.com',
+            password: 'user123',
+            name: 'المستخدم العادي',
+            role: 'user',
+            permissions: ['view_basic']
+          }
+        ];
         
-        // Store a simple auth token for session management
-        localStorage.setItem('auth_token', 'demo_' + Date.now());
+        // البحث عن المستخدم باستخدام email أو username
+        const demoUser = demoUsers.find(u => 
+          (u.email === email || u.username === email) && u.password === password
+        );
         
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: `مرحباً ${userData.name}`,
-        });
-        
-        return userData;
-      } else {
-        const errorData = await response.json();
-        console.log('Login failed:', errorData); // Debug log
+        if (demoUser) {
+          const { password: _, ...userResponse } = demoUser;
+          
+          setUser(userResponse);
+          localStorage.setItem('auth_user', JSON.stringify(userResponse));
+          
+          toast({
+            title: "تم تسجيل الدخول (وضع تجريبي)",
+            description: `مرحباً ${userResponse.name}`,
+          });
+          
+          return userResponse;
+        }
         
         toast({
           title: "خطأ في تسجيل الدخول",
-          description: errorData.message || errorData.error || "اسم المستخدم أو كلمة المرور غير صحيحة",
+          description: error.message || "بيانات الدخول غير صحيحة",
           variant: "destructive",
         });
         return null;
       }
+      
+      if (data.user) {
+        // تحويل مستخدم Supabase إلى تنسيق التطبيق
+        const user: User = {
+          id: data.user.id,
+          username: data.user.email?.split('@')[0] || 'user',
+          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'مستخدم',
+          email: data.user.email || '',
+          role: data.user.user_metadata?.role || 'user',
+          permissions: data.user.user_metadata?.permissions || ['view_basic']
+        };
+        
+        setUser(user);
+        localStorage.setItem('auth_user', JSON.stringify(user));
+        
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: `مرحباً ${user.name}`,
+        });
+        
+        return user;
+      }
+      
+      return null;
+      
     } catch (error) {
       console.error('Login network error:', error);
       
-      // في حالة فشل الاتصال، نسمح بدخول demo المحلي
-      const demoUsers = [
-        {
-          id: 1,
-          username: 'admin',
-          password: 'admin123',
-          name: 'المدير العام',
-          email: 'admin@example.com',
-          role: 'admin',
-          permissions: ['manage_all']
-        },
-        {
-          id: 2,
-          username: 'manager',
-          password: 'manager123',
-          name: 'مدير المشاريع',
-          email: 'manager@example.com',
-          role: 'manager',
-          permissions: ['view_reports', 'manage_projects']
-        },
-        {
-          id: 3,
-          username: 'user',
-          password: 'user123',
-          name: 'المستخدم العادي',
-          email: 'user@example.com',
-          role: 'user',
-          permissions: ['view_basic']
-        }
-      ];
-      
-      const demoUser = demoUsers.find(u => u.username === username && u.password === password);
-      
-      if (demoUser) {
-        const { password: _, ...userResponse } = demoUser;
-        
-        setUser(userResponse);
-        localStorage.setItem('auth_user', JSON.stringify(userResponse));
-        localStorage.setItem('auth_token', 'demo_' + Date.now());
-        
-        toast({
-          title: "تم تسجيل الدخول (وضع محلي)",
-          description: `مرحباً ${userResponse.name}`,
-        });
-        
-        return userResponse;
-      }
-      
       toast({
         title: "خطأ في الاتصال",
-        description: "تعذر الاتصال بالخادم. المستخدمون المتاحون: admin/admin123, manager/manager123, user/user123",
+        description: "تعذر الاتصال بالخادم. للتجربة: admin@example.com/admin123",
         variant: "destructive",
       });
       return null;
@@ -234,23 +264,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_token');
-    
-    // محاولة تسجيل الخروج من الخادم
-    fetch('/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(() => {
-      // تجاهل الخطأ في البيئة السحابية
-    });
-    
-    toast({
-      title: "تم تسجيل الخروج",
-      description: "إلى اللقاء",
-    });
+  const logout = async () => {
+    try {
+      // تسجيل الخروج من Supabase
+      await supabase.auth.signOut();
+      
+      // تنظيف البيانات المحلية
+      setUser(null);
+      localStorage.removeItem('auth_user');
+      
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "إلى اللقاء",
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      
+      // في حالة فشل تسجيل الخروج من Supabase، نظف البيانات المحلية على الأقل
+      setUser(null);
+      localStorage.removeItem('auth_user');
+      
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "إلى اللقاء",
+      });
+    }
   };
 
   return (

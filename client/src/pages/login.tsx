@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Building2, Calculator, TrendingUp, FileText, Users, Shield } from 'lucide-react';
 
 const loginSchema = z.object({
-  username: z.string().min(1, "اسم المستخدم مطلوب"),
+  email: z.string().min(1, "البريد الإلكتروني مطلوب"),
   password: z.string().min(1, "كلمة المرور مطلوبة"),
 });
 
@@ -24,7 +24,7 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -32,7 +32,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      await login(data.username, data.password);
+      await login(data.email, data.password);
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
@@ -114,12 +114,13 @@ export default function LoginPage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="username"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
                           <Input 
-                            placeholder="اسم المستخدم" 
+                            type="email"
+                            placeholder="البريد الإلكتروني" 
                             className="h-12 text-lg"
                             {...field} 
                           />
@@ -176,13 +177,13 @@ export default function LoginPage() {
                 
                 <div className="space-y-2">
                   <div className="text-xs text-blue-600 font-mono bg-white/70 p-2 rounded">
-                    <strong>المدير:</strong> admin / admin123
+                    <strong>المدير:</strong> admin@example.com / admin123
                   </div>
                   <div className="text-xs text-blue-600 font-mono bg-white/70 p-2 rounded">
-                    <strong>مدير المشاريع:</strong> manager / manager123
+                    <strong>مدير المشاريع:</strong> manager@example.com / manager123
                   </div>
                   <div className="text-xs text-blue-600 font-mono bg-white/70 p-2 rounded">
-                    <strong>مستخدم عادي:</strong> user / user123
+                    <strong>مستخدم عادي:</strong> user@example.com / user123
                   </div>
                 </div>
               </div>
