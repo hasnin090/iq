@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { Textarea } from '@/components/ui/textarea';
+import { supabaseApi } from '@/lib/supabase-api';
 
 // Schema definitions
 const passwordChangeSchema = z.object({
@@ -83,12 +84,14 @@ export default function Settings() {
 
   // Data queries
   const { data: settings = [], isLoading } = useQuery<Setting[]>({
-    queryKey: ['/api/settings'],
+    queryKey: ['settings'],
+    queryFn: () => supabaseApi.getSettings(),
     enabled: !!user && user.role === 'admin'
   });
 
   const { data: expenseTypes = [] } = useQuery<ExpenseType[]>({
-    queryKey: ['/api/expense-types'],
+    queryKey: ['expense-types'],
+    queryFn: () => supabaseApi.getExpenseTypes(),
     enabled: !!user && user.role === 'admin'
   });
 
@@ -110,31 +113,10 @@ export default function Settings() {
     },
   });
 
-  // API helper function
-  const makeApiCall = async (url: string, options: RequestInit = {}) => {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'حدث خطأ غير متوقع' }));
-      throw new Error(error.message || 'حدث خطأ في العملية');
-    }
-    
-    return response.json();
-  };
-
   // Mutations
   const changePasswordMutation = useMutation({
-    mutationFn: (data: PasswordChangeValues) =>
-      makeApiCall('/api/auth/change-password', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    mutationFn: (data: PasswordChangeValues) => 
+      supabaseApi.changePassword(data.currentPassword, data.newPassword),
     onSuccess: () => {
       toast({
         title: "تم تغيير كلمة المرور",
@@ -152,16 +134,13 @@ export default function Settings() {
   });
 
   const createExpenseTypeMutation = useMutation({
-    mutationFn: (data: ExpenseTypeValues) =>
-      makeApiCall('/api/expense-types', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    mutationFn: (data: ExpenseTypeValues) => 
+      supabaseApi.createExpenseType(data.name, data.description),
     onSuccess: () => {
       // إعادة تحديث جميع أنواع المصاريف
-      queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
+      queryClient.invalidateQueries({ queryKey: ['expense-types'] });
       // إعادة تحديث الكاش في transaction form أيضاً
-      queryClient.refetchQueries({ queryKey: ['/api/expense-types'] });
+      queryClient.refetchQueries({ queryKey: ['expense-types'] });
       toast({
         title: "تم إنشاء نوع المصروف",
         description: "تم إنشاء نوع المصروف بنجاح",
@@ -181,14 +160,11 @@ export default function Settings() {
 
   const updateExpenseTypeMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ExpenseTypeValues }) =>
-      makeApiCall(`/api/expense-types/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+      supabaseApi.updateExpenseType(id, data.name, data.description),
     onSuccess: () => {
       // إعادة تحديث جميع أنواع المصاريف
-      queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
-      queryClient.refetchQueries({ queryKey: ['/api/expense-types'] });
+      queryClient.invalidateQueries({ queryKey: ['expense-types'] });
+      queryClient.refetchQueries({ queryKey: ['expense-types'] });
       toast({
         title: "تم تحديث نوع المصروف",
         description: "تم تحديث نوع المصروف بنجاح",
@@ -207,12 +183,11 @@ export default function Settings() {
   });
 
   const deleteExpenseTypeMutation = useMutation({
-    mutationFn: (id: number) =>
-      makeApiCall(`/api/expense-types/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: number) => supabaseApi.deleteExpenseType(id),
     onSuccess: () => {
       // إعادة تحديث جميع أنواع المصاريف
-      queryClient.invalidateQueries({ queryKey: ['/api/expense-types'] });
-      queryClient.refetchQueries({ queryKey: ['/api/expense-types'] });
+      queryClient.invalidateQueries({ queryKey: ['expense-types'] });
+      queryClient.refetchQueries({ queryKey: ['expense-types'] });
       toast({
         title: "تم حذف نوع المصروف",
         description: "تم حذف نوع المصروف بنجاح",
@@ -251,12 +226,9 @@ export default function Settings() {
 
   const handleSaveSetting = async (key: string, value: string) => {
     try {
-      await makeApiCall('/api/settings', {
-        method: 'POST',
-        body: JSON.stringify({ key, value }),
-      });
+      await supabaseApi.updateSettings(key, value);
       
-      queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
       
       toast({
         title: "تم حفظ الإعداد",

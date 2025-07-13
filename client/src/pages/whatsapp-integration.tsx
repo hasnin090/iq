@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { supabaseApi } from '@/lib/supabase-api';
 
 // Schema definitions
 const whatsappConfigSchema = z.object({
@@ -65,12 +66,14 @@ export default function WhatsAppIntegration() {
 
   // Data queries
   const { data: whatsappConfig, isLoading } = useQuery<WhatsAppConfig>({
-    queryKey: ['/api/whatsapp/config'],
+    queryKey: ['whatsapp-config'],
+    queryFn: () => supabaseApi.getWhatsAppConfig(),
     enabled: !!user && user.role === 'admin'
   });
 
   const { data: whatsappStatus } = useQuery<WhatsAppStatus>({
-    queryKey: ['/api/whatsapp/status'],
+    queryKey: ['whatsapp-status'],
+    queryFn: () => supabaseApi.getWhatsAppStatus(),
     enabled: !!user && user.role === 'admin' && whatsappConfig?.enabled,
     refetchInterval: 30000
   });
@@ -86,37 +89,15 @@ export default function WhatsAppIntegration() {
     },
   });
 
-  // API helper function
-  const makeApiCall = async (url: string, options: RequestInit = {}) => {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'حدث خطأ غير متوقع' }));
-      throw new Error(error.message || 'حدث خطأ في العملية');
-    }
-    
-    return response.json();
-  };
-
   // Mutations
   const updateConfigMutation = useMutation({
-    mutationFn: (data: WhatsAppConfigValues) =>
-      makeApiCall('/api/whatsapp/config', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    mutationFn: (data: WhatsAppConfigValues) => supabaseApi.updateWhatsAppConfig(data),
     onSuccess: () => {
       toast({
         title: "تم حفظ الإعدادات",
         description: "تم حفظ إعدادات WhatsApp بنجاح",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/whatsapp/config'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-config'] });
     },
     onError: (error: Error) => {
       toast({
@@ -128,17 +109,13 @@ export default function WhatsAppIntegration() {
   });
 
   const toggleEnabledMutation = useMutation({
-    mutationFn: (enabled: boolean) =>
-      makeApiCall('/api/whatsapp/toggle', {
-        method: 'POST',
-        body: JSON.stringify({ enabled }),
-      }),
+    mutationFn: (enabled: boolean) => supabaseApi.toggleWhatsApp(enabled),
     onSuccess: () => {
       toast({
         title: "تم تحديث الحالة",
         description: "تم تحديث حالة تكامل WhatsApp",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/whatsapp/config'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-config'] });
     },
     onError: (error: Error) => {
       toast({
@@ -150,7 +127,7 @@ export default function WhatsAppIntegration() {
   });
 
   const testConnectionMutation = useMutation({
-    mutationFn: () => makeApiCall('/api/whatsapp/test', { method: 'POST' }),
+    mutationFn: () => supabaseApi.testWhatsApp(),
     onSuccess: () => {
       toast({
         title: "اختبار ناجح",

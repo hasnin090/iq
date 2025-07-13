@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
+import { supabaseApi } from '@/lib/supabase-api';
 
 interface SystemCheck {
   name: string;
@@ -74,27 +75,14 @@ export default function SystemStatus() {
 
     // Check API connectivity
     try {
-      const response = await fetch('/api/health', { 
-        method: 'GET',
-        timeout: 5000 
-      } as any);
+      const healthCheck = await supabaseApi.healthCheck();
       
-      if (response.ok) {
-        const data = await response.json();
-        systemChecks.push({
-          name: 'الاتصال بـ API',
-          status: 'success',
-          message: 'API يعمل بشكل طبيعي',
-          details: `البيئة: ${data.environment || 'غير محدد'}`
-        });
-      } else {
-        systemChecks.push({
-          name: 'الاتصال بـ API',
-          status: 'warning',
-          message: 'API لا يستجيب بشكل صحيح',
-          details: `كود الاستجابة: ${response.status}`
-        });
-      }
+      systemChecks.push({
+        name: 'الاتصال بـ API',
+        status: healthCheck.status === 'healthy' ? 'success' : 'warning',
+        message: healthCheck.status === 'healthy' ? 'API يعمل بشكل طبيعي' : 'API في وضع تجريبي',
+        details: `البيئة: ${healthCheck.database}`
+      });
     } catch (error) {
       systemChecks.push({
         name: 'الاتصال بـ API',

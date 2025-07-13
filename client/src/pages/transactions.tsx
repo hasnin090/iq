@@ -15,6 +15,7 @@ import { ar } from 'date-fns/locale';
 import { formatCurrency } from '@/lib/chart-utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { supabaseApi } from '@/lib/supabase-api';
 
 interface Filter {
   projectId?: number;
@@ -49,37 +50,13 @@ export default function Transactions() {
   }
 
   const { data: transactions, isLoading: transactionsLoading } = useQuery<Transaction[]>({
-    queryKey: ['/api/transactions', filter],
-    queryFn: async ({ queryKey }) => {
-      const [_, filterParams] = queryKey as [string, Filter];
-      const params = new URLSearchParams();
-      
-      if (filterParams.projectId) {
-        params.append('projectId', filterParams.projectId.toString());
-      }
-      if (filterParams.type) {
-        params.append('type', filterParams.type);
-      }
-      if (filterParams.startDate) {
-        params.append('startDate', filterParams.startDate);
-      }
-      if (filterParams.endDate) {
-        params.append('endDate', filterParams.endDate);
-      }
-      
-      const url = `/api/transactions${params.toString() ? `?${params.toString()}` : ''}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return response.json();
-    },
+    queryKey: ['transactions', filter],
+    queryFn: () => supabaseApi.getTransactions(filter),
   });
 
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ['projects'],
+    queryFn: () => supabaseApi.getProjects(),
   });
 
   const handleFormSubmit = () => {
@@ -90,25 +67,11 @@ export default function Transactions() {
   const [activeTab, setActiveTab] = useState<"admin" | "all" | "projects">("all");
 
   const archiveMutation = useMutation({
-    mutationFn: async (transactionIds: number[]) => {
-      const response = await fetch('/api/transactions/archive', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ transactionIds }),
-      });
-
-      if (!response.ok) {
-        throw new Error('فشل في أرشفة المعاملات');
-      }
-
-      return response.json();
-    },
+    mutationFn: (transactionIds: number[]) => supabaseApi.archiveTransactions(transactionIds),
     onSuccess: (data) => {
       toast({
         title: "تم الأرشفة بنجاح",
-        description: `تم أرشفة ${data.archivedCount} معاملة مالية`,
+        description: data.message,
       });
       
       // تحديث شامل للكاش بعد الأرشفة
@@ -221,57 +184,31 @@ export default function Transactions() {
     });
   };
 
-  // تصدير Excel المحسّن
-  const exportToExcelMutation = useMutation({
-    mutationFn: async (exportFilters: any) => {
-      const response = await fetch('/api/transactions/export/excel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(exportFilters),
-      });
-
-      if (!response.ok) {
-        throw new Error('فشل في تصدير البيانات');
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.success) {
-        // تحميل الملف
-        const link = document.createElement('a');
-        link.href = data.filePath;
-        link.download = data.filePath.split('/').pop() || 'transactions_export.xlsx';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast({
-          title: "نجح التصدير",
-          description: "تم تصدير البيانات إلى ملف Excel بنجاح",
-        });
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "خطأ في التصدير",
-        description: error.message || "فشل في تصدير البيانات",
-        variant: "destructive",
-      });
-    }
-  });
-
+  // تصدير Excel محلي (بدون استخدام API)
   const handleExcelExport = () => {
-    const exportFilters = {
-      projectId: filter.projectId,
-      type: filter.type,
-      dateFrom: filter.startDate,
-      dateTo: filter.endDate,
-    };
-
-    exportToExcelMutation.mutate(exportFilters);
+    if (!transactions) return;
+    
+    // تطبيق الفلاتر على البيانات المحلية
+    let filteredData = transactions;
+    
+    if (filter.projectId) {
+      filteredData = filteredData.filter(t => t.projectId === filter.projectId);
+    }
+    
+    if (filter.type) {
+      filteredData = filteredData.filter(t => t.type === filter.type);
+    }
+    
+    if (filter.startDate) {
+      filteredData = filteredData.filter(t => new Date(t.date) >= new Date(filter.startDate!));
+    }
+    
+    if (filter.endDate) {
+      filteredData = filteredData.filter(t => new Date(t.date) <= new Date(filter.endDate!));
+    }
+    
+    // استخدام دالة التصدير المحلية مع البيانات المفلترة
+    exportToExcel();
   };
 
   // وظيفة الطباعة - مخصصة للمستخدمين من نوع المشاهدة
@@ -452,10 +389,9 @@ export default function Transactions() {
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-                disabled={exportToExcelMutation.isPending}
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                {exportToExcelMutation.isPending ? 'جاري التصدير...' : 'تصدير CSV'}
+                تصدير Excel
               </Button>
               
               {user?.role === 'viewer' && (
