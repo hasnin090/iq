@@ -9,10 +9,12 @@
   PYTHON_VERSION = ""
   DISABLE_PYTHON = "true"
   VITE_CONFIG_FILE = "vite.config.netlify.ts"
+  
+  # Supabase configuration - قيم افتراضية للتجريب
+  VITE_SUPABASE_URL = "https://jcoekbaahgjympmnuilr.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjb2VrYmFhaGdqeW1wbW51aWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTA1MDcsImV4cCI6MjA2NzYyNjUwN30.CGwebOhh_c4buoX_Uh111zzo8H3p4Ak_p3v3V0LcjRA"
 
-  # ✅ هذه القيم تُقرأ الآن من لوحة Netlify فقط:
-  # VITE_SUPABASE_URL ← موجودة في Dashboard
-  # VITE_SUPABASE_ANON_KEY ← موجودة في Dashboard
+  # ✅ يمكن تخصيص هذه القيم من لوحة Netlify لاحقاً
 
 [context.production.environment]
   NODE_ENV = "production"

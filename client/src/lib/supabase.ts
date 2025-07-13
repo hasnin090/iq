@@ -3,8 +3,19 @@ import { getSupabaseConfig } from './supabase-config';
 
 const config = getSupabaseConfig();
 
+// التحقق من وجود القيم المطلوبة
+if (!config.url) {
+  console.error('Supabase URL is missing');
+  throw new Error('Supabase URL is required');
+}
+
+if (!config.anonKey) {
+  console.error('Supabase Anon Key is missing');
+  throw new Error('Supabase Anon Key is required');
+}
+
 // إنشاء عميل Supabase
-export const supabase = createClient(config.url!, config.anonKey!, {
+export const supabase = createClient(config.url, config.anonKey, {
   auth: config.auth,
   realtime: config.realtime
 });
