@@ -7,11 +7,12 @@ import { AlertCircle, Database, Activity, Download, Loader2, CheckCircle, XCircl
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { supabaseApi } from '@/lib/supabase-api';
 
 interface DatabaseStatus {
-  connected: boolean;
-  responseTime: number;
-  timestamp: string;
+  status: string;
+  message: string;
+  tablesExist: boolean;
 }
 
 export default function DatabaseManagement() {
@@ -36,7 +37,8 @@ export default function DatabaseManagement() {
 
   // Data queries
   const { data: dbStatus, isLoading } = useQuery<DatabaseStatus>({
-    queryKey: ['/api/database/status'],
+    queryKey: ['database-status'],
+    queryFn: () => supabaseApi.getDatabaseStatus(),
     refetchInterval: 30000,
     enabled: !!user && user.role === 'admin'
   });
@@ -115,7 +117,7 @@ export default function DatabaseManagement() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  {dbStatus?.connected ? (
+                  {dbStatus?.status === 'connected' ? (
                     <>
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <Badge variant="default" className="bg-green-100 text-green-800">
@@ -126,7 +128,7 @@ export default function DatabaseManagement() {
                     <>
                       <XCircle className="h-5 w-5 text-red-500" />
                       <Badge variant="destructive">
-                        غير متصل
+                        {dbStatus?.status === 'demo' ? 'وضع تجريبي' : 'غير متصل'}
                       </Badge>
                     </>
                   )}
@@ -138,16 +140,16 @@ export default function DatabaseManagement() {
                 <div className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-blue-500" />
                   <span className="font-medium">
-                    {dbStatus?.responseTime ? `${dbStatus.responseTime} ms` : '--'}
+                    {dbStatus?.tablesExist ? 'الجداول موجودة' : 'الجداول غير موجودة'}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">زمن الاستجابة</p>
+                <p className="text-sm text-muted-foreground">حالة الجداول</p>
               </div>
             </div>
             
-            {dbStatus?.timestamp && (
-              <div className="mt-4 text-sm text-muted-foreground">
-                آخر فحص: {new Date(dbStatus.timestamp).toLocaleString('ar-EG')}
+            {dbStatus?.message && (
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <p className="text-sm">{dbStatus.message}</p>
               </div>
             )}
           </CardContent>

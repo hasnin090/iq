@@ -1,5 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { supabaseApi } from '@/lib/supabase-api';
 
 interface DatabaseStatusState {
   isConnected: boolean;
@@ -20,13 +21,10 @@ export const DatabaseStatus = memo(() => {
     
     try {
       const startTime = Date.now();
-      const response = await fetch('/api/database/status', {
-        credentials: 'include',
-        method: 'GET'
-      });
-
+      const dbStatus = await supabaseApi.getDatabaseStatus();
       const responseTime = Date.now() - startTime;
-      const isConnected = response.ok;
+      
+      const isConnected = dbStatus.status === 'connected';
 
       setStatus({
         isConnected,

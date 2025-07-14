@@ -19,6 +19,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
+import { supabaseApi } from '@/lib/supabase-api';
 
 interface Project {
   id: number;
@@ -65,7 +66,8 @@ interface Employee {
 // Component for expense type field
 function ExpenseTypeField({ transactionType, form }: { transactionType: string; form: any }): JSX.Element | null {
   const { data: expenseTypes = [], refetch, isLoading, error } = useQuery<ExpenseType[]>({
-    queryKey: ['/api/expense-types'],
+    queryKey: ['expense-types'],
+    queryFn: () => supabaseApi.getExpenseTypes(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: true, // إعادة جلب البيانات عند التركيز على النافذة
@@ -201,7 +203,8 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   });
 
   const { data: userProjects } = useQuery({
-    queryKey: ['/api/user-projects'],
+    queryKey: ['user-projects'],
+    queryFn: () => supabaseApi.getUserProjects(),
     enabled: !!user && user?.role !== 'admin',
   });
 
@@ -210,26 +213,14 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   const isValidProjectId = currentProjectId && currentProjectId !== 'none' && currentProjectId !== '' && !isNaN(Number(currentProjectId));
 
   const { data: availableEmployees = [] } = useQuery<Employee[]>({
-    queryKey: user?.role === 'admin' ? ['/api/employees'] : ['/api/employees/by-project', currentProjectId],
+    queryKey: user?.role === 'admin' ? ['employees'] : ['employees-by-project', currentProjectId],
     queryFn: async () => {
       if (user?.role === 'admin') {
         console.log('Admin: Fetching all active employees');
-        const response = await fetch('/api/employees');
-        if (!response.ok) {
-          throw new Error('Failed to fetch employees');
-        }
-        const data = await response.json();
-        console.log('All employees response:', data);
-        return data;
+        return await supabaseApi.getEmployees();
       } else {
         console.log('User: Fetching employees for project:', currentProjectId);
-        const response = await fetch(`/api/employees/by-project/${currentProjectId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch employees');
-        }
-        const data = await response.json();
-        console.log('Project employees response:', data);
-        return data;
+        return await supabaseApi.getEmployeesByProject(Number(currentProjectId));
       }
     },
     enabled: user?.role === 'admin' ? true : !!isValidProjectId,
@@ -272,42 +263,18 @@ export function TransactionForm({ projects, onSubmit, isLoading }: TransactionFo
   const mutation = useMutation({
     mutationFn: async (data: TransactionFormValues) => {
       try {
-        const formData = new FormData();
+        const transactionData = {
+          date: data.date.toISOString(),
+          type: data.type,
+          amount: data.amount,
+          description: data.description,
+          expenseType: data.type === 'expense' && data.expenseType ? data.expenseType : undefined,
+          employeeId: data.type === 'expense' && data.expenseType === 'راتب' && data.employeeId ? Number(data.employeeId) : undefined,
+          projectId: data.projectId && data.projectId !== "none" ? Number(data.projectId) : undefined,
+          file: selectedFile || undefined
+        };
 
-        if (selectedFile) {
-          formData.append('file', selectedFile);
-        }
-
-        formData.append('date', data.date.toISOString());
-        formData.append('type', data.type);
-        formData.append('amount', data.amount.toString());
-        formData.append('description', data.description);
-
-        // إضافة نوع المصروف إذا كان النوع مصروف - يتم التصنيف التلقائي
-        if (data.type === 'expense' && data.expenseType) {
-          formData.append('expenseType', data.expenseType);
-          formData.append('autoClassify', 'true'); // تفعيل التصنيف التلقائي
-        }
-
-        // إضافة معرف الموظف إذا كان نوع المصروف راتب
-        if (data.type === 'expense' && data.expenseType === 'راتب' && data.employeeId) {
-          formData.append('employeeId', data.employeeId);
-        }
-
-        if (data.projectId && data.projectId !== "none") {
-          formData.append('projectId', data.projectId);
-        }
-
-        return fetch('/api/transactions', {
-          method: 'POST',
-          body: formData,
-        }).then(async res => {
-          if (!res.ok) {
-            const errorData = await res.json().catch(() => ({ message: 'خطأ غير معروف' }));
-            throw new Error(errorData.message || `HTTP ${res.status}: ${res.statusText}`);
-          }
-          return res.json();
-        });
+        return await supabaseApi.createTransaction(transactionData);
       } catch (error) {
         throw error;
       }

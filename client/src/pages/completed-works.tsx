@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabaseApi } from "@/lib/supabase-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -87,24 +88,31 @@ export default function CompletedWorksPage() {
   });
 
   const { data: works = [], isLoading: worksLoading } = useQuery({
-    queryKey: ['/api/completed-works'],
+    queryKey: ['completed-works'],
+    queryFn: () => supabaseApi.getCompletedWorks()
   });
 
   const { data: documents = [], isLoading: documentsLoading } = useQuery({
-    queryKey: ['/api/completed-works-documents'],
+    queryKey: ['completed-works-documents'],
+    queryFn: () => supabaseApi.getCompletedWorksDocuments()
   });
 
   const createWorkMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await fetch('/api/completed-works', {
-        method: 'POST',
-        body: data,
-      });
-      if (!response.ok) throw new Error('فشل في إنشاء العمل المنجز');
-      return response.json();
+      // استخراج البيانات من FormData
+      const workData = {
+        title: data.get('title') as string,
+        description: data.get('description') as string,
+        amount: data.get('amount') ? Number(data.get('amount')) : undefined,
+        date: data.get('date') as string,
+        category: data.get('category') as string
+      };
+      
+      const file = data.get('file') as File;
+      return await supabaseApi.createCompletedWork(workData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/completed-works'] });
+      queryClient.invalidateQueries({ queryKey: ['completed-works'] });
       setWorkDialogOpen(false);
       workForm.reset();
       toast({

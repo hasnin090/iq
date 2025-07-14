@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState, useRef, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { supabaseApi } from '@/lib/supabase-api';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -242,29 +242,21 @@ export function DocumentForm({ projects, onSubmit, isLoading, isManagerDocument 
         const stopSimulation = simulateProgress();
         
         try {
-          // استخدام Fetch API بدلاً من Firebase Storage مباشرة
+          // استخدام supabaseApi بدلاً من fetch API
+          const documentData = {
+            name: data.name,
+            description: data.description || "",
+            projectId: data.projectId && data.projectId !== "all" ? Number(data.projectId) : null,
+            isManagerDocument: isManagerDocument
+          };
+          
+          const result = await supabaseApi.uploadDocument(documentData, file);
 
-          
-          const response = await fetch('/api/upload-document', {
-            method: 'POST',
-            body: formData,
-            // لا تضع headers هنا، دع المتصفح يحددها تلقائيًا مع FormData
-          });
-          
           // إيقاف محاكاة التقدم
           stopSimulation();
           
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'فشل في رفع الملف' }));
-            throw new Error(errorData.message || 'فشل في رفع الملف');
-          }
-          
           // تحديث التقدم إلى 95%
           setUploadProgress(95);
-          
-          // الحصول على البيانات الناتجة
-          const result = await response.json();
-
           
           // تحديث التقدم إلى 100% للتأكد من اكتمال العملية
           setUploadProgress(100);

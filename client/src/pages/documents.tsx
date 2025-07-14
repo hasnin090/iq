@@ -5,6 +5,7 @@ import { DocumentList, DocumentSidebar } from '@/components/document';
 import { DocumentLinker } from '@/components/document-library/document-linker';
 import { BulkFolderUpload } from '@/components/document-library/bulk-folder-upload';
 import { queryClient } from '@/lib/queryClient';
+import { supabaseApi } from '@/lib/supabase-api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -67,34 +68,14 @@ export default function Documents() {
 
   // العادية المستندات
   const { data: documents, isLoading: documentsLoading } = useQuery<Document[]>({
-    queryKey: ['/api/documents', { ...filter, isManagerDocument: false }],
-    queryFn: async ({ queryKey }) => {
-      const [_, filterParams] = queryKey as [string, { projectId?: number, isManagerDocument?: boolean }];
-      const params = new URLSearchParams();
-      
-      if (filterParams.projectId) params.append('projectId', String(filterParams.projectId));
-      if (filterParams.isManagerDocument !== undefined) params.append('isManagerDocument', String(filterParams.isManagerDocument));
-      
-      const response = await fetch(`/api/documents?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch documents');
-      return response.json();
-    }
+    queryKey: ['documents', { ...filter, isManagerDocument: false }],
+    queryFn: () => supabaseApi.getDocuments({ ...filter, isManagerDocument: false })
   });
   
   // المستندات الإدارية (خاصة بالمدراء)
   const { data: managerDocuments, isLoading: managerDocumentsLoading } = useQuery<Document[]>({
-    queryKey: ['/api/documents', { ...filter, isManagerDocument: true }],
-    queryFn: async ({ queryKey }) => {
-      const [_, filterParams] = queryKey as [string, { projectId?: number, isManagerDocument?: boolean }];
-      const params = new URLSearchParams();
-      
-      if (filterParams.projectId) params.append('projectId', String(filterParams.projectId));
-      params.append('isManagerDocument', 'true');
-      
-      const response = await fetch(`/api/documents?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch manager documents');
-      return response.json();
-    },
+    queryKey: ['documents', { ...filter, isManagerDocument: true }],
+    queryFn: () => supabaseApi.getDocuments({ ...filter, isManagerDocument: true }),
     enabled: isManagerOrAdmin // تفعيل هذا الاستعلام فقط للمديرين
   });
   
@@ -113,19 +94,14 @@ export default function Documents() {
   }
   
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ['projects'],
+    queryFn: () => supabaseApi.getProjects()
   });
   
   // الحصول على المعاملات التي تحتوي على مرفقات
   const { data: transactionsWithAttachments, isLoading: transactionsLoading } = useQuery<Transaction[]>({
-    queryKey: ['/api/transactions/attachments'],
-    queryFn: async () => {
-      const response = await fetch('/api/transactions?withAttachments=true');
-      if (!response.ok) throw new Error('Failed to fetch transactions with attachments');
-      const transactions = await response.json();
-      // فلترة المعاملات التي تحتوي فقط على مرفقات
-      return transactions.filter((transaction: Transaction) => transaction.fileUrl);
-    },
+    queryKey: ['transactions-attachments'],
+    queryFn: () => supabaseApi.getTransactionsWithAttachments(),
     enabled: activeTab === "attachments"
   });
   
@@ -134,7 +110,7 @@ export default function Documents() {
   };
   
   const handleDocumentUpdated = () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+    queryClient.invalidateQueries({ queryKey: ['documents'] });
   };
   
   const handleTabChange = (value: string) => {

@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { supabaseApi } from "@/lib/supabase-api";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { AppHeader } from "@/components/ui/app-header";
 import { useQuery } from "@tanstack/react-query";
@@ -110,15 +111,8 @@ function CompanyName() {
   
   // جلب المشاريع المتاحة للمستخدم (سيتم تصفيتها في الخلفية بواسطة API)
   const { data: userProjects, isLoading: isLoadingProjects, isError: isProjectsError } = useQuery<Project[]>({
-    queryKey: ['/api/user-projects'],
-    queryFn: async () => {
-      if (!user) return [];
-      const response = await fetch('/api/user-projects');
-      if (!response.ok) {
-        throw new Error('فشل في جلب المشاريع');
-      }
-      return response.json();
-    },
+    queryKey: ['user-projects'],
+    queryFn: () => supabaseApi.getUserProjects(),
     // فقط جلب المشاريع إذا كان المستخدم موجود وليس مديرًا
     enabled: !!user && user.role !== 'admin',
     staleTime: 1000 * 60 * 3, // تخزين البيانات لمدة 3 دقائق قبل إعادة الطلب

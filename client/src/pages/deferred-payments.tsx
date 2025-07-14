@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabaseApi } from '@/lib/supabase-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,36 +66,32 @@ export default function DeferredPayments() {
 
   // جلب المستحقات
   const { data: payments = [], isLoading } = useQuery<DeferredPayment[]>({
-    queryKey: ['/api/deferred-payments'],
+    queryKey: ['deferred-payments'],
+    queryFn: () => supabaseApi.getDeferredPayments(),
     enabled: true
   });
 
   // جلب المشاريع
   const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ['projects'],
+    queryFn: () => supabaseApi.getProjects(),
     enabled: true
   });
 
   // إضافة مستحق جديد
   const addPaymentMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/deferred-payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          totalAmount: parseInt(data.totalAmount),
-          remainingAmount: parseInt(data.totalAmount),
-          projectId: data.projectId ? parseInt(data.projectId) : null,
-          installments: parseInt(data.installments),
-          dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
-        })
+      return await supabaseApi.createDeferredPayment({
+        ...data,
+        totalAmount: parseInt(data.totalAmount),
+        remainingAmount: parseInt(data.totalAmount),
+        projectId: data.projectId ? parseInt(data.projectId) : null,
+        installments: parseInt(data.installments),
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
       });
-      if (!response.ok) throw new Error('خطأ في إضافة المستحق');
-      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deferred-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['deferred-payments'] });
       setIsAddDialogOpen(false);
       resetForm();
       toast({ title: 'تم إضافة المستحق بنجاح' });

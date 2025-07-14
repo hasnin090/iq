@@ -97,6 +97,43 @@ const mockData = {
       status: 'active',
       created_at: new Date().toISOString()
     }
+  ],
+
+  employees: [
+    { id: 1, name: 'أحمد محمد', salary: 5000, assignedProjectId: 1 },
+    { id: 2, name: 'فاطمة علي', salary: 4500, assignedProjectId: 1 },
+    { id: 3, name: 'محمد صالح', salary: 6000, assignedProjectId: 2 },
+  ],
+
+  documents: [
+    {
+      id: 1,
+      title: 'وثيقة المشروع الأول',
+      description: 'وثيقة تفصيلية للمشروع الأول',
+      fileName: 'project1_doc.pdf',
+      fileSize: 2048576,
+      fileType: 'application/pdf',
+      projectId: 1,
+      isManagerDocument: false,
+      uploadedBy: 1,
+      uploadedAt: new Date().toISOString(),
+      category: 'مشروع',
+      tags: ['مشروع', 'تقرير']
+    },
+    {
+      id: 2,
+      title: 'تقرير إداري شهري',
+      description: 'تقرير إداري للشهر الحالي',
+      fileName: 'monthly_report.pdf',
+      fileSize: 1024768,
+      fileType: 'application/pdf',
+      projectId: null,
+      isManagerDocument: true,
+      uploadedBy: 1,
+      uploadedAt: new Date().toISOString(),
+      category: 'إداري',
+      tags: ['إداري', 'شهري']
+    }
   ]
 };
 
@@ -379,6 +416,235 @@ async function exportTransactionsToExcel(filters: any = {}) {
   }
 }
 
+// Employees API
+async function getEmployees() {
+  await checkDemoMode();
+  
+  if (isDemo) {
+    console.log('[DEMO] استرداد الموظفين');
+    return [
+      { id: 1, name: 'أحمد محمد', salary: 5000, assignedProjectId: 1 },
+      { id: 2, name: 'فاطمة علي', salary: 4500, assignedProjectId: 1 },
+      { id: 3, name: 'محمد صالح', salary: 6000, assignedProjectId: 2 },
+    ];
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('خطأ في استرداد الموظفين:', error);
+    return [];
+  }
+}
+
+async function getEmployeesByProject(projectId: number) {
+  await checkDemoMode();
+  
+  if (isDemo) {
+    console.log(`[DEMO] استرداد موظفي المشروع: ${projectId}`);
+    return [
+      { id: 1, name: 'أحمد محمد', salary: 5000, assignedProjectId: projectId },
+      { id: 2, name: 'فاطمة علي', salary: 4500, assignedProjectId: projectId },
+    ];
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('*')
+      .eq('assigned_project_id', projectId)
+      .eq('is_active', true)
+      .order('name');
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('خطأ في استرداد موظفي المشروع:', error);
+    return [];
+  }
+}
+
+// User Projects API
+async function getUserProjects() {
+  await checkDemoMode();
+  
+  if (isDemo) {
+    console.log('[DEMO] استرداد مشاريع المستخدم');
+    return [
+      { id: 1, name: 'مشروع تطوير الموقع' },
+      { id: 2, name: 'مشروع التسويق الرقمي' },
+    ];
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('خطأ في استرداد مشاريع المستخدم:', error);
+    return [];
+  }
+}
+
+// Create Transaction
+async function createTransaction(transactionData: any) {
+  await checkDemoMode();
+  
+  if (isDemo) {
+    console.log('[DEMO] إنشاء معاملة:', transactionData);
+    return { 
+      id: Date.now(), 
+      ...transactionData,
+      created_at: new Date().toISOString()
+    };
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert([{
+        ...transactionData,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('خطأ في إنشاء المعاملة:', error);
+    throw new Error('فشل في إنشاء المعاملة');
+  }
+}
+
+// وظائف إدارة الوثائق
+export const getDocuments = async (filters?: { projectId?: number; isManagerDocument?: boolean }) => {
+  try {
+    const isDemoMode = await checkDemoMode();
+    
+    if (isDemoMode) {
+      // بيانات تجريبية للوثائق
+      const documents = [
+        {
+          id: 1,
+          title: 'وثيقة المشروع الأول',
+          description: 'وثيقة تفصيلية للمشروع الأول',
+          fileName: 'project1_doc.pdf',
+          fileSize: 2048576,
+          fileType: 'application/pdf',
+          projectId: 1,
+          isManagerDocument: false,
+          uploadedBy: 1,
+          uploadedAt: new Date().toISOString(),
+          category: 'مشروع',
+          tags: ['مشروع', 'تقرير']
+        },
+        {
+          id: 2,
+          title: 'تقرير إداري شهري',
+          description: 'تقرير إداري للشهر الحالي',
+          fileName: 'monthly_report.pdf',
+          fileSize: 1024768,
+          fileType: 'application/pdf',
+          projectId: null,
+          isManagerDocument: true,
+          uploadedBy: 1,
+          uploadedAt: new Date().toISOString(),
+          category: 'إداري',
+          tags: ['إداري', 'شهري']
+        }
+      ];
+      
+      // تطبيق التصفية
+      let filteredDocs = documents;
+      if (filters?.projectId) {
+        filteredDocs = filteredDocs.filter(doc => doc.projectId === filters.projectId);
+      }
+      if (filters?.isManagerDocument !== undefined) {
+        filteredDocs = filteredDocs.filter(doc => doc.isManagerDocument === filters.isManagerDocument);
+      }
+      
+      return filteredDocs;
+    }
+
+    let query = supabase.from('documents').select('*');
+    
+    if (filters?.projectId) {
+      query = query.eq('project_id', filters.projectId);
+    }
+    
+    if (filters?.isManagerDocument !== undefined) {
+      query = query.eq('is_manager_document', filters.isManagerDocument);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    return [];
+  }
+};
+
+export const getTransactionsWithAttachments = async () => {
+  try {
+    const isDemoMode = await checkDemoMode();
+    
+    if (isDemoMode) {
+      // بيانات تجريبية للمعاملات مع المرفقات
+      return [
+        {
+          id: 1,
+          date: new Date().toISOString(),
+          amount: 1500,
+          type: 'expense',
+          description: 'شراء معدات للمشروع',
+          projectId: 1,
+          createdBy: 1,
+          fileUrl: '/demo/receipt1.pdf',
+          fileType: 'application/pdf'
+        },
+        {
+          id: 2,
+          date: new Date().toISOString(),
+          amount: 2000,
+          type: 'income',
+          description: 'دفعة من العميل',
+          projectId: 1,
+          createdBy: 1,
+          fileUrl: '/demo/invoice2.pdf',
+          fileType: 'application/pdf'
+        }
+      ];
+    }
+
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .not('file_url', 'is', null)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching transactions with attachments:', error);
+    return [];
+  }
+};
+
 export const supabaseApi = {
   // Database status check
   async getDatabaseStatus() {
@@ -568,20 +834,23 @@ export const supabaseApi = {
   // Health check
   async healthCheck() {
     try {
+      await checkDemoMode();
       const { data, error } = await supabase.auth.getSession();
       
       return {
-        status: 'ok',
-        database: 'connected',
+        status: isDemo ? 'demo' : 'healthy',
+        database: isDemo ? 'demo_mode' : 'connected',
         auth: data.session ? 'authenticated' : 'guest',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        message: isDemo ? 'النظام يعمل في الوضع التجريبي' : 'جميع الأنظمة تعمل بشكل طبيعي'
       };
     } catch (error) {
       return {
         status: 'demo',
         database: 'demo_mode',
         auth: 'demo',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        message: 'النظام يعمل في الوضع التجريبي بسبب خطأ في الاتصال'
       };
     }
   },
@@ -596,6 +865,263 @@ export const supabaseApi = {
   testWhatsApp,
   archiveTransactions,
   exportTransactionsToExcel,
-};
+  getEmployees,
+  getEmployeesByProject,
+  getUserProjects,
+  createTransaction,
+  // وظائف المدفوعات المؤجلة (Deferred Payments)
+  getDeferredPayments: async () => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // بيانات تجريبية للمدفوعات المؤجلة
+        return [
+          {
+            id: 1,
+            title: 'دفعة مشروع الموقع الإلكتروني',
+            amount: 5000,
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // بعد أسبوع
+            status: 'pending',
+            projectId: 1,
+            clientName: 'شركة التطوير',
+            description: 'الدفعة الثانية من مشروع تطوير الموقع',
+            createdAt: new Date().toISOString(),
+            priority: 'high'
+          },
+          {
+            id: 2,
+            title: 'دفعة مشروع التطبيق',
+            amount: 3000,
+            dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // بعد أسبوعين
+            status: 'pending',
+            projectId: 2,
+            clientName: 'شركة الهندسة',
+            description: 'الدفعة الأولى من مشروع التطبيق المحمول',
+            createdAt: new Date().toISOString(),
+            priority: 'medium'
+          }
+        ];
+      }
 
-export default supabaseApi;
+      const { data, error } = await supabase
+        .from('deferred_payments')
+        .select('*')
+        .order('due_date', { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching deferred payments:', error);
+      return [];
+    }
+  },
+
+  createDeferredPayment: async (paymentData: any) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نرجع بيانات وهمية
+        return {
+          id: Date.now(),
+          ...paymentData,
+          createdAt: new Date().toISOString(),
+          status: 'pending'
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('deferred_payments')
+        .insert([paymentData])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating deferred payment:', error);
+      throw error;
+    }
+  },
+
+  // وظائف الأعمال المكتملة (Completed Works)
+  getCompletedWorks: async () => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // بيانات تجريبية للأعمال المكتملة
+        return [
+          {
+            id: 1,
+            title: 'تطوير صفحة الهبوط',
+            projectId: 1,
+            completedDate: new Date().toISOString(),
+            description: 'تم إنجاز تطوير صفحة الهبوط بالكامل',
+            completedBy: 1,
+            status: 'completed',
+            deliverables: ['تصميم UI/UX', 'برمجة Frontend', 'اختبار'],
+            clientApproval: true,
+            notes: 'تم التسليم في الموعد المحدد'
+          },
+          {
+            id: 2,
+            title: 'إعداد قاعدة البيانات',
+            projectId: 1,
+            completedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // قبل يومين
+            description: 'تم إعداد قاعدة البيانات والجداول',
+            completedBy: 1,
+            status: 'completed',
+            deliverables: ['تصميم Database', 'إنشاء الجداول', 'البيانات التجريبية'],
+            clientApproval: true,
+            notes: 'قاعدة البيانات جاهزة للاستخدام'
+          }
+        ];
+      }
+
+      const { data, error } = await supabase
+        .from('completed_works')
+        .select('*')
+        .order('completed_date', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching completed works:', error);
+      return [];
+    }
+  },
+
+  getCompletedWorksDocuments: async () => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // بيانات تجريبية لوثائق الأعمال المكتملة
+        return [
+          {
+            id: 1,
+            workId: 1,
+            title: 'تقرير إنجاز صفحة الهبوط',
+            fileName: 'landing_page_report.pdf',
+            fileUrl: '/demo/reports/landing_page_report.pdf',
+            fileType: 'application/pdf',
+            uploadedAt: new Date().toISOString(),
+            description: 'تقرير مفصل عن إنجاز صفحة الهبوط'
+          },
+          {
+            id: 2,
+            workId: 2,
+            title: 'توثيق قاعدة البيانات',
+            fileName: 'database_documentation.pdf',
+            fileUrl: '/demo/reports/database_doc.pdf',
+            fileType: 'application/pdf',
+            uploadedAt: new Date().toISOString(),
+            description: 'توثيق شامل لهيكل قاعدة البيانات'
+          }
+        ];
+      }
+
+      const { data, error } = await supabase
+        .from('completed_works_documents')
+        .select('*')
+        .order('uploaded_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching completed works documents:', error);
+      return [];
+    }
+  },
+
+  createCompletedWork: async (workData: any) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نرجع بيانات وهمية
+        return {
+          id: Date.now(),
+          ...workData,
+          completedDate: new Date().toISOString(),
+          status: 'completed'
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('completed_works')
+        .insert([workData])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating completed work:', error);
+      throw error;
+    }
+  },
+
+  // وظائف رفع الوثائق
+  uploadDocument: async (documentData: any, file?: File) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نحاكي رفع الملف
+        const fileUrl = file ? `/demo/uploads/${file.name}` : '/demo/uploads/document.pdf';
+        return {
+          id: Date.now(),
+          ...documentData,
+          fileUrl: fileUrl,
+          fileName: file?.name || 'document.pdf',
+          fileSize: file?.size || 1024,
+          fileType: file?.type || 'application/pdf',
+          uploadedAt: new Date().toISOString()
+        };
+      }
+
+      // في الوضع الحقيقي، نرفع الملف إلى Supabase Storage
+      let fileUrl = null;
+      if (file) {
+        const fileName = `${Date.now()}_${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(fileName, file);
+        
+        if (uploadError) {
+          console.error('File upload error:', uploadError);
+          // نكمل بدون الملف في حالة فشل الرفع
+        } else {
+          const { data: urlData } = supabase.storage
+            .from('documents')
+            .getPublicUrl(fileName);
+          fileUrl = urlData.publicUrl;
+        }
+      }
+
+      const docToInsert = {
+        ...documentData,
+        file_url: fileUrl,
+        file_name: file?.name,
+        file_size: file?.size,
+        file_type: file?.type,
+        uploaded_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('documents')
+        .insert([docToInsert])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      throw error;
+    }
+  },
+};
