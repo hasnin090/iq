@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { supabaseApi } from '@/lib/supabase-api';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -92,7 +92,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
   
   const editMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: EditProjectFormValues }) => {
-      return apiRequest(`/api/projects/${id}`, 'PUT', data);
+      return supabaseApi.updateProject(id, data);
     },
     onSuccess: (data) => {
       toast({
@@ -116,8 +116,7 @@ export function ProjectList({ projects, isLoading, onProjectUpdated }: ProjectLi
 
   const deleteMutation = useMutation({
     mutationFn: ({ id, force = false }: { id: number; force?: boolean }) => {
-      const url = force ? `/api/projects/${id}?force=true` : `/api/projects/${id}`;
-      return apiRequest(url, 'DELETE', undefined);
+      return supabaseApi.deleteProject(id);
     },
     onSuccess: (data) => {
       toast({

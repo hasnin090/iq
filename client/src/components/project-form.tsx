@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { supabaseApi } from '@/lib/supabase-api';
 import { useToast } from '@/hooks/use-toast';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -47,7 +47,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
   });
   
   const mutation = useMutation({
-    mutationFn: (data: ProjectFormValues) => {
+    mutationFn: async (data: ProjectFormValues) => {
       // التأكد من أن اسم المشروع غير فارغ
       if (!data.name || data.name.trim() === '') {
         throw new Error("اسم المشروع مطلوب");
@@ -60,7 +60,7 @@ export function ProjectForm({ onSubmit }: ProjectFormProps) {
         name: data.name.trim() // إزالة المسافات الزائدة
       };
       
-      return apiRequest('/api/projects', 'POST', projectData);
+      return await supabaseApi.createProject(projectData);
     },
     onSuccess: (data: any) => {
       toast({

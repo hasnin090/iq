@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { formatCurrency } from '@/lib/chart-utils';
 import { formatDateTime } from '@/utils/date-utils';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { supabaseApi } from '@/lib/supabase-api';
+import { queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -139,7 +140,7 @@ export function TransactionList({
 
   const deleteMutation = useMutation({
     mutationFn: (transactionId: number) => 
-      apiRequest(`/api/transactions/${transactionId}`, 'DELETE'),
+      supabaseApi.deleteTransaction(transactionId),
     onSuccess: () => {
       toast({
         title: "تم الحذف بنجاح",
@@ -164,7 +165,7 @@ export function TransactionList({
         ...data.transaction,
         date: data.transaction.date.toISOString(),
       };
-      return apiRequest(`/api/transactions/${data.id}`, 'PUT', formattedData);
+      return supabaseApi.updateTransaction(data.id, formattedData);
     },
     onSuccess: () => {
       toast({
@@ -204,7 +205,7 @@ export function TransactionList({
 
   const deleteAttachmentMutation = useMutation({
     mutationFn: (transactionId: number) => 
-      apiRequest(`/api/transactions/${transactionId}/attachment`, 'DELETE'),
+      supabaseApi.deleteTransactionAttachment(transactionId),
     onSuccess: () => {
       toast({
         title: "تم حذف المرفق بنجاح",

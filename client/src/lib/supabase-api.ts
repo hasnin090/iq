@@ -525,7 +525,7 @@ async function createTransaction(transactionData: any) {
     return data;
   } catch (error) {
     console.error('خطأ في إنشاء المعاملة:', error);
-    throw new Error('فشل في إنشاء المعاملة');
+    throw new Error('فشل في إنشاء معاملة');
   }
 }
 
@@ -1124,4 +1124,186 @@ export const supabaseApi = {
       throw error;
     }
   },
+
+  // وظيفة إنشاء مشروع جديد
+  createProject: async (projectData: any) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نرجع بيانات وهمية
+        return {
+          id: Date.now(),
+          ...projectData,
+          createdAt: new Date().toISOString(),
+          status: 'active',
+          progress: 0
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('projects')
+        .insert([{
+          name: projectData.name,
+          description: projectData.description,
+          start_date: projectData.startDate,
+          end_date: projectData.endDate,
+          status: projectData.status || 'active',
+          budget: projectData.budget,
+          created_by: projectData.createdBy,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      throw error;
+    }
+  },
+
+  updateProject: async (projectId: number, projectData: any) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نرجع بيانات وهمية
+        return {
+          id: projectId,
+          ...projectData,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('projects')
+        .update({
+          name: projectData.name,
+          description: projectData.description,
+          start_date: projectData.startDate,
+          end_date: projectData.endDate,
+          status: projectData.status,
+          budget: projectData.budget,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', projectId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating project:', error);
+      throw error;
+    }
+  },
+
+  deleteProject: async (projectId: number) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نعيد نجاح العملية
+        return { success: true, message: 'تم حذف المشروع بنجاح' };
+      }
+
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+    
+      if (error) throw error;
+      return { success: true, message: 'تم حذف المشروع بنجاح' };
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      throw error;
+    }
+  },
+
+  // وظائف إدارة المعاملات الإضافية
+  updateTransaction: async (transactionId: number, transactionData: any) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نرجع بيانات وهمية
+        return {
+          id: transactionId,
+          ...transactionData,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .update({
+          date: transactionData.date,
+          amount: transactionData.amount,
+          type: transactionData.type,
+          description: transactionData.description,
+          project_id: transactionData.projectId,
+          expense_type: transactionData.expenseType,
+          employee_id: transactionData.employeeId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', transactionId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      throw error;
+    }
+  },
+
+  deleteTransaction: async (transactionId: number) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نعيد نجاح العملية
+        return { success: true, message: 'تم حذف المعاملة بنجاح' };
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', transactionId);
+    
+      if (error) throw error;
+      return { success: true, message: 'تم حذف المعاملة بنجاح' };
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      throw error;
+    }
+  },
+
+  deleteTransactionAttachment: async (transactionId: number) => {
+    try {
+      const isDemoMode = await checkDemoMode();
+      
+      if (isDemoMode) {
+        // في وضع التجربة، نعيد نجاح العملية
+        return { success: true, message: 'تم حذف المرفق بنجاح' };
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .update({
+          file_url: null,
+          file_type: null
+        })
+        .eq('id', transactionId);
+    
+      if (error) throw error;
+      return { success: true, message: 'تم حذف المرفق بنجاح' };
+    } catch (error) {
+      console.error('Error deleting transaction attachment:', error);
+      throw error;
+    }
+  }
 };
