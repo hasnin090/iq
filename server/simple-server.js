@@ -173,6 +173,154 @@ app.get('/api/transactions', async (req, res) => {
   }
 });
 
+// ✅ API endpoints مفقودة - إضافة جديدة
+// Route للحصول على لوحة التحكم
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+    
+    // جلب الإحصائيات
+    const [projectsRes, transactionsRes, employeesRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/projects?select=count`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'count=exact'
+        }
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/transactions?select=type,amount`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/employees?select=count`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'count=exact'
+        }
+      })
+    ]);
+
+    const transactions = await transactionsRes.json();
+    const projectsCount = projectsRes.headers.get('content-range')?.split('/')[1] || 0;
+    const employeesCount = employeesRes.headers.get('content-range')?.split('/')[1] || 0;
+
+    const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+    const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+
+    res.json({
+      projectsCount: parseInt(projectsCount) || 0,
+      transactionsCount: transactions.length || 0,
+      employeesCount: parseInt(employeesCount) || 0,
+      totalIncome: income,
+      totalExpenses: expenses,
+      netProfit: income - expenses
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch dashboard data',
+      message: error.message
+    });
+  }
+});
+
+// Route للحصول على الإعدادات
+app.get('/api/settings', (req, res) => {
+  res.json({
+    appName: 'نظام إدارة شركة طريق العامرة',
+    version: '1.0.0',
+    language: 'ar',
+    currency: 'SAR',
+    dateFormat: 'YYYY-MM-DD',
+    supabaseConfigured: !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+    features: {
+      projects: true,
+      transactions: true,
+      employees: true,
+      documents: true,
+      reports: true
+    }
+  });
+});
+
+// Route للحصول على أنواع المصروفات
+app.get('/api/expense-types', (req, res) => {
+  res.json([
+    { id: 'materials', name: 'مواد خام', category: 'materials' },
+    { id: 'labor', name: 'عمالة', category: 'labor' },
+    { id: 'equipment', name: 'معدات', category: 'equipment' },
+    { id: 'transportation', name: 'نقل ومواصلات', category: 'transportation' },
+    { id: 'utilities', name: 'خدمات عامة', category: 'utilities' },
+    { id: 'maintenance', name: 'صيانة', category: 'maintenance' },
+    { id: 'administrative', name: 'إدارية', category: 'administrative' },
+    { id: 'other', name: 'أخرى', category: 'other' }
+  ]);
+});
+
+// Route للحصول على الموظفين
+app.get('/api/employees', async (req, res) => {
+  try {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+    
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/employees?select=*&is_active=eq.true&order=name.asc`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    
+    const employees = await response.json();
+    res.json(employees);
+    
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch employees',
+      message: error.message
+    });
+  }
+});
+
+// Route لإنشاء معاملة جديدة
+app.post('/api/transactions', async (req, res) => {
+  try {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+    
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/transactions`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(req.body)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      res.status(201).json(result);
+    } else {
+      res.status(response.status).json({
+        error: 'Failed to create transaction',
+        details: result
+      });
+    }
+    
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to create transaction',
+      message: error.message
+    });
+  }
+});
+
 // Route أساسي لتقديم التطبيق
 app.get('*', (req, res) => {
   // إذا كان هناك index.html في مجلد public
@@ -272,6 +420,22 @@ app.get('*', (req, res) => {
                     <strong>المعاملات</strong><br>
                     /api/transactions
                 </a>
+                <a href="/api/dashboard" class="api-link">
+                    <strong>لوحة التحكم</strong><br>
+                    /api/dashboard
+                </a>
+                <a href="/api/settings" class="api-link">
+                    <strong>الإعدادات</strong><br>
+                    /api/settings
+                </a>
+                <a href="/api/expense-types" class="api-link">
+                    <strong>أنواع المصروفات</strong><br>
+                    /api/expense-types
+                </a>
+                <a href="/api/employees" class="api-link">
+                    <strong>الموظفون</strong><br>
+                    /api/employees
+                </a>
             </div>
             
             <div style="margin-top: 30px; text-align: center; font-size: 14px; opacity: 0.8;">
@@ -309,6 +473,10 @@ app.listen(PORT, () => {
   console.log(`   👥 المستخدمون: http://localhost:${PORT}/api/users`);
   console.log(`   📊 المشاريع: http://localhost:${PORT}/api/projects`);
   console.log(`   💰 المعاملات: http://localhost:${PORT}/api/transactions`);
+  console.log(`   📊 لوحة التحكم: http://localhost:${PORT}/api/dashboard`);
+  console.log(`   ⚙️ الإعدادات: http://localhost:${PORT}/api/settings`);
+  console.log(`   💼 أنواع المصروفات: http://localhost:${PORT}/api/expense-types`);
+  console.log(`   👤 الموظفون: http://localhost:${PORT}/api/employees`);
   console.log('\n💡 اضغط Ctrl+C لإيقاف السيرفر');
 });
 
