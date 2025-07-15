@@ -918,10 +918,6 @@ input[type="number"] {
   .page-decoration {
     @apply fixed top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-blue-500/5 to-transparent dark:from-blue-500/10 -z-10;
   }
-  
-  .page-decoration-2 {
-    @apply fixed bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-blue-500/5 to-transparent dark:from-blue-500/10 -z-10;
-  }
 }
 
 @layer utilities {
@@ -1349,5 +1345,51 @@ input[type="number"] {
     margin-top: 0;
     padding-top: clamp(1rem, 3vh, 2rem);
     min-height: calc(100vh - 4rem);
+  }
+
+  /* تحسينات لصفحة تسجيل الدخول */
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* تحسين التمرير السلس */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* خطوط مخصصة */
+  .font-cairo {
+    font-family: 'Cairo', 'Tajawal', sans-serif;
+  }
+
+  .font-amiri {
+    font-family: 'Amiri', serif;
+  }
+
+  /* تحسينات الأمان البصرية */
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(45deg, #3b82f6, #6366f1, #8b5cf6);
+    padding: 2px;
+    border-radius: 16px;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: white;
+    border-radius: 14px;
   }
 }
