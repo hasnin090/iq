@@ -79,6 +79,18 @@ const handler = async (event, context) => {
           }),
         };
       
+      case '/dashboard':
+        return await handleDashboard(event, headers);
+      
+      case '/settings':
+        return await handleSettings(event, headers);
+      
+      case '/expense-types':
+        return await handleExpenseTypes(event, headers);
+      
+      case '/employees':
+        return await handleEmployees(event, headers);
+      
       default:
         return {
           statusCode: 404,
@@ -86,7 +98,7 @@ const handler = async (event, context) => {
           body: JSON.stringify({ 
             error: 'Not found',
             path: path,
-            available_endpoints: ['/auth/login', '/auth/logout', '/auth/check', '/health']
+            available_endpoints: ['/auth/login', '/auth/logout', '/auth/check', '/health', '/dashboard', '/settings', '/expense-types', '/employees']
           }),
         };
     }
@@ -197,6 +209,119 @@ async function handleAuthCheck(event, headers) {
     statusCode: 401,
     headers,
     body: JSON.stringify({ error: 'Not authenticated' }),
+  };
+}
+
+async function handleDashboard(event, headers) {
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
+  }
+
+  // Mock dashboard data
+  const dashboardData = {
+    totalProjects: 5,
+    activeProjects: 3,
+    totalEmployees: 12,
+    totalTransactions: 45,
+    totalRevenue: 150000,
+    totalExpenses: 80000,
+    stats: {
+      projectsThisMonth: 2,
+      employeesActive: 10,
+      transactionsThisMonth: 15
+    }
+  };
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify(dashboardData),
+  };
+}
+
+async function handleSettings(event, headers) {
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
+  }
+
+  // Mock settings data
+  const settingsData = {
+    companyName: 'شركة التطوير المتقدم',
+    currency: 'USD',
+    language: 'ar',
+    theme: 'light',
+    notifications: {
+      email: true,
+      sms: false,
+      whatsapp: true
+    },
+    features: {
+      whatsappIntegration: true,
+      fileSync: true,
+      advancedReports: false
+    }
+  };
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify(settingsData),
+  };
+}
+
+async function handleExpenseTypes(event, headers) {
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
+  }
+
+  // Mock expense types data
+  const expenseTypes = [
+    { id: 1, name: 'مصاريف النقل', description: 'تكاليف النقل والمواصلات', active: true },
+    { id: 2, name: 'مصاريف المكتب', description: 'أدوات ومستلزمات المكتب', active: true },
+    { id: 3, name: 'مصاريف التسويق', description: 'الإعلانات والدعاية', active: true },
+    { id: 4, name: 'رواتب الموظفين', description: 'رواتب وأجور العمالة', active: true },
+  ];
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify(expenseTypes),
+  };
+}
+
+async function handleEmployees(event, headers) {
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
+  }
+
+  // Mock employees data
+  const employees = [
+    { id: 1, name: 'أحمد محمد', position: 'مطور واجهات', salary: 5000, active: true, assigned_project_id: 1 },
+    { id: 2, name: 'فاطمة علي', position: 'مطورة خلفية', salary: 4500, active: true, assigned_project_id: 1 },
+    { id: 3, name: 'محمد صالح', position: 'مدير مشروع', salary: 6000, active: true, assigned_project_id: 2 },
+    { id: 4, name: 'نور الهدى', position: 'مصممة UI/UX', salary: 4000, active: true, assigned_project_id: 1 },
+  ];
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify(employees),
   };
 }
 

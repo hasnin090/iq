@@ -22,11 +22,24 @@
 
 ### 3. **خطأ في جلب الموظفين والمعاملات**
 **المشكلة**: ```Failed to load resource: the server responded with a status of 400```
+**تفاصيل الخطأ**: ```column employees.is_active does not exist```
 
 **الحل المطبق**:
 - ✅ تحديث استعلامات Supabase API
 - ✅ إصلاح معالجة الأخطاء في الخادم
 - ✅ إضافة بيانات تجريبية
+- ✅ تصحيح أسماء الأعمدة من `is_active` إلى `active`
+
+### 4. **خطأ 404 في API endpoints على الإنتاج (Netlify)**
+**المشكلة**: ```GET https://code04.netlify.app/api/settings 404 (Not Found)```
+**المشكلة**: ```GET https://code04.netlify.app/api/expense-types 404 (Not Found)```
+
+**الحل المطبق**:
+- ✅ إضافة `/api/dashboard` endpoint
+- ✅ إضافة `/api/settings` endpoint
+- ✅ إضافة `/api/expense-types` endpoint
+- ✅ إضافة `/api/employees` endpoint
+- ✅ تحديث ملف `netlify/functions/api.ts`
 
 ## 🚀 الـ API Endpoints الجديدة:
 

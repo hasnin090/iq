@@ -433,7 +433,7 @@ async function getEmployees() {
     const { data, error } = await supabase
       .from('employees')
       .select('*')
-      .eq('is_active', true)
+      .eq('active', true)
       .order('name');
     
     if (error) throw error;
@@ -460,7 +460,7 @@ async function getEmployeesByProject(projectId: number) {
       .from('employees')
       .select('*')
       .eq('assigned_project_id', projectId)
-      .eq('is_active', true)
+      .eq('active', true)
       .order('name');
     
     if (error) throw error;
@@ -487,7 +487,7 @@ async function getUserProjects() {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
-      .eq('is_active', true)
+      .eq('active', true)
       .order('name');
     
     if (error) throw error;
@@ -687,7 +687,7 @@ export const supabaseApi = {
       const { data, error } = await supabase
         .from('expense_types')
         .select('*')
-        .eq('is_active', true)
+        .eq('active', true)
         .order('name');
       
       if (error) throw error;
@@ -718,7 +718,7 @@ export const supabaseApi = {
         .insert([{
           name,
           description,
-          is_active: true,
+          active: true,
           created_at: new Date().toISOString()
         }])
         .select()
@@ -743,7 +743,7 @@ export const supabaseApi = {
     try {
       const { error } = await supabase
         .from('expense_types')
-        .update({ is_active: false })
+        .update({ active: false })
         .eq('id', id);
       
       if (error) throw error;
