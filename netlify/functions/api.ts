@@ -203,8 +203,9 @@ async function handleAuthCheck(event, headers) {
     };
   }
 
-  // For demo purposes, always return not authenticated
+  // For demo purposes, always return not authenticated  
   // In a real implementation, you would check session/token
+  // Updated: يناير 2025 - تحقق من النشر
   return {
     statusCode: 401,
     headers,
