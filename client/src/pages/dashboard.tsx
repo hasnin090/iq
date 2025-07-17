@@ -118,31 +118,26 @@ export default function Dashboard() {
   const filteredTransactions = getFilteredTransactions();
 
   return (
-    <div className="dashboard-container p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
+    <div className="dashboard-container p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
       {/* Header Section */}
-      <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-4 sm:p-6 lg:p-8">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 sm:p-4 lg:p-6">
         <div className="max-w-full mx-auto">
           <div className="flex flex-col xl:flex-row justify-between items-center gap-4 lg:gap-6">
             {/* Logo and Title Section */}
-            <div className="flex items-center space-x-4 sm:space-x-6 rtl:space-x-reverse">
+            <div className="flex items-center space-x-3 sm:space-x-4 rtl:space-x-reverse">
               <div className="relative group">
-                <div className="w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300 border border-emerald-300/50">
-                  <svg className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl flex items-center justify-center shadow-2xl transform group-hover:scale-105 transition-all duration-300 border border-sky-300/30">
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full shadow-lg animate-pulse flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">✓</span>
-                </div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full shadow-lg animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-emerald-700 via-green-600 to-teal-600 dark:from-emerald-400 dark:to-green-500 bg-clip-text text-transparent">
-                  شركة طريق العامرة
+                <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-sky-600 to-blue-700 dark:from-sky-400 dark:to-blue-500 bg-clip-text text-transparent">
+                  لوحة التحكم المالية
                 </h1>
-                <p className="text-gray-600 dark:text-gray-300 mt-1 text-base sm:text-lg font-medium">
-                  لوحة التحكم المالية والإدارية المتكاملة
-                </p>
-                <p className="text-emerald-600 dark:text-emerald-400 text-sm font-medium">للمقاولات والاستثمار</p>
+                <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base font-medium hidden sm:block">نظرة شاملة على الأداء والإحصائيات المالية</p>
               </div>
             </div>
             
@@ -195,53 +190,6 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Welcome Section - شركة طريق العامرة */}
-      <div className="bg-gradient-to-r from-emerald-500/90 via-green-500/90 to-teal-500/90 backdrop-blur-xl shadow-2xl border border-emerald-300/50 rounded-2xl p-6 sm:p-8 lg:p-10 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-green-700/20"></div>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
-        
-        <div className="relative z-10">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <div className="text-center lg:text-right flex-1">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3">
-                مرحباً بك في شركة طريق العامرة
-              </h2>
-              <p className="text-lg sm:text-xl font-medium opacity-90 mb-4">
-                للمقاولات والاستثمار - نحو مستقبل أفضل
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4">
-                  <div className="text-2xl font-bold">15+</div>
-                  <div className="text-sm opacity-90">سنة خبرة</div>
-                </div>
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4">
-                  <div className="text-2xl font-bold">200+</div>
-                  <div className="text-sm opacity-90">مشروع منجز</div>
-                </div>
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-4">
-                  <div className="text-2xl font-bold">95%</div>
-                  <div className="text-sm opacity-90">رضا العملاء</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex-shrink-0">
-              <div className="relative">
-                <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <svg className="w-12 h-12 lg:w-16 lg:h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-400 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white text-xs font-bold">★</span>
-                </div>
               </div>
             </div>
           </div>
@@ -495,26 +443,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-      </div>
-      
-      {/* Footer - شركة طريق العامرة */}
-      <div className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 text-white rounded-2xl p-6 mt-8">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold">شركة طريق العامرة للمقاولات والاستثمار</h3>
-          </div>
-          <p className="text-gray-300 text-sm mb-2">
-            نظام إدارة مالي متكامل ومتطور | جميع الحقوق محفوظة © 2025
-          </p>
-          <p className="text-gray-400 text-xs">
-            تم التطوير بأحدث التقنيات لضمان أفضل أداء وأمان
-          </p>
-        </div>
       </div>
     </div>
   );
