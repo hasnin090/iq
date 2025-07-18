@@ -91,6 +91,9 @@ const handler = async (event, context) => {
       case '/employees':
         return await handleEmployees(event, headers);
       
+      case '/transactions':
+        return await handleTransactions(event, headers);
+      
       default:
         return {
           statusCode: 404,
@@ -98,7 +101,7 @@ const handler = async (event, context) => {
           body: JSON.stringify({ 
             error: 'Not found',
             path: path,
-            available_endpoints: ['/auth/login', '/auth/logout', '/auth/check', '/health', '/dashboard', '/settings', '/expense-types', '/employees']
+            available_endpoints: ['/auth/login', '/auth/logout', '/auth/check', '/health', '/dashboard', '/settings', '/expense-types', '/employees', '/transactions']
           }),
         };
     }
@@ -323,6 +326,130 @@ async function handleEmployees(event, headers) {
     statusCode: 200,
     headers,
     body: JSON.stringify(employees),
+  };
+}
+
+async function handleTransactions(event, headers) {
+  if (event.httpMethod === 'GET') {
+    // Mock transactions data
+    const transactions = [
+      { 
+        id: 1, 
+        type: 'income', 
+        amount: 5000, 
+        description: 'دفعة من العميل الأول', 
+        date: '2025-07-15',
+        project_id: 1,
+        expense_type_id: null,
+        employee_id: null,
+        created_by: 'user123'
+      },
+      { 
+        id: 2, 
+        type: 'expense', 
+        amount: 1500, 
+        description: 'شراء معدات مكتبية', 
+        date: '2025-07-16',
+        project_id: 1,
+        expense_type_id: 2,
+        employee_id: null,
+        created_by: 'user123'
+      },
+      { 
+        id: 3, 
+        type: 'expense', 
+        amount: 4000, 
+        description: 'راتب الموظف أحمد', 
+        date: '2025-07-17',
+        project_id: 1,
+        expense_type_id: 4,
+        employee_id: 1,
+        created_by: 'user123'
+      }
+    ];
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(transactions),
+    };
+  }
+
+  if (event.httpMethod === 'POST') {
+    // Handle creating new transaction
+    try {
+      if (!event.body) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'مطلوب إرسال بيانات المعاملة' }),
+        };
+      }
+
+      const transactionData = JSON.parse(event.body);
+      
+      // Basic validation
+      if (!transactionData.type || !transactionData.amount || !transactionData.description) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'مطلوب: نوع المعاملة والمبلغ والوصف' }),
+        };
+      }
+
+      // Validate transaction type
+      if (!['income', 'expense'].includes(transactionData.type)) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'نوع المعاملة يجب أن يكون income أو expense' }),
+        };
+      }
+
+      // Validate amount
+      if (isNaN(transactionData.amount) || transactionData.amount <= 0) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'المبلغ يجب أن يكون رقم موجب' }),
+        };
+      }
+
+      // Mock creating transaction
+      const newTransaction = {
+        id: Date.now(),
+        type: transactionData.type,
+        amount: parseFloat(transactionData.amount),
+        description: transactionData.description,
+        date: transactionData.date || new Date().toISOString().split('T')[0],
+        project_id: transactionData.project_id || 1,
+        expense_type_id: transactionData.expense_type_id || null,
+        employee_id: transactionData.employee_id || null,
+        created_at: new Date().toISOString(),
+        created_by: 'user123'
+      };
+
+      console.log('تم إنشاء معاملة جديدة:', newTransaction);
+
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify(newTransaction),
+      };
+    } catch (error) {
+      console.error('خطأ في إنشاء المعاملة:', error);
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'خطأ في معالجة البيانات: ' + error.message }),
+      };
+    }
+  }
+
+  return {
+    statusCode: 405,
+    headers,
+    body: JSON.stringify({ error: 'Method not allowed' }),
   };
 }
 

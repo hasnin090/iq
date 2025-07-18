@@ -152,7 +152,7 @@ export const api = {
   // إنشاء معاملة جديدة
   async createTransaction(transactionData) {
     try {
-      const response = await fetch('/api/transactions', {
+      const response = await fetch('/.netlify/functions/api/transactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -160,10 +160,16 @@ export const api = {
         body: JSON.stringify(transactionData)
       });
       
-      return await response.json();
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'فشل في إنشاء المعاملة');
+      }
+      
+      return result;
     } catch (error) {
       console.error('خطأ في إنشاء المعاملة:', error);
-      return { error: 'فشل في إنشاء المعاملة' };
+      return { error: error.message || 'فشل في إنشاء المعاملة' };
     }
   }
 };

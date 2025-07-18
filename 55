@@ -1,0 +1,200 @@
+-- Create tables with improvements
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT NOT NULL,
+  role TEXT CHECK (role IN ('admin', 'manager', 'user', 'viewer')) DEFAULT 'user',
+  permissions TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(200) NOT NULL,
+  description TEXT,
+  budget DECIMAL(15,2) DEFAULT 0 CHECK (budget >= 0),
+  spent DECIMAL(15,2) DEFAULT 0 CHECK (spent >= 0),
+  start_date DATE,
+  end_date DATE,
+  status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'paused', 'cancelled')),
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  project_id UUID REFERENCES projects(id),
+  role TEXT CHECK (role IN ('owner', 'manager', 'viewer')),
+  UNIQUE(user_id, project_id)
+);
+
+CREATE TABLE IF NOT EXISTS expense_types (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS employees (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) NOT NULL,
+  salary DECIMAL(15,2) DEFAULT 0 CHECK (salary >= 0),
+  assigned_project_id UUID REFERENCES projects(id),
+  active BOOLEAN DEFAULT true,
+  hire_date TIMESTAMPTZ DEFAULT now(),
+  notes TEXT,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense')),
+  amount DECIMAL(15,2) NOT NULL CHECK (amount >= 0),
+  description TEXT NOT NULL,
+  date DATE NOT NULL,
+  project_id UUID REFERENCES projects(id),
+  expense_type_id INTEGER REFERENCES expense_types(id),
+  employee_id UUID REFERENCES employees(id),
+  file_url TEXT,
+  file_type VARCHAR(50),
+  file_size INTEGER,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  file_url TEXT,
+  file_type VARCHAR(50),
+  file_size INTEGER,
+  tags TEXT[] DEFAULT '{}',
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS document_links (
+  id SERIAL PRIMARY KEY,
+  document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+  entity_type TEXT NOT NULL,
+  entity_uuid UUID,
+  entity_int INTEGER,
+  linked_by UUID REFERENCES auth.users(id),
+  linked_at TIMESTAMPTZ DEFAULT now(),
+  CHECK ((entity_uuid IS NOT NULL AND entity_int IS NULL) OR (entity_uuid IS NULL AND entity_int IS NOT NULL))
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  action VARCHAR(100) NOT NULL,
+  entity_type TEXT,
+  entity_id UUID,
+  details JSONB,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ledger_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_name VARCHAR(100) NOT NULL,
+  debit_amount DECIMAL(15,2) DEFAULT 0 CHECK (debit_amount >= 0),
+  credit_amount DECIMAL(15,2) DEFAULT 0 CHECK (credit_amount >= 0),
+  description TEXT,
+  transaction_id UUID REFERENCES transactions(id),
+  expense_type_id INTEGER REFERENCES expense_types(id),
+  entry_date DATE NOT NULL,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS receivables (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  beneficiary_name VARCHAR(100) NOT NULL,
+  amount DECIMAL(15,2) NOT NULL CHECK (amount >= 0),
+  description TEXT,
+  due_date DATE,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'partially_paid', 'paid', 'overdue')),
+  total_paid DECIMAL(15,2) DEFAULT 0 CHECK (total_paid >= 0),
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS receivable_payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  receivable_id UUID REFERENCES receivables(id) ON DELETE CASCADE,
+  amount DECIMAL(15,2) NOT NULL CHECK (amount >= 0),
+  payment_date DATE NOT NULL,
+  notes TEXT,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  id SERIAL PRIMARY KEY,
+  key VARCHAR(100) UNIQUE NOT NULL,
+  value TEXT,
+  description TEXT,
+  type VARCHAR(20) DEFAULT 'string' CHECK (type IN ('string', 'number', 'boolean', 'json')),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Enable Row-Level Security (RLS) for relevant tables
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ledger_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE receivables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE receivable_payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
+
+-- Function to update 'updated_at' column
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Triggers for updating 'updated_at'
+CREATE TRIGGER trg_update_projects BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_update_transactions BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_update_employees BEFORE UPDATE ON employees FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_update_settings BEFORE UPDATE ON settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_update_receivables BEFORE UPDATE ON receivables FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS Policies
+CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can view their projects" ON projects FOR SELECT
+  USING (EXISTS (SELECT 1 FROM user_roles WHERE user_roles.user_id = auth.uid() AND user_roles.project_id = projects.id));
+CREATE POLICY "Users can view their transactions" ON transactions FOR SELECT USING (auth.uid() = created_by);
+CREATE POLICY "Users can insert transactions for their projects" ON transactions FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM user_roles WHERE user_roles.user_id = auth.uid() AND user_roles.project_id = transactions.project_id));
+CREATE POLICY "Users can view their documents" ON documents FOR SELECT USING (auth.uid() = created_by);
+CREATE POLICY "Users can update their documents" ON documents FOR UPDATE USING (auth.uid() = created_by);
+CREATE POLICY "Users can view their logs" ON activity_logs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can view their employees" ON employees FOR SELECT USING (auth.uid() = created_by);
+CREATE POLICY "Users can view their receivables" ON receivables FOR SELECT USING (auth.uid() = created_by);
+CREATE POLICY "Users can view their ledger entries" ON ledger_entries FOR SELECT USING (auth.uid() = created_by);
+
+-- Indexes for performance optimization
+CREATE INDEX idx_transactions_project_id ON transactions(project_id);
+CREATE INDEX idx_transactions_created_by ON transactions(created_by);
+CREATE INDEX idx_documents_created_by ON documents(created_by);
+CREATE INDEX idx_employees_created_by ON employees(created_by);
+CREATE INDEX idx_receivables_created_by ON receivables(created_by);
