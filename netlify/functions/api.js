@@ -1,33 +1,13 @@
-// Demo users for development/testing
-const demoUsers = [
-  {
-    id: 1,
-    username: 'admin',
-    password: 'admin123',
-    name: 'المدير العام',
-    email: 'admin@example.com',
-    role: 'admin',
-    permissions: ['manage_all', 'view_reports', 'manage_users']
-  },
-  {
-    id: 2,
-    username: 'manager',
-    password: 'manager123',
-    name: 'مدير المشاريع',
-    email: 'manager@example.com',
-    role: 'manager',
-    permissions: ['view_reports', 'manage_projects']
-  },
-  {
-    id: 3,
-    username: 'user',
-    password: 'user123',
-    name: 'المستخدم العادي',
-    email: 'user@example.com',
-    role: 'user',
-    permissions: ['view_basic']
-  }
-];
+import { createClient } from '@supabase/supabase-js'
+
+// إعداد Supabase
+const supabaseUrl = process.env.VITE_SUPABASE_URL
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
+
+let supabase = null
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey)
+}
 
 // Netlify Functions API handler (JavaScript version)
 const handler = async (event, context) => {
@@ -37,7 +17,7 @@ const handler = async (event, context) => {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
   };
 
   // Handle OPTIONS request (CORS preflight)
