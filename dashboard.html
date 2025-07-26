@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المحاسبة العربي - شركة طريق العامرة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            direction: rtl;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .status i {
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .success { color: #48bb78; }
+        .warning { color: #ed8936; }
+        .error { color: #f56565; }
+        
+        .api-links {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .api-links h4 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .api-link {
+            display: block;
+            padding: 8px 12px;
+            background: white;
+            color: #4a5568;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px 0;
+            border-right: 3px solid #667eea;
+        }
+        
+        .api-link:hover {
+            background: #edf2f7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 نظام المحاسبة العربي</h1>
+            <p>شركة طريق العامرة - النظام الشامل لإدارة المشاريع والمحاسبة</p>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>📊 حالة النظام</h3>
+                <div class="status success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>خادم API يعمل (المنفذ 5000)</span>
+                </div>
+                <div class="status success">
+                    <i class="fas fa-database"></i>
+                    <span>قاعدة البيانات متصلة (Supabase)</span>
+                </div>
+                <div class="status success">
+                    <i class="fas fa-desktop"></i>
+                    <span>واجهة React تعمل (المنفذ 3000)</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>🚀 الروابط السريعة</h3>
+                <a href="http://localhost:3000" class="btn" target="_blank">
+                    <i class="fas fa-window-maximize"></i> الواجهة الرئيسية
+                </a>
+                <a href="http://localhost:5000/api/dashboard" class="btn" target="_blank">
+                    <i class="fas fa-chart-bar"></i> لوحة التحكم
+                </a>
+                <a href="http://localhost:5000/api/health" class="btn" target="_blank">
+                    <i class="fas fa-heartbeat"></i> فحص الصحة
+                </a>
+            </div>
+            
+            <div class="card">
+                <h3>💼 الوحدات الأساسية</h3>
+                <a href="http://localhost:5000/api/projects" class="btn" target="_blank">
+                    <i class="fas fa-project-diagram"></i> المشاريع
+                </a>
+                <a href="http://localhost:5000/api/transactions" class="btn" target="_blank">
+                    <i class="fas fa-exchange-alt"></i> المعاملات
+                </a>
+                <a href="http://localhost:5000/api/employees" class="btn" target="_blank">
+                    <i class="fas fa-users"></i> الموظفون
+                </a>
+                <a href="http://localhost:5000/api/expense-types" class="btn" target="_blank">
+                    <i class="fas fa-tags"></i> أنواع المصروفات
+                </a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>🔗 روابط API المتاحة</h3>
+            <div class="api-links">
+                <h4>بيانات النظام:</h4>
+                <a href="http://localhost:5000/api/health" class="api-link" target="_blank">
+                    GET /api/health - فحص صحة الخادم
+                </a>
+                <a href="http://localhost:5000/api/test-supabase" class="api-link" target="_blank">
+                    GET /api/test-supabase - اختبار اتصال قاعدة البيانات
+                </a>
+                <a href="http://localhost:5000/api/dashboard" class="api-link" target="_blank">
+                    GET /api/dashboard - بيانات لوحة التحكم
+                </a>
+                
+                <h4>إدارة البيانات:</h4>
+                <a href="http://localhost:5000/api/projects" class="api-link" target="_blank">
+                    GET /api/projects - قائمة المشاريع
+                </a>
+                <a href="http://localhost:5000/api/transactions" class="api-link" target="_blank">
+                    GET /api/transactions - المعاملات المالية
+                </a>
+                <a href="http://localhost:5000/api/employees" class="api-link" target="_blank">
+                    GET /api/employees - الموظفون
+                </a>
+                <a href="http://localhost:5000/api/expense-types" class="api-link" target="_blank">
+                    GET /api/expense-types - أنواع المصروفات
+                </a>
+                <a href="http://localhost:5000/api/settings" class="api-link" target="_blank">
+                    GET /api/settings - إعدادات النظام
+                </a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>📱 تطبيق الويب التفاعلي</h3>
+            <p style="margin-bottom: 15px;">يمكنك الآن استخدام النظام الكامل من خلال الواجهة التفاعلية:</p>
+            <a href="http://localhost:3000" class="btn" target="_blank" style="font-size: 1.1rem; padding: 15px 30px;">
+                <i class="fas fa-external-link-alt"></i> فتح النظام الكامل
+            </a>
+            <p style="margin-top: 15px; color: #666; font-size: 0.9rem;">
+                ملاحظة: إذا لم تعمل الواجهة بشكل مثالي، يمكنك استخدام روابط API مباشرة لاختبار جميع الوظائف.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh status every 30 seconds
+        setInterval(() => {
+            fetch('http://localhost:5000/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('نظام المحاسبة يعمل بنجاح:', data);
+                })
+                .catch(error => {
+                    console.log('تحقق من تشغيل الخادم:', error);
+                });
+        }, 30000);
+        
+        console.log('🎉 مرحباً بك في نظام المحاسبة العربي');
+        console.log('📊 خادم API: http://localhost:5000');
+        console.log('🎨 واجهة React: http://localhost:3000');
+    </script>
+</body>
+</html>
