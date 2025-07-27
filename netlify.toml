@@ -1,149 +1,44 @@
 [build]
-  publish = "dist/public"
-  command = "npm ci && npm run build"
+  publish = "."
+  command = "echo 'Static site deployment' && cp netlify-fallback.html index.html"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_VERSION = "10"
   NODE_ENV = "production"
-  PYTHON_VERSION = ""
-  DISABLE_PYTHON = "true"
-  VITE_CONFIG_FILE = "vite.config.netlify.ts"
   
-  # Supabase configuration - قيم افتراضية للتجريب
+  # Supabase configuration
   VITE_SUPABASE_URL = "https://jcoekbaahgjympmnuilr.supabase.co"
   VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjb2VrYmFhaGdqeW1wbW51aWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTA1MDcsImV4cCI6MjA2NzYyNjUwN30.CGwebOhh_c4buoX_Uh111zzo8H3p4Ak_p3v3V0LcjRA"
 
-  # ✅ يمكن تخصيص هذه القيم من لوحة Netlify لاحقاً
-
-# إعدادات الوظائف
+# Functions configuration
 [[functions]]
   directory = "netlify/functions/"
   node_bundler = "esbuild"
 
-[context.production.environment]
-  NODE_ENV = "production"
-  VITE_APP_ENV = "production"
-
-[context.deploy-preview.environment]
-  NODE_ENV = "preview"
-  VITE_APP_ENV = "preview"
-
-# توجيهات API
+# API redirects
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
 
-# توجيهات SPA - جميع المسارات تذهب إلى التطبيق
-[[redirects]]
-  from = "/app"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/app/*"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/dashboard"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/dashboard/*"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/transactions"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/transactions/*"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/customers"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/customers/*"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/reports"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/reports/*"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/settings"
-  to = "/app.html"
-  status = 200
-
-[[redirects]]
-  from = "/settings/*"
-  to = "/app.html"
-  status = 200
-
-# الصفحة الرئيسية للترحيب
+# Fallback redirect - must be last
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# رؤوس الأمان والأداء
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
-    X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
-
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
     Access-Control-Allow-Origin = "*"
 
 [[headers]]
-  for = "*.js"
+  for = "/.netlify/functions/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "application/javascript"
-
-[[headers]]
-  for = "*.css"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-    Content-Type = "text/css"
-
-[[headers]]
-  for = "*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-
-[[headers]]
-  for = "/manifest.json"
-  [headers.values]
-    Content-Type = "application/manifest+json"
-    Cache-Control = "public, max-age=86400"
-
-[[headers]]
-  for = "/favicon.ico"
-  [headers.values]
-    Cache-Control = "public, max-age=86400"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
