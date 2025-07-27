@@ -1,6 +1,6 @@
 [build]
   publish = "."
-  command = "echo 'Static site deployment' && cp netlify-fallback.html index.html"
+  command = "echo 'Netlify deployment ready'"
   functions = "netlify/functions"
 
 [build.environment]
