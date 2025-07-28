@@ -1,34 +1,28 @@
 [build]
   publish = "."
-  command = "echo 'Netlify deployment ready'"
+  command = "echo Netlify deployment ready"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
   NODE_ENV = "production"
-  
-  # Supabase configuration
   VITE_SUPABASE_URL = "https://jcoekbaahgjympmnuilr.supabase.co"
   VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjb2VrYmFhaGdqeW1wbW51aWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTA1MDcsImV4cCI6MjA2NzYyNjUwN30.CGwebOhh_c4buoX_Uh111zzo8H3p4Ak_p3v3V0LcjRA"
 
-# Functions configuration
 [[functions]]
   directory = "netlify/functions/"
   node_bundler = "esbuild"
 
-# API redirects
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
 
-# Fallback redirect - must be last
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
