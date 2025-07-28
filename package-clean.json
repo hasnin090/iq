@@ -1,0 +1,32 @@
+{
+  "name": "iq-accounting-system",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "نظام المحاسبة العربي - شركة طريق العامرة",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "vite --config vite.config.clean.ts",
+    "build": "vite build --config vite.config.clean.ts",
+    "preview": "vite preview --config vite.config.clean.ts",
+    "lint": "eslint client/src --ext .ts,.tsx",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}

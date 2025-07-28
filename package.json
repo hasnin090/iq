@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "tsx server/index.ts",
     "dev:client": "vite --config vite.config.ts",
+    "dev:clean": "vite --config vite.config.clean.ts",
     "dev:fullstack": "node server/fullstack-server.js",
     "dev:web": "node server/web-server.js",
     "dev:simple": "node server/simple-server.js",
@@ -18,6 +19,7 @@
     "setup:sample-data": "node scripts/create-sample-data.js",
     "setup:sample-data-api": "node scripts/create-sample-data-api.js",
     "build": "vite build --config vite.config.netlify.ts",
+    "build:clean": "vite build --config vite.config.clean.ts",
     "build:netlify": "vite build --config vite.config.netlify.ts",
     "start": "cross-env NODE_ENV=production node server/production-server-fixed.js",
     "check": "tsc",
