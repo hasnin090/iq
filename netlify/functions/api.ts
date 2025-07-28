@@ -1,3 +1,5 @@
+import { Handler } from '@netlify/functions';
+
 // Demo users for development/testing
 const demoUsers = [
   {
@@ -29,8 +31,8 @@ const demoUsers = [
   }
 ];
 
-// Netlify Functions API handler (JavaScript version)
-const handler = async (event, context) => {
+// Netlify Functions API handler (TypeScript version)
+export const handler: Handler = async (event, context) => {
   // Handle CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -452,5 +454,3 @@ async function handleTransactions(event, headers) {
     body: JSON.stringify({ error: 'Method not allowed' }),
   };
 }
-
-export { handler };

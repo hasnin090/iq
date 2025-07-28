@@ -17,7 +17,13 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: './client/index.html',
+      external: [],
     },
+    chunkSizeWarningLimit: 1000,
+    minify: 'terser',
+    sourcemap: false,
+    target: 'esnext'
+  },
   },
   server: {
     port: 3000,
